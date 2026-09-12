@@ -1,0 +1,1097 @@
+# Chapter 4: Equipment
+
+Right place, right time;
+
+That is the modus operandi for equipment. If you do not have the right equipment when and where you need it, you may as well have never had it. But just as this equipment can be defined by its wielder, so too does it define them.
+
+## Currency on Terra
+:
+While a majority of Terran nations have their own currencies, there is one that stands out: Lungmen Dollars, or LMD as it is commonly known. Terra's political and financial landscapes are volatile and unstable; since the War of the Four Emperors and its consequences, many nations sought common ground on which to conduct fair trade and fund rebuilding efforts. The currency of neutral Lungmen, already an international centre of trade, came to be that common ground. It is a relatively stable currency, and is the main currency used in international transactions. As such, it is accepted in all but the most remote locations.
+
+##### Conversion from 5e
+| Coin | Equivalent in LMD  | 
+|:--------------:|:--------:|
+| 1 Copper Piece | 1 LMD   |
+| 1 Silver Piece | 10 LMD  |
+| 1 Gold Piece   | 100 LMD |
+::
+{{note
+##### Other Currencies on Terra
+For mechanical reasons, the cost of items is listed in LMD. However, as it may be useful to know the currencies of other Terran nations, here is a list of extant currencies:
+- Bolivarian Sol
+- Columbian Gold Certificate
+- Higashinese Yen
+- Iberian Doubloon
+- Kazimierzian Mark
+- Kjeragian Franc
+- Lateran Signa Certificatorum
+- Leithanien Ducat
+- Minoan Stater
+- Rim Billitonian Karrot
+- Sargonian Dinar
+- Siracusan Florin
+- Ursine Chervonets
+- Victorian Pound
+- Yanese Wen
+}}
+
+
+
+{{imageMaskEdge3,--offset:3%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/8/85/Swire_Skin_1.png' 
+  style='position:absolute;top:-200px;right:-530px;width:1500px' />
+}}
+
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+## Weapons
+:
+The Weapons table in this section shows the game’s main weapons. The table lists the cost and weight of each weapon, as well as the following details:
+:
+**Category:** Every Weapon falls into one of five categories; 
+- Light Melee
+- Heavy Melee
+- Light Ranged
+- Heavy Ranged
+- Special Ranged.
+
+{{align-text:left
+**Damage:** The amount and type of Damage dealt when an Attack using that weapon hits.
+}}
+:
+**Properties:** Any Special Properties a Weapon has is listed in the Properties column. New Special Properties are defined in the “Properties” section later in this chapter.
+}}
+
+{{wide
+##### Melee Weapons
+| Name | Damage | Properties | Weight | Cost |
+|:-----|:------:|:----------:|:------:|:----:|
+| *Light Melee Weapons*
+| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|
+| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|
+| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|
+| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|
+| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|
+| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|
+| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|
+| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|
+| *Heavy Melee Weapons*
+| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|
+| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|
+| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|
+| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|
+| *Special Melee Weapons*
+| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|
+
+{{note,wide
+##### Heavy Defender Shield
+The Heavy Defender Shield can also be used as a weapon using this profile while you are wielding it.
+}}
+
+}}
+
+{{imageMaskEdge6,--offset:18%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/d/d2/IS-Lappland_vs_Texas.png?ae1b6b' 
+  style='position:absolute;top:600px;right:-250px;width:1300px' />
+}}
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+##### Ranged Weapons
+| Name | Damage | Properties | Weight | Cost |
+|:-----|:------:|:----------:|:------:|:----:|
+| *Light Ranged Weapons*
+| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|
+| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|
+| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|
+| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|
+| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|
+| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|
+| *Heavy Ranged Weapons*
+| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|
+| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD
+| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|
+| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|
+| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|
+| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|
+| *Special Ranged Weapons*
+| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|
+| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|
+
+
+}}
+
+{{note,wide
+##### Firearm Prices and Availability
+Firearms are still a rare commodity on Terra; until very recently their manufacture was conducted entirely inside Laterano, and few were exported. Some other nations and companies have now begun to develop their own firearms, but they are still extremely expensive, and will not be available except from special sources.
+}}
+
+{{imageMaskEdge2,--offset:-5%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/7/74/Sankta_Miksaparato_Elite_2.png?1bda91' 
+  style='position:absolute;top:260px;right:-110px;width:1000px' />
+}}
+
+
+
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+### New Properties
+
+AK5e introduces a number of new Special Properties for weapons. 
+
+#### Bound
+Weapons with this Property have been bound by a Flinger.
+:
+#### Brace
+To make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement. 
+:
+If the weapon also has the Loading Property, this cost is increased to 30ft. 
+:
+#### Casting Unit
+Weapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.
+:
+#### Conductive (X)
+While you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied. 
+:
+#### Couch
+If you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus. 
+:
+#### Crush (X)
+If you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further. 
+:
+#### CQC
+You do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.
+:
+#### Deadly
+The first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.
+:
+#### Firearm
+This weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.
+
+
+\column
+#### Rapid Fire
+If you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.
+
+#### Returning
+If you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.
+
+#### Splash (X)
+You do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.
+:
+#### Spread
+When you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.
+
+{{imageMaskCorner25,--offsetX:52%,--offsetY:-57%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/f/fa/Executor_Elite_2.png' 
+  style='position:absolute;top:350px;right:-450px;width:1400px'/>
+}}
+
+
+\page
+{{pageNumber,auto}}
+
+
+
+{{wide
+## Armour
+:
+The Armour table lists all of the basic Armour types available in AK5e. It includes the following details:
+
+**Category:** All Armour is either Light, Medium, or Heavy Armour. The distinction matters primarily for how long it takes to Don and Doff the Armour, but some Features may also reference this. 
+
+**Armour Class (AC):** Your Base AC is equal to this value while you are wearing this Armour.
+
+**Damage Reduction (DR):** When you take Damage from an Attack or Art while you are wearing this Armour, it is reduced by this value, to a minimum of 1. This DR only applies to the type of Damage specified.
+
+**Strength:** If your Strength is less than this value, your Speed is reduced by 10ft while you are wearing this Armour.
+
+**Special:** What other effects are conferred when you are wearing this Armour.
+:
+##### Armour
+| Name | Armour Class | Damage Reduction | Strength | Special | Weight | Cost |
+|:-----|:------------:|:----------------:|:--------:|:-------:|:------:|:----:|
+| *Light Armor*
+| &emsp; Protective Clothing|11 + Dexterity Modifier|0|-|Passes for Clothing|8 lb.|85 LMD|
+| &emsp; Reinforced Outfit|12 + Dexterity Modifier|0|-|Passes for Clothing|10 lb.|250 LMD|
+| &emsp; Light Combat Gear|13 + Dexterity Modifier|2 (Physical)|-|-|13 lb.|650 LMD|
+| &emsp; Vanguard Armour|14 + Dexterity Modifier|0|-|-|10 lb.|650 LMD|
+| *Medium Armor*
+| &emsp; Underarmour|11 + Dex Modifier (Max 2)|2 (Physical)|-|Passes for Clothing|12 lb.|125 LMD|
+| &emsp; Combat Gear|12 + Dex Modifier (Max 2)|3 (Physical)|12|Stealth Disadvantage|25 lb.|400 LMD|
+| &emsp; Hazardous Environment Gear|11 + Dex Modifier (Max 2)|5 (Arts)|-|Stealth Disadvantage, Immunity to gases and Originium particulate matter for up to 1 hour|35 lb.|400 LMD|
+| &emsp; Heavy Combat Gear |14|4 (Physical)|14|Stealth Disadvantage|40 lb.|800 LMD|
+| *Heavy Armor*
+| &emsp; Metal Armour|11|3 (Physical)|12|Stealth Disadvantage|40 lb.|200 LMD|
+| &emsp; Defender Armour|11|5 (Physical)|14|Stealth Disadvantage|50 lb.|500 LMD|
+| &emsp; Heavy Defender Armour|12|7 (Physical)|16|Stealth Disadvantage|60 lb.|1100 LMD|
+| &emsp; Juggernaut Armour|12|5 (All)|16|Stealth Disadvantage|75 lb.|1100 LMD|
+| *Light Shields*
+| &emsp; Small Shield|+2|0|-|-|4 lb.|125 LMD|
+| &emsp; Combat Shield|0|2 (Physical)|-|-|8 lb.|125 LMD|
+| *Heavy Shields*
+| &emsp; Defender Shield|0|2 (Physical)|12|Bastion, Stealth Disadvantage|20 lb.|300 LMD|
+| &emsp; Heavy Defender Shield*|0|4 (Physical)|14|Bastion, Stealth Disadvantage, Two-Handed|30 lb.|750 LMD|
+
+}}
+
+
+{{note,wide
+##### Bastion Special Property
+When a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.
+
+}}
+
+
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+## Toolkits and other Equipment
+:
+AK5e has a number of Toolkits available, representing a variety of skills and professions that characters may be able to practice in the field. The description of a Toolkit includes the following information:
+:
+**Starting Charges:** How many Charges this Toolkit has when it is unused. Certain uses of a Toolkit will consume these Charges; Uses that require Charges cannot be performed if the Toolkit does not have enough Charges.
+:
+**Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You do not need to proficient in the Toolkit to use these options.
+{{note
+##### Alternative Toolkit Uses
+The uses for each Toolkit listed here are not to be considered an exhaustive list. If you have an idea for a way to use a kit that is not one of the proscribed ways, raise it with the GM; ultimately, they have final jurisdiction on what you are and are not allowed to do outside of what is listed.
+}}
+:
+**Proficient Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You must be proficient in the Toolkit to use these options.
+:
+**Variants:** This entry appears if the tool has variants, which are listed. Each requires a separate proficiency.
+:
+
+{{note
+##### Refill Cost
+You don't need to buy a whole new Kit to regain Charges for a Kit you already have. Instead, anywhere you could buy that Kit, you can restore 1 Charge back to a Toolkit by paying its Refill Cost.
+}}
+
+##### Toolkits
+| Toolkit | Weight | Cost | Refill Cost |
+|:--------|:------:|:----:|:-----------:|
+| Art Kit |10 lb.|250 LMD| 20 LMD
+| Brewing Kit |15 lb.|500 LMD| 45 LMD
+| Cooking Kit |15 lb.|250 LMD| 40 LMD
+| Engineering Kit |15 lb.|750 LMD| 140 LMD
+| Instrument (X) |10 lb.|250 LMD| N/A
+| Maintenance Kit |15 lb.|500 LMD| 45 LMD
+| Makeup Kit |10 lb.|250 LMD| 20 LMD
+| Mechanism Kit |10 lb.|500 LMD| 45 LMD
+| Medical Kit |10 lb.|750 LMD| 70 LMD
+| Messenger Kit |10 lb.|500 LMD| 90 LMD
+| Pharmacology Kit |10 lb.|750 LMD| 70 LMD
+| Tailoring Kit |10 lb.|500 LMD| 45 LMD
+| Woodwork Kit |15 lb.|500 LMD| 90 LMD
+
+
+}}
+
+{{imageMaskEdge5,--offset:22%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/9/9e/Background-PL_Safehouse.png' 
+  style='position:absolute;top:550px;right:-100px;width:1000px;clip-path:rect(32% auto auto auto);' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+
+#### Art Kit
+:
+Just as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a "traditional" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Create Art (2 Charges):*** As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD. 
+
+***Mark (1 Charges):*** Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment. 
+:
+**Proficient Uses:** 
+
+***Artist's Eye:*** Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.
+
+***Disguise Appearance (2 Charges):*** Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.
+
+
+
+{{imageMaskEdge1,--offset:3%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' 
+  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />
+}}
+
+{{imageMaskEdge1,--offset:17%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' 
+  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />
+}}
+
+
+
+\page
+{{pageNumber,auto}}
+
+#### Brewing Kit
+:
+Alcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Brew Alcohol (2 Charges):*** As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0. 
+
+***Purify Water (1 Charge):*** Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day. 
+:
+**Proficient Uses:**
+
+***Analyse Fluids:*** Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.
+
+***Mass Purify Water (3 Charges):*** Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.
+:
+{{note
+##### Alcohol
+Alcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.
+:
+A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws. 
+}}
+
+\column
+
+#### Cooking Kit
+:
+Cooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.
+:
+**Starting Charges:** 5
+:
+**Uses:** 
+
+***Create Rations (1 Charge):*** Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.
+
+***Prepare Ingredients:*** As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.
+:
+**Proficient Uses:** 
+
+***Camp Cooking (2 Charge):*** Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.
+
+***Poison Tasting:*** Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check. 
+
+\page
+{{pageNumber,auto}}
+
+#### Engineering Kit
+:
+Wrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their "magic", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.
+:
+**Starting Charges:** 5
+:
+**Uses:** 
+
+***Emergency Repairs (1 Charge):*** With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points. 
+
+***Examine Machinery:*** The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative. 
+:
+**Proficient Uses:** 
+
+***Automaton Automation (2 Charges):*** As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.
+
+***Jury Rig (1 Charge):***  As a Short Rest Activity, you can "improve" a Vehicle or Construct. You can either:
+- Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.
+- Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.
+
+
+
+
+
+\column
+
+#### Instrument (X)
+:
+On earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.
+:
+**Starting Charges:** -
+:
+**Uses:** -
+:
+***Play a known Tune:*** By succeeding on a DC12 Performance Check, you can play an already existing song or tune.
+:
+**Proficient Uses:** 
+
+***Compose a Tune:*** As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check. 
+
+***Improvise a Tune:*** By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it. 
+:
+**Variants:** 
+| Instrument | Weight | Cost |
+|:--------|:------:|:----:|
+| Bagpipes |6lb. | 300 LMD|
+| Bass |8lb.|300 LMD|
+| Cello |7lb.|500 LMD|
+| Drums |15lb.|400 LMD|
+| Flute |1lb.|300 LMD|
+| Guitar |6lb.|300 LMD|
+| Keyboard |20lb. |200 LMD| 
+| Lyre |3lb. |500 LMD|
+| Microphone |1lb. |200 LMD|
+| Trombone |4lb. |400 LMD|
+| Tuba |20lb. |500 LMD|
+| Turntable |10lb.|400 LMD|
+| Violin |3lb.|500 LMD|
+
+
+{{imageMaskEdge1,--offset:22%,--rotation:-12
+<img 
+  src='https://arknights.wiki.gg/images/0/0e/Ambience_Synesthesia_2024_Nova_Five_Ultra_Live.png' 
+  style='position:absolute;top:700px;right:-100px;width:1000px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+#### Maintenance Kit
+:
+As any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Maintain Weapon (2 Charge):*** As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice): 
+- +1 to Attack Rolls using that weapon
+- +1 to Damage Rolls with that weapon
+- The value of the Range Property is increased by 50%.
+
+A Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.
+
+***Repair Weapon/Armour (2 Charges):*** As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.
+:
+On a failure, nothing happens, but the charge and time are consumed.
+:
+**Proficient Uses:** 
+
+***Material Analysis:*** Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.
+
+***Mobile Workshop:*** When you use the ***Repair Weapon/Armour*** or ***Maintain Weapon*** options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.
+
+{{imageMaskEdge1,--offset:0%,--rotation:280
+<img 
+  src='https://arknights.wiki.gg/images/d/df/Vulcan.png' 
+  style='position:absolute;top:30px;right:-170px;width:600px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge3,--offset:3%,--rotation:90
+<img 
+  src='https://arknights.wiki.gg/images/1/11/Roberta.png' 
+  style='position:absolute;top:50px;right:150px;width:900px' />
+}}
+
+
+\column
+
+#### Makeover Kit
+:
+Many people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.
+:
+**Starting Charges:** 10
+:
+**Uses:**
+
+***Cover Up (1 Charge):*** As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.
+
+***Lay Bare (1 Charge):*** Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot. 
+:
+**Proficient Uses:** 
+
+***Assemble Disguise (2 Charges):*** As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.
+:
+However, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.
+
+***Make an Impression (1 Charge):*** As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time. 
+
+{{note
+##### Disguise Requirements
+If the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution! 
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge1,--offset:10%,--rotation:180
+<img 
+  src='https://arknights.wiki.gg/images/e/ee/Amiya_In_Danger.png' 
+  style='position:absolute;top:-50px;right:-180px;width:1000px;clip-path:rect(auto auto 88% auto);' />
+}}
+
+
+{{margin-top:400px
+
+#### Mechanism Kit
+:
+Often associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.  
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Break and Enter:*** Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.
+
+***Secure (1 Charge):*** Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier. 
+:
+**Proficient Uses:** 
+
+***Red Wire, Blue Wire (1 Charge):*** The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.
+
+***The Best Laid Plans (2 Charges):*** As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.
+
+}}
+
+
+
+{{margin-top:400px
+
+#### Medical Kit
+:
+Even during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Aftercare (1 Charges):*** As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice. 
+
+**First Aid (1 Charge):** As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it. 
+:
+**Proficient Uses:** 
+
+***Paramedic (1 Charge):*** When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative. 
+
+***Patient Assessment:*** The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.
+
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Messenger Kit
+:
+The role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned. 
+:
+**Starting Charges:** 5
+:
+**Uses:** 
+
+***Communications Know-How:*** Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters. 
+
+***Short Range Radio:*** Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.
+:
+**Proficient Uses:** 
+
+***Draw Map (1 Charge):*** A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area. 
+
+***Establish Communications (1 Charge):*** As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.
+
+}}
+
+
+{{imageMaskEdge7,--offset:2%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/7/7f/Mulberry_Elite_2.png' 
+  style='position:absolute;top:230px;right:-50px;width:900px' />
+}}
+
+
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Pharmacology Kit
+:
+Medicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.  
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Drug Testing (1 Charge):*** Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.
+
+***Pharmacological Intervention (1 Charge):*** As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:
+- Painkiller
+- Antibiotics
+- Antivirals
+- Antidote
+
+{{align-text:left
+Consuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action. 
+}}
+
+{{note
+##### Information on the Medications
+**Painkillers:** Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.
+:
+**Antibiotics:** Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.
+:
+**Antivirals:** Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.
+:
+**Antidote:** Ends the Poisoned Condition or the effects of a Toxin on that Creature.
+}}
+
+**Proficient Uses:**
+
+***Monitor Oripathy:*** As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.
+
+***Toxicology (2 Charges):*** As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:
+- Cytotoxin 
+- Neurotoxin 
+- Necrotoxin 
+- Haemotoxin 
+
+{{align-text:left
+See Adventuring Equipment for information on the effects of the Toxins.
+}}
+:
+{{note
+##### Monitoring, not Diagnostic
+This Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.
+:
+Any patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.
+}}
+
+
+
+}}
+
+\page
+{{pageNumber,auto}}
+
+#### Tailoring Kit
+:
+Throughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.  
+:
+**Starting Charges:** 10
+:
+**Uses:** 
+
+***Create Outfit (X Charges):*** As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:
+
+##### 
+| Item | Charges | 
+|:------------------|:-----:|
+| Clothing | 1 |
+| Protective Clothing | 2 |
+| Reinforced Outfit | 5 |
+
+{{align-text:left
+On a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.
+}}
+:
+***Stitch Together (1 Charge):*** As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).
+:
+**Proficient Uses:** 
+
+***Best Fit (1 Charge):*** As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):
+- Remove Stealth Disadvantage
+- Reduce Strength Requirement by 2.
+- -5lb Weight (-15lb for Heavy Armour)
+
+{{align-text:left
+On a failure, nothing happens, but the charge and time are consumed.
+}}
+&nbsp;***Tailor's Tale:*** For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?
+
+{{imageMaskEdge3,--offset:5%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/a/a1/Ines.png' 
+  style='position:absolute;top:80px;right:-270px;width:900px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+
+#### Woodwork Kit
+:
+Wood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.
+:
+**Starting Charges:** 5
+:
+**Uses:** 
+
+***Firestarter (1 Charge):*** Over the course of a minute, you can create and light a small Campfire.
+:
+***Carve Symbol:*** As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.
+:
+**Proficient Uses:**
+
+***Calming Carving (1 Charge):*** Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.
+
+***Carpentry (1 Charge):*** As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.
+
+{{imageMaskEdge8,--offset:5%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' 
+  style='position:absolute;top:-50px;right:-400px;width:1200px' />
+}}
+
+{{imageMaskEdge7,--offset:26%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' 
+  style='position:absolute;top:-50px;right:-400px;width:1200px' />
+}}
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+## Adventuring Gear
+:
+{{wide
+The following section contains additional Adventuring Gear that can be acquired and used. The items are listed alphabetically with price and weight; descriptions of effects can be found afterwards.
+
+{{note
+##### 5e Adventuring Gear
+For the sake of expedience, all of the available Adventuring Gear from 5e will not be relisted. The items listed here are an addition to that list. Thus, if you require a piece of Adventuring Gear that it is not listed here but exists within 5e, consult the DM as to where you might get it, and if it makes sense within the Arknights setting; a rope is universal, a scroll of magic missile is not!
+}}
+
+##### Adventuring Gear
+| Gear | Weight | Cost |
+|:--------|:------:|:----:|
+| Alcohol |1 lb.|25 LMD |
+| Antibiotics |0.1 lb.|50 LMD|
+| Antidote |0.1 lb.|50 LMD|
+| Antivirals |0.1 lb.| 50 LMD |
+| Art (Trade Good) |2 lb.|100 LMD|
+| Autoinjector | 1 lb. | 150 LMD
+| Autoinjector (Advanced) | 1 lb. | 450 LMD
+| Cytotoxin |1 lb.|140 LMD|
+| Flashlight | 1 lb. | 75 LMD |
+| Haemotoxin |1 lb.|140 LMD|
+| Necrotoxin |1 lb.|140 LMD|
+| Neurotoxin |1 lb.|140 LMD|
+| Oripathy Suppressant (Poor)|1 lb.|150 LMD|
+| Oripathy Suppressant|1 lb.|500 LMD|
+| Painkillers |0.1 lb.|50 LMD|
+
+{{note
+##### Toxins and Poisons
+The four Toxins (Cytotoxin, Haemotoxin, Necrotoxin, and Neurotoxin) are considered to be Poisons. Advantage on Saving Throws against the Poisoned Condition grants Advantage on Saving Throws against Toxins, and Immunity to the Poisoned Condition grants Immunity to any effect of a Toxin that requires a Saving Throw.
+}}
+
+}}
+
+#### Alcohol
+Can be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.
+:
+#### Antibiotics
+Can be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.
+:
+#### Antidote
+Can be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.
+:
+#### Antivirals
+Can be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.
+
+\column
+
+#### Art (Trade Good)
+A piece of Art. It is valuable to the right people.
+:
+#### Autoinjector
+A medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.
+:
+#### Autoinjector (Advanced)
+A advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are **Dying**, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.
+:
+
+\page
+{{pageNumber,auto}}
+
+#### Cytotoxin
+As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.
+:
+When applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.
+:
+If a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.
+:
+#### Flashlight
+A flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.
+:
+#### Haemotoxin
+As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.
+:
+When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.
+:
+If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage. 
+:
+
+
+\column
+
+#### Necrotoxin
+As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.
+:
+When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.
+:
+If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes. 
+
+<img 
+  src='https://arknights.wiki.gg/images/Thorns.png?895d3e' 
+  style='position:absolute;top:400px;right:0px;width:400px' />
+
+\page
+{{pageNumber,auto}}
+
+\column
+
+#### Neurotoxin
+As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.
+:
+When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.
+:
+If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes. 
+:
+#### Oripathy Suppressant (Poor)
+A concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.
+:
+#### Oripathy Suppressant
+A specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease. 
+:
+#### Painkillers
+A drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.
+
+
+
+<img 
+  src='https://arknights.wiki.gg/images/Kal%27tsit.png?ddef02' 
+  style='position:absolute;top:0px;right:50px;width:1100px' />
+
+
+\page
+{{pageNumber,auto}}
+
+## Magic Items
+Magic items within the world of Arknights are mechanically identical to those of Dungeons and Dragons, but the reason behind them is different. In Dungeons and Dragons, a Magic Item is normally something crafted in a particular arcane way, or instilled with a particularly powerful enchantment. In AK5e, while some Magic Items may indeed fall into those categories, most are instead the result of strange innovations, or are prototype technologies that are not replicable yet.
+:
+The following is a selection of Magic Items that may be found on Terra; it is not an exhaustive list. If you would like to try and find a Magic Item that is not listed here, consult with your DM to see if it makes sense within the Arknights setting, and where you might get it if it does.
+
+{{note
+##### Magic Item Pricing
+The pricing of Magical Items is a difficult subject; they are not regularly available, and thus are not subject to supply and demand like mundane items are. This table is to help estimate the cost of these items; it is in no way prescriptive, and the DM has the final call on the price of an item, if it can even be bought in the first place. 
+
+##### Magic Item Rarity
+| Rarity            | Price | 
+|:------------------|:-----:|
+| Common            | 1500 LMD 
+| Uncommon          | 4500 LMD 
+| Rare              | 10,000 LMD
+| Very Rare         | 50,000 LMD
+| Legendary         | 1,000,000 LMD
+| Artifact          | Priceless
+
+
+}}
+
+
+<img 
+  src='https://arknights.wiki.gg/images/1/17/Banshee%27s_Kiss.png?e7797b' 
+  style='position:absolute;top:650px;right:450px;width:300px' />
+
+{{artist,bottom:100px,left:160px
+##### Banshee's Kiss
+}}
+
+
+
+
+\column
+
+#### Arts Staff +1/+2/+3
+*Weapon (Arts Staff), Uncommon/Rare/Very Rare*
+:
+The Conductive Property on this Staff is increased by 1/2/3.
+
+#### Arts Wand +1/+2/+3
+*Weapon (Arts Wand), Uncommon/Rare/Very Rare*
+:
+This Wand gains the Conductive (1/2/3) Property.
+
+
+#### Banshee's Kiss
+*Wondrous Item, Very Rare (Attunement required)*
+:
+A symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent. 
+
+**Fearless.** While you are wearing this item and are attuned to it, you are immune to the Frightened Condition. 
+
+**Jealousy.** While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.
+
+#### Blacksteel
+*Weapon (Handgun), Artifact (Attunement by a Sankta required)*
+:
+A patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, "Clip" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder. 
+
+**Magic Weapon.** You have a +1 bonus to Attack and Damage rolls made using Blacksteel.
+
+**Stroke of Thunder.** As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.
+
+**Passing of War.** If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed. 
+
+
+\page
+{{pageNumber,auto}}
+
+#### Divine Oath
+*Weapon (Grenade Launcher), Artifact (Attunement required)*
+:
+A one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.
+
+**Magic Weapon.** Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.
+
+**Light Judgement.** This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.
+
+**Melee Attachment.** This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage. 
+
+#### Fearless Blade
+*Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)*
+:
+Throughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.
+
+**Oath of Moment.** As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.
+
+
+
+
+\column
+
+#### King's Armour
+*Armour (Heavy Combat Gear), Artifact (Attunement required)*
+:
+The lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?
+:
+**The Undone King's Hope.** While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points. 
+
+#### King's Crown
+*Wondrous Item, Artifact (Attunement required)*
+:
+The lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?
+:
+**The Undone King's Drive.** When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.
+
+
+
+<img 
+  src='https://arknights.wiki.gg/images/d/dc/Fearless_Blade.png?4a72f7&20250209155616' 
+  style='position:absolute;top:700px;right:100px;width:300px' />
+  
+{{artist,bottom:150px,left:620px
+##### Fearless Blade
+}}
+  
+
+
+\page
+{{pageNumber,auto}}
+
+#### King's Lance
+*Weapon (Polearm), Artifact (Attunement required)*
+:
+The lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?
+:
+**The Undone King's Wishes.** When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.
+:
+Additionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.
+
+#### Launcher +1/+2/+3
+*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*
+:
+Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.
+
+\column
+
+#### Rusted Hammer
+*Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)*
+:
+These hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.
+
+**Durable.** This weapon cannot be damaged unless it would be destroyed completely.
+
+**Enduring.** After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.
+
+**Survivor.** When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8. 
+
+**Symbol.** What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.
+
+<img 
+  src='https://arknights.wiki.gg/images/3/3a/Rusted_Iron_Hammer.png?b6bb7e' 
+  style='position:absolute;top:600px;right:100px;width:300px' />
+  
+{{artist,bottom:250px,left:650px
+##### Rusted Hammer
+}}
+  
+  
+\page
+{{pageNumber,auto}}
+
+#### The Black Lock and The White Key
+*Weapons (Arts Staves), Artifact (Attunement required)*
+:
+The Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.
+
+**Magic Staves.** These Staves have the Conductive (4) Property.
+
+**Time Warp.** While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.
+
+**Lock and Key.** These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.
+:
+**Key of Chronology (1 Charge).** As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.
+
+**Lock of Shattered Time (1 Charge).** As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.
+
+**Subjective Time Acceleration (1 Charge).** All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.
+
+#### Weapon +1/+2/+3
+*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*
+:
+You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.
+
+\page
+{{pageNumber,auto}}
+

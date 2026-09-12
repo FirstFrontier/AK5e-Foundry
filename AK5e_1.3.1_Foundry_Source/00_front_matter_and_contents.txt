@@ -1,0 +1,305 @@
+# Arknights 5e
+## Version 1.3.1
+___
+:
+{{homebreweryCredits
+Made With
+
+{{homebreweryIcon}}
+
+The Homebrewery  
+[Homebrewery.Naturalcrit.com](https://homebrewery.naturalcrit.com)
+}}
+
+
+{{banner HOMEBREW}}
+
+{{footnote
+  Bringing the world of Terra to Fifth Edition Dungeons and Dragons.
+}}
+
+<img 
+  src='https://arknights.wiki.gg/images/f/f2/Amiya_and_the_Doctor.png' 
+  style='position:absolute;top:-50px;right:-925px;width:2250px' />
+
+
+\page
+{{pageNumber,auto}}
+
+
+{{descriptive,wide
+## Disclaimers and Licenses
+
+Arknights 5e, henceforth referred to as AK5e, is unofficial material that is not sanctioned by or affiliated with [Wizards of the Coast](https://company.wizards.com/en), [Hypergryph](https://www.hypergryph.com), [Yostar](https://yo-star.com/pc/index.html), or any other rights-holding company or entity.
+:
+Except where otherwise noted, images are from the [Arknights Terra Wiki](https://arknights.wiki.gg/wiki/Arknights_Terra_Wiki), and are licensed under a [Creative Commons Attribution 4.0 International license](http://creativecommons.org/licenses/by/4.0/).
+}}
+
+<img 
+  src='https://arknights.wiki.gg/images/8/8a/Kal%27tsit_Announcing.png' 
+  style='position:absolute;top:0px;right:-705px;width:2200px' />
+  
+\page
+{{pageNumber,auto}}
+
+{{note
+#### A Word from the Author
+
+Hello, i'm Knight, or Crow, or sometimes both, and what you're about to read is my atypical love letter to both D&D, and Arknights. 
+:
+Even beyond the game itself, I find the world of Arknights to be incredibly interesting; the sci-fi fantasy genre is by far my favourite to consume and create for, and the sheer depth of lore and worldbuilding that has gone into, and continues to go into, is mindboggling. It clearly takes inspiration from real world nations and cultures, but never in a lazy way. To me, it always feels like an exploration of a given culture rather than a simple riff on it, done by people with a genuine love and interest in human geography, culture, and sociology.
+:
+Dungeons and Dragons too is something that is part of my weekly, if not daily, life. While some have criticised Fifth Edition for its simplicity (I am not innocent of this either), many miss why this is its greatest strength; it is so easy to create custom content for. Many similar games require a complex understanding of overlapping mechanics to effectively homebrew for. D&D, not so, only a basic understanding of concepts which the game does a good job of setting precedent for. 
+:
+As a final note. I changed the names of a few subclasses (Branches) because A) Its name is too similar to another, or too generic (like in the case of "Arts Fighters" or B) I think the original name is misleading (I swapped the names of Duellist and Dreadnought)
+
+##### Acknowledgements
+Of course, I did not do it completely alone.
+:
+First and foremost I must give limitless thanks to the tireless folk over at the [Arknights Terra Wiki](https://arknights.wiki.gg/wiki/Arknights_Terra_Wiki), for what I imagine is mostly thankless work. Creating this overhaul required me to dig into some truly esoteric lore regarding the world of Terra- nowhere else had what I needed. That is before I even mention all of the images used here, all of which sourced from that website. 
+:
+Secondly, but no lesser, I offer my thanks to my friends Goose, Krom, Toopy, and Phil. The first three have contributed to no small degree to both the design process, and the "me not losing my mind" process, talking me out of creative backwaters and allowing me to get back on the rails, while the latter has done a mountain of work on proofreading. I love you all dearly.
+:
+Thirdly, thank you to u/Digifox64, for their work on the Character Sheet. I am truly touched by your passion for my work.
+:
+Fourthly, I cannot offer enough thanks to Welknair, for their tireless work in reviewing and assesing every iota of this homebrew. Their fine-toothed comb has improved this game in a way I never could. 
+:
+Finally, I offer my utmost thanks to Hypergryph and Yostar for creating such a fun game and a fascinating world, without which this could not even exist in concept.
+
+}}
+
+<img 
+  src='https://arknights.wiki.gg/images/b/ba/BB-Windows_to_the_Soul_A.png?af4e9b' 
+  style='position:absolute;top:0px;right:-750px;width:1900px' />
+  
+\page
+{{pageNumber,auto}}
+
+{{toc,wide
+# Contents
+
+- ### [{{ Disclaimers and Licenses}}{{ 2}}](#p2)
+- ### [{{ Chapter 1: Changing the Game}}{{ 6}}](#p6)
+- #### [{{ Changes to Old Mechanics}}{{ 6}}](#p6)
+  - [{{ Conditions}}{{ 6}}](#p6)
+  - [{{ Death Saving Throws}}{{ 7}}](#p7)
+  - [{{ No ASI Replacement Feats}}{{ 9}}](#p9)
+  - [{{ No Healing for Constructs}}{{ 9}}](#p9)
+  - [{{ No Multiclassing}}{{ 9}}](#p9)
+  - [{{ Physical/Arts Damage}}{{ 9}}](#p9)
+  - [{{ Skills and Proficiencies}}{{ 9}}](#p9)
+  - [{{ Spellcasting}}{{ 9}}](#p9)
+  - [{{ Spellcasting: Cantrips}}{{ 9}}](#p9)
+- #### [{{ New Mechanics}}{{ 10}}](#p10)
+  - [{{ Damage Reduction (DR)}}{{ 10}}](#p10)
+  - [{{ Martial DC}}{{ 10}}](#p10)
+  - [{{ New Conditions}}{{ 10}}](#p10)
+  - [{{ Operator Skills}}{{ 11}}](#p11)
+  - [{{ Optional Rule: Alternate Classes}}{{ 12}}](#p12)
+  - [{{ Oripathy}}{{ 13}}](#p13)
+  - [{{ Rest Actions}}{{ 13}}](#p13)
+- ### [{{ Chapter 2: Character Origins}}{{ 14}}](#p14)
+- #### [{{ Species}}{{ 14}}](#p14)
+  - [{{ Parts of a Species}}{{ 14}}](#p14)
+  - [{{ Aegir}}{{ 15}}](#p15)
+  - [{{ Anura}}{{ 17}}](#p17)
+  - [{{ Archosauria}}{{ 18}}](#p18)
+  - [{{ Caprinae}}{{ 20}}](#p20)
+  - [{{ Cautus}}{{ 22}}](#p22)
+  - [{{ Durin}}{{ 23}}](#p23)
+  - [{{ Elafia}}{{ 25}}](#p25)
+  - [{{ Feline}}{{ 27}}](#p27)
+  - [{{ Kuranta}}{{ 28}}](#p28)
+  - [{{ Liberi}}{{ 30}}](#p30)
+  - [{{ Lupo}}{{ 32}}](#p32)
+  - [{{ Oni}}{{ 34}}](#p34)
+  - [{{ Perro}}{{ 37}}](#p37)
+  - [{{ Phidia}}{{ 38}}](#p38)
+  - [{{ Sankta}}{{ 40}}](#p40)
+  - [{{ Sarkaz}}{{ 42}}](#p42)
+  - [{{ Banshee}}{{ 44}}](#p44)
+  - [{{ Clanless}}{{ 45}}](#p45)
+  - [{{ Cyclopes}}{{ 46}}](#p46)
+  - [{{ Djall}}{{ 48}}](#p48)
+  - [{{ Gargoyle}}{{ 49}}](#p49)
+  - [{{ Nachzehrer}}{{ 51}}](#p51)
+  - [{{ Vampire}}{{ 52}}](#p52)
+  - [{{ Ursus}}{{ 53}}](#p53)
+  - [{{ Vouivre}}{{ 55}}](#p55)
+  - [{{ Vulpo}}{{ 56}}](#p56)
+  - [{{ Zalak}}{{ 57}}](#p57)
+\column
+- #### [{{ Rare Species}}{{ 59}}](#p59)
+  - [{{ Abyssal Hunter}}{{ 60}}](#p60)
+  - [{{ Elf}}{{ 62}}](#p62)
+  - [{{ Draco}}{{ 65}}](#p65)
+  - [{{ Doomfire}}{{ 66}}](#p66)
+  - [{{ Hearthfire}}{{ 67}}](#p67)
+  - [{{ Hellfire}}{{ 68}}](#p68)
+  - [{{ K’uk’ulkan}}{{ 69}}](#p69)
+  - [{{ Lung}}{{ 72}}](#p72)
+  - [{{ Nightzmora Kuranta}}{{ 74}}](#p74)
+- #### [{{ Nationality}}{{ 76}}](#p76)
+  - [{{ Parts of a Nationality}}{{ 76}}](#p76)
+  - [{{ Ægir}}{{ 77}}](#p77)
+  - [{{ Bolivar}}{{ 79}}](#p79)
+  - [{{ Columbia}}{{ 81}}](#p81)
+  - [{{ Durin Cities}}{{ 83}}](#p83)
+  - [{{ Higashi}}{{ 85}}](#p85)
+  - [{{ Iberia}}{{ 87}}](#p87)
+  - [{{ Kazdel}}{{ 89}}](#p89)
+  - [{{ Kazimierz}}{{ 91}}](#p91)
+  - [{{ Kjerag}}{{ 93}}](#p93)
+  - [{{ Laterano}}{{ 95}}](#p95)
+  - [{{ Leithanien}}{{ 98}}](#p98)
+  - [{{ Minos}}{{ 101}}](#p101)
+  - [{{ Rim Billiton}}{{ 103}}](#p103)
+  - [{{ Sami}}{{ 105}}](#p105)
+  - [{{ Sargon}}{{ 108}}](#p108)
+  - [{{ Siesta}}{{ 110}}](#p110)
+  - [{{ Siracusa}}{{ 112}}](#p112)
+  - [{{ Ursus Empire}}{{ 114}}](#p114)
+  - [{{ Victoria}}{{ 116}}](#p116)
+  - [{{ Yan}}{{ 119}}](#p119)
+- #### [{{ Background}}{{ 122}}](#p122)
+  - [{{ Parts of a Background}}{{ 122}}](#p122)
+  - [{{ Cook}}{{ 122}}](#p122)
+  - [{{ Downtrodden}}{{ 122}}](#p122)
+  - [{{ Entertainer}}{{ 122}}](#p122)
+  - [{{ Healer}}{{ 123}}](#p123)
+  - [{{ Labourer}}{{ 123}}](#p123)
+  - [{{ Messenger}}{{ 123}}](#p123)
+  - [{{ Outlaw}}{{ 124}}](#p124)
+  - [{{ Professional}}{{ 124}}](#p124)
+  - [{{ Soldier}}{{ 124}}](#p124)
+  - [{{ Upper Class}}{{ 124}}](#p124)
+- ### [{{ Chapter 3: Character Classes}}{{ 125}}](#p125)
+- #### [{{ Caster}}{{ 126}}](#p126)
+  - [{{ Exceptional to a Man}}{{ 126}}](#p126)
+  - [{{ Class Features}}{{ 127}}](#p127)
+  - [{{ Core}}{{ 137}}](#p137)
+  - [{{ Chain}}{{ 138}}](#p138)
+  - [{{ Mech-Accord}}{{ 140}}](#p140)
+  - [{{ Mystic}}{{ 142}}](#p142)
+  - [{{ Primal}}{{ 143}}](#p143)
+  - [{{ Splash}}{{ 145}}](#p145)
+
+}}
+
+
+
+    
+\page
+{{pageNumber,auto}}
+
+{{toc,wide
+
+- #### [{{ Defender}}{{ 147}}](#p147)
+  - [{{ The Hammer and The Anvil}}{{ 147}}](#p147)
+  - [{{ Class Features}}{{ 147}}](#p147)
+  - [{{ Artshield}}{{ 156}}](#p156)
+  - [{{ Dreadnought}}{{ 158}}](#p158)
+  - [{{ Fortress}}{{ 159}}](#p159)
+  - [{{ Guardian}}{{ 161}}](#p161)
+  - [{{ Juggernaut}}{{ 163}}](#p163)
+  - [{{ Protector}}{{ 164}}](#p164)
+  - [{{ Sentry}}{{ 165}}](#p165)
+- #### [{{ Guard}}{{ 166}}](#p166)
+  - [{{ Born For Battle}}{{ 166}}](#p166)
+  - [{{ Class Features}}{{ 166}}](#p166)
+  - [{{ Artsblade}}{{ 180}}](#p180)
+  - [{{ Brawler}}{{ 184}}](#p184)
+  - [{{ Centurion}}{{ 187}}](#p187)
+  - [{{ Crusher}}{{ 189}}](#p189)
+  - [{{ Duellist}}{{ 191}}](#p191)
+  - [{{ Instructor}}{{ 193}}](#p193)
+  - [{{ Liberator}}{{ 195}}](#p195)
+  - [{{ Lord}}{{ 200}}](#p200)
+  - [{{ Musha}}{{ 203}}](#p203)
+  - [{{ Reaper}}{{ 205}}](#p205)
+  - [{{ Weaponmaster}}{{ 207}}](#p207)
+- #### [{{ Marksman}}{{ 209}}](#p209)
+  - [{{ Hunters, Assassins, Heroes}}{{ 209}}](#p209)
+  - [{{ Class Features}}{{ 209}}](#p209)
+  - [{{ Anti-Air}}{{ 219}}](#p219)
+  - [{{ Artilleryman}}{{ 221}}](#p221)
+  - [{{ Besieger}}{{ 223}}](#p223)
+  - [{{ Deadeye}}{{ 224}}](#p224)
+  - [{{ Flinger}}{{ 225}}](#p225)
+  - [{{ Heavyshot}}{{ 228}}](#p228)
+  - [{{ Hunter}}{{ 230}}](#p230)
+  - [{{ Spreadshot}}{{ 232}}](#p232)
+- #### [{{ Medic}}{{ 234}}](#p234)
+  - [{{ The Selfless, The Unsung}}{{ 234}}](#p234)
+  - [{{ Class Features}}{{ 234}}](#p234)
+  - [{{ Physician}}{{ 243}}](#p243)
+  - [{{ Therapist}}{{ 244}}](#p244)
+  - [{{ Triage}}{{ 246}}](#p246)
+  - [{{ Ward}}{{ 247}}](#p247)
+  - [{{ Witchcraft}}{{ 248}}](#p248)
+- #### [{{ Specialist}}{{ 250}}](#p250)
+  - [{{ Powerfully Individual}}{{ 250}}](#p250)
+  - [{{ Class Features}}{{ 250}}](#p250)
+  - [{{ Executor}}{{ 259}}](#p259)
+  - [{{ Hookmaster}}{{ 261}}](#p261)
+  - [{{ Infuser}}{{ 264}}](#p264)
+  - [{{ Inventor}}{{ 267}}](#p267)
+  - [{{ Skyranger}}{{ 274}}](#p274)
+  - [{{ Dollkeeper}}{{ 276}}](#p276)
+  - [{{ Trapmaster}}{{ 278}}](#p278)
+\column
+- #### [{{ Supporter}}{{ 282}}](#p282)
+  - [{{ Facilitators and Fixers}}{{ 282}}](#p282)
+  - [{{ Class Features}}{{ 282}}](#p282)
+  - [{{ Artificer}}{{ 291}}](#p291)
+  - [{{ Bard}}{{ 296}}](#p296)
+  - [{{ Hexer}}{{ 299}}](#p299)
+  - [{{ Ritualist}}{{ 301}}](#p301)
+  - [{{ Summoner}}{{ 306}}](#p306)
+- #### [{{ Vanguard}}{{ 311}}](#p311)
+  - [{{ Class Features}}{{ 311}}](#p311)
+  - [{{ Leaders of the Pack}}{{ 311}}](#p311)
+  - [{{ Agent}}{{ 320}}](#p320)
+  - [{{ Charger}}{{ 321}}](#p321)
+  - [{{ Pioneer}}{{ 323}}](#p323)
+  - [{{ Standard Bearer}}{{ 325}}](#p325)
+  - [{{ Tactician}}{{ 328}}](#p328)
+- ### [{{ Chapter 4: Equipment}}{{ 333}}](#p333)
+- #### [{{ Currency on Terra}}{{ 333}}](#p333)
+- #### [{{ Weapons}}{{ 334}}](#p334)
+  - [{{ New Properties}}{{ 336}}](#p336)
+- #### [{{ Armour}}{{ 337}}](#p337)
+- #### [{{ Toolkits and other Equipment}}{{ 338}}](#p338)
+- #### [{{ Adventuring Gear}}{{ 349}}](#p349)
+- #### [{{ Magic Items}}{{ 352}}](#p352)
+- ### [{{ Chapter 5: Arts}}{{ 356}}](#p356)
+- #### [{{ Arts Points}}{{ 357}}](#p357)
+- #### [{{ Standard Arts Pools}}{{ 357}}](#p357)
+- #### [{{ Special Arts}}{{ 362}}](#p362)
+- #### [{{ New Art Descriptions}}{{ 366}}](#p366)
+- ### [{{ Chapter 6: Dwellers of Terra}}{{ 394}}](#p394)
+- #### [{{ DM Advice: Designing Encounters for AK5e}}{{ 395}}](#p395)
+- #### [{{ Index of Creature Stat Blocks}}{{ 396}}](#p396)
+  - [{{ Collapsals}}{{ 396}}](#p396)
+  - [{{ Creatures}}{{ 403}}](#p403)
+  - [{{ Reunion}}{{ 410}}](#p410)
+  - [{{ Sarkaz}}{{ 434}}](#p434)
+  - [{{ Seaborn}}{{ 462}}](#p462)
+  - [{{ Soldiers}}{{ 478}}](#p478)
+  - [{{ Ursus}}{{ 487}}](#p487)
+  - [{{ Uncategorized}}{{ 494}}](#p494)
+- #### [{{ Character Sheet}}{{ 497}}](#p497)
+- #### [{{ Patch Notes}}{{ 503}}](#p503)
+- 
+}}
+
+{{note,wide
+##### AK5e Discord
+There is now a Discord server for AK5e. If you're looking for a game, to offer feedback, or just to talk about this homebrew, D&D, or Arknights, join [here](https://discord.gg/3fu4Qnfvq4).
+}}
+
+
+
+\page
+{{pageNumber,auto}}
+

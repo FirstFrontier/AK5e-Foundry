@@ -1,0 +1,43 @@
+<section class="ak5e-asset-library__content">
+  <p class="hint">{{localize "AK5E.AssetLibrary.Hint"}}</p>
+
+  <div class="ak5e-asset-library__toolbar">
+    <button type="button" data-action="add">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i> {{localize "AK5E.AssetLibrary.Add"}}
+    </button>
+  </div>
+
+  {{#if hasAssets}}
+  <ol class="ak5e-asset-library__list">
+    {{#each assets}}
+    <li class="ak5e-asset-library__entry">
+      {{#if isImage}}
+      <div class="ak5e-asset-library__preview">
+        {{#if hasPath}}<img src="{{path}}" alt="">{{else}}<i class="fa-regular fa-image" aria-hidden="true"></i>{{/if}}
+      </div>
+      {{else}}
+      <div class="ak5e-asset-library__preview"><i class="fa-solid fa-music" aria-hidden="true"></i></div>
+      {{/if}}
+      <div class="ak5e-asset-library__details">
+        <strong>{{label}}</strong>
+        <span class="tag">{{typeLabel}}</span>
+        {{#if hasPath}}<code>{{path}}</code>{{else}}<span class="hint">{{localize "AK5E.AssetLibrary.NoFile"}}</span>{{/if}}
+      </div>
+      <div class="ak5e-asset-library__actions">
+        <button type="button" data-action="choose" data-asset-id="{{id}}" title="{{localize "AK5E.AssetLibrary.Choose"}}">
+          <i class="fa-solid fa-folder-open" aria-hidden="true"></i> {{localize "AK5E.AssetLibrary.Choose"}}
+        </button>
+        <button type="button" data-action="edit" data-asset-id="{{id}}" title="{{localize "AK5E.AssetLibrary.Edit"}}">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i> {{localize "AK5E.AssetLibrary.Edit"}}
+        </button>
+        <button type="button" data-action="remove" data-asset-id="{{id}}" title="{{localize "AK5E.AssetLibrary.Remove"}}">
+          <i class="fa-solid fa-trash" aria-hidden="true"></i> {{localize "AK5E.AssetLibrary.Remove"}}
+        </button>
+      </div>
+    </li>
+    {{/each}}
+  </ol>
+  {{else}}
+  <p class="ak5e-asset-library__empty">{{localize "AK5E.AssetLibrary.Empty"}}</p>
+  {{/if}}
+</section>

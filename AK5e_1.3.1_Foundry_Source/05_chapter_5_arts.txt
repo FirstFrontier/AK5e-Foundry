@@ -1,0 +1,2175 @@
+# Chapter 5: Arts
+
+In the world of Terra, Arts is essentially magic with scientific backing. Arts is the use of energy produced by Originium to alter matter and energy, manipulating and transforming them into new forms like electricity or radiation; more esoteric Arts allow the manipulation of more conceptual things, such as memory and emotion, or the healing of wounds. The innate ability of a person to wield Arts is based on their Originium Arts Assimilation, a genetic trait of each person. Most Terrans are capable of wielding rudimentary Arts, enough to activate the myriad Arts Units and systems based on Arts that pervade Terran society. 
+:
+Using Arts in this way is very different from being a Caster, however. Casters wield Arts at a much greater Level, strengthening their naturally high Arts Assimilation with study and practice. They are people who are both naturally gifted and have put in great effort to master their craft, and are thus highly valued all over Terra.
+:
+Thus, while it is not too dissimilar from magic in Dungeons and Dragons, it is different in enough ways to matter. This section will go over the ways in which it differs, and some of the why.
+
+#### Learning and Preparing Arts
+
+As is usual, before you can cast an Art, you must first know it. You can learn Arts through many different ways; Species Features, Class or Branch Features, Background Features, etc. A major difference between Dungeons and Dragons and AK5e is that <u>once you know an Art, it is always prepared.</u>
+
+<img 
+  src='https://arknights.wiki.gg/images/b/bb/Staff.png' 
+  style='position:absolute;top:640px;right:450px;width:275px' />
+
+\column
+
+#### Arts Units/Casting Units
+:
+Casting Arts involves the caster harnessing the power of Originium to alter or affect aspects of the world. However, in order to do so, the Caster typically requires a medium; a tool containing Originium through which they can channel their thoughts to generate the intended effect, known as an Arts Unit.
+:
+Arts Units can vary greatly in size, shape, and function; they are as common as computers in our world, and serve many of the same purposes. Most Terrans are capable of extremely rudimentary Arts, and can operate these devices.
+:
+A Casting Unit is an advanced Arts Unit that Casters use to access their advanced Arts; all Casting Units are Arts Units, but not all Arts Units are Casting Units. Casting Units can also vary in size, shape, and function, in aid of amplifying, stabilising, or directing the Caster's innate ability.
+:
+<u>Unless stated otherwise, to cast Arts, a Creature must have a Casting Unit equipped. This is any equipment with the Casting Unit Property.</u>
+
+{{note
+##### Oripathy and Arts
+As stated, Arts uses the energy of Originium to achieve its effect, and requires a Casting Unit because it contains the required Originium. Those with Oripathy have Originium as a part of their very body, and can use this Originium to cast Arts. This is not without consequences, however, as it stimulates the growth of the crystals inside them, worsening their condition and shortening their lifespan, sometimes dramatically.
+:
+See New Mechanics: Oripathy for more information.
+}}
+:
+#### No Material Components
+Casting Arts requires no Material Components. Any Art that would normally have this requirement no longer does.
+:
+{{note
+##### Arts Damage
+All Damage dealt by Arts is considered to be Arts Damage unless stated otherwise.
+}}
+
+
+
+\page
+{{pageNumber,auto}}
+
+## Arts Points
+Creatures no longer have Spell Slots, but instead have Arts Points, the exact amount of which is determined mostly by Class, or sometimes Branch, Level (in the case of Player Characters) or GM Discretion (in the case of Non Player Characters).
+:
+Casting an Art requires the caster to pay a cost in Arts Points equal to the Level they wish to cast the Art at. If they do not have enough Arts Points, they cannot cast the Art at that Level.
+:
+The maximum Level at which a caster can use an Art is controlled by their Character Level or CR; while a Creature will have enough Arts Points to cast a 9th Level Art fairly early into their career, they cannot do so until their Maximum Art Level is 9.
+{{note
+##### 9th Level Arts
+9th Level Arts are the peak of what a Caster can achieve, capable of world changing events. For this reason, a Creature can only cast a single 9th Level Art per Long Rest, regardless of remaining Arts Points.
+}}
+## Standard Arts Pools
+:
+The following is all of the available Standard Arts Pools. Special Arts Pools, such as Healing Arts or those available to particular Species, are found in their own section.
+:
+{{note
+##### New Arts
+If an Art in a pool has its name in **bold**, that Art has been made specifically for this conversion. Details of that Art can be found under the New Spell Descriptions section.
+}}
+
+
+
+#### Corrosion Arts
+:
+One of the more brutalist applications of Arts, Corrosion Arts serve only to harm and destroy. There is little subtlety in their application, as Corrosion Casters bathe their targets in caustic gases and corrosive fluids.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| Acid Splash, **Acid Surge**, **Produce Acid**
+|1st|**Acid Armour**, **Acid Douse**, Tasha's Caustic Brew, **Corrode**
+|2nd|**Abrasive Aura**, Acid Arrow, **Melting Mines**, **Rust** 
+|3rd|**Boiling Burst**, **Melting Mist**
+|4th|**Acid Wave**, Vitriolic Sphere
+|5th|**Acidify Blood**
+|6th|**Acid Rain**
+|7th|**Acerbic Flow**
+|8th|-
+|9th|**Sea of Acid**
+
+#### Crude Arts
+:
+So-called Crude Arts are common application of Originium Arts without any particular consideration for form. Crude Casters take the raw energy of Originium and wield it like a hammer. And when you have these powers, everything begins to look like a nail. That is not to say, however, that they are incapable of any subtlety; just mostly.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| Eldritch Blast, Prestidigitation, Shillelagh
+|1st| Alarm, Mage Armour, Magic Missile, Shield
+|2nd| Arcane Lock, Knock, Magic Weapon
+|3rd| **Missile Barrier**, Protection from Energy
+|4th| Arcane Eye, **Forcewave**
+|5th| Circle of Power
+|6th| **Arcane Lance**, Disintegrate, Primordial Ward
+|7th| **Arts Artillery**
+|8th| - 
+|9th| **Arcane Tempest**
+
+<img 
+  src='https://arknights.wiki.gg/images/a/a6/Corroserum.png' 
+  style='position:absolute;top:400px;right:-90px;width:600px' />
+
+\page
+{{pageNumber,auto}}
+
+#### Earth Arts
+:
+Earth Arts resolve around manipulating the very dirt and stone beneath your feet, using the power of Originium to produce motion where there should be none. Earth Arts excel at controlling the battlefield, both literally and metaphorically, but are somewhat neutered when their feet are not on solid ground.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| Mending, Mold Earth, **Stone Shower**
+|1st| Earth Tremor
+|2nd| Earthbind, Maximillian's Earthen Grasp
+|3rd| Erupting Earth, Meld into Stone, Wall of Sand
+|4th| Stone Shape, Stone Skin
+|5th| Passwall, Transmute Rock, Wall of Stone
+|6th| Bones of the Earth, Flesh to Stone, Investiture of Stone, Move Earth 
+|7th| -
+|8th| Earthquake
+|9th| **Mountainfall**
+
+\column
+
+#### Electric Arts
+:
+Next to Flame Arts, Electric Arts are some of the most visually fearsome, with great bolts of lightning blasting the life clean out of people, leaving their bodies as empty, smoking husks. It is a very primal power, and thus some accuse Electrical Casters of being primitive.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| **Ball Lightning**, Lightning Lure, Shocking Grasp
+|1st| **Leaping Current**, **Lightning Spear**, Witchbolt
+|2nd| **Galvanic Gauntlet**, **Galvanise**
+|3rd| Call Lightning, Lightning Arrow, Lightning Bolt, **Shock and Awe**
+|4th| **Lightning Blade**, Storm Sphere
+|5th| **Overload**
+|6th| Chain Lightning, **Investiture of Lightning**
+|7th| **Storm Spear**
+|8th| - 
+|9th| **Raijin's Rage**
+
+
+
+{{imageMaskEdge7,--offset:0%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/b/bb/Greyy_the_Lightningbearer_Elite_2.png' 
+  style='position:absolute;top:160px;right:-200px;width:1200px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge7,--offset:10%,--rotation:90
+<img 
+  src='https://arknights.wiki.gg/images/9/95/Eyjafjalla_Elite_2.png' 
+  style='position:absolute;top:50px;right:225px;width:1000px' />
+}}
+
+\column
+
+#### Flame Arts
+:
+Flame Arts are an extremely popular and thus common school of study, and it is not hard to understand why. Every living being understands to some primal degree the danger fire represents. Flame Casters dwell in this inferno, empowering themselves and incinerating huge swathes of land.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| Fire Bolt, Produce Flame, **Protect From Cold**
+|1st| Burning Hands, Hellish Rebuke
+|2nd| Aganazzar's Scorcher, Flame Blade, Flaming Sphere, Scorching Ray
+|3rd| Ashardalon's Stride, Fireball
+|4th| Fire Shield, Wall of Fire
+|5th| Flame Strike, Immolation
+|6th| Investiture of Flame
+|7th| Delayed Blast Fireball, Firestorm
+|8th| Incendiary Cloud
+|9th| **Pyroclasm**
+:::
+#### Fluid Arts
+:
+An oft neglected field of Arts, Fluid Arts do exactly what their name implies, and manipulate fluids. Typically, this is water, but it need not be. Fluid Arts are less about raw destructive force, but utility; few can resist the raging torrent pushing them around, and fewer still are immune to drowning.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| **Aqua Blade**, Shape Water,  **Water Bullet**
+|1st| Create/Destroy Water, Fog Cloud, Grease, Purify Food/Drink
+|2nd| Misty Step, **Water Pulse**
+|3rd| Tidal Wave, Water Breathing, Water Walk, Wall of Water
+|4th| Control Water, Watery Sphere
+|5th| Maelstrom
+|6th| **Investiture of Water**
+|7th| -
+|8th| Abi-Dalzim's Horrid Wilting, Tsunami
+|9th| **Fill Lungs**
+
+
+\page
+{{pageNumber,auto}}
+
+#### Frost Arts
+:
+While Flame Arts are an exercise in the manipulation of the thermal and chemical energy of an area, Frost Arts explore the temperature element to a new degree. Often considered cross-disciplinary with Fluid Arts, Frost Casters protect themselves and others; both directly, and by making the area a frozen hell for their enemies.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| Frostbite, **Protect From Heat**, Ray of Frost 
+|1st| Armour of Agathys, **Ice Barrier**, Ice Knife 
+|2nd| **Ice Sheet**, Rime's Binding Ice, **Snap Freeze**
+|3rd| **Icicle Crash**, Sleet Storm
+|4th| Ice Storm, **Permafrost**
+|5th| Cone of Cold
+|6th| Freezing Sphere, Investiture of Ice, Wall of Ice
+|7th| **Avalanche**
+|8th| **Fimbulvetr**
+|9th| **Absolute Zero**
+
+
+{{imageMaskCorner29,--offsetX:-53%,--offsetY:-50%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/e/ec/Santalla_Elite_2.png' 
+  style='position:absolute;top:300px;right:100px;width:1000px'/>
+}}
+
+
+\column
+
+#### Light Arts
+:
+Those who wield Light Arts often appear to be angelic in their own right; in the sense that they are radiant, wrathful, and frightening. It is no surprise; Light Arts are notoriously difficult to master as a result of the difficulty imagining its effects. As a result, Light Casters are often progidies, smiting and confounding their foes.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| Light, Starry Wisp, Word of Radiance
+|1st| Faerie Fire, Guiding Bolt, Silent Image
+|2nd| Blur, Darkness, Invisibility, Mirror Image, Moonbeam
+|3rd| Daylight
+|4th| Fount of Moonlight, Greater Invisibility, Shadow of Moil
+|5th| Dawn, Seeming, Wall of Light
+|6th| Sunbeam
+|7th| Crown of Stars
+|8th| Sunburst
+|9th| **Megiddo**
+::
+#### Psychic Arts
+:
+Perhaps the most rare of the "standard" Arts, Psychic Arts interfere with the consciousness of the target by altering nervous impulses in their brain and body. In this way, the Caster can control, to a certain extent, what the target percieves, and how they feel. Less subtly, they can also directly cause them harm through this same method; altering brain chemistry can lead to sharp and severe physiological consequences. Because of these facts, and the subtly of their Arts, Psychic Casters are the subject of fear and suspicion; a fear that only intensifies the more aware you are of them.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| Friends, Mind Sliver
+|1st| Charm Person, Dissonant Whispers, Heroism, Sleep
+|2nd| Calm Emotions, Detect Thoughts, Mind Spike, Phantasmal Force
+|3rd| Enemies Abound, Fear, Intellect Fortress
+|4th| Dominate Beast, Phantasmal Killer, Raulothim's Psychic Lance
+|5th| Dominate Person, Synaptic Static
+|6th| Mass Suggestion, Mental Prison
+|7th| -
+|8th| Dominate Monster
+|9th| Psychic Scream, Weird
+
+
+
+
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+#### Spatial Arts
+:
+Spatial Arts, as the name would suggest, involve manipulating the physical properties of an object; specifically its position. Their method of doing so is not just simple telekinesis, though it is certainly involved, but also through manipulating the effect of gravity of an object. By decreasing the weight of an object, it makes it easier to throw or otherwise launch. By reversing gravitational force in an area, they can exclude objects and people both from passing through an area. As a result of these Arts, Spatial Casters are often found in supportive roles, but do not underestimate their capacity for destruction.
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| **Burden**, Mage Hand
+|1st| Catapult, **Launch**, Shield, Thunderwave
+|2nd| Hold Person, Levitate, Shatter
+|3rd| Slow
+|4th| **Repulsion Field**, Otiluke's Resilient Sphere
+|5th| Bigby's Hand, Destructive Wave, Hold Monster, Telekinesis
+|6th| **Alter Gravity**
+|7th| Reverse Gravity
+|8th| - 
+|9th| **Event Horizon**
+
+\column
+:
+#### Wind Arts
+:
+Wind Arts and Spatial Arts are, erroneously, sometimes considered one and the same, but it easy to see why the mistake is made. Both involve the manipulation of gravity to some extent, but while Spatial Arts are more explicit with their effects, Wind Arts use their power to rapidly alter air pressure, causing great winds and gusts, or preventing them. With these winds at their back, a Wind Caster and their allies can move at blinding speed, or abjure entire crowds of people with battering, slicing winds. 
+:
+| Arts Level | Arts  |
+|:-----------|:-----:|
+|Cantrip| Gust, Thunderclap, **Wind Slash**
+|1st| Expeditious Retreat, Feather Fall, Longstrider
+|2nd| **Air Barrage**, Dust Devil, Gust of Wind, Warding Wind
+|3rd| Fly, Stinking Cloud, Wind Wall
+|4th| Freedom of Movement, Storm Sphere
+|5th| Cloudkill, Control Winds
+|6th| Investiture of Wind, Wind Walk
+|7th| Whirlwind
+|8th| Control Weather
+|9th| **Avatar of Wind**
+
+{{imageMaskEdge7,--offset:2%,--rotation:-10
+<img 
+  src='https://arknights.wiki.gg/images/3/3a/Angelina_Skin_1.png' 
+  style='position:absolute;top:280px;right:-140px;width:1100px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+## Special Arts 
+The following is all of the presently available Special Arts Pools. Specific Features, Classes, and Branches typically afford access to a specific Arts Pool from this list.
+:
+{{note
+##### The Incantation Tag
+Some Special Arts have the Incantation Tag. The Incantation Tag is almost the opposite of the Ritual Tag; these Arts require a long time to cast by default, but this time can be decreased. You can cast any Art with the Incantation Tag as an Action instead. However, if you do, roll a number of d8 equal to the level that Art was cast at; you lose that many Hit Points.
+
+}}
+
+#### Banshee Arts
+:
+Banshee Arts, like many Sarkaz Arts, are not so much Arts in the modern context as they are rituals. Rituals require a goal, and most notably, a cost. How the Caster defines these things is a crucial component in the end result. For Banshees, they manifest their Arts through word and song; in other words, language. To a Banshee, the power of language is in its rules and constraints; in fact and definition, not interpretation and imagination. Through imposing these limitations on language to themselves, they can pay the "cost" for their Rituals in a way less mortal than other Sarkaz.
+:
+The end result of this is that Banshee Arts simply cause things to happen; the limitations imposed ensure that the intended result either happens, or it doesn't. There is no room for doubt in the words of a Banshee.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| -
+|1st| **Power Word Push**
+|2nd| **Power Word Kneel**, **Power Word Shield**
+|3rd| Bestow Curse, **Power Word Bleed**, **Power Word Despair**, Remove Curse, Speak with Dead
+|4th| **Power Word Stupefy**
+|5th| **Altar of Weeping**, **Power Word Aegis**, **Power Word Succumb**
+|6th| **Power Word Forget**, **Power Word Silence**
+|7th| Power Word Fortify, Power Word Pain
+|8th| **Power Word Stop**, Power Word Stun
+|9th| Power Word Heal, Power Word Kill
+
+{{imageMaskEdge4,--offset:4%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/e/ee/Laqeramaline.png' 
+  style='position:absolute;top:10px;right:-280px;width:1000px' />
+}}
+
+
+
+
+\page
+{{pageNumber,auto}}
+
+
+
+#### Blood Arts
+:
+Like other Sarkaz Arts, the Blood Arts of Vampires are a product of Witchcraft. The Vampires, however, have found a way to make the "cost" be paid in blood, often someone else's blood. Blood is their blessing, and their curse; the touch of a Vampire can invigorate and heal, but it can also harm in visceral, brutal ways.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| -
+|1st| **Bloodbomb**, **Crystallise Blood**, **Sanguine Spear**
+|2nd| **Bloodletting**, **Sanguine Surge**, **Unstable Plasma**
+|3rd| **Agitate Blood**, **Lacerate**, Life Transference, Vampiric Touch
+|4th| **Bloodmist**
+|5th| **Altar of Bloodcalling**, **Bloodline**, **Sanguinarch's Blessing**
+|6th| **Explosive Exsanguination**
+|7th| **Reverse Flow**, **Tug the Heartstrings**
+|8th| **Throne of Blood**
+|9th| - 
+
+\column
+
+#### Elven Magic
+The powers of the Elves are not Originium Arts- Originium is deathly harmful for the Elves. Wherefore then, do they manifest these strange powers, adjacent to Arts and yet not Arts? The truth lies in their origin, as the Creations of Muel the Feranmut, an old and powerful member of an old and powerful species, capable of godlike feats.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| Druidcraft, Shape Water, **Water Bullet**
+|1st| Create/Destroy Water, **Leaf Blade**, **Woodland Lance**
+|2nd| Earthbind, **Life Seed**, Misty Step, Wither and Bloom, 
+|3rd| Erupting Earth, Tidal Wave, Water Breathing, Water Walk
+|4th| Control Water, Grasping Vine, Guardian of Nature
+|5th| **Waters of Life**, Wrath of Nature
+|6th| Wall of Thorns
+|7th| **Ancestral Tide**
+|8th| Abi-Dalzim’s Horrid Wilting
+|9th| **Yggdrasil**
+
+
+<img 
+  src='https://arknights.wiki.gg/images/thumb/Warfarin_Elite_2.png/1024px-Warfarin_Elite_2.png?5bc263' 
+  style='position:absolute;top:350px;right:0px;width:850px' />
+
+
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge7,--offset:7%,--rotation:90
+<img 
+  src='https://arknights.wiki.gg/images/6/61/Folinic.png' 
+  style='position:absolute;top:70px;right:250px;width:700px' />
+}}
+
+\column
+
+#### Healing Arts
+:
+Healing Arts differ from typical Arts in that their method of application is not easily defined. The body is extremely complex, but underneath it all, it is ultimately just nutrients and minerals, both of which can be acted on by Arts. The ways in which Arts can be used to promote healing are thus great and varied; some vastly promote natural healing, some physically close wounds and knit bone back together, others alter the chemistry of the body, and so on. Many of the principles practised by practioners of other forms of Arts find a use in Healing Arts also; what they all have in common is that they all require an advanced understanding of the physiology of the target, lest you do more harm than good.  
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| **Abjure**, Toll the Dead
+|1st| Cure Wounds, Healing Word
+|2nd| Aid, **Bolster**, Lesser Restoration*, Prayer of Healing, Protection from Poison, Warding Bond 
+|3rd| Aura of Vitality, Beacon of Hope, Mass Healing Word
+|4th| Death Ward
+|5th| Greater Restoration*, Mass Cure Wounds
+|6th| Fizban's Platinum Shield, Heal*
+|7th| -
+|8th| -
+|9th| Mass Heal*
+
+{{note
+##### Disease Restoration
+Arts marked with an asterisk can no longer heal diseases; that is the purview of traditional medicine. 
+}}
+:
+#### Necrotic Arts
+The ruinous Arts of the Nachzehrer are foul and potent in equal measure, consuming life wholesale to fuel a relentless engine of death. Like other Witchcraft, this consumption is the "cost" they pay to conjure a tide of rot and decay; the Nachzehrer may thrive under such conditions, but all others will fall prey to the withering. 
+
+| Arts Level | Arts  |
+|:----------:|:-----:|
+|Cantrip| -
+|1st| Inflict Wounds, Ray of Sickness
+|2nd| **Corpse Explosion**, **Wither**
+|3rd| Life Transference, **Mass Inflict Wounds**, Spirit Shroud (Necrotic Only)
+|4th| Blight, **Septic Shock**
+|5th| Enervation, **Necrostorm**
+|6th| Circle of Death, Harm
+|7th| **Mass Exhaust**
+|8th| **Inflict Doom**
+|9th| **Ultimate Necrostorm**
+
+
+\page
+{{pageNumber,auto}}
+
+#### Witchcraft Arts
+:
+"Witchcraft" is, in actuality, a derogatory term for the unique Arts of the Sarkaz. The official term is "Incantation", but outside of scholars, and those that deal in such incantations, Witchcraft is a more prevalent term. 
+:
+What divides Incantations from typical Arts is the methodology. "Classical Arts", as they are sometimes called, uses the energy contained within Originium to manipulate energy in the world; essentially allowing the Caster to impose their will on the world around them. In contrast, Incantations do not rely on the energy of Originium, but instead through defining both the "intention" of the Incantation and "cost" that will be paid. The Caster of an Incantation defines these things through their own understanding and conventional wisdom. As a result, Incantations are highly ritualistic in nature, far more than Classical Arts, as tradition and rules help define these costs and intentions.  
+:
+Because these Incantations do not require Originium in the same way Classical Arts do, almost every Sarkaz has some limited affinity with them. Most Sarkaz, however, will steer away from such rituals without extreme cause. Just as the different Sarkaz clans have penned meaning and cost to their own Incantations, millennia and suffering has assigned its own cost to these unshackled Incantations, and it is a heavy price to pay.
+:
+| Arts Level | Arts  |
+|:-----------:|:-----:|
+|Cantrip| - 
+|1st| Bane, Hex
+|2nd| **Altar of Fealty**, **Altar of Sacrifice**, Borrowed Knowledge
+|3rd| **Altar of Fury**, **Altar of Retribution**
+|4th| **Altar of Craving**
+|5th| Legend Lore, Skill Empowerment
+|6th| - 
+|7th| **Altar of Hatred**
+|8th| -
+|9th| **Altar of Ending**
+
+{{imageMaskEdge4,--offset:5%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/1/12/Patriot.png' 
+  style='position:absolute;top:75px;right:-270px;width:900px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+## New Art Descriptions
+
+Ak5e adds many new Spells, or Arts as they are called for these purposes. This section contains the details of the new Spells added, presented alphabetically. 
+
+#### Abjure
+*Abjuration Cantrip*
+
+**Casting Time:** :: Reaction, when a willing Creature within 15 feet of yourself would take Damage
+**Range:**        :: 15 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You temporarily bolster a Creature against harm. The Creature who triggered this Reaction gains 1d4 Temporary Hit Points before they take Damage. Any remaining Temporary Hit Points are lost after the Damage is taken.
+:
+**Cantrip Upgrade:** The Temporary Hit Points granted increases by 1d4 when you reach level 5 (2d4), 11 (3d4), and 17 (4d4).
+:
+#### Abrasive Aura
+*2nd-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 Minute
+
+Surges of corrosive fluid flow around a willing Creature you touch, becoming a weapon with which to burn their enemies. For the duration, that Creature can make a Melee Spell Attack against a Creature within 10 feet as a Bonus Action during their Turns, using your Spell Attack Modifier. On a hit, the target Creature takes 2d6 + your Spellcasting Ability Modifier in Acid Damage.
+:
+**At Higher Levels:** The Acid Damage dealt increases by 1d6 for each Level above 2 it is cast at.
+
+
+\column
+
+#### Absolute Zero
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute
+
+Choose a point within range that you can see; a frozen cyclone saps the heat out of everything within a 30-foot-radius sphere centred on that point. 
+:
+If a Creature is within the sphere when it appears, or enters the sphere during their Turn, they must make a Constitution Saving Throw. On a failed Save, they take 10d8 Cold Damage and are Petrified until the end of their next Turn as they are frozen solid; on a successful Save, they take half as much Damage, and are not Petrified.
+:
+
+[Credit](https://www.dndbeyond.com/spells/1376888-absolute-zero)
+:
+#### Acerbic Flow
+*7th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+A torrent of corrosive fluid blasts from you in a 100-foot-long, 10-foot-wide line. Each Creature in the area must make a Dexterity Saving Throw, taking 5d8 Acid Damage on a failed Save, or half as much on a successful Save.
+:
+Then, if this line intersects with a wall or other object capable of providing Total Cover, the acid splashes in a 15-foot-radius sphere centred on the point where the line intersects that object. All Creatures within this sphere must make a Dexterity Saving Throw, taking 5d8 Acid Damage on a failed Save, or half as much on a successful Save
+:
+**At Higher Levels:** The Acid Damage dealt by both the line and sphere increases by 1d8 for each Level above 7 it is cast at. 
+
+\page
+{{pageNumber,auto}}
+
+#### Acid Armour
+*1st-Level Abjuration*
+
+**Casting Time:** :: Reaction, when a Creature would make a Melee Attack against you or attempt to Grapple you.
+**Range:**        :: Touch 
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Acid lashes from your form, splashing over the aggressor. The triggering Creature takes 1d8 Acid Damage, and has Disadvantage on that Attack Roll or Skill Check to Grapple you.
+:
+
+#### Acid Douse
+*1st-Level Enchantment*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: 90 feet
+**Components:**   :: V,S
+**Duration:**     :: 1 minute
+
+You coat a Creature you can see within Range in a mild acid, enough to inflame sensation and cause pain, but not enough to deal lasting harm. The Creature must succeed on a Constitution Saving Throw or take 1d8 additional Acid Damage whenever they would take Acid Damage; additionally, they have Disadvantage on Saving Throws against any effect (such as Arts or Operator Skills) that deal Acid Damage. These effects are not cumulative.
+
+#### Acid Rain
+*6th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 200 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Acid begins raining in a 40-foot-radius, 100-foot-high cylinder centred on a grounded point within range. Each Creature in the cylinder not protected from the rain must make a Dexterity Saving Throw. On a failed save, they take 5d8 Acid Damage, and are coated in acid. On a successful save, they take half as much Damage, and are not coated in acid.
+:
+A Creature that is coated in acid takes 2d8 Acid Damage at the beginning of each of its Turns. It can remove this acid as an Action.
+
+\column
+
+#### Acid Surge
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: Self 
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You release a potent gout of acid. Each Creature in a 10-foot Cone originating from you must succeed on a Dexterity Saving Throw or take 1d8 Acid Damage. 
+:
+**Cantrip Upgrade:** The Damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
+:
+#### Acid Wave
+*4th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You conjure up a wave of vitriolic fluid that crashes down with potent effect; each Creature in a 30-foot cube originating from you must make a Constitution Saving Throw. On a failed Save, they take 5d8 Acid Damage immediately, and 2d8 additional Acid Damage at the beginning of their next Turn. On a successful Save, they take half as much Damage.  
+:
+#### Acidify Blood
+*5th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 minute.
+
+Up close and personal, you adjust the pH of a Creature’s blood. Make a Melee Spell Attack against a Creature; on a hit, that Creature is afflicted while you maintain Concentration.
+:
+An afflicted Creature makes a Constitution Saving Throw at the beginning of each of its Turns. On a failed Save, it takes 3d8 Necrotic Damage + 3d8 Acid Damage, and is Poisoned until the beginning of its next Turn. This Poisoned Condition cannot be removed in other ways. On a successful Save, it takes half as much damage, and is not Poisoned.
+:
+**At Higher Levels:** The Acid Damage dealt increases by 1d8 for each Level above 5 it is cast at.
+:
+[Credit](https://www.dndbeyond.com/spells/1199181-blood-to-acid)
+:
+
+
+\page
+{{pageNumber,auto}}
+#### Agitate Blood
+*3rd-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 30 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 minute.
+
+You launch a sliver of writhing energy at a Creature within Range. Make a Ranged Spell Attack against the target. On a hit, it takes 1d10 Necrotic Damage, and while you maintain Concentration, you can agitate their blood, causing it to change pace and squirm within their body. 
+:
+When you see that Creature take an Action or Reaction, you can use your Reaction to agitate their blood. That Creature must make a Constitution Saving Throw; on a failed Save, they take 2d10 Necrotic Damage, and have Disadvantage on the next Attack Roll or Saving Throw they make before the start of your next Turn. On a successful Save, they take half as much Damage, and suffer no other effects. 
+:
+**Blood Amber:** If there is a Blood Amber within 100ft of you when you use your Reaction for this Art, you may consume that Blood Amber to give the target Creature Disadvantage on that Constitution Saving Throw.
+:
+[Credit](https://www.dndbeyond.com/spells/776371-agitate-blood)
+:
+
+#### Air Barrage
+*2nd-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You hurl three bullets of air at Creatures you can see within Range. Make a Ranged Spell Attack for each air bullet. On a hit, the target takes 4d4 Bludgeoning Damage.
+:
+**At Higher Levels:** You launch one additional air bullet for each Level above 1 it is cast at.
+
+\column
+
+#### Altar of Bloodcalling
+*5th-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Bloodcalling at a location within Range. The Altar of Bloodcalling is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, the first time each Round a Creature would die within 30 feet of the Altar, their lifeless bodies are possessed for one last strike. They may immediately move up to their movement towards the nearest Creature and make a single attack against them (no Action required); then, they die.
+:
+**At Higher Levels:** The number of Creatures that can be reanimated each Round is increased by 1 for each Level above 5 it is cast at.
+
+#### Altar of Craving
+*4th-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Craving at a location within Range. The Altar of Craving is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, at the end of each of your Turns, all Creatures within a 30-foot-radius sphere centred on the Altar must make a Charisma Saving Throw. On a failed Save, they lose 4d6 Hit Points, or half as much on a successful Save.
+:
+**At Higher Levels:** The Hit Points lost increases by 1d6 for each Level above 4 it is cast at.
+:
+
+\page
+{{pageNumber,auto}}
+
+
+#### Altar of Ending
+*9th-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes  (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 1 Hour
+
+You create an Altar of Ending at a location within Range. The Altar of Ending is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+When it becomes active, the Altar creates an Originium Storm; a 30-foot-radius sphere centred on the Altar that goes around corners. Creatures who enter the area during their Turn or begin their Turn within it must make a Constitution Saving Throw, taking 10d8 Necrotic Damage on a failed Save, or half as much on a successful Save. 
+:
+At the beginning of your Turn, the Storm flies 15 feet directly towards the nearest Creature that isn't you or Creatures you designated when casting the Art. The Storm can pass through walls less than 2 feet thick during this movement.
+:
+The Storm dissipates to nothing after the Duration of the Art has passed, or if the Altar of Ending is destroyed.
+:
+
+#### Altar of Fealty
+*2nd-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Fealty at a location within Range. The Altar of Fealty is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, a barrier is formed in the shape of a 30-foot-radius Sphere centred on the Altar. Creatures on one side of the barrier cannot target Creatures on the other side of the barrier, and vice versa. Arts and similar effects that affect an area also cannot pass through the barrier. However, Creatures can pass through the barrier without obstruction.
+
+\column
+
+#### Altar of Fury
+*3rd-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Fury at a location within Range. The Altar of Fury is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, when a Creature begins its Turn within 30 feet of the Altar, it loses 2d6 Hit Points. However, it has Advantage on Attacks until the end of the Turn. 
+
+#### Altar of Hatred
+*7th-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Hatred at a location within Range. The Altar of Hatred is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, the Altar of Hatred makes a Ranged Spell Attack at each of the two nearest Creatures within 50 feet, and who are not behind Total Cover, at the end of each of your Turns. These Ranged Spell Attacks use your Ranged Spell Attack Modifier, and deal 4d12 Force Damage on hit.
+:
+**At Higher Levels:** The range of the Ranged Spell Attacks made by the Altar increases by 50 feet for each Level above 7 it is cast at.
+
+
+\page
+{{pageNumber,auto}}
+
+#### Altar of Retribution
+*3rd-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Retribution at a location within Range. The Altar of Retribution is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While the Altar of Retribution is active, it projects two spheres centred on itself; one with a 50-foot-radius, and another with a 100-foot-radius. When a Creature within the 50-foot-radius Sphere is forced to make a Saving Throw by a Creature within the 100-foot-sphere, they can choose to fail that Saving Throw. If they do, both they and the Creature that forced them to make the Saving Throw suffer the effects of failing that Saving Throw.
+:
+**At Higher Levels:** Both radii are increased by 25 feet for each Level above 3 this Art is cast at.
+:
+#### Altar of Sacrifice
+*2nd-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 1 Hour
+
+You create an Altar of Sacrifice at a location within Range. The Altar of Sacrifice is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+While it is active, when a Creature within 30 feet of the Altar hits with an Attack, they can choose to lose 2d10 Hit Points. If they do, one Creature hit by that Attack takes 2d10 Necrotic Damage.
+:
+
+{{imageMaskEdge6,--offset:7%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/b/ba/Logos_Elite_2.png' 
+  style='position:absolute;top:-50px;right:-270px;width:1100px' />
+}}
+
+
+
+\page
+{{pageNumber,auto}}
+#### Altar of Weeping
+*5th-Level Conjuration*
+
+**Casting Time:** :: 10 Minutes (Incantation)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create an Altar of Weeping at a location within Range. The Altar of Weeping is an object with AC 10 and 50 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A minute after creating the Altar, it becomes active.
+:
+At the end of each of your Turns while the Altar of Weeping is active, the closest Creature within 100 feet of the Altar must succeed on a Wisdom Saving Throw or be overwhelmed by the great sorrow of the Altar until the end of their next Turn. While they are overwhelmed, their Speed is halved, they cannot take Reactions, and during their Turn they must choose between taking an Action or a Bonus Action. However, while overwhelmed, a Creature can release a sorrowful wail as an Action, damaging the psyche of all who hear it. All other Creatures within a 20-foot-radius sphere centred on that Creature must make a Wisdom Saving Throw, taking 4d8 Psychic Damage on a failed Save, or half as much on a successful Save.
+:
+**At Higher Levels:** For each Level above 5 it is cast at, the Altar targets 1 additional Creature at the end of your Turn. It cannot target the same Creature twice on a Turn.
+
+\column
+
+#### Alter Gravity
+*6th-Level Transmutation*
+
+**Casting Time:** :: Action (Ritual)
+**Range:**        :: 500 feet
+**Components:**   :: V,S
+**Duration:**     :: 1 Hour
+
+You alter the effects of gravity within a 100-foot-radius sphere centred on a point you can see within range. An area cannot be affected by two Alter Gravity effects at the same time, nor do these effects stack. 
+:
+Choose one of the following effects:
+:
+- **Reduced Gravity:** Gravity is weaker in this area. The weight of all objects and creatures in this area is halved. Furthermore, while they are in the area, Creatures gain a hover speed equal to half their walking speed, and take no damage from falling. 
+:
+- **Increased Gravity:** Gravity is stronger in this area. The weight of all objects and creatures in this area is doubled and the area counts as difficult terrain. Creatures attempting to use a fly or hover speed within this area must succeed on a Strength Saving Throw or they cannot move using those speeds this Turn. Additionally, the jump distance of Creatures within the area is halved, and Creatures take double Damage from falling.
+:
+- **Repulsion:** Gravity pushes all things and creatures towards the edges of the area. For Creatures in the area, moving 1 foot towards the centre of the area costs 2 feet of movement; conversely, moving 1 foot away from the centre of the area costs only 0.5 feet of movement. A Creature not holding onto a fixed object is pushed 10 feet directly towards the edge of the zone at the end of their Turn. Objects not fixed to the ground are pushed 10ft towards the edge of the zone at the beginning of each of your Turns.
+:
+- **Gravity Well:** Gravity begins to converge on the centre of the area. For Creatures in the area, moving 1 foot away from the centre of the area costs 2 feet of movement; conversely, moving 1 foot towards the centre of the area costs only 0.5 feet of movement. A Creature not holding onto a fixed object is pulled 10 feet directly towards the centre of the zone at the end of their Turn. Objects not fixed to the ground are pulled 10ft towards the centre of the zone at the beginning of each of your Turns.
+:
+
+{{align-text:left
+**At Higher Levels:** If cast at 8th Level, the duration is increased to 1 day. If cast at 9th Level, the duration is permanent until dispelled.
+}}
+
+:
+[Credit](https://www.dndbeyond.com/spells/146333-alter-gravity)
+:
+
+
+\page
+{{pageNumber,auto}}
+
+#### Ancestral Tide
+*7th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You release a wave in a 40-foot-long, 20-foot-wide, and 10-foot high area originating from you that appears like water, populated by the "spirits" of elves who's touch soothes your allies and burns your foes. Hostile Creatures within the area must make a Charisma Saving Throw; on a failed Save, they take 8d8 Force Damage. On a successful Save, they take half as much Damage. Willing non-hostile Creatures within the area gain 4d8 Temporary Hit Points.
+
+#### Aqua Blade
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+Forming water into a cutting edge, you swipe outwards. Make a Melee Spell Attack against a Creature within 5 feet. On a Hit, the target takes 1d6 Slashing Damage, and all other Creatures within a 10-foot cone originating directly behind the original target from your perspective take Slashing Damage equal to your Spellcasting Ability Modifier.
+:
+**Cantrip Upgrade:** The Damage of the initial Attack increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6). At Level 11, the Damage dealt to Creatures within the Cone increases to twice your Spellcasting Ability Modifier.
+:
+#### Arcane Bolt
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You conjure up a bolt of raw Originium Arts and send it streaking towards a Creature you can see within range. Make a Ranged Spell Attack against the target. On a hit, the target takes 1d12 Force damage.
+:
+**Cantrip Upgrade:** The Damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).
+:
+
+\column
+
+#### Arcane Lance
+*6th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Gathering force into a single mass, you fire a 120-foot-long, 5-foot-wide line in a chosen direction; each Creature in that line takes 7d6 Force Damage.
+:
+**At Higher Levels:** The Damage increased by 1d6 for each Level above 6 it is cast at.
+
+
+
+#### Arcane Tempest
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+With a wordless cry, you unleash an unrelenting torrent of force onto your enemies, directed with murderous precision. Roll 12d12; this is the Damage of the Art. You may then divide up the Damage as you please between Creatures you can see within 120 feet.
+
+#### Arts Artillery 
+*7th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You launch a payload of force into the sky, which crashes down after a few seconds. Choose a point you can see within range; at the beginning of your next Turn, all Creatures within a 20-foot-radius sphere centred on the chosen point take 10d10 Force Damage.
+:
+**At Higher Levels:** The Damage increases by 1d10 for each Level above 7 it is cast at.
+:
+
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Avalanche
+*7th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 150 feet
+**Components:**   :: V, S
+**Duration:**     :: 1 Minute
+
+Boulders of ice and sheets of snow form in the air at your command, tumbling down with thunderous impact upon a location you choose within range. The area affected is made up of four 20-foot cubes, which you arrange as you like; each Cube must be contiguous with at least one other Cube, and must touch the ground. Every Creature in the affected area must make a Dexterity Saving Throw, taking 4d8 Bludgeoning Damage + 4d8 Cold Damage on a failed Save, or half as much on a successful Save. 
+:
+For the duration of the Art, the area affected by this Art is considered to be Difficult Terrain for non-flying Creatures.
+
+#### Avatar of Wind
+*9th-Level Evocation*
+
+**Casting Time:** :: 1 Minute
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 Minutes.
+
+For a brief time, you achieve complete mastery of the four winds. Until the Art ends, gale-force winds whip around you like armour. For the duration of the Art:
+- You gain a Fly Speed of 100ft. If you are still flying when the Art ends, you descend gracefully to the ground at a pace of 100 feet per Turn; you do not take falling Damage. 
+- The area within a 30-foot-radius of you is considered to be Difficult Terrain for all other Creatures, except those designated by you when you cast this Art. You may change any number of designated Creatures during your Turn. 
+- Non-Magical Ranged Attacks against you automatically miss.
+- When you are subjected to an effect that allows you to make a Dexterity Saving Throw to take only half Damage, you instead take no Damage if you succeed on the Saving Throw, and only half Damage if you fail.
+- As a Bonus Action during your Turn, choose a point within 100 feet that you can see. All Creatures in a 20-foot-radius sphere centred on that point must make a Strength Saving Throw. On a failed Save, they take 5d6 Bludgeoning Damage, and you may then choose whether Creatures that failed the Save are pulled 15 feet towards the centre of the area, or pushed 15 feet away from the centre of the area. Creatures that succeed on the Saving Throw take half as much Damage, and suffer no other effects.
+
+#### Ball Lightning
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You launch a spark of electricity at a Creature within range. Make a Ranged Spell Attack against the target. On a hit, the target takes 1d10 Lightning damage.
+:
+**Cantrip Upgrade:** The Damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).
+:
+
+}}
+\page
+{{pageNumber,auto}}
+
+#### Blade Art 
+*Evocation Cantrip*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: Self
+**Components:**   :: S
+**Duration:**     :: Instant
+
+This Cantrip can only be cast as a Spellsword Art by an Artsblade. When it is cast, the Attack that this Art was cast as part of deals 1d6 additional Arts Damage. You choose what Damage Type this Damage is; when you cast this Art, choose one of the Arts Pools you have selected for your Spellsword Arts. The Damage Type corresponds to the chosen Arts Pool.
+
+| Arts Pool | Damage Type |
+|:---------:|:-----------:|
+| Corrosion | Acid        |
+| Crude     | Force       |
+| Earth     | Bludgeoning |
+| Electric  | Lightning   |
+| Flame     | Fire        |
+| Fluid     | Piercing    |
+| Frost     | Cold        |
+| Light     | Radiant     |
+| Psychic   | Psychic     |
+| Spatial   | Thunder     |
+| Wind      | Slashing    |
+
+:
+**Cantrip Upgrade:** The Additional Damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).
+
+#### Bloodbomb
+*1st-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You cause a Blood Amber of your choice within the Art's range to detonate, destroying it. All Creatures within a 30-foot-radius sphere centred on that Blood Amber must make a Dexterity Saving Throw, taking 3d6 Slashing Damage on a failed Save, or half as much on a successful one.
+:
+**At Higher Levels:** The Damage increases by 1d6 for each Level above 1 it is cast at.
+
+\column
+
+#### Bloodletting
+*2nd-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: Touch
+**Components:**   :: S
+**Duration:**     :: Instant
+
+Blood is a powerful thing, but there is always a price to be paid. A willing Creature you touch loses 2d8 Hit Points. Then, choose a different Creature you can see within 30 feet of you; they recover Hit Points equal to twice the amount lost by the first Creature; any excess Hit Points are gained as Temporary Hit Points.
+:
+**Blood Amber:** If there is a Blood Amber within 100 feet of you when you cast this Art, you may consume that Blood Amber to also gain the Temporary Hit Points granted by this Art.
+
+#### Bloodline
+*5th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 Minutes
+
+You create a bloodline between you and a willing Creature within Range. As a Bonus Action while this bloodline persists, you may:
+- Transfer any amount of your Hit Points to the linked Creature; you lose that amount of Hit Points, and they recover that amount of missing Hit Points. This amount must be less than your current Hit Points, and you may not spend Temporary Hit Points in this manner.
+- Transfer any amount of the linked Creature's Hit Points to you; they lose that amount of Hit Points, and you recover that amount of missing Hit Points. The Creature must be willing, the amount must be less than their current Hit Points, and Temporary Hit Points cannot be spent in this manner.
+
+{{align-text:left
+**Blood Amber:** If there is a Blood Amber within 50 feet of you when you transfer Hit Points using this Art, you may consume it to increase the amount of Hit Points recovered by 15; this does not increase the amount of Hit Points lost by the other Creature.
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Bloodmist
+*4th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 Minutes
+
+You create an enervating cloud of blood in a 15-foot-radius sphere centred on a location of your choice. Creatures within the area must make a Constitution Saving Throw. On a failed Save, they take 4d8 Necrotic Damage, and can only make 1 Attack during their next Turn. On a successful Save, they take half as much Damage, and suffer no other effects.
+:
+**Blood Amber:** If you cast this Art centred on a Blood Amber, that Blood Amber is consumed, and Creatures have Disadvantage on the Constitution Saving Throw against this Art.
+:
+**At Higher Levels:** The radius of the Sphere increases by 5 feet for each Level above 4 it is cast at.
+
+#### Boiling Burst
+*3rd-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Minute
+
+You begin to concentrate roiling, corrosive fluids at a point you can see within range for the duration. When the Art ends, the fluids burst outwards, and every Creature within a 20-foot-radius sphere centred on that point must make a Dexterity Saving Throw. On a failed Save, they take 4d8 Acid Damage, plus 2d8 Acid Damage for every Turn you maintained Concentration on this casting of this Art.
+
+#### Bolster
+*2nd-Level Abjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 30 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+You protect a Creature from minor harms. A Creature of your choice within range gains 2d8 Temporary Hit Points.
+:
+**At Higher Levels:** The Temporary Hit Points granted by this Art increases by 1d8 for each Level above 2 it is cast at.
+
+#### Burden
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 30 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+You temporarily increase the effects of gravity on a Creature of your choice within range. The target Creature must succeed on a Constitution Saving Throw, or take 1d8 Bludgeoning Damage and have its Speed reduced by 10ft until the end of its next Turn.
+:
+**Cantrip Upgrade:** The Damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
+
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Corpse Explosion
+*2nd-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+You accelerate decay, and thus, the production of gas within a dead Creature of your choice within range. It explodes in a cloud of noxious gas and poisonous fluids; all Creatures within 15 feet of the corpse must make a Dexterity Saving Throw. On a failed Save, they take 3d8 Poison Damage, or 3d12 if the corpse was of a Large Creature. On a successful Save, they take half as much Damage.
+
+#### Corrode
+*1st-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You attempt to burn away the defences of a Creature. Choose a Creature you can see within range; that Creature must make a Constitution Saving Throw. On a failed Save, it takes 2d6 Acid Damage, and is Corroded. On a successful Save, it takes half as much Damage, and is not Corroded.
+:
+A Creature may attempt this Saving Throw again at the end of its Turn, ending the effect on a success.
+:
+**At Higher Levels:** The Damage of this Art increases by 1d6 for each Level above 1 it is cast at.
+:
+#### Crystallise Blood
+*1st-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Reaction when the Hit Points of a Creature within range are reduced to less than half of their maximum, or reduced to 0.
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+When blood is spilled, you can convert it into your strength. Create a Blood Amber in an unoccupied space within 5 feet of the triggering Creature. 
+:
+A Blood Amber is a small Object that cannot be moved, with AC 10 and 10 Hit Points; it is Resistant to all Damage, has a DR of 10 against all Damage, and is immune to all Conditions. Blood Ambers do nothing on their own, but can be consumed by other Haemomancy Arts as directed by those Arts. 
+
+}}
+
+\page
+{{pageNumber,auto}}
+
+{{wide
+
+#### Event Horizon
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 250 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute
+
+You create an incredibly dense point of gravity in a 50-foot-radius sphere centred on a point you can see within range. The area within this sphere is considered to be Difficult Terrain; this applies even through solid objects.
+:
+At the start of each of your Turns, every Creature within the sphere must make a Strength Saving Throw. On a failed Save, they take 3d10 Force Damage and are pulled 20 feet towards the centre of the area. On a successful Save, they take half as much Damage, and are not pulled. Unsecured Objects are pulled 20 feet towards the centre automatically. 
+:
+This pull is capable of pulling Creatures and Objects into the air unless they are secured to the ground in some way, such as by grabbing hold of objects that are secured. Creatures and Objects pulled into the air are suspended there until they return to the ground, escape the area, or the spell ends; in which case they fall directly downwards. A Creature that does not have a Fly or Hover Speed can only move by pushing or pulling against objects, including objects which are suspended.  
+:
+If a Creature is pulled into the centre of the sphere, they take 8d10 Force Damage. A Creature that is reduced to 0 Hit Points by this Damage is instantly killed, crushed into an unrecognisable mass. 
+:
+When you cast this Art, you may designate a number of Creatures you can see equal to your Spellcasting Ability Modifier + your Proficiency Bonus. Those Creatures automatically succeed on the Saving Throw.
+:
+[Credit](https://www.dndbeyond.com/spells/2628064-gravity-well)
+
+}}
+
+{{imageMaskEdge1,--offset:-2%,--rotation:-5
+<img 
+  src='https://arknights.wiki.gg/images/d/da/IS-Those_Who_Open_The_Door.png?f348fe' 
+  style='position:absolute;top:360px;right:-400px;width:1500px' />
+}}
+
+
+\page
+{{pageNumber,auto}}
+
+#### Explosive Exsanguination
+*6th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You cause a Creature's blood to attempt to explosively escape their body. Choose a Creature you can see within range; that Creature must make a Constitution Saving Throw, taking 5d8 Necrotic Damage on a failed Save, or half as much on a successful Save. If this Damage reduces a Creature that failed the Save to 0 Hit Points, they die; if they do, all Creatures within 15 feet of them must make a Dexterity Saving Throw, taking 5d8 Necrotic Damage on a failed Save, or half as much on a successful one. 
+:
+**Blood Amber:** If there is a Blood Amber within the Art's range, you may consume it to cause the original target Creature to have Disadvantage on the Constitution Saving Throw.
+:
+**At Higher Levels:** The Damage this Art deals to the initial Creature increases by 1d8 for each Level above 6 it is cast at.
+:
+#### Fill Lungs
+*9th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: 30 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 Minute
+
+You cause water to enter a Creature's respiratory system in great volumes. Choose a Creature you can see within range; that Creature must make a Constitution Saving Throw. On a failed Save, they begin Suffocating. Furthermore, their Movement Speed is halved, they have Disadvantage on all Saving Throws (except Constitution), and Skill Checks. They may attempt this Saving Throw again as an Action on each of their Turns, ending the effect on a success. 
+:
+On a successful Save, they are instead Stunned until the end of their next Turn.
+:
+This Art has no effect on Creatures that do not breathe.
+
+\column
+
+#### Fimbulvetr
+*8th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You attempt to snap freeze the area surrounding you. All other Creatures within a 50-foot-radius sphere centred on you must make a Constitution Saving Throw. On a failed Save, they take 10d8 Cold Damage, and gain the Frozen Condition. A Creature can reattempt this Saving Throw as an Action during their Turn, ending the effect on a success. 
+:
+On a successful Save, they take half as much Damage, and are Frozen until the end of their next Turn.
+:
+When you cast this Art, you can designate a number of Creatures equal to your Spellcasting Ability Modifier + your Proficiency Bonus to be unaffected by the Art.
+:
+#### Forcewave
+*4th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+A rush of energy pours from you, bathing your foes, ready to be detonated by a spark. All Creatures within a 30-foot cone originating from you take 4d6 Force Damage. All Creatures hit by this Art are then Primed; the next time a Primed Creature takes Damage, they take 2d6 additional Force Damage.
+:
+**At Higher Levels:** The additional Damage to Primed Creatures increases by 2d6 for each Level above 4 it is cast at.
+:
+
+\page
+{{pageNumber,auto}}
+
+#### Galvanic Gauntlet
+*2nd-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: Self 
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Minute.
+
+You charge yourself with electrical energy, ready to release. While you maintain Concentration, you can make a Ranged Spell Attack against a Creature you can see within 30 feet as an Action; on hit, that Creature takes 4d6 Lightning Damage.
+:
+**At Higher Levels:** The Lightning Damage of the Spell Attack increases by 1d6 for each Level above 2 the Art is cast at.
+:
+#### Galvanise
+*2nd-Level Abjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 Minutes.
+
+You empower a Creature you touch with electrical energy. For the duration, their Movement Speed is increased by 10ft and their Melee Weapon Attacks deal 1d6 additional Lightning Damage.
+:
+**At Higher Levels:** You can target one additional Creature for each Level above 2 it is cast at.
+:
+#### Ice Barrier
+*1st-Level Conjuration*
+
+**Casting Time:** :: Reaction, when a Ranged Attack is made against you or a Creature within range
+**Range:**        :: 15 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You quickly summon a wall of ice in response to the triggering attack. Make a Ranged Spell Attack; if the result of your Attack Roll is higher than the Attack Roll of the triggering Attack, the triggering Attack misses. 
+:
+**At Higher Levels:** You may add 2 to the result of the d20 Test for each Level above 1 this Art is cast at.
+
+\column
+
+#### Ice Sheet
+*2nd-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Minute
+
+You create a zone of freezing ice in a 10-foot-radius Circle centred on a grounded location you can see within range. For the Duration, this area is considered Difficult Terrain. Furthermore, for every 5 feet a Creature moves while in this area, they take 1d4 Cold Damage. 
+:
+**At Higher Levels:** The radius of the affected area increases by 5 feet for each Level above 2 this Art is cast at.
+:
+#### Icicle Crash
+*3rd-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Jagged shards of ice pour down in a 15-foot-radius, 50-foot-high cylinder, centred on a grounded point you can see within range. All Creatures within the affected area must make a Dexterity Saving Throw, taking 3d6 Piercing Damage + 3d6 Cold Damage on a failed Save, or half as much on a successful one.
+:
+**At Higher Levels:** The Cold Damage dealt increases by 1d6 for each Level above 3 this Art is cast at.
+
+#### Inflict Doom
+*8th-Level Necromancy*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 minute.
+
+With a touch, you wrack the nervous system of a Creature, causing it to experience much greater pain from a given stimulus. When you cast this Art, choose one Saving Throw and one Damage Type. The Creature you touch must make a Constitution Saving Throw. On a failed Save, they are Doomed for the duration; while Doomed, they have Disadvantage on all Saving Throws of the chosen type, and they are Vulnerable to the Damage Type you chose.
+
+\page
+{{pageNumber,auto}}
+
+#### Investiture of Lightning
+*6th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 minutes
+
+Electricity infuses your form, crackling across your body in bright arcs; the electricity doesn't harm you, and for the duration, you shed bright light in a 10ft radius, and dim light for a further 10ft. Until the Art ends, you gain the following benefits:
+- You have Immunity to Lightning Damage, and Resistance to Thunder Damage.
+- You can Dash or Disengage as a Bonus Action. If you already could already do either of those Actions as a Bonus Action, you can do both simultaneously as a Bonus Action.
+- You can use your Action to launch a blast of lightning towards a point you can see within 60 feet. All Creatures in a 15-foot-radius sphere centred on that point must make a Dexterity Saving Throw, taking 6d6 Lightning Damage on a failed Save, or half as much on a successful Save.
+:
+
+\column
+
+#### Investiture of Water
+*6th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 10 minutes
+
+Clear water cascades over your form, as if you had just emerged from underwater. Until the Art ends, you gain the following benefits:
+- You have Resistance to Acid, Cold, and Fire Damage.
+- You have a Swimming Speed equal to your Walking Speed (if you already have a Swimming Speed, it is increased by a value equal to your Walking Speed), can breathe underwater, and can walk on the surface of liquids. 
+- You can use your Action to attempt to trap a Creature in a bubble of water. Choose a Creature you can see within 30 feet of you; that Creature must succeed on a Strength Saving Throw or they are Restrained until the end of their next Turn.
+:
+
+{{imageMaskEdge7,--offset:2%,--rotation:-10
+<img 
+  src='https://arknights.wiki.gg/images/c/c4/Muelsyse_Elite_2.png' 
+  style='position:absolute;top:200px;right:-130px;width:1200px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+#### Lacerate
+*3rd-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: S
+**Duration:**     :: 1 minute
+
+You cause a deep wound on a Creature that can bleed. Make a Melee Spell Attack; on a hit, that Creature takes 2d10 Slashing Damage and is Bleeding. This Bleeding Condition cannot be removed by restoring Hit Points. At the beginning of their Turn, a Creature Bleeding from this Art must succeed on a Constitution Saving Throw to remove the Bleeding Condition.
+:
+**Blood Amber:** If there is a Blood Amber within 60 feet of you when you cast this Art, you may consume it to cause the Bleeding Creature to have Disadvantage on the Constitution Saving Throw.
+:
+**At Higher Levels:** The Bleeding Damage dealt increases by 1d6 for each Level above 3 this Art is cast at.
+
+#### Launch
+*1st-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: 80 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+With a rush of power, you attempt to launch targets into the air. All Creatures within a 10-foot-radius sphere centred on a point you can see within range must succeed on an Strength Saving Throw, or be flung 20 feet directly upwards. They then fall as normal, taking Damage from the fall as appropriate.  
+:
+**At Higher Levels:** The distance you throw Creatures and Objects into the air increases by 10 feet for each Level above 1 this Art is cast at.
+
+#### Leaf Blade
+*1st-Level Transmutation*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: Touch
+**Components:**   :: S
+**Duration:**     :: 10 minutes
+
+You touch one or two leaves, branches, grasses, or similar plant life. You strengthen and mold them creating the same number of Knives. While these Knives are wielded by you, you can use your Spellcasting Ability instead of your Strength or Dexterity for Attack and Damage Rolls. Additionally, Damage dealt by these Knives is considered to be Arts Damage. At the end of the Duration, the material you used in the Knives withers and rots away to nothing. 
+
+\column
+
+#### Leaping Current
+*1st-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+You launch an bolt of lightning towards a Creature within range. Make a Ranged Spell Attack against that Creature; on a hit, that Creature takes 3d6 Lightning Damage. Then, even if the Attack missed, you can repeat the Attack as if you were in the original Creature's space, but must target a different Creature as the bolt leaps to them.
+:
+**At Higher Levels:** The Lightning Damage dealt by the Spell Attack increases by 1d6 for each Level above 1 this Art is cast at.
+
+#### Life Seed
+*2nd-Level Conjuration*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: 30 feet
+**Components:**   :: S
+**Duration:**     :: 1 minute
+
+You cast a Life Seed charged with healing energies at a point within range. As a Bonus Action, you can cause that Seed to dramatically sprout, restoring Hit Points to each Creature within 10 feet equal to 2d8 + your Spellcasting Ability Modifier. 
+
+
+
+\page
+{{pageNumber,auto}}
+
+#### Lightning Blade
+*4th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You form high current electricity around your hand into something approximating a lance and charge at your foe. When you cast this Art, you may use any movement you have remaining to move in a straight line towards a Creature and make a Melee Spell Attack against them. On a hit, they take 5d10 Lightning Damage + 1d10 additional Slashing Damage for every 10 feet you moved before making the Attack.
+
+#### Lightning Spear
+*1st-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You form electrical energy into a javelin-like bolt and launch it towards a Creature you can see within range. Make a Ranged Spell Attack against that Creature; on a Hit, that Creature takes 1d10 Lightning Damage. Hit or Miss, the electricity then sparks outwards; all Creatures within 5 feet of the target take 1d6 Lightning Damage.
+:
+**At Higher Levels:** The Damage dealt to the original target increases by 1d10, and the Damage dealt to Creatures within the radius by 1d6, for each Level above 1 this Art is cast at.
+:
+#### Mass Inflict Wounds
+*3rd-Level Necromancy*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: Instant
+Necrotic energy seeps forth from your hands like sickly green light, causing old wounds to reopen and fester. 
+:
+Each Creature in a 30-foot Cone originating from you must make a Constitution Saving Throw, taking 6d6 Necrotic damage on a failed Save or half as much on a successful Save.
+
+{{imageMaskEdge1,--offset:1%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/63_mini01.png' 
+  style='position:absolute;top:0px;right:-700px;width:1900px' />
+}}
+
+{{imageMaskEdge1,--offset:30%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/63_mini01.png' 
+  style='position:absolute;top:0px;right:-700px;width:1900px' />
+}}
+
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge1,--offset:-9%,--rotation:180
+<img 
+  src='https://arknights.wiki.gg/images/Advent_of_the_New_King.png' 
+  style='position:absolute;top:0px;right:-130px;width:1200px' />
+}}
+
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::
+
+#### Mass Exhaust
+*7th-Level Necromancy*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute
+You create a 20-foot-radius sphere centered on a point you can within range that interferes with the respiration of Creatures, draining them of strength and will. When a Creature enters the Zone during their Turn, or begins their Turn in the Zone, they must succeed on a Constitution Saving Throw or suffer 1d4-1 (minimum of 1) Levels of Exhaustion. A Creature that has gained Exhaustion in this way can remove 1 Level of that Exhaustion as an Action. 
+
+\column
+
+::::::::::::::::::::::::::::::::::::::::::::::::
+
+#### Megiddo
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 1000 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Choose up to 10 different Creatures you can see within range. Blinding light strikes down in a 20-foot-radius, 100-foot-high cylinder centred on each of the Creatures; all Creatures within the affected areas must make a Dexterity Saving Throw. On a failed Save, they take 10d8 Radiant Damage and are Blinded. At the end of their Turn, they must make a Constitution Saving Throw, ending the Blinded Condition on a success. On a successful Save, they take half as much Damage, and are instead Blinded until the end of their next Turn. 
+:
+A Creature in the area of more than one pillar of light is affected only once.
+
+
+
+\page
+{{pageNumber,auto}}
+
+#### Melting Mine
+*2nd-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 hour
+
+Choose two unoccupied points you can see within range. At each of those points, you create a densely packed bubble of acid, ready to detonate when disturbed. When a Creature touches a bubble, enters a space within 5 feet of a bubble, or a bubble is otherwise disturbed, it explodes. When a bubble explodes, all Creatures within 10 feet of the bubble must make a Dexterity Saving Throw, taking 4d6 Acid Damage on a failed Save, or half as much on a successful Save. A Creature can only take this Damage once per Turn.
+:
+When you cast this Art, you can designate any number of Creatures; these Creatures cannot cause the bubbles to detonate by being too close. It will still explode if they touch it, and they are still affected by the explosion as normal. 
+:
+**At Higher Levels:** For each Level above 2 this Art is cast at, you can create 1 additional bubble.
+:
+#### Melting Mist
+*3rd-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 minute
+
+You form a 20-foot-radius sphere of toxic mist centred on a visible point within range. The mist lasts for the duration or until strong wind (such as the one created by Gust of Wind) disperses it, ending the spell. Its area is Heavily Obscured.
+:
+Each Creature in the Sphere when it appears must make a Constitution Saving Throw, taking 4d8 Acid Damage on a failed Save, or half as much on a successful Save. A Creature must also make this Saving Throw when it enters the area during its Turn or begins its Turn there; a Creature makes this Save only once per Turn.
+:
+**At Higher Levels:** The Damage increases by 1d8 for each Level above 3 this Art is cast at.
+:
+
+\column
+
+#### Missile Barrier
+*3rd-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: 10 Minutes
+
+You summon eight arcane motes which hover around you. 
+:
+When you are hit by an Attack you can see, you can use your Reaction to expend any amount of these motes; roll 1d4+1 for each mote expended. The Damage of that Attack is reduced by the total amount rolled. 
+:
+**At Higher Levels:** For each Level above 3 this Art is cast at, you can create 2 additional motes.
+:
+#### Mountainfall
+*9th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 500 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+Raising up earth and stone from a massive area, you crash it down in a 50-foot-radius sphere centred on a grounded point you can see within range. Every Creature within the area must make a Dexterity Saving Throw; they take 8d6 Bludgeoning Damage on a failed Save, or half as much on a successful Save. 
+:
+Creatures who took Damage from the initial cast of the Art are buried under rock and rubble. They must make a Strength Saving Throw at the beginning of their Turn until they have left the area to resist being crushed. On a failed Save, they take 4d6 Bludgeoning Damage, or half as much on a successful Save.
+:
+#### Necrostorm
+*5th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You unleash a storm of poisoned wind in a 20-foot-radius, 60-foot-tall cylinder centred on a point it can see within range. All Creatures within the area must make a Constitution Saving Throw; on a failed Save, they take 6d8 Necrotic Damage and are Poisoned until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Poisoned.
+
+\page
+{{pageNumber,auto}}
+
+#### Overload
+*5th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You pour volts into a Creature you touch, scrambling their nervous impulses. The target Creature must make a Constitution Saving Throw, taking 6d6 Lightning Damage and being Stunned until the end of their next Turn on a failed Save. On a successful Save, they take half as much Damage, and are Dazed until the end of their next Turn instead.
+:
+**At Higher Levels:** For each Level above 5 this Art is cast at, it deals 2d6 additional Damage.
+:
+#### Permafrost
+*4th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V, S
+**Duration:**     :: 1 Minute
+
+You flash freeze a 10-foot cube centred on a point you can see within range; all Creatures within the area must make a Dexterity Saving Throw. On a failed Save, they take 3d10 Cold Damage, and are trapped within the ice. On a successful Save, they take half as much Damage, and are pushed to the closest edge of the area.
+:
+A Creature trapped within the ice is Restrained, but Attacks and Arts cannot pass into or out of the Ice. The Ice is considered to be an Object with AC 8 and 30 Hit Points. It has Vulnerability to Fire Damage, and is Immune to Cold, Psychic, and Poison Damage. If the Ice reaches 0 Hit Points, or the duration of the Art is reached, the ice shatters, immediately releasing all of the Creatures trapped within it. 
+:
+**At Higher Levels:** For each Level above 4 this Art is cast at, the size of the cube is increased by 10 feet.
+
+\column
+
+#### Power Word Aegis
+*5th-Level Enchantment*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Your words form into protective barriers around up to 6 Creatures of your choice that can hear you and are within range. Those Creatures gain 20 Temporary Hit Points.
+:
+**At Higher Levels:** The Temporary Hit Points increase by 10 for each Level above 5 this Art is cast at.
+:
+#### Power Word Bleed
+*3rd-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Your words physically cut at a Creature that can hear you within range, weakening them. Target Creature takes 10 Slashing Damage, and begins Bleeding.
+:
+**At Higher Levels:** The Slashing Damage increases by 5 for each Level above 3 this Art is cast at.
+:
+#### Power Word Despair
+*3rd-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Your words invoke terrible despair, causing immediate distraction. Target Creature takes 15 Psychic Damage, and has Disadvantage on the next Intelligence, Wisdom, or Charisma Saving Throw they make.
+:
+**At Higher Levels:** The Psychic Damage increases by 5 for each Level above 3 this Art is cast at.
+:
+
+
+\page
+{{pageNumber,auto}}
+
+#### Power Word Forget
+*6th-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+You command a Creature within range to forget an event. When you cast this Art, you can either choose one of the following options:
+- They forget up to an hour's worth of time, of your choice. The time must be a singular block, and must be wholly within a week of the present time. 
+- They forget a particular event of your choice; you must state the event for them to forget, such as "forget we met last year."
+
+{{align-text:left
+A Creature is not aware that it has been forced to forget, but the Art does not prevent it from relearning that information from an outside source.
+}}
+:
+**At Higher Levels:** For each Level above 6 this Art is cast at, you can target 1 additional Creature, and the range is increased by 10ft.
+:
+#### Power Word Kneel
+*2nd-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: Self 
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Yours is the voice of a monarch; others will kneel. All Creatures with 20 or fewer Hit Points within a 30-foot cone originating from you gain the Prone Condition, as they are forced to kneel to you until the end of their next Turn.
+:
+
+**At Higher Levels:** For each Level above 2 this Art is cast at, the threshold for affected Creatures is increased by 10 Hit Points. 
+
+\column
+
+#### Power Word Push
+*1st-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V
+**Duration:**     :: Instant
+
+The force of your voice can push lesser beings away from you physically. All Creatures with 20 or fewer Hit Points within a 10-foot cube originating from you are pushed directly away from you to the edge of the area, and have their Speed reduced by 10 until the end of their next Turn. Creatures with more Hit Points than this have their Speed reduced by 10 until the end of their next Turn instead.  
+:
+**At Higher Levels:** For each Level above 1 this Art is cast at, the threshold for affected Creatures is increased by 10 Hit Points, and the side length of the cube is increased by 5ft. 
+:
+#### Power Word Shield
+*2nd-Level Enchantment*
+
+**Casting Time:** :: Bonus Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Your words form into a protective barrier around a Creature that can hear you within range. The target Creature gains 10 Temporary Hit Points.
+:
+**At Higher Levels:** The Temporary Hit Points increase by 10 for each Level above 2 this Art is cast at.
+:
+#### Power Word Silence
+*6th-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 50 feet
+**Components:**   :: V
+**Duration:**     :: Instant
+
+You command a Creature within range to be silent. If that Creature has 60 or fewer Hit Points, they are Silenced and cannot talk in any way. Otherwise, it is Dazed until the end of its next Turn. 
+:
+At the end of each of their Turns, Silenced Creatures make a Wisdom Saving Throw, ending the Condition on a success.
+:
+
+\page
+{{pageNumber,auto}}
+
+{{imageMaskEdge1,--offset:2%,--rotation:90
+<img 
+  src='https://arknights.wiki.gg/images/4/48/Peaceful_Valley.png' 
+  style='position:absolute;top:0px;right:-270px;width:1900px' />
+}}
+
+{{imageMaskEdge1,--offset:40%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/4/48/Peaceful_Valley.png' 
+  style='position:absolute;top:0px;right:-270px;width:1900px' />
+}}
+
+{{imageMaskEdge1,--offset:44%,--rotation:180
+<img 
+  src='https://arknights.wiki.gg/images/4/48/Peaceful_Valley.png' 
+  style='position:absolute;top:0px;right:-270px;width:1900px' />
+}}
+
+{{imageMaskEdge1,--offset:33%,--rotation:270
+<img 
+  src='https://arknights.wiki.gg/images/4/48/Peaceful_Valley.png' 
+  style='position:absolute;top:0px;right:-270px;width:1900px' />
+}}
+
+
+\column
+
+#### Power Word Stop
+*8th-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Concentration, up to 1 Hour.
+
+Your linguimancy is so potent that it can crack even time. Choose a Creature you can see within range. If that Creature has 100 or fewer Hit Points, they are frozen in time. A Creature with more than 100 Hit Points instead has its Speed reduced to 0 until the end of its next Turn.
+
+When they are frozen in time, a Creature is halted in their current space, even if airborne. They are Incapacitated, and their Speed becomes 0 and cannot be increased. They cannot be moved from the current space by any means. Additionally, they cannot take any Actions, Bonus Actions, or Reactions. Finally, they are Immune to all Damage.
+:
+At the end of each of their Turns, affected Creatures make a Wisdom Saving Throw, ending the Condition on a success.
+:
+#### Power Word Stupefy
+*4th-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V
+**Duration:**     :: Concentration, up to 1 Minute.
+
+Your voice crashes against the walls of a Creature within range's mind. If the Creature has 60 or less Hit Points, it suffers the following effects for the Duration of the Art:
+- Its AC is reduced by 2
+- It cannot take Reactions.
+- It has Disadvantage on all Attack Rolls.
+:
+#### Power Word Succumb
+*5th-Level Enchantment*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V
+**Duration:**     :: Instant
+
+Malicious, predatory whispers seep from you like poison fog in a 30-foot-radius sphere. All other Creatures within the area with 20 or fewer Hit Points take 20 Psychic Damage. 
+:
+**At Higher Levels:** The Hit Point threshold and Psychic Damage both increase by 10 for each Level above 5 this Art is cast at.
+
+
+\page
+{{pageNumber,auto}}
+
+#### Produce Acid
+*Conjuration Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: S
+**Duration:**     :: 10 Minutes
+
+A corrosive ball of acid appears hovering above your palm, and remains there for the duration. The acid produces no sound, and cannot harm you or your equipment. The Art ends if you dismiss it as an Action, or cast it again.
+:
+The acid can melt small and weak objects, such as thin chain links or textiles; doing so ends the Art.
+:
+You can also attack with the acid, although doing so ends the Art. When you cast this Art, or as an Action on a later Turn, you can hurl the acid at a Creature within 30 feet of you. Make a Ranged Spell Attack. On a hit, the target takes 1d8 Acid Damage.
+:
+**Cantrip Upgrade:** The Damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
+:
+#### Protect from Cold
+*Abjuration Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Hour
+
+You shield a Creature within range against biting cold. That Creature is Resistant to Cold Damage for the duration. Once they have taken an instance of Cold Damage, this effect on them ends. 
+:
+**Cantrip Upgrade:** You may target an additional Creature when you reach levels 5 (2 Creatures), 11 (3 Creatures), and 17 (4 Creatures).
+:
+#### Protect from Heat
+*Abjuration Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Hour
+
+You shield a Creature within range against searing heat. That Creature is Resistant to Fire Damage for the duration. Once they have taken an instance of Fire Damage, this effect on them ends.
+:
+**Cantrip Upgrade:** You may target an additional Creature when you reach levels 5 (2 Creatures), 11 (3 Creatures), and 17 (4 Creatures).
+
+\column
+
+#### Pyroclasm
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V, S
+**Duration:**     :: 1 Minute
+
+A destructive wave of heat and flame rushes out in a direction of your choice in a 100-foot cone originating from you. All Creatures within the area must make a Dexterity Saving Throw, taking 9d8 Fire Damage on a failed Save, or half as much on a successful Save.
+:
+For the duration of the Art, a Creature that enters the area for the first time on its Turn, or begins its Turn there, suffers the Burning Condition; this Condition cannot be removed while they are within the area.
+:
+#### Raijin's Rage
+*9th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 200 feet
+**Components:**   :: V, S
+**Duration:**     :: Concentration, up to 1 Minute
+
+A cloud, crackling with lightning, appears at a point you can see above you. It takes the shape of a Cylinder that has a 60 foot radius, and is 20 feet tall. When the cloud appears, Creatures of your choice beneath the cloud and not under a roof must succeed on a Dexterity Saving Throw, or take 10d8 Lightning Damage.
+:
+On subsequent Turns, you can use your Action to move the cloud up to 15 feet, and then cause one of the following effects to occur; 
+- Creatures of your choice beneath the cloud and not under a roof must succeed on a Dexterity Saving Throw, or take 4d10 Lightning Damage.
+- A Creature of your choice beneath the cloud and not under a roof must make a Dexterity Saving Throw. On a failed Save, they take 8d10 Lightning Damage, and are Stunned until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Stunned. 
+:
+
+\page
+{{pageNumber,auto}}
+
+#### Repulsion Field
+*4th-Level Abjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 Minute.
+
+You project a repelling field of gravity in a 15-foot-radius Sphere that is centred on you, and moves with you. This area is considered to be Difficult Terrain for all other Creatures. While you are concentrating on this Art, Ranged Attacks made against a Creature within the area are made with Disadvantage. Additionally, if you would be hit by a Ranged Attack, you can expend your Reaction to force the attacker to reroll that Attack Roll.  
+
+#### Reverse Flow 
+*7th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 Minute.
+
+You attempt to reverse the blood flow of a Creature you can see within range. That Creature must make a Constitution Saving Throw. On a failed Save, they take 6d8 Necrotic Damage. Furthermore, when they take an Action or Reaction, they take 4d8 Necrotic Damage. On a successful Save, they take half as much Damage, and suffer no other effects. 
+:
+A Creature affected by this Art can make a Constitution Saving Throw at the end of its Turn, ending the effect on a success. A Creature cannot be affected by more than one instance of Reverse Flow at a time.
+:
+**Blood Amber:** If there is a Blood Amber within the Art's range, you may consume it to cause the target Creature to have Disadvantage on the initial Constitution Saving Throw.
+:
+#### Rust
+*2nd-Level Transmutation*
+
+**Casting Time:** :: Reaction, when you are attacked by a Creature using a Melee Weapon
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You degrade the weapon used to attack you by infusing it with corrosive chemicals. The Damage of that Weapon is reduced by 1. If the Damage of the Weapon has been reduced by 5 in this way, the Weapon breaks, and cannot be used until repaired.   
+
+\column
+
+#### Sanguinarch's Blessing
+*5th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You blast a living Creature you can see within range with a blood curse, causing racking pain. The target Creature must succeed on a Constitution Saving Throw or take 9d10 Necrotic Damage. If a Creature would be killed by this Damage, you can immediately take one Turn with that Creature as if you controlled them. They cannot cast Arts as part of this Turn, and at the end of the Turn, they die.
+:
+**Blood Amber:** If there is a Blood Amber within the Art's range when you cast it, you may consume it to cause the target Creature to have Disadvantage on the Constitution Saving Throw.
+:
+**At Higher Levels:** The Damage is increased by 1d10 for each Level above 5 this Art is cast at.
+
+{{imageMaskCorner29,--offsetX:52%,--offsetY:-49%,--rotation:0
+<img 
+  src='https://arknights.wiki.gg/images/2/2b/GO-Beauty_of_the_Rose_Riverbank.png?a4b5f2' 
+  style='position:absolute;top:400px;right:-570px;width:1200px' />
+}}
+
+\page
+{{pageNumber,auto}}
+
+#### Sanguine Spear
+*1st-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You solidify your own blood into a sharp projectile, which you launch at a visible Creature within range. When you cast this Art, you lose 1d8 Hit Points. Make a Ranged Spell Attack against the target; on a hit, they take 4d8 Piercing Damage
+:
+**Blood Amber:** If there is a Blood Amber within the Art's range, you may consume it to reduce the Hit Points you lose by 1d8.
+:
+**At Higher Levels:** The loss of Hit Points is increased by 1d8, and the Damage is increased by 1d8 for each Level above 1 this Art is cast at.
+:
+#### Sanguine Surge
+*2nd-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+With a touch, you speed up the circulation of a Creature, empowering them, but such strength is never free. During their next Turn, that Creature can take the Dash Action as a Bonus Action, and if they take the Attack Action, they can make an additional Attack as part of that Action.
+:
+However, at the end of that Turn, that Creature loses 2d8 Hit Points. 
+
+{{align-text:left
+**Blood Amber:** If there is a Blood Amber within 60 feet of you when you cast this Art, you may consume it to cause the target Creature to not lose Hit Points at the end of their Turn.
+}}
+
+\column
+
+#### Sea of Acid
+*9th-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 10 minutes
+
+You degrade the very ground in a 75-foot-radius grounded Circle centred on you. When you cast this Art, you may designate any number of 5-foot-radius circles within the area to be unaffected by this Art.
+:
+When the area appears, it is considered to be Difficult Terrain, and all Creatures touching the affected area take 4d6 Acid Damage. For the duration of the Art, when a Creature enters the affected area for the first time during a Turn, or ends its Turn there, it takes 6d6 Acid Damage. A Creature that has taken any Damage from this Art also suffers the Corroded Condition until the beginning of their next Turn.
+
+#### Septic Shock
+*4th-Level Necromancy*
+
+**Casting Time:** :: Bonus Action, which you take immediately after hitting a Creature with a Melee Attack during your Turn
+**Range:**        :: Self
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+Tendrils of your withering power dig deep into their body alongside your strike, sickening them; that Attack deals 4d10 additional Necrotic Damage. Additionally, that Creature must succeed on a Constitution Saving Throw or be Necrotised until the end of your next Turn.
+
+#### Shock and Awe
+*3rd Level Evocation*
+
+**Casting Time:** :: Reaction, when a Creature within range casts an Art
+**Range:**        :: 60 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+When someone is casting an Art, that's when their guard is lowest. The triggering Creature must make a Constitution Saving Throw, taking 6d8 Lightning Damage on a failed Save, or half as much on a successful Save. 
+:
+**At Higher Levels:** The Damage is increased by 1d8 for each Level above 3 this Art is cast at.
+:
+.
+
+\page
+{{pageNumber,auto}}
+
+#### Snap Freeze
+*2nd Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 30 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You rapidly chill the air around a visible Creature within range. The target Creature must make a Constitution Saving Throw; on a failed Save, they take 4d4 Cold Damage and gain the Frozen Condition. On a successful Save, they take half as much Damage, and are not Frozen.
+:
+The Frozen Creature may use their Action to break free of the ice, ending the Frozen Condition.
+:
+**At Higher Levels:** The Damage is increased by 2d4 for each Level above 2 this Art is cast at
+
+#### Stone Shower
+*Transmutation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 40 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You form dirt and pebbles into a solid bullet-like projectile, and launch it at a visible Creature within range. Make a Ranged Spell Attack against the target; on a Hit, the Creature takes 1d10 Piercing Damage.
+:
+**Cantrip Upgrade:** You create an additional projectile when you reach levels 5 (2 projectiles), 11 (3 projectiles), and 17 (4 projectiles). Make a Ranged Spell Attack for each projectile; you need not target the same Creature with all projectiles.
+:
+#### Storm Spear
+*7th-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: 120 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+Gathering screaming lightning and rushing wind into your palm, you launch it at a Creature you can see within range. Make a Ranged Spell Attack against that Creature; on a Hit, they take 6d10 Lightning Damage. Hit or miss, all Creatures within 20 feet of that Creature must make a Dexterity Saving Throw, taking 6d10 Thunder Damage on a failed Save, or half as much on a successful Save.
+:
+**At Higher Levels:** The Thunder Damage is increased by 2d10 for each Level above 7 this Art is cast at.
+
+\column
+
+#### Throne of Blood
+*8th-Level Conjuration*
+
+**Casting Time:** :: Action (Ritual)
+**Range:**        :: 10 feet
+**Components:**   :: V,S
+**Duration:**     :: 24 Hours
+
+You create a Blood Throne at a location within range. The Blood Throne is a throne-shaped Object with AC 10 and 100 Hit Points. It has Resistance to Physical Damage, and is Immune to Psychic, Poison, and Necrotic Damage. A Creature can only have one Throne of Blood at a time.
+:
+When you roll to determine Necrotic Damage dealt or Damage dealt via Haemomancy Arts while you are sitting on the Throne, you can restore Hit Points to a Creature you can see within 100 feet equal to half the amount rolled.
+:
+Additionally, when you take Damage while within 100 feet of the Throne, you can use your Reaction to give yourself Resistance to that Damage until the beginning of your next Turn; then, you may teleport to the Throne so that you are sitting on it. 
+:
+Finally, when a Creature within 100 feet of the Blood Throne dies, a Blood Amber is automatically created at the closest unoccupied location to them.
+
+#### Tug the Heartstrings
+*7th-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Action 
+**Range:**        :: 50 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 10 Minutes.
+
+By controlling the movement of blood in a Creature you can see, you can practically control their movements. 
+:
+Choose a Creature you can see within range; that Creature must make a Constitution Saving Throw. On a failed Save, you control their actions during their Turn; you cannot cause them to cast Arts, they have Disadvantage on Attack Rolls, and if you would attempt any action that would be immediately harmful to them (such as leaping from a high location), they may immediately attempt the Saving Throw again, ending the effect on a success. On a successful Saving Throw, they are instead Dazed until the end of their next Turn. 
+:
+A Creature being controlled by you may reattempt the Saving Throw at the end of their Turn, ending the effect on a success.
+:
+**Blood Amber:** If there is a Blood Amber within 50 feet of you when a Creature makes a Saving Throw against this Art cast by you, you can consume that Blood Amber to give them Disadvantage on that Saving Throw.
+
+\page
+{{pageNumber,auto}}
+
+#### Ultimate Necrostorm
+*9th-level Necromancy*
+
+**Casting Time:** :: Action 
+**Range:**        :: 500 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+Choose a point you can see within range; you begin channelling your Arts as a swirling hurricane of foul mist builds around the chosen point. As an Action on your following Turn, all Creatures within a 50-foot-radius sphere centred on that point must make a Constitution Saving Throw. On a failed Save, they take 7d10 Necrotic Damage and are Poisoned. On a successful Save, they take half as much Damage only.
+:
+A Creature Poisoned in this way can reattempt the Saving Throw at the end of each of their Turns, ending the Condition on a success.
+
+#### Unstable Plasma
+*2nd-Level Necromancy (Haemomancy)*
+
+**Casting Time:** :: Bonus Action 
+**Range:**        :: Touch
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 Minute.
+
+You apply a blood "curse" to a Creature you touch, improving their strength at the cost of their health. Once per Turn when that Creature hits with a Melee Attack, they can cause that Attack to deal 1d10 additional Damage (no Action required). However if they do so, they lose 1d10 Hit Points at the end of that Turn. 
+:
+**Blood Amber:** If there is a Blood Amber within 50 feet of you when a Creature would lose Hit Points as a result of this Art, you can consume that Blood Amber to prevent that loss of Hit Points.
+
+#### Water Bullet
+*Conjuration Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 40 feet
+**Components:**   :: V, S
+**Duration:**     :: Instant
+
+You blast a small, staggering sphere of water at a visible Creature within range. Make a Ranged Spell Attack against the target. On a hit, they take 1d8 Bludgeoning Damage, and are knocked backwards 10 feet.
+:
+**Cantrip Upgrade:** The Damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
+
+\column
+
+#### Water Pulse
+*2nd-Level Evocation*
+
+**Casting Time:** :: Action
+**Range:**        :: Self
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+You project a gout of water like a fire hose in a 30-foot-long, 10-foot-wide line originating from you. All Creatures in the line must make a Strength Saving Throw. On a failed Save, they take 3d6 Bludgeoning Damage, and are pushed away from you to the end point of the line. On a successful Save, they take half as much Damage, and are instead pushed back 10 feet.
+:
+**At Higher Levels:** The length of the line is increased by 20ft for every Level above 2 this Art is cast at.
+
+#### Waters of Life
+*5th-Level Conjuration*
+
+**Casting Time:** :: Action
+**Range:**        :: 200 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute
+
+Rejuvenating water begins raining in 30-foot-radius, 100-foot-high cylinder centred on a grounded point within range. When a Creature begins their Turn in the area, or enters the area for the first time on their Turn, they regain 2d8 Hit Points.
+
+#### Wind Slash
+*Evocation Cantrip*
+
+**Casting Time:** :: Action
+**Range:**        :: 10 feet
+**Components:**   :: S
+**Duration:**     :: Instant
+
+With a swipe of the hand, you loose a cutting wind against a visible Creature. That Creature must succeed on a Dexterity Saving Throw or take 1d12 Slashing Damage. This Art can also cut through weak or thin materials, such as leaves, vines, thin wood, and textiles.
+:
+**Cantrip Upgrade:** The Damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).
+
+\page
+{{pageNumber,auto}}
+
+{{descriptive
+#### Wither
+*2nd-Level Necromancy*
+
+**Casting Time:** :: Action
+**Range:**        :: 60 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute
+
+You attempt to place a virulent, withering curse onto a Creature of your choice within range. That Creature must succeed on a Constitution Saving Throw or be Withered for the duration. A Withered Creature takes 2d8 Necrotic Damage at the beginning of each of their Turns. A Withered Creature can make this Saving Throw again at the end of each of their Turns, ending the effect on a success. 
+:
+If the target drops to 0 Hit Points before this Art ends, you can use a Bonus Action on a subsequent Turn of yours to attempt to Wither a new Creature.
+
+#### Woodland Lance
+*1st-Level Transmutation*
+
+**Casting Time:** :: Action
+**Range:**        :: 100 feet
+**Components:**   :: V,S
+**Duration:**     :: Instant
+
+Choose a living tree or woody bush within range; you cause that tree to strike out with a spear-like branch at a Creature of your choice within 10 feet of the Tree or Bush. Make a Ranged Spell Attack against that Creature; on a hit, they take 6d6 Piercing Damage.
+
+#### Yggdrasil
+*9th-level Conjuration*
+
+**Casting Time:** :: Action 
+**Range:**        :: 100 feet
+**Components:**   :: V,S
+**Duration:**     :: Concentration, up to 1 minute.
+
+You invoke the might of Muel the Feranmut itself, conjuring up an golden image of a mighty tree 100 feet in height and a canopy with a radius of 60 feet centered on a point within range. As a Bonus Action, you can choose up to five Creatures that are underneath the canopy of the Tree. If the Creature is hostile to you, it must make a Charisma Saving Throw; on a failed Save, it takes 3d8 Force Damage, or half as much on a successful Save. If the Creature is not hostile to you, it either regains 3d8 Hit Points or gains 3d8 Temporary Hit Points; your choice. 
+}}
+
+
+
+
+<img 
+  src='https://arknights.wiki.gg/images/Ancestral_Tree.png' 
+  style='position:absolute;top:00px;right:-700px;width:1900px' />
+
+
+
+
+\page
+{{pageNumber,auto}}
+

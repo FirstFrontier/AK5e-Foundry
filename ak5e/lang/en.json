@@ -1,0 +1,63 @@
+{
+  "AK5E": {
+    "SourceBook": "AK5e 1st Edition",
+    "Settings": {
+      "ChapterOneRules": {
+        "Name": "Enable Chapter 1 rule support",
+        "Hint": "Makes AK5e Chapter 1 helpers and condition markers available in this World. This does not replace D&D5e's built-in death-saving-throw workflow."
+      },
+      "AssetLibrary": {
+        "Name": "AK5e Asset Library",
+        "Hint": "GM-only library of named image and audio paths. It starts empty and changing a mapping never deletes the file.",
+        "Label": "Manage Assets"
+      }
+    },
+    "AssetLibrary": {
+      "Title": "AK5e Asset Library",
+      "Hint": "Register a named image or audio asset, then select or upload its file with Foundry's file picker. These mappings are stored in this World; the module ships with no artwork or audio.",
+      "Add": "Add Asset",
+      "AddTitle": "Add AK5e Asset",
+      "Edit": "Edit",
+      "EditTitle": "Edit AK5e Asset",
+      "Remove": "Remove",
+      "RemoveTitle": "Remove AK5e Asset",
+      "RemoveConfirmation": "Remove the \"{label}\" asset mapping? The actual file will not be deleted.",
+      "Choose": "Choose File",
+      "Save": "Save",
+      "Label": "Name",
+      "Type": "Asset type",
+      "NoFile": "No file selected",
+      "Empty": "No assets are configured yet.",
+      "DuplicateLabel": "An asset named \"{label}\" already exists.",
+      "Types": {
+        "Image": "Image",
+        "Audio": "Audio"
+      }
+    },
+    "Notifications": {
+      "Dnd5eRequired": "AK5e requires the D&D5e game system.",
+      "GamemasterOnly": "Only a GM can do that.",
+      "ChapterOneInstalled": "Installed {count} AK5e Chapter 1 journal entries.",
+      "ChapterOneAlreadyInstalled": "AK5e Chapter 1 journal entries are already installed.",
+      "ChapterTwoInstalled": "Installed {count} AK5e Chapter 2 origin entries.",
+      "ChapterTwoAlreadyInstalled": "AK5e Chapter 2 origin entries are already installed.",
+      "ChapterThreeInstalled": "Installed {count} AK5e Chapter 3 class entries.",
+      "ChapterThreeAlreadyInstalled": "AK5e Chapter 3 class entries are already installed.",
+      "ChapterFourInstalled": "Installed {count} AK5e Chapter 4 equipment entries.",
+      "ChapterFourAlreadyInstalled": "AK5e Chapter 4 equipment entries are already installed.",
+      "ChapterFiveInstalled": "Installed {count} AK5e Chapter 5 Arts entries.",
+      "ChapterFiveAlreadyInstalled": "AK5e Chapter 5 Arts entries are already installed.",
+      "ChapterSixInstalled": "Installed {count} AK5e Chapter 6 creature and reference entries.",
+      "ChapterSixAlreadyInstalled": "AK5e Chapter 6 creature and reference entries are already installed.",
+      "DyingRequired": "{name} must be in the AK5e Dying state to use Mettle.",
+      "NotEnoughMettle": "{name} does not have enough Mettle.",
+      "NotEnoughSkillPoints": "{name} does not have enough Skill Points.",
+      "SkillAlreadyActive": "{name} already has an active Operator Skill.",
+      "NotEnoughArtsPoints": "{name} does not have enough Arts Points.",
+      "ArtLevelTooHigh": "{name} cannot cast an Art at that level yet.",
+      "NinthLevelArtUsed": "{name} has already cast a 9th-level Art since their last Long Rest.",
+      "ThreeFailedDeathSaves": "{name} has three failed AK5e death saves. Resolve death as directed by the rules.",
+      "RestActionInProgress": "{name} is already performing a Rest Action."
+    }
+  }
+}
