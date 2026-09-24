@@ -87,7 +87,9 @@ function buildOriginRecord(kind, section) {
   const displayName = SPECIES_VARIANT_PARENTS.has(section.name)
     ? `${SPECIES_VARIANT_PARENTS.get(section.name)} — ${section.name}`
     : section.name;
-  const nativeData = kind === "species" ? speciesNativeData(section.raw) : { systemData: {}, speciesSize: null };
+  const nativeData = kind === "species"
+    ? speciesNativeData(section.raw)
+    : { systemData: kind === "background" ? { advancement: [] } : {}, speciesSize: null };
   return {
     id: `${kind}-${slugify(displayName)}`,
     kind,
@@ -175,7 +177,10 @@ function extractUniqueBackgrounds(nationality) {
         sourceHeading: section.name,
         parent: nationality.name,
         itemType: "background",
-        systemData: {},
+        // AK5e backgrounds do not use D&D5e's default background package.
+        // Supplying an explicit empty list prevents D&D5e from generating its
+        // unrelated ability, skill, language, and feat advancement wizard.
+        systemData: { advancement: [] },
         content: toHtml(section.raw),
         rawSource: section.raw.trim()
       };

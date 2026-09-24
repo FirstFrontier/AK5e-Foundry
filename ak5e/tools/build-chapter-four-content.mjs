@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { sourceToHtml } from "./source-html.mjs";
+import { parseSourceTable } from "./source-tables.mjs";
 
 const sourceUrl = new URL("../../AK5e_1.3.1_Foundry_Source/04_chapter_4_equipment.txt", import.meta.url);
 const outputUrl = new URL("../scripts/chapter-four-content.mjs", import.meta.url);
@@ -82,40 +83,21 @@ function referenceRecord(section, leadingRaw = "") {
 }
 
 function parseTableItems(text, heading, itemType) {
-  const headingPattern = new RegExp(`^##### ${escapeRegExp(heading)}\\s*$`, "m");
-  const headingMatch = headingPattern.exec(text);
-  if (!headingMatch) throw new Error(`Missing Chapter 4 table: ${heading}`);
-  const afterHeading = text.slice(headingMatch.index + headingMatch[0].length);
-  const afterLines = afterHeading.split("\n");
-  const tableStart = afterLines.findIndex(line => line.trim().startsWith("|"));
-  const tableLines = [];
-  for (let index = tableStart; index >= 0 && index < afterLines.length; index += 1) {
-    if (!afterLines[index].trim().startsWith("|")) break;
-    tableLines.push(afterLines[index]);
-  }
-  if (tableLines.length < 3) throw new Error(`Could not parse Chapter 4 table: ${heading}`);
-
-  const headers = cells(tableLines[0]).map(cell => stripMarkup(cell).toLowerCase());
-  let category = null;
+  const table = parseSourceTable(text, heading);
   const records = [];
-  for (const line of tableLines.slice(2)) {
-    const values = cells(line);
-    if (values.length <= 1) {
-      category = stripMarkup(values[0] ?? "");
-      continue;
-    }
-    const name = cleanName(values[0]);
+  for (const parsed of table.rows) {
+    const name = cleanName(parsed.cells[table.headers[0]]);
     if (!name) continue;
-    const row = Object.fromEntries(headers.map((header, index) => [header, stripMarkup(values[index] ?? "")]));
-    const tableData = { category, ...row };
+    const row = parsed.cells;
+    const tableData = { category: parsed.category, ...row };
     records.push({
       id: `${itemType}-${slugify(name)}-${records.length}`,
       kind: itemType,
       name,
       itemType,
       sourceHeading: heading,
-      content: tableItemHtml(name, heading, category, row),
-      rawSource: line.trim(),
+      content: tableItemHtml(name, heading, parsed.category, row),
+      rawSource: parsed.raw,
       tableData,
       systemData: physicalItemData(itemType, tableData)
     });
@@ -185,11 +167,6 @@ function numberFrom(value) {
   return match ? Number(match[0]) : null;
 }
 
-function cells(line) {
-  const values = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|");
-  return values.map(value => value.trim());
-}
-
 function cleanName(value) {
   return stripMarkup(value)
     .replace(/^\*[^*]+\*$/g, "")
@@ -256,8 +233,4 @@ function assertUnique(values, label) {
   const seen = new Set();
   const duplicate = values.find(value => seen.has(value) || !seen.add(value));
   if (duplicate) throw new Error(`Duplicate ${label}: ${duplicate}`);
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

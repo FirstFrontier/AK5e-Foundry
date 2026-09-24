@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 const hooks = {};
-globalThis.Hooks = { once: (name, callback) => { hooks[name] = callback; } };
+globalThis.Hooks = { once: (name, callback) => { hooks[name] = callback; }, on() {} };
 globalThis.CONFIG = { statusEffects: [] };
 globalThis.foundry = {
   applications: {
@@ -14,7 +14,12 @@ globalThis.foundry = {
   },
   utils: { randomID: () => "test-id" }
 };
-globalThis.ui = { notifications: { info() {}, warn() {}, error() {} } };
+const notifications = [];
+globalThis.ui = { notifications: {
+  info(message) { notifications.push(["info", message]); },
+  warn(message) { notifications.push(["warn", message]); },
+  error(message) { notifications.push(["error", message]); }
+} };
 globalThis.game = {
   settings: {
     register() {},
@@ -34,6 +39,14 @@ const api = game.ak5e;
 
 assert.equal(CONFIG.statusEffects.length, 9, "All AK5e condition markers should register once.");
 
+const conditionActor = actorFixture();
+await api.applyCondition(conditionActor, "burning");
+await api.applyCondition(conditionActor, "ak5e-burning");
+assert.equal(conditionActor.effects.length, 1, "Applying the same condition twice must be idempotent.");
+await api.removeCondition(conditionActor, "burning");
+assert.equal(conditionActor.effects.length, 0);
+await assert.rejects(() => api.applyCondition(conditionActor, "unknown"), /Unknown AK5e condition/);
+
 const actor = actorFixture();
 await actor.setFlag("ak5e", "dying", { active: false, failures: 2 });
 let dying = await api.enterDying(actor);
@@ -51,35 +64,92 @@ dying = await api.resolveDyingTurnStart(actor);
 assert.equal(dying.active, false);
 assert.equal(actor.system.attributes.hp.value, 1);
 assert.equal(dying.failures, 2, "Stabilising must not clear failed Death Saves.");
+assert.equal(dying.mettle, 0, "Leaving Dying must remove all Mettle.");
 
-let skills = await api.configureOperatorSkills(actor, { maximum: 10, start: 3 });
+const failedSaveActor = actorFixture();
+await api.enterDying(failedSaveActor);
+dying = await api.recordDeathSave(failedSaveActor, false);
+assert.deepEqual({ mettle: dying.mettle, failures: dying.failures }, { mettle: 1, failures: 1 });
+assert.equal(await api.resolveStabilise(failedSaveActor), false, "Stabilise must fail below 6 Mettle.");
+await api.recordHealingWhileDying(failedSaveActor, 27);
+dying = await api.resolveDyingTurnEnd(failedSaveActor);
+assert.equal(dying.mettle, 4, "One healing instance grants 1 Mettle plus 1 per complete 10 HP.");
+await api.recordDeathSave(failedSaveActor, true);
+assert.equal(api.getDyingState(failedSaveActor).mettle, 6, "Mettle must be capped at six.");
+assert.equal(await api.spendMettle(failedSaveActor, 2), true);
+assert.equal(api.getDyingState(failedSaveActor).mettle, 4);
+await api.leaveDying(failedSaveActor);
+assert.equal(await api.recordDeathSave(failedSaveActor, true), null, "A Creature cannot gain Mettle while not Dying.");
+await assert.rejects(() => api.recordDeathSave(failedSaveActor, "success"), /true or false/);
+
+const skillActor = actorFixture();
+let skills = await api.configureOperatorSkills(skillActor, { maximum: 10, start: 3 });
 assert.deepEqual({ points: skills.points, maximum: skills.maximum, start: skills.start }, { points: 3, maximum: 10, start: 3 });
-assert.equal(await api.activateOperatorSkill(actor, { id: "skill", name: "Skill", cost: 2 }), true);
-skills = await api.adjustSkillPoints(actor, 5);
-assert.equal(skills.points, 1, "An active Operator Skill must prevent SP gain.");
-await api.endOperatorSkill(actor);
-skills = await api.adjustSkillPoints(actor, 20);
+skills = await api.adjustSkillPoints(skillActor, -20);
+assert.equal(skills.points, 0, "SP must not fall below zero.");
+skills = await api.adjustSkillPoints(skillActor, 4);
+assert.equal(await api.activateOperatorSkill(skillActor, { id: "expensive", cost: 5 }), false);
+assert.equal(await api.activateOperatorSkill(skillActor, { id: "skill", name: "Skill", cost: 2 }), true);
+assert.equal(await api.activateOperatorSkill(skillActor, { id: "second", cost: 0 }), false, "Only one Operator Skill may be active.");
+skills = await api.adjustSkillPoints(skillActor, 5);
+assert.equal(skills.points, 2, "An active Operator Skill must prevent SP gain.");
+await api.endOperatorSkill(skillActor);
+skills = await api.adjustSkillPoints(skillActor, 20);
 assert.equal(skills.points, 10, "SP must not exceed the configured maximum.");
 
-let arts = await api.configureArtsPoints(actor, { maximum: 20, maximumArtLevel: 9 });
+const artsActor = actorFixture();
+let arts = await api.configureArtsPoints(artsActor, { maximum: 20, maximumArtLevel: 9 });
 assert.equal(arts.value, 20);
-assert.equal(await api.spendArtsPoints(actor, 9), true);
-assert.equal(await api.spendArtsPoints(actor, 9), false, "Only one 9th-level Art may be cast per Long Rest.");
-arts = await api.recoverArtsPoints(actor, "max", { longRest: true });
+assert.equal(await api.spendArtsPoints(artsActor, 0), true, "Cantrips cost no Arts Points.");
+assert.equal(await api.spendArtsPoints(artsActor, 9), true);
+await api.recoverArtsPoints(artsActor, "max");
+assert.equal(await api.spendArtsPoints(artsActor, 9), false, "Only one 9th-level Art may be cast per Long Rest.");
+arts = await api.recoverArtsPoints(artsActor, "max", { longRest: true });
 assert.equal(arts.ninthLevelCast, false);
 assert.equal(arts.value, 20);
+await api.configureArtsPoints(artsActor, { maximum: 3, value: 2, maximumArtLevel: 2 });
+assert.equal(await api.spendArtsPoints(artsActor, 3), false, "An Art cannot exceed Maximum Art Level.");
+assert.equal(await api.spendArtsPoints(artsActor, 2), true);
+assert.equal(await api.spendArtsPoints(artsActor, 1), false, "An Art cannot be cast without enough Arts Points.");
+await assert.rejects(() => api.spendArtsPoints(artsActor, 1.5), /integer from 0 to 9/);
+await assert.rejects(() => api.spendArtsPoints(artsActor, 10), /integer from 0 to 9/);
+arts = await api.recoverArtsPoints(artsActor, -10);
+assert.equal(arts.value, 0, "Arts Point recovery cannot reduce the pool below zero.");
 
-assert.equal(await api.beginRestAction(actor, { kind: "long", name: "Work" }), true);
-assert.equal(await api.completeRestAction(actor, "short"), false, "A Long Rest Action cannot finish during a Short Rest.");
-await assert.rejects(() => api.completeRestAction(actor, "invalid"), /short or long/);
-assert.deepEqual(await api.completeRestAction(actor, "long"), { kind: "long", name: "Work" });
+const oripathyActor = actorFixture();
+assert.deepEqual(api.getOripathyState(oripathyActor), { infected: false, assimilation: 0 });
+let oripathy = await api.setOripathyState(oripathyActor, { infected: true, assimilation: 7 });
+assert.deepEqual(oripathy, { infected: true, assimilation: 7 });
+oripathy = await api.setOripathyState(oripathyActor, { assimilation: -4 });
+assert.deepEqual(oripathy, { infected: true, assimilation: 0 }, "Originium Assimilation cannot be negative.");
+
+const restActor = actorFixture();
+assert.equal(await api.completeRestAction(restActor, "short"), null);
+assert.equal(await api.beginRestAction(restActor, { kind: "long", name: "Work" }), true);
+assert.equal(await api.beginRestAction(restActor, { kind: "short", name: "Other" }), false, "Only one Rest Action may be performed at once.");
+assert.equal(await api.completeRestAction(restActor, "short"), false, "A Long Rest Action cannot finish during a Short Rest.");
+await assert.rejects(() => api.completeRestAction(restActor, "invalid"), /short or long/);
+assert.deepEqual(await api.completeRestAction(restActor, "long"), { kind: "long", name: "Work" });
+assert.equal(await api.beginRestAction(restActor, { kind: "short" }), true);
+assert.deepEqual(await api.completeRestAction(restActor, "long"), { kind: "short", name: "Rest Action" }, "A Short Rest Action may be performed during a Long Rest.");
+await assert.rejects(() => api.beginRestAction(restActor, { kind: "invalid" }), /short or long/);
 
 assert.equal(api.martialDC(actor, "str"), 13);
 assert.equal(api.martialDC(actor, "dex"), 15);
+assert.equal(api.martialDC(actor), 13);
+assert.throws(() => api.martialDC(actor, "con"), /str or dex/);
 assert.equal(api.damageCategory("thunder"), "physical");
+assert.equal(api.damageCategory("BLUDGEONING"), "physical");
 assert.equal(api.damageCategory("fire"), "arts");
+assert.equal(api.damageCategory("untyped"), null);
+assert.equal(api.damageAfterReduction(0, 3), 0);
+assert.equal(api.damageAfterReduction(2, 10), 1);
 assert.equal(api.damageAfterReduction(12, 3, { resistance: true }), 4);
 assert.equal(api.damageAfterReduction(2, 10, { vulnerability: true }), 2, "DR applies before vulnerability and cannot reduce incoming damage below 1.");
+assert.equal(api.damageAfterReduction(12, 3, { resistance: true, vulnerability: true }), 9, "Resistance and vulnerability cancel each other.");
+assert.equal(api.damageAfterReduction(-4, 2), 0);
+assert.throws(() => api.getDyingState({}), /Actor document/);
+assert.ok(notifications.some(([level]) => level === "warn"), "Rejected rule actions should issue a warning.");
 
 console.log("Verified Chapter 1 condition, Dying/Mettle, Operator Skill, Arts Point, Rest Action, Martial DC, and DR helpers.");
 

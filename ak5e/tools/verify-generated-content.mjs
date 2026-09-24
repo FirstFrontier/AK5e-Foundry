@@ -17,6 +17,7 @@ const chapters = [
   chapter(5, "05_chapter_5_arts.txt", CHAPTER_FIVE_ARTS),
   chapter(6, "06_chapter_6_dwellers_of_terra.txt", CHAPTER_SIX_CREATURES)
 ];
+const supportedItemTypes = new Set(["background", "class", "equipment", "feat", "loot", "race", "spell", "subclass", "tool", "weapon"]);
 
 await Promise.all(chapters.map(async entry => {
   entry.source = (await readFile(new URL(entry.file, sourceRoot), "utf8")).replace(/\r\n/g, "\n");
@@ -41,13 +42,21 @@ assertKinds(CHAPTER_FIVE_ARTS, {
 });
 assertKinds(CHAPTER_SIX_CREATURES, { reference: 2, creature: 145 });
 
+const allIdentifiers = chapters.flatMap(({ entries }) => entries.map(entry => entry.id ?? entry.slug));
+assert.equal(new Set(allIdentifiers).size, allIdentifiers.length, "Generated slugs/IDs must be unique across every chapter.");
+
 for (const { number, entries, source } of chapters) {
   const identifiers = entries.map(entry => entry.id ?? entry.slug);
   assert.equal(new Set(identifiers).size, identifiers.length, `Chapter ${number} has duplicate IDs.`);
   for (const entry of entries) {
+    const identifier = entry.id ?? entry.slug;
+    assert.match(identifier ?? "", /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `${entry.name ?? `Chapter ${number} record`} has an invalid stable ID.`);
     assert.ok(entry.name, `Chapter ${number} has an unnamed record.`);
+    assert.ok(entry.sourceHeading, `${entry.name} has no source heading for flags.ak5e.sourceHeading.`);
     assert.ok(entry.content, `${entry.name} has no rendered content.`);
     assert.ok(entry.rawSource, `${entry.name} has no retained source.`);
+    if (entry.itemType != null) assert.ok(supportedItemTypes.has(entry.itemType), `${entry.name} has unsupported Item type ${entry.itemType}.`);
+    assert.equal(entry.itemType ?? null, expectedItemType(number, entry.kind), `${entry.name} has the wrong Foundry document/item type.`);
     assert.doesNotMatch(entry.content, /\{\{|\\(?:page|column)\b|<img\b|<script\b/i, `${entry.name} contains unsafe/unrendered source markup.`);
     for (const fragment of entry.rawSources ?? []) {
       assert.ok(source.includes(fragment), `${entry.name} contains a source fragment not present in Chapter ${number}.`);
@@ -67,6 +76,14 @@ for (const entry of species.filter(entry => !entry.parent)) {
   const explicitSize = entry.rawSource.match(/\b(?:your|their) size is (Tiny|Small|Medium|Large|Huge|Gargantuan)\b/i)?.[1];
   assert.ok(explicitSize, `${entry.name} has no explicit source size.`);
   assert.equal(entry.speciesSize, sizeKey(explicitSize), `${entry.name} has the wrong native size.`);
+}
+
+for (const background of CHAPTER_TWO_ORIGINS.filter(entry => entry.kind === "background")) {
+  assert.deepEqual(
+    background.systemData.advancement,
+    [],
+    `${background.name} must suppress D&D5e's unrelated default background advancements.`
+  );
 }
 
 const summons = [...CHAPTER_TWO_ORIGINS, ...CHAPTER_THREE_CLASSES]
@@ -174,4 +191,26 @@ function meaningfulSourceLine(text) {
 
 function sizeKey(value) {
   return { tiny: "tiny", small: "sm", medium: "med", large: "lg", huge: "huge", gargantuan: "grg" }[value.toLowerCase()];
+}
+
+function expectedItemType(chapterNumber, kind) {
+  if ([1, 6].includes(chapterNumber)) return null;
+  const types = {
+    2: {
+      reference: null, species: "race", nationality: "feat", background: "background",
+      "species-feature": "feat", "origin-summon": null
+    },
+    3: {
+      reference: null, class: "class", "class-summon": null, "class-feature": "feat",
+      subclass: "subclass", "subclass-feature": "feat"
+    },
+    4: {
+      reference: null, weapon: "weapon", equipment: "equipment", tool: "tool", loot: "loot",
+      "weapon-property": "feat", "armour-property": "feat", "tool-rule": "feat",
+      "gear-rule": "feat", "magic-item": "equipment"
+    },
+    5: { reference: null, "standard-art-pool": "feat", "special-art-pool": "feat", art: "spell" }
+  };
+  assert.ok(Object.hasOwn(types[chapterNumber] ?? {}, kind), `Unsupported Chapter ${chapterNumber} record kind: ${kind}`);
+  return types[chapterNumber][kind];
 }

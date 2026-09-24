@@ -60,3 +60,35 @@ This audit verifies generated source fidelity and helper behavior in plain Node.
 It does not replace the clean-World Foundry VTT 13 and D&D5e 5.3.3 tests in TODO
 section 3. Activities and Active Effects remain deliberately manual where the
 module documentation says they are not automated.
+
+## Description and sheet UI review (2026-09-24)
+
+The root `README.md` UI guidance applies to the interactive Origin and Arts
+controls: scope their ActorSheetV2 render hooks to the supplied HTML part, and
+test full and partial renders. Generated rules text instead enters native D&D5e
+Item, Actor, and Journal descriptions through `sourceToHtml()` in
+`tools/source-html.mjs`. A sheet hook should not reformat those descriptions.
+
+Read-only inspection of all 1,442 generated records found the following
+presentation issue. `sourceToHtml()` emits each pipe-table line as a separate
+`<pre>` element. This preserves the literal text, but it does not create table
+headers or cells and can make wide progression and statblock tables hard to
+read on a sheet.
+
+| Chapter | Records containing `<pre>` rows | Total `<pre>` rows |
+| --- | ---: | ---: |
+| 1 | 1 | 11 |
+| 2 | 20 | 184 |
+| 3 | 161 | 4,184 |
+| 4 | 8 | 145 |
+| 5 | 20 | 421 |
+| 6 | 147 | 472 |
+
+For example, Caster has 152 separate `<pre>` rows for source tables. Collapsed
+Construct has three for its ability-score table. The current parser fixture
+explicitly expects this form, so a passing parser test is not evidence that
+the tables are usable in Foundry. Change the shared converter and regenerate
+only after reviewing the affected source chapters and preserving their table
+values. Check the result on real Item, Actor, and Journal sheets, including
+partial renders and locked-pack imports. No live-World presentation claim is
+made by this audit.

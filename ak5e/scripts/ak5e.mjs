@@ -5,9 +5,11 @@ import { CHAPTER_FOUR_EQUIPMENT } from "./chapter-four-content.mjs";
 import { CHAPTER_FIVE_ARTS } from "./chapter-five-content.mjs";
 import { CHAPTER_SIX_CREATURES } from "./chapter-six-content.mjs";
 import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./asset-library.mjs";
+import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
+import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, undoLastArt } from "./arts-casting.mjs";
 
 const MODULE_ID = "ak5e";
-const CONTENT_VERSION = "0.2.1";
+const CONTENT_VERSION = "0.2.4";
 const MAX_METTLE = 6;
 
 const PHYSICAL_DAMAGE = new Set(["bludgeoning", "piercing", "slashing", "thunder"]);
@@ -26,6 +28,8 @@ const STATUS_EFFECTS = [
 ].map(([key, name, img]) => ({ id: `${MODULE_ID}-${key}`, key, name, img }));
 
 Hooks.once("init", () => {
+  if (game.system.id === "dnd5e") registerOriginConfig();
+  if (game.system.id === "dnd5e") registerArtsConfig();
   game.settings.register(MODULE_ID, "chapterOneRules", {
     name: "AK5E.Settings.ChapterOneRules.Name",
     hint: "AK5E.Settings.ChapterOneRules.Hint",
@@ -65,6 +69,14 @@ Hooks.once("ready", () => {
   }
 
   game.ak5e = Object.freeze({
+    openOriginSetup,
+    openActorOrigins,
+    openActorArts,
+    configureActorArts,
+    previewActorArts,
+    configureArt,
+    adjustActorArts,
+    undoLastArt,
     conditions: Object.freeze(Object.fromEntries(STATUS_EFFECTS.map(effect => [effect.key, effect]))),
     assets: Object.freeze({ get: getAsset, list: listAssets, openLibrary: openAssetLibrary }),
     installChapterOneRules,
@@ -101,6 +113,8 @@ Hooks.once("ready", () => {
     damageCategory,
     damageAfterReduction
   });
+  registerOriginHooks();
+  registerArtsHooks();
 });
 
 function registerStatusEffects() {
@@ -355,6 +369,9 @@ function getArtsPointState(actor) {
 }
 
 async function setArtsPointState(actor, change) {
+  if (actor.getFlag(MODULE_ID, "casting")?.enabled) {
+    throw new Error("This actor uses the Arts casting adapter. Use configureActorArts, adjustActorArts, or cast from its sheet instead of legacy AP helpers.");
+  }
   const next = { ...getArtsPointState(actor), ...change };
   next.maximum = Math.max(0, Number(next.maximum) || 0);
   next.value = clamp(next.value, 0, next.maximum);
@@ -587,8 +604,20 @@ async function installChapterTwoOrigins() {
     if (!exists) {
       await Item.create(data);
       created += 1;
-    } else if (exists.getFlag(MODULE_ID, "contentVersion") !== CONTENT_VERSION) {
-      await exists.update(data);
+    } else {
+      const staleAdvancementIds = origin.kind === "background"
+        ? itemAdvancementIds(exists)
+        : [];
+      if (exists.getFlag(MODULE_ID, "contentVersion") === CONTENT_VERSION && !staleAdvancementIds.length) continue;
+
+      const updateData = { ...data, system: { ...data.system } };
+      if (staleAdvancementIds.length) {
+        // Mapping fields merge on update, so an empty advancement object does
+        // not remove existing entries. Use Foundry's explicit deletion keys.
+        delete updateData.system.advancement;
+        for (const id of staleAdvancementIds) updateData[`system.advancement.-=${id}`] = null;
+      }
+      await exists.update(updateData);
       updated += 1;
     }
   }
@@ -597,6 +626,13 @@ async function installChapterTwoOrigins() {
   const key = changed ? "ChapterTwoInstalled" : "ChapterTwoAlreadyInstalled";
   ui.notifications.info(game.i18n.format(`AK5E.Notifications.${key}`, { count: changed }));
   return { created, updated, skipped: CHAPTER_TWO_ORIGINS.length - changed };
+}
+
+function itemAdvancementIds(item) {
+  const advancement = item.system?.advancement;
+  if (!advancement) return [];
+  if (typeof advancement.keys === "function") return Array.from(advancement.keys());
+  return Object.keys(advancement);
 }
 
 async function ensureItemFolder(name, flag, parent = null) {

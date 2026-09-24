@@ -1,0 +1,15 @@
+<section class="ak5e-arts-dialog">
+  <fieldset>
+    <legend>Arts casting</legend>
+    <p>{{ak5eArts.value}} / {{ak5eArts.maximum}} Arts Points</p>
+    <label>Casting mode
+      <select name="ak5eMode">{{selectOptions ak5eArts.modes selected=ak5eArts.mode valueAttr="value" labelAttr="label"}}</select>
+    </label>
+    <label>Cast level and cost
+      <select name="ak5eLevel">{{selectOptions ak5eArts.options selected=ak5eArts.level valueAttr="value" labelAttr="label"}}</select>
+    </label>
+    {{#if ak5eArts.unavailable}}<p role="alert">No legal cast is available in this mode. Check AP, maximum level, free uses and the ninth-level limit.</p>{{/if}}
+    {{#if ak5eArts.source}}<p>{{ak5eArts.source}}</p>{{/if}}
+    <p>AP is spent when casting is confirmed. Ritual mode adds ten minutes to the casting time.</p>
+  </fieldset>
+</section>

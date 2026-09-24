@@ -1,6 +1,6 @@
 # AK5e Foundry VTT Module
 
-This is the AK5e Foundry VTT v13 module. Version `0.2.1` contains development
+This is the AK5e Foundry VTT v13 module. Version `0.2.6` contains development
 World installers and generated content for Chapters 1–6 of AK5e v1.3.1.
 See `DECISIONS.md` for native-field boundaries and release-pack limitations.
 
@@ -47,7 +47,7 @@ this development manifest intentionally does not yet contain:
 ```json
 {
   "manifest": "https://example.invalid/ak5e/module.json",
-  "download": "https://example.invalid/ak5e/releases/0.2.1/ak5e.zip"
+  "download": "https://example.invalid/ak5e/releases/0.2.6/ak5e.zip"
 }
 ```
 
@@ -157,6 +157,24 @@ Core API references: [ClientSettings](https://foundryvtt.com/api/v13/classes/fou
 [Item](https://foundryvtt.com/api/v13/classes/foundry.documents.Item.html),
 [Folder](https://foundryvtt.com/api/v13/classes/foundry.documents.Folder.html), and
 [CompendiumCollection](https://foundryvtt.com/api/v13/classes/foundry.documents.collections.CompendiumCollection.html).
+
+### Sheet UI integration
+
+AK5e adds origin and Arts controls to the existing D&D5e actor sheet. Header
+menu controls use Foundry V13's `getHeaderControlsApplicationV2` hook and are
+restricted to `ActorSheetV2` instances. Visible controls use
+`renderActorSheetV2`, which also runs for partial sheet renders; each render
+checks the Actor and the HTML part before inserting a control. Origin controls
+appear when an owned character has an attached AK5e origin. Arts controls
+appear when an Actor has AK5e class or Art content, or Arts is already enabled.
+The AP display goes in the Spells tab and does not replace the whole sheet.
+
+This follows the render-scoping approach documented by
+[Tidy 5e Sheets](https://kgar.github.io/foundry-vtt-tidy-5e-sheets/) and used by
+[Custom D&D 5e](https://github.com/Larkinabout/fvtt-custom-dnd5e/blob/main/scripts/actor-sheet.js).
+Rules that need code use D&D5e's named activity hooks; the module does not
+replace the D&D5e game system. These sheet hooks and selectors still need a
+live V13/D&D5e 5.3.3 World check before compatibility can be claimed.
 
 ### Compendium hookup and release workflow
 
@@ -359,6 +377,81 @@ is retained for Foundry's Size advancement choice. The feature Items are intenti
 that a GM can verify and automate each one incrementally. Every installed Item
 retains its source heading and raw source text in `flags.ak5e`.
 
+## Player origin setup (0.2.4)
+
+After updating the module, restart Foundry and reload the browser. Dropping an
+AK5e-tagged background, nationality, or species onto a character you own opens
+**AK5e Origin Setup**. Existing attached origins can be set up with the
+**AK5e Origins** button in the character sheet's window header. No reinstall
+macro is needed for this menu if the origin Items were already installed.
+The public fallback is `await game.ak5e.openActorOrigins(actor)`.
+
+Version 0.2.5 fixes reopening setup from a character sheet. Open the character,
+then either click the visible **AK5e Origins** compass shortcut in its header or
+open the sheet's top-right three-dot menu and choose **AK5e Origins**. Merely
+clicking an Actor in the right-hand Actors directory opens the character sheet;
+it does not automatically reopen a completed setup every time. Completed setup
+opens a read-only record of the choices and grants instead of applying them again.
+
+Version 0.2.6 fixes character sheets failing to open after applying a background
+such as Military School Graduate. D&D5e 5.3.3 resolves custom tool labels through
+`CONFIG.DND5E.toolProficiencies`; registering only `tools` made its sheet attempt
+a compendium lookup with an undefined ID. The module now registers both tables
+during init. Restart Foundry and reload the browser after updating, then reopen
+the character. Existing grants and setup records remain valid; no installer run,
+background removal, or repeated Apply is needed.
+
+The optional regression below exercises the installed system's actual tool-label
+resolver and sheet preparation method without accessing World data:
+
+```bash
+AK5E_DND5E_BUNDLE=/path/to/Data/systems/dnd5e/dnd5e.mjs npm run test:origins
+```
+
+Without that environment variable, the installed-system test is skipped. This
+check does not replace a live-World character-sheet reopen test.
+
+The menu walks through choices, feature rules, and a final review. Nothing is
+granted until **Apply to character**. Valid choices are saved after Next, so
+players can finish later. Completed origins have a saved record and cannot be
+applied twice, even if the original Item is deleted and dropped again.
+
+- All 33 backgrounds offer their source-defined toolkit/vehicle choices and
+  add a feature card. Proficiency does **not** give a free toolkit.
+- Military School Graduate offers exactly two of the six Basic Tactics, adds
+  both tactic cards, and an Officer Acumen tracker (3, Long Rest recovery).
+  Spending Acumen and resolving tactics is manual; merge the +3 with the
+  Tactician pool with the GM if that Branch is later taken. If a Tactician Branch
+  is already attached, no duplicate pool is created; the review calls out the
+  required +3 adjustment to the existing pool.
+- Professional offers two skills and one proficient skill for expertise;
+  Upper Class offers a language. Equipment-granting backgrounds offer their
+  legal choices and add the selected Items. Specific weapon/armour grants are
+  retained as custom proficiency traits, not broadened to whole categories.
+- Nationalities offer languages and three skills. Leithanien also offers its
+  proficient starting instrument. The unique background is selected separately.
+- Lore, Wilderness and Technology use namespaced native skill entries; Arts
+  uses Arcana's existing field. Existing D&D5e skills are not renamed/deleted.
+  AK5e kits/instruments and the source-named Land Vehicles/Drones proficiencies
+  are registered as native tools. Other GM-defined vehicle types remain manual.
+- Labourer's level-based HP bonus and Miner's Blindsight are removable transfer
+  effects. Several limited-use background features have rest-recovery trackers.
+  Tool ability defaults are only sheet defaults; choose the appropriate ability
+  for each check with the GM. Conditional bonuses and resource expenditure remain
+  manual, as indicated in the review.
+- Pathfinder's skill replacement/point conversion requires GM reconciliation;
+  the menu requires allocation notes and does not silently rewrite skill values.
+  Normal nationality/Professional skill grants are blocked while Pathfinder is
+  attached. Species setup currently reviews and adds feature cards (including
+  parent-species features), **not** complete species-stat/Arts automation.
+
+World installers remain GM-only. The player menu can change only an owned
+character and its embedded Items. It never imports World collections. If an
+application fails part-way, a recovery record prevents automatic retries from
+duplicating benefits. The GM should inspect `flags.ak5e.originSetups`, the
+saved summary, and feature Items tagged `flags.ak5e.originGrant` before
+reconciling a failed setup. Replacement/respec is not yet automatic.
+
 ## Chapter 3 content
 
 `tools/build-chapter-three-content.mjs` reads the complete Chapter 3 source and
@@ -399,10 +492,9 @@ adventuring gear is `loot`; all property and detailed-use rules are separate
 - AK5e condition markers are available in Foundry's status UI. Their damage,
   roll penalties, action restrictions, and special removal rules remain
   explicitly GM-resolved until a combat integration is tested against D&D5e.
-- Skill renaming and Technology cannot safely be added by merely changing
-  labels: D&D5e's Actor skill schema must be extended. Keep these as journal
-  rules until the Chapter 2 character-content pass defines the needed sheet
-  and data approach.
+- The origin menu adds namespaced Lore, Wilderness and Technology skills using
+  D&D5e's configurable skill schema. It does not migrate existing characters'
+  History/Religion or Nature/Survival proficiencies; those need GM review.
 - No ASI feat replacement, construct-healing prevention, Alternate Class
   switching, or spell-slot replacement is silently forced on a World. Their
   rules are installed as Chapter 1 references and the stateful portions have
@@ -459,15 +551,47 @@ source gives Pathshaper Fractal `-` HP, so no numeric HP is added for that Actor
 
 ## Generated-content verification
 
-Run both source-fidelity checks after regenerating any chapter:
+From the repository root, run the complete dependency-free Node.js validation
+suite (Node.js 22 or newer):
 
 ```bash
-node ak5e/tools/verify-generated-content.mjs
-node ak5e/tools/verify-chapter-one-helpers.mjs
+npm test
 ```
 
-The first command verifies all 1,442 top-level Chapter 1–6 records and the 801
-embedded Chapter 6 features against the v1.3.1 source. The second exercises the
-Chapter 1 condition, Dying/Mettle, Operator Skill, Arts Point, Rest Action,
-Martial DC, and Damage Reduction helpers with a mocked Foundry lifecycle. See
-`CONTENT_AUDIT.md` for the completed audit and its runtime-test boundary.
+The suite validates both JSON files and syntax-checks every `.mjs` file;
+regenerates Chapters 2–6 and the content map, failing if regeneration changes a
+tracked output; verifies all 1,442 top-level records and 801 embedded Chapter 6
+features against the v1.3.1 source; runs source-section, table, HTML, and monster
+parser fixtures; exercises rule-helper edge cases with a mocked Foundry
+lifecycle; and verifies the supported types and traceability flags produced by
+all six development installers. Individual commands are listed in the root
+`package.json` when a narrower check is useful.
+
+Node.js cannot reproduce Foundry's D&D5e data models, sheets, permissions,
+persistence, or browser lifecycle. Complete
+[`FOUNDRY_SMOKE_TEST.md`](FOUNDRY_SMOKE_TEST.md) in a clean World for those
+behaviors. See `CONTENT_AUDIT.md` for the completed source audit and its runtime
+test boundary.
+# Arts casting adapter (0.3.0 development)
+
+The **Spells** tab shows current and maximum Arts Points once configured, even
+when the character has no Arts Items. Dropping Caster alone does not configure
+AP or grant its Arts pools yet. Click **Set up AK5e Arts** in that tab (or open
+**AK5e Arts** from the sheet header menu), enter the source-defined
+casting ability, AP, maximum Art level and recovery, and select an equipped
+Casting Unit. Review the spell adoption preview before applying. Setup does not
+refill existing AP or reset the ninth-level limit. Adopted spells retain original
+preparation/material fields in their flags; ordinary actors remain unchanged.
+
+Use an Art's activity to open the AP casting dialog and choose its cast level.
+Cancellation does not spend AP. The GM can configure documented free-use grants,
+discounts and focus exceptions through **Art grants / exceptions**. After a
+partially failed cast, inspect its outcome before using **Undo last cast**; undo
+restores Arts resources only, not other costs, effects or chat messages.
+
+This adapter is not yet live-validated in a clean Foundry v13/D&D5e 5.3.3 World.
+Use a development World and one operating client per Actor. Class progression,
+special casting modes, pool grants, cantrip bonuses and Conductive/Infected rules
+remain unfinished. Ritual timing and exception eligibility require GM review.
+Existing content without roll activities still needs those activities authored;
+this adapter does not automate individual Art effects.

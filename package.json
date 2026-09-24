@@ -1,0 +1,19 @@
+{
+  "name": "ak5e-foundry-validation",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "regenerate": "node ak5e/tools/build-chapter-two-content.mjs && node ak5e/tools/build-chapter-three-content.mjs && node ak5e/tools/build-chapter-four-content.mjs && node ak5e/tools/build-chapter-five-content.mjs && node ak5e/tools/build-chapter-six-content.mjs && node ak5e/tools/build-content-map.mjs",
+    "check:generated": "node ak5e/tools/check-generated-content.mjs",
+    "check:files": "node ak5e/tools/validate-files.mjs",
+    "test:content": "node ak5e/tools/verify-generated-content.mjs",
+    "test:parsers": "node --test ak5e/test/parser-fixtures.test.mjs",
+    "test:rules": "node ak5e/tools/verify-chapter-one-helpers.mjs && node --test ak5e/test/arts-rules.test.mjs",
+    "test:installers": "node ak5e/tools/verify-installer-data.mjs",
+    "test:origins": "node --test ak5e/test/origin-setup.test.mjs ak5e/test/origin-sheet.test.mjs",
+    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins"
+  }
+}

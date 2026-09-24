@@ -46,12 +46,54 @@ source or verification issue requires a change.
   D&D5e fields for the slice.
 - [ ] Import the slice into character and NPC sheets and exercise its usable
   rolls, resources, effects, and links.
-- [ ] Re-run every installer and confirm that it is idempotent and does not
-  duplicate folders or documents.
-- [ ] Increase a content version in a test branch, migrate again, and confirm
-  managed content is refreshed while user-added Actor Items are preserved.
+- [x] Add AK5e origin popup on owned-character drops, a sheet-header reopen
+  button, choice validation, review, explicit apply, and duplicate-grant guard.
+- [x] Fix v0.2.5 reopening with Foundry's ApplicationV2 header-controls hook
+  plus a visible D&D5e character-header shortcut; test completed-record reopen,
+  owner permissions, and duplicate-control prevention.
+- [x] Fix the background Apply sheet crash by registering custom tool proficiency
+  labels; add a regression using D&D5e's actual sheet preparation and resolver.
+- [x] Validate 0.2.6 with the full Node suite and all 14 origin tests against the
+  installed D&D5e 5.3.3 bundle; install the three changed module files with backup
+  and matching hashes. Backup: `ak5e-code-backup-0.2.5-sheet-gobmfng9` under the
+  Foundry User Data root. No World documents changed.
+- [x] Scope origin and Arts controls to V13 ActorSheetV2/actor-sheet render
+  hooks, show them only for relevant AK5e content, and clear stale Arts controls
+  when that content is removed; cover these cases with Node UI regressions.
+- [ ] Verify those controls in a live V13/D&D5e World on full and partial sheet
+  renders, ordinary D&D5e actors, AK5e actors, and another actor document app.
+- [ ] Confirm Player Character reopens after installing 0.2.6, preserving the
+  Military School Graduate grants and completed setup record.
+- [x] Test plans for all 33 backgrounds and 20 nationalities, including Officer
+  tactics, equipment choices, preserved proficiencies, cancellation and failure.
+- [x] Browser-test the actual v13 DialogV2 flow against an in-memory actor
+  (choices, validation, Back, feature pages, review, Apply); validate all 53
+  background/nationality plans with native D&D5e 5.3.3 data models.
+- [ ] Verify popup and applied fields in live Foundry v13 / D&D5e 5.3.3, including
+  a non-GM owner, rest recovery, reload persistence, and locked release packs.
+- [ ] Extend species setup beyond feature-card review: ASIs, size variants,
+  Ancient Versatility, Arts, and other feature-specific choices.
+- [ ] Implement GM-reviewed Pathfinder conversion, proficiency replacement,
+  origin respec/reversal, and Officer/Tactician shared-pool integration.
+- [x] Re-check the full Node suite against the installed D&D5e 5.3.3 bundle
+  (2026-09-24): all 14 origin tests passed with no skips; source, parser,
+  helper, and installer checks passed.
+- [x] Run all six installers twice in the in-memory Foundry harness: no
+  duplicate folders or documents, no repeat updates, and non-GM calls create
+  nothing. Force one Chapter 6 creature stale, refresh its managed Items, and
+  confirm a user-added Item survives and the next run makes no changes.
+- [ ] Re-run every installer in a live clean World and confirm that it is
+  idempotent and does not duplicate folders or documents.
+- [ ] Increase a content version in a test branch, migrate again in Foundry,
+  and confirm managed content is refreshed while user-added Actor Items are
+  preserved.
 - [ ] Restart Foundry, reopen the World, and confirm documents, flags, embedded
   Items, and links persist.
+
+As of 2026-09-24, the repository manifest is 0.3.0 while the installed module
+is 0.2.6. A Foundry V13 process is running, but no clean test World was entered
+for this audit. Live checks require the current build in that World. Do not
+treat the in-memory checks as live verification.
 
 ## 4. Verify all generated content
 
@@ -71,19 +113,31 @@ source or verification issue requires a change.
   values, including summon statistics and Pathshaper Fractal's non-numeric HP.
 - [x] Fix parser or mapping errors in the relevant file under `ak5e/tools/`, then
   regenerate; do not hand-edit generated chapter content.
+- [x] Audit generated description markup separately from source fidelity. The
+  current `sourceToHtml()` renders each pipe-table line as its own `<pre>` block:
+  357 records contain 5,417 such blocks across Chapters 1–6. Record the UI
+  boundary and examples in `ak5e/CONTENT_AUDIT.md`.
+- [ ] Render source tables as readable, accessible tables or another tested
+  document presentation in `ak5e/tools/source-html.mjs`; preserve exact table
+  values and source flags, regenerate, and review the affected chapters. Do not
+  change generated chapter files directly.
+- [ ] In a clean V13/D&D5e World, open representative rules journals, origin,
+  class, equipment, Art, and creature documents. Check their sheets and source
+  tables for legibility, scroll behavior, headings, and console errors; repeat
+  after importing from locked release packs.
 
 ## 5. Add automated validation
 
-- [ ] Add a repeatable command that regenerates Chapters 2–6 and fails when the
+- [x] Add a repeatable command that regenerates Chapters 2–6 and fails when the
   working tree changes unexpectedly.
-- [ ] Validate `ak5e/module.json`, `ak5e/lang/en.json`, and every `.mjs` file.
-- [ ] Assert expected document counts, unique slugs/IDs, supported document
+- [x] Validate `ak5e/module.json`, `ak5e/lang/en.json`, and every `.mjs` file.
+- [x] Assert expected document counts, unique slugs/IDs, supported document
   types, and required source-traceability flags.
-- [ ] Add fixture tests for source-section, table, HTML, and monster-statblock
+- [x] Add fixture tests for source-section, table, HTML, and monster-statblock
   parsing.
-- [ ] Add unit tests for Dying/Mettle, Operator Skill Points, Arts Points,
+- [x] Add unit tests for Dying/Mettle, Operator Skill Points, Arts Points,
   Oripathy, Rest Actions, Martial DC, and Damage Reduction edge cases.
-- [ ] Add a documented Foundry smoke-test checklist for behavior that cannot be
+- [x] Add a documented Foundry smoke-test checklist for behavior that cannot be
   tested in plain Node.js.
 
 ## 6. Create release compendiums
@@ -107,6 +161,23 @@ source or verification issue requires a change.
   move behind an explicitly labeled development setting.
 
 ## 7. Improve fidelity incrementally
+
+### Arts casting replacement (approved implementation in progress)
+
+- [x] Add owned-Actor Arts setup, AP display and configuration without resetting spent resources (live UI validation pending below).
+- [x] Show Arts Points and setup directly in the Spells tab, including empty spell lists and partial sheet renders; expose configured totals to sheet observers.
+- [ ] Verify the Spells-tab Arts tracker in a live World after adding Caster, configuring AP, casting, and reopening the sheet.
+- [x] Implement activity adapter for AP validation, upcasting, consumption and rest recovery (native/live verification pending below).
+- [x] Add migration preview and explicit adoption of existing spell Items.
+- [x] Add pure-rule and mocked activity tests for costs, grants, recovery, adoption, cancellation and failed writes.
+- [ ] Test cancellation, failed writes, repeat use, ninth-level limits and player ownership.
+- [ ] Verify a playable Arts vertical slice in Foundry v13 / D&D5e 5.3.3.
+- [ ] Expand casting profiles and source-specific discounts/free uses after the core slice.
+- [ ] Add Artsblade, Bard, Ritualist and species-specific casting workflows.
+- [ ] Add cantrip turn tracking, Casting Unit/Conductive and Infected casting integration.
+- [ ] Complete pool grants and resolve external spell sources without inventing missing content.
+
+### Other fidelity work
 
 - [ ] Add tested activities and Active Effects to one origin feature at a time.
 - [ ] Add tested activities and Active Effects to one class/branch feature at a
@@ -161,6 +232,10 @@ source or verification issue requires a change.
 
 ## 10. Ongoing maintenance
 
+- [x] Add a root README handoff guide with origin-setup architecture, known
+  failures, focused task prompts, test commands, and safe deployment procedure.
+- [x] Add a concise UI coding checklist covering lifecycle hooks, sheet controls,
+  rerenders, DialogV2 forms, display configuration, and interaction testing.
 - [ ] Re-run generation and regression checks after every approved source-book
   change.
 - [ ] Re-test a representative sample after every Foundry VTT or D&D5e update.
