@@ -80,3 +80,36 @@
     justify-content: flex-start;
   }
 }
+
+.ak5e-source-paragraph {
+  margin: 0.75em 0;
+  line-height: 1.55;
+}
+
+.ak5e-source-table-wrap {
+  max-width: 100%;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.ak5e-source-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ak5e-source-table th,
+.ak5e-source-table td {
+  min-width: 5rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--color-border-light-2, #999);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.ak5e-source-table__center {
+  text-align: center;
+}
+
+.ak5e-source-table__right {
+  text-align: right;
+}

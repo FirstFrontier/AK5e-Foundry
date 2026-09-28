@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { CHAPTER_FOUR_EQUIPMENT } from "../scripts/chapter-four-content.mjs";
 
 const hooks = {};
 const collections = { folders: [], journal: [], items: [], actors: [] };
@@ -32,6 +33,8 @@ globalThis.Item = {
   create: data => createDocument(collections.items, "Item", data),
   createDocuments: data => Promise.all(data.map(entry => createDocument(collections.items, "Item", entry)))
 };
+// The configured D&D5e implementation can differ from the global base class.
+globalThis.Item.implementation = { createDocuments: globalThis.Item.createDocuments };
 globalThis.Actor = {
   create: data => createDocument(collections.actors, "Actor", data),
   createDocuments: data => Promise.all(data.map(entry => createDocument(collections.actors, "Actor", entry)))
@@ -51,9 +54,10 @@ const results = await Promise.all([
   game.ak5e.installChapterSixCreatures()
 ]);
 
-assert.equal(results.reduce((total, result) => total + result.created, 0), 1442);
+assert.equal(results.reduce((total, result) => total + result.created, 0), 1843);
 assert.equal(collections.journal.length, 24);
-assert.equal(collections.items.length, 1262);
+assert.equal(collections.items.length, 1663);
+assert.equal(collections.items.filter(item => item.flags.ak5e.operatorSkill).length, 320);
 assert.equal(collections.actors.length, 156);
 assert.deepEqual([...new Set(collections.items.map(item => item.type))].sort(), [
   "background", "class", "equipment", "feat", "loot", "race", "spell", "subclass", "tool", "weapon"
@@ -140,7 +144,57 @@ assert.ok(managedAfter.every(item => !managedBefore.some(oldItem => oldItem.id =
 assert.equal(creature.getFlag("ak5e", "contentVersion"), originalVersion);
 assert.deepEqual(await game.ak5e.installChapterSixCreatures(), { created: 0, updated: 0, skipped: 147 });
 
-console.log("Verified 1,442 installer documents, repeat runs, non-GM guards, and creature migration preserving an unmanaged Item.");
+// Simulate upgrading an existing World containing the four combined references.
+const variants = collections.items.filter(item => item.flags.ak5e.enhancement);
+assert.equal(variants.length, 81);
+const combined = collections.items.filter(item => item.flags.ak5e.enhancementReference);
+assert.equal(combined.length, 4);
+for (const item of variants) collections.items.splice(collections.items.indexOf(item), 1);
+const combinedIds = combined.map(item => item.id);
+const magicFolder = collections.folders.find(folder => folder.name === "Magic Items");
+const referenceFolder = collections.folders.find(folder => folder.name === "Magic Item References");
+assert.ok(magicFolder && referenceFolder);
+for (const item of combined) {
+  const entry = CHAPTER_FOUR_EQUIPMENT.find(entry => entry.id === item.flags.ak5e.chapterFourId);
+  item.name = entry.previousName;
+  item.flags.ak5e.contentVersion = "0.2.4";
+  delete item.flags.ak5e.enhancementReference;
+  item.folder = magicFolder.id;
+  item.system.description = { value: entry.content.split('<aside class="ak5e-note" data-ak5e-enhancement-reference>')[0], chat: "Custom chat" };
+}
+combined[0].name = "My custom staff reference";
+combined[0].img = "custom-staff.webp";
+combined[0].system.quantity = 7;
+combined[0].system.description.value += "<p>My campaign notes.</p>";
+combined[0].flags.otherModule = { keep: true };
+const actorCopy = embeddedItem({ name: combined[0].name, type: combined[0].type, flags: combined[0].flags, system: combined[0].system });
+creature.items.push(actorCopy);
+const actorCopyBefore = JSON.stringify(actorCopy);
+const unrelated = [...collections.items, ...collections.journal, ...collections.actors].filter(item => !combined.includes(item));
+const updateCounts = unrelated.map(item => item.updates.length);
+game.user.isGM = false;
+assert.equal((await game.ak5e.installChapterFourEquipment()).created, 0);
+assert.equal(collections.items.filter(item => item.flags.ak5e.enhancement).length, 0);
+assert.ok(combined.every(item => item.folder === magicFolder.id));
+game.user.isGM = true;
+assert.deepEqual(await game.ak5e.installChapterFourEquipment(), { created: 81, updated: 4, skipped: 128 });
+assert.deepEqual(combined.map(item => item.id), combinedIds);
+assert.ok(combined.every(item => item.folder === referenceFolder.id));
+assert.ok(combined.slice(1).every(item => item.name.startsWith("Reference: ")));
+assert.equal(combined[0].name, "My custom staff reference");
+assert.equal(combined[0].img, "custom-staff.webp");
+assert.equal(combined[0].system.quantity, 7);
+assert.equal(combined[0].system.description.chat, "Custom chat");
+assert.match(combined[0].system.description.value, /My campaign notes/);
+assert.deepEqual(combined[0].flags.otherModule, { keep: true });
+assert.equal(JSON.stringify(actorCopy), actorCopyBefore);
+assert.deepEqual(unrelated.map(item => item.updates.length), updateCounts);
+assert.ok(collections.items.filter(item => item.flags.ak5e.enhancement).every(item => item.folder === magicFolder.id));
+assert.deepEqual(await game.ak5e.installChapterFourEquipment(), { created: 0, updated: 0, skipped: 213 });
+assert.ok(combined.every(item => item.system.description.value.split("data-ak5e-enhancement-reference").length === 2));
+creature.items.pop();
+
+console.log("Verified 1,843 installer documents, repeat runs, non-GM guards, reference upgrade preserving custom fields/Actor copies, and creature migration.");
 
 async function createDocument(collection, documentName, data) {
   const document = {
@@ -151,7 +205,14 @@ async function createDocument(collection, documentName, data) {
     getFlag(namespace, key) { return this.flags?.[namespace]?.[key]; },
     async update(change) {
       this.updates.push(structuredClone(change));
-      Object.assign(this, structuredClone(change));
+      for (const [path, value] of Object.entries(structuredClone(change))) {
+        const keys = path.split(".");
+        const last = keys.pop();
+        let parent = this;
+        for (const key of keys) parent = parent[key] ??= {};
+        if (last.startsWith("-=")) delete parent[last.slice(2)];
+        else parent[last] = value;
+      }
       return this;
     },
     async deleteEmbeddedDocuments(type, ids) {

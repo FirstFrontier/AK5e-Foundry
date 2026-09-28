@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 const builders = [
+  "ak5e/tools/build-chapter-one-content.mjs",
   "ak5e/tools/build-chapter-two-content.mjs",
   "ak5e/tools/build-chapter-three-content.mjs",
   "ak5e/tools/build-chapter-four-content.mjs",
@@ -9,6 +10,7 @@ const builders = [
   "ak5e/tools/build-content-map.mjs"
 ];
 const generated = [
+  "ak5e/scripts/chapter-one-content.mjs",
   "ak5e/scripts/chapter-two-content.mjs",
   "ak5e/scripts/chapter-three-content.mjs",
   "ak5e/scripts/chapter-four-content.mjs",
@@ -24,4 +26,4 @@ for (const path of generated) {
   if (await readFile(new URL(`../../${path}`, import.meta.url), "utf8") !== before.get(path)) changed.push(path);
 }
 if (changed.length) throw new Error(`Regeneration changed generated content: ${changed.join(", ")}`);
-console.log("Regenerated Chapters 2–6 and verified that generated files are unchanged.");
+console.log("Regenerated Chapters 1–6 and verified that generated files are unchanged.");

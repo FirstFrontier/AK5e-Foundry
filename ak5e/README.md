@@ -1,6 +1,6 @@
 # AK5e Foundry VTT Module
 
-This is the AK5e Foundry VTT v13 module. Version `0.2.6` contains development
+This is the AK5e Foundry VTT v13 module. Version `0.3.4` contains development
 World installers and generated content for Chapters 1–6 of AK5e v1.3.1.
 See `DECISIONS.md` for native-field boundaries and release-pack limitations.
 
@@ -13,6 +13,37 @@ module to D&D5e Worlds and declares D&D5e 5.x as a system relationship. Foundry
 VTT 13 is the minimum and verified core generation.
 
 ### Install and activate
+
+The repository includes a local testing installer (Node.js 22 or newer).
+From the repository root, preview the changes, stop Foundry including any
+automatic restart service, then install:
+
+```bash
+npm run install:foundry -- --dry-run
+npm run install:foundry
+```
+
+On the owner's machine it defaults to `~/FoundryV13` and
+`~/.local/share/FoundryVTT`. Set `--foundry-path` to the Foundry application
+directory and `--data-path` to the **User Data root containing `Data/`**, not
+the application directory or `Data/modules`. `FOUNDRY_VTT_DATA_PATH` also
+overrides the default User Data root. For example:
+
+```bash
+npm run install:foundry -- --data-path /path/to/FoundryVTT --foundry-path /path/to/FoundryV13
+```
+
+The script checks V13 and the installed D&D5e dependency, compares files, backs
+up changed code under `ak5e-code-backup-*` in the User Data root, copies runtime
+files and module documentation, and verifies SHA-256 hashes. It leaves unrelated
+files and existing compendium databases intact. A failed copy restores attempted
+file changes. It refuses symlinked destinations and a listening local Foundry
+port; use `--port` if Foundry was launched with a port override. Port checks are
+a precaution, so still stop the instance yourself before installing. `--dry-run`
+does not write files and can run while Foundry is running. This is a development
+code installer; it refuses manifest-declared release packs and never imports
+World content or enables the module automatically. `npm run test:deployment`
+checks installation behavior using isolated temporary directories.
 
 For local development, stop Foundry, then copy or link this repository's
 `ak5e/` directory to `<User Data>/Data/modules/ak5e/`. Do not copy the repository
@@ -164,17 +195,24 @@ AK5e adds origin and Arts controls to the existing D&D5e actor sheet. Header
 menu controls use Foundry V13's `getHeaderControlsApplicationV2` hook and are
 restricted to `ActorSheetV2` instances. Visible controls use
 `renderActorSheetV2`, which also runs for partial sheet renders; each render
-checks the Actor and the HTML part before inserting a control. Origin controls
-appear when an owned character has an attached AK5e origin. Arts controls
+checks the Actor and the HTML part before inserting a control. Attached Origins
+appear beside race/background in Details; their setup button is owner-only.
+Feature counters also use the Details sidebar, and temporary tag removal uses
+the Effects tab. Arts controls
 appear when an Actor has AK5e class or Art content, or Arts is already enabled.
-The AP display goes in the Spells tab and does not replace the whole sheet.
+Registered PCs and NPCs show AP controls in the header and the existing Spells
+tab, labelled Arts. Availability badges, a Castable now filter, and Casting Unit
+controls are scoped to adopted Arts; excluded ordinary spells keep their native
+controls. NPC stat-block features remain references. Render hooks never write
+documents and limited sheets do not expose private Arts information.
 
 This follows the render-scoping approach documented by
 [Tidy 5e Sheets](https://kgar.github.io/foundry-vtt-tidy-5e-sheets/) and used by
 [Custom D&D 5e](https://github.com/Larkinabout/fvtt-custom-dnd5e/blob/main/scripts/actor-sheet.js).
 Rules that need code use D&D5e's named activity hooks; the module does not
-replace the D&D5e game system. These sheet hooks and selectors still need a
-live V13/D&D5e 5.3.3 World check before compatibility can be claimed.
+replace the D&D5e game system. The native Arts hooks and selectors passed the
+recorded clean-World checks on V13/D&D5e 5.3.3. Origin/tag checks remain tracked
+separately in the smoke-test checklist.
 
 ### Compendium hookup and release workflow
 
@@ -299,16 +337,23 @@ invalid Actor or invalid constrained value throws an `Error`.
 | `assets` | `list()`, `get(assetId)`, `openLibrary()` | World-specific asset mappings. `openLibrary()` is GM-only; entries contain a stable ID, name, type, and selected file path. |
 | Chapter installers | `installChapterOneRules()`, `installChapterTwoOrigins()`, `installChapterThreeClasses()`, `installChapterFourEquipment()`, `installChapterFiveArts()`, `installChapterSixCreatures()` | Promise of import counts such as `{created, updated, skipped}`. GM-only and idempotent by stable AK5e flags. |
 | Conditions | `applyCondition(actor, key)`, `removeCondition(actor, key)` | Promise; creates or removes the AK5e-managed Active Effect marker. Reapplying an existing marker is a no-op. |
+| Temporary feature tags | `openFeatureTagSetup(actor)`, `applyFeatureTag(source, sourceItem, target, options)`, `removeFeatureTag(target, tagId)`, `featureTags(actor)` | Owner/GM workflow. Options include `label`, `condition`, `copyFeature`, `changes`, `trigger`, `expiryActor` and `seconds`. Native effects/copies are reversible and scoped to their tag receipt. |
+| Reviewed tag profiles | `sourceTagPresets(item)`, `applyTagPreset(source, item, target, presetId, parameters)` | Attached AK5e features, Arts and equipment; Actor or embedded weapon targets. Concentration profiles require the Art's native concentration effect. |
+| Tag event/counter controls | `resolveFeatureTag(actor, tagId, action)`, `setTagCounter(actor, tagId, key, value)` | Confirm source-permitted removal events or edit bounded recipient resources; both require ownership. |
 | Dying state | `getDyingState(actor)` | `{active, mettle, failures, stabilisesNextTurn, healingThisTurn, healingBonusMettle}`. |
 | Enter/leave Dying | `enterDying(actor)`, `leaveDying(actor)` | Promise of the new dying state; also adds/removes the Dying marker. |
 | Death save | `recordDeathSave(actor, successful)` | Promise of updated dying state, or `null` when not Dying. A success adds 2 Mettle; failure adds 1 Mettle and 1 failure. |
 | Dying turn start | `resolveDyingTurnStart(actor, deathSaveSucceeded = false)` | Promise of updated state. Resolves a queued Stabilise or records the supplied save result. |
 | Healing while Dying | `recordHealingWhileDying(actor, hitPointsRegained)`, `resolveDyingTurnEnd(actor)` | Promise of updated state, or `null` when not Dying. Record every healing instance, then resolve once at turn end. |
 | Spend/Stabilise | `spendMettle(actor, amount)`, `resolveStabilise(actor)` | Promise of `true` on success or `false` when the stored Mettle is insufficient. Stabilise costs 6 and resolves next turn. |
-| Operator state | `getOperatorSkillState(actor)` | `{points, maximum, start, active}`. |
-| Configure Operator SP | `configureOperatorSkills(actor, {maximum, start = 0, points = start})` | Promise of the configured state; clears the active skill. |
-| Adjust Operator SP | `adjustSkillPoints(actor, amount)` | Promise of state. SP is clamped from 0 to maximum and does not change while a skill is active. |
-| Activate/end Operator skill | `activateOperatorSkill(actor, {id, name, cost})`, `endOperatorSkill(actor)` | Activation resolves to a boolean; ending resolves to the updated state. |
+| Operator state | `getOperatorSkillState(actor)` | Legacy `{points, maximum, start, active}`; enabled integration also returns derived `counts`, `rates`, and persisted receipts. |
+| Configure Operator SP | `configureOperatorSkills(actor, {maximum, start = 0, points = start})` or `{enabled: true}` | Legacy manual pool configuration remains available until integration is enabled. Opt-in derives limits from learned Items without refilling SP. |
+| Operator setup | `openOperatorSkills(actor)` | Owned PC/NPC setup, catalogue learning, and GM exception configuration. |
+| Configure a Skill | `configureOperatorSkill(item, {cost, start, methods, activation, duration, source})` | GM configuration of an owned feat; `methods` may contain multiple methods or be empty. |
+| Adjust Operator SP | `adjustSkillPoints(actor, amount, {reason, exception = false})` | Enabled integration requires an active GM and a source/reason. Documented exceptions may grant SP during an active Skill. Ordinary charging uses the event API. Legacy manual behavior is retained. |
+| Activate/end Operator Skill | `activateOperatorSkill(actor, {itemId})`, `endOperatorSkill(actor)` | Owned Item cost, sufficient SP, and one-active-Skill lock; resolves to `true` on activation. Legacy `{id, name, cost}` remains available; on enabled Actors it is GM-only. New integration failures reject with an error. |
+| Confirm a charging event | `recordSkillPointEvent(actor, event)` | Owned Actor confirmation; resolves to `{gained, reason}`. Requires a stable event `id`; repeated IDs cannot award twice. |
+| Completed Long Rest | `recoverOperatorSkills(actor)` | Ends Until Long Rest Skills, then raises SP to highest Start SP if needed, preserving higher SP. |
 | Arts Point state | `getArtsPointState(actor)` | `{value, maximum, maximumArtLevel, ninthLevelCast}`. |
 | Configure Arts Points | `configureArtsPoints(actor, {maximum, value = maximum, maximumArtLevel})` | Promise of the configured state; resets `ninthLevelCast`. |
 | Spend/recover Arts Points | `spendArtsPoints(actor, artLevel)`, `recoverArtsPoints(actor, amount, {longRest = false})` | Spend resolves to a boolean. Recover resolves to state; `amount` may be a number or `"max"`; only a long rest resets the ninth-level limit. |
@@ -338,6 +383,8 @@ await game.ak5e.applyCondition(actor, "burning");
 await game.ak5e.removeCondition(actor, "burning");
 
 // Operator Skills
+game.ak5e.getOperatorSkillChoices(actor); // Read-only earned/pending/chosen/blocked slots and legal options.
+await game.ak5e.openOperatorSkillChoices(actor); // Reopen ordinary character progression choices.
 await game.ak5e.configureOperatorSkills(actor, { maximum: 20, start: 5 });
 await game.ak5e.adjustSkillPoints(actor, 2);
 await game.ak5e.activateOperatorSkill(actor, { id: "example", name: "Example Skill", cost: 10 });
@@ -382,12 +429,12 @@ retains its source heading and raw source text in `flags.ak5e`.
 After updating the module, restart Foundry and reload the browser. Dropping an
 AK5e-tagged background, nationality, or species onto a character you own opens
 **AK5e Origin Setup**. Existing attached origins can be set up with the
-**AK5e Origins** button in the character sheet's window header. No reinstall
+**AK5e Origins** button in the Details sidebar's **Origin** section. No reinstall
 macro is needed for this menu if the origin Items were already installed.
 The public fallback is `await game.ak5e.openActorOrigins(actor)`.
 
 Version 0.2.5 fixes reopening setup from a character sheet. Open the character,
-then either click the visible **AK5e Origins** compass shortcut in its header or
+then either click **AK5e Origins** beside its Origin summary in Details or
 open the sheet's top-right three-dot menu and choose **AK5e Origins**. Merely
 clicking an Actor in the right-hand Actors directory opens the character sheet;
 it does not automatically reopen a completed setup every time. Completed setup
@@ -445,6 +492,63 @@ applied twice, even if the original Item is deleted and dropped again.
   attached. Species setup currently reviews and adds feature cards (including
   parent-species features), **not** complete species-stat/Arts automation.
 
+### Feature resources and temporary tags
+
+The **AK5e Feature Trackers** section in Details shows reviewed Origin uses,
+choice records, and configured Operator SP/Mettle. Use **−/+** to adjust a
+counter, **Edit** for lists/choices, or **Configure feature counter** for
+other AK5e feat Items. Existing native uses take precedence, including spent
+uses and custom maxima. Native recovery occurs on the configured rest; choices
+and special gain/spend triggers are manual. The complete-module scan and
+reviewed catalogue are in [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).
+
+For Ægir's Student/Teacher record, choose an editable linked creature to apply
+the appropriate removable skill proficiency/expertise benefit. Saving a new
+choice replaces the old benefit; **End relationship** removes it. Record-only mode supports creatures the user
+cannot edit. The source gives no expiry on being downed or killed; the benefit
+persists until replaced or manually ended. Willingness and Long Rest Activity
+timing remain player/GM decisions.
+
+Use **Effects → AK5e Temporary Tags → Add AK5e tag** on a character or NPC.
+Choose an attached feature, Art or item, then a profile and editable recipient
+or owned weapon. The 53 profiles cover Flocks, Treatises, Cognitovore, lasting
+Arts, toxins, Alcohol, Painkillers, weapon maintenance and magic-item effects.
+Simple native changes include Speed, specific bonuses, resistance/vulnerability
+and weapon degradation; AK5e condition markers and conditional restrictions
+still need their source rules resolved manually. **Edit effect** configures
+additional native sheet changes. Both source and target require edit access.
+
+Expiry distinguishes the current turn from the next turn, supports source,
+target or active combatant, and combines triggers with OR. Game time, rests,
+turn boundaries and the exact Art concentration effect drive cleanup.
+Concentration profiles must be applied after starting native concentration.
+For consumables, apply the tag before the source Item disappears: its resulting
+profile survives consumption. Actions, charges, AP, initial saves and Damage
+are resolved separately; applying a tag does not pay costs or cast the Art.
+
+**Successful save**, **Used**, **Matching damage**, **Antidote**, and other
+profile buttons confirm an event already resolved under the source rules.
+They do not roll or infer events from unrelated HP changes. Lacerate rejects
+healing removal; Protect from Cold/Heat removal affects only that recipient.
+Missile Barrier exposes its upcast mote counter; Flock members have independent
+Birds of Prey/Nestmakers counters and Short Rest recovery. The original Flock
+member notes remain manual; the linked tags enforce membership and capacity.
+
+For class/NPC features and area-dependent effects, choose **Custom tag** and
+review **Source rules**. Set conditions/native changes, one or two removal
+triggers, permitted confirmation buttons, and a shared replacement group.
+For example, use one group named `alchemical-infusions`, **One per recipient**,
+and the one-minute duration for all infusion variants. Resolve range and
+conditional roll/Damage benefits manually. Spatial movement does not automatically
+apply or remove aura benefits. See [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).
+
+GMs and target owners can always use **Effects → AK5e temporary tags → Remove
+tag**, including cleanup of copied features left after a failed effect removal.
+The action removes only that tag's effect and copies. Linked and unlinked NPC
+targets are supported. Native Effects-tab deletion also cleans the tag's copies.
+Clean-World testing of these additions remains pending in the
+[smoke-test checklist](FOUNDRY_SMOKE_TEST.md).
+
 World installers remain GM-only. The player menu can change only an owned
 character and its embedded Items. It never imports World collections. If an
 application fails part-way, a recovery record prevents automatic retries from
@@ -462,11 +566,101 @@ by hand. Run this after an approved class-source update:
 node ak5e/tools/build-chapter-three-content.mjs
 ```
 
-The Chapter 3 installer creates 777 D&D5e Items in batches of 50, eight summon
+The Chapter 3 installer creates 1,097 D&D5e Items in batches of 50, eight summon
 Actors, and one source-preserving class-overview journal. It creates `class`,
 `subclass`, and `feat` Items, retaining parent class/branch,
 source heading, level where stated, and raw source text in `flags.ak5e`.
 Class hit dice and stable class/subclass identifiers are populated natively.
+
+The 320 individual Operator Skill feats retain exact effects, costs, Start SP,
+charging, activation, duration, raw rows, and source attribution. Existing table
+references keep their IDs. New Skill IDs use class/branch, tier, and name.
+
+### Operator Skills and SP
+
+AK5e characters are prompted to choose one Basic Skill at class level 2, one
+Advanced at 7, and one Elite at 14. A level jump or higher-level import offers
+all outstanding tiers in one menu. Select each Skill to preview its exact rules,
+costs, charging, activation and duration, then click **Learn Skills**. **Choose
+Later** or closing the window changes nothing; reopen **Choose Skills** in the
+Details sidebar or sheet header menu. The first sheet opening after login also
+offers missing choices. Dismissed choices do not repeatedly reopen on sheet
+renders during that session; new earned tiers can prompt again.
+
+Choices use the attached AK5e class and Branch's stable source IDs. Liberators
+can choose their Branch tables. Sentry and Witchcraft cross-class access applies
+to Advanced and Elite slots because that access begins at level 4; delayed Basic
+selection still uses the level-2 options. Confirmed choices survive level changes
+and Item deletion. The GM can restore a deleted Skill from the manual catalogue;
+the saved choice remains fixed. A single identifiable existing Skill per tier
+already satisfies that choice; ambiguous, custom or ineligible existing Skills,
+unrecognized Branches and multiple classes require GM reconciliation. Resolve
+ambiguity by retaining the intended Skill Item, then level/update the class or
+run `submitOperatorCommand(actor, "checkChoices")` from the Operator runtime as
+the GM to record the inferred selections. This does not remove Items for you.
+
+The assigned active player receives automatic level-up prompts, otherwise the
+first active owner by user ID, with the active GM as fallback. Learning requires
+an active GM and goes through verified owner requests; concurrent selections
+cannot fill a tier twice. Interrupted Item grants retain recovery markers so
+reopening the chooser finishes the Actor save without duplicating Skills.
+
+Enable learned Skill integration in Operator Skills **Setup** to derive SP limits
+and charging. Choosing Skills preserves existing SP and never enables automation
+or refills the pool. NPCs retain manual catalogue learning in their header
+sidebar; GMs retain catalogue learning for exceptional grants. Breakthrough
+Skill exchanges, retraining and source-specific SP modifiers remain manual.
+Alternate Class switching has a separate GM-reviewed World-rule control. Duplicate copies of the same source Skill contribute only once.
+
+Automatic gains 2 SP per matching Skill at the beginning of your combat turn.
+Offensive gains 1 per matching Skill during your turn for actual hostile damage,
+actual HP restored to another creature, or temporary HP granted to another
+creature through an Art. An Attack charges only once across parts and targets.
+Defensive gains 2 per matching Skill for hostile attacks, including misses, or
+hostile non-Attack damage. The methods share one pool whose maximum is the
+highest learned Skill cost. An active Skill stops ordinary charging.
+
+Activate spends the owned Skill cost once and displays a source card for manual
+resolution; tracker activation also opens the Item sheet. Instant Skills end immediately after activation. Numbered rounds
+expire at the activation initiative point; outside combat the configured round
+length and world time apply. Ending combat alone does not cancel a Skill.
+One-Attack durations and special early endings use End Skill. Duration extensions
+require the source rule or reason; the GM/player resolves any eligibility or
+maximum duration stated in that effect.
+
+Use Resolve as part of Skill before a manually performed attack or Art, including
+deferred effects after an Instant Skill ends. This marks the next native usage or
+roll message and its linked follow-up messages. Mark each separate deferred
+action. Skill-generated actions cannot charge ordinary SP. Missing or ambiguous
+hostility, Attack identity, or provenance waits for Review pending event. Use
+Confirm SP event for actions Foundry cannot attribute, including the separate
+native temporary-HP action in D&D5e 5.3.3. Choose the original Attack when known;
+use a separate manual Attack only for a distinct Attack.
+
+Confirmations accept `type` (`offensiveDamage`, `offensiveHealing`,
+`offensiveTemp`, `defensiveAttack`, or `defensiveDamage`), stable `id`, optional
+`attackId` (ChatMessage UUID), `attack`, `hostile`, `positive`, `art`,
+`skillOrigin`, and `targetUuid` (Actor UUID for healing/temporary HP). The GM
+validates referenced documents and ownership; own-turn eligibility is derived
+from combat or the pending observation. Confirmations cannot erase recorded
+Skill provenance or an observed active-Skill block. Automatic events come only
+from successful forward `updateCombat` transitions, including combat start.
+
+Players request changes through namespaced whispered ChatMessage cards. One
+active GM verifies the server-attributed initiating user, serializes updates per
+Actor, and persists SP and receipts together under `flags.ak5e.operatorSkills`.
+The cards retain their acknowledged result in `flags.ak5e.spResponse`; failed
+requests report an error. No active GM means no commit. PCs, NPCs, and synthetic
+token Actors use the same engine, with independent SP stored for unlinked tokens.
+Individual Skill effects and class/talent/equipment exceptions remain manual;
+configure costs, Start SP, or charging methods on the owned Skill, and use a
+source-backed GM adjustment for exceptional grants/refunds/corrections.
+
+Optional browser regression: start a disposable `sp-test` World on port 30133,
+with an independent D&D5e system copy, and run `tools/test-operator-live.mjs`.
+Set `AK5E_PLAYWRIGHT` to the installed Playwright module if needed. The test
+refuses other Worlds, uses the repository Chromium launcher, records its actual
+renderer, and closes browsers in `finally`.
 
 ## Chapter 4 content
 
@@ -478,27 +672,95 @@ hand. Regenerate it after an approved equipment-source update:
 node ak5e/tools/build-chapter-four-content.mjs
 ```
 
-The Chapter 4 installer creates 126 D&D5e Items in batches of 50 and six
+The Chapter 4 installer creates 207 D&D5e Items in batches of 50 and six
 Journal Entries containing the complete currency, weapons, armour, toolkits,
 adventuring gear, and magic-items references. Weapons are `weapon` Items,
-armour and magic items are `equipment` Items, toolkits are `tool` Items, and
+armour and named magic-item references are `equipment` Items, toolkits are `tool` Items, and
 adventuring gear is `loot`; all property and detailed-use rules are separate
 `feat` Items for safe, incremental automation.
 
+Individual enhanced weapons appear under **Items → AK5e: Chapter 4 — Equipment
+→ Magic Items**. There are 81 variants: three upgrades for each of the 27 base
+weapons. +1/+2/+3 correspond to uncommon/rare/very rare, with no Attunement
+requirement. Their native price is unset; the source's rarity prices are GM
+estimates. Base damage, weight, range, reach and properties are retained.
+
+- Arts Staff +1/+2/+3 has Conductive 2/3/4; Arts Wand +1/+2/+3 has Conductive
+  1/2/3. Apply these to Spell Attack Rolls and Spell Save DC manually, using
+  only the highest equipped value. These upgrades add no melee bonus.
+- Grenade Launcher and Rocket Launcher +1/+2/+3 increase Martial DC for Splash
+  by 1/2/3. Their damage activity rolls base Thunder dice only: add the weapon's
+  Ability Modifier manually, resolve Dexterity saves/half damage, and grant
+  Advantage on saves if the wielder is not Proficient. There is no Attack Roll
+  or upgrade bonus to damage. Loading and Brace remain manual.
+- The other 23 weapons, including Heavy Defender Shield's weapon profile, use
+  native +1/+2/+3 Attack and Damage bonuses, including versatile/thrown modes.
+  Enhanced weapons are excluded from background starting-equipment choices.
+
+As GM, rerun `await game.ak5e.installChapterFourEquipment()` after updating the
+module. It adds the variants and moves the four combined +1/+2/+3 documents to
+**Magic Item References**, retaining their IDs and rules text. Default names
+receive a `Reference:` prefix; custom names, descriptions, images and other
+fields survive. Actor-owned copies are unchanged: replace them manually with
+the chosen variant. Only these affected records use content version 0.3.2;
+unrelated chapter content is not refreshed by this migration.
+
+## World-wide Chapter 1 rules (development)
+
+The **Chapter 1 rules** World setting enables changed AK5e base rules for owned
+character and NPC Actors, including stock Actors. It is on by default and
+requires a reload when changed. The stock D&D5e compendiums and installed system
+files remain intact. Rules were exercised in disposable Foundry 13.351 / D&D5e
+5.3.3 Worlds in both 2014 and 2024 modes; see `FOUNDRY_SMOKE_TEST.md`.
+
+- Frightened and Surprised keep their familiar status IDs and link to the AK5e
+  Chapter 1 journal after it is installed. Surprised no longer gives stock
+  initiative disadvantage. The **AK5e World Rules** Actor header control records
+  Move, Action, or Bonus Action; the GM confirms movement and action use.
+- At zero HP, creatures with death saves enter Dying without Unconscious.
+  Native death save successes/failures are replaced by Mettle and persistent
+  AK5e failed saves. The header control handles turn-start saves, damage saves,
+  Death's Door costs, DC 15 Medicine triage, and Stabilise. Healing while Dying
+  grants Mettle at turn end; it does not end Dying. Massive damage marks Dead.
+  A Long Rest removes one AK5e failed save. The GM must confirm turn timing,
+  Medicine success and the action actually taken after paying Mettle.
+- Native ASI advancement cannot select a feat. New class Items cannot add a
+  second class unless the GM enables **Allow AK5e multiclassing**. The optional
+  Alternate Class control lets a GM review two separate level 7+ sheets,
+  inventory and swapped abilities, then queue a switch for the next GM-completed
+  Long Rest. Hit Dice recovery is withheld on that rest. The GM keeps the two
+  sheets' shared inventory and level aligned.
+- Lore and Wilderness are new skill fields; Arts uses Arcana's field and
+  Technology is new. The GM can preview and apply a one-time skill conversion
+  from History/Religion and Nature/Survival using the highest proficiency or
+  expertise. Original values are saved under `flags.ak5e.skillReconciliation`.
+  The stock fields remain for reversal and legacy content.
+- Spell activities use Arts Points across the World. A stock caster needs a
+  GM-configured AP maximum and Art level cap; no slot conversion is inferred.
+  An equipped, configured Casting Unit is required except for an explicit
+  exception. Arts are always prepared and have no material cost in AK5e content.
+  The adapter enforces the once-per-Long-Rest ninth-level limit. The first
+  completed damaging cantrip roll on the caster's combat turn adds the casting
+  modifier; later rolls that turn do not.
+- The sheet shows copper/silver/gold currency as LMD at 1/10/100. Electrum
+  and platinum have no source conversion and are omitted from that display.
+  The damage calculator applies equipped AK5e DR before resistance or
+  vulnerability, using minimum 1 damage; multiple DR sources need a GM total.
+  Corroded halves the entered DR and its marker applies -2 AC. AK5e weapon
+  properties still need individual native-activity tests. The selected-target
+  activity guard rejects source-listed healing on Constructs without an
+  explicit exception; the GM must adjudicate effects with no selected target or
+  healing entered directly on a sheet.
+
+Current controls require an owner or GM. They are prompts for rules that Foundry
+cannot infer reliably from movement, target history, or an unreviewed class
+sheet. See `DECISIONS.md` for unresolved source-to-D&D5e mappings.
+
 ## Current scope and deliberate deferrals
 
-- The Dying/Mettle, SP, Arts Point, Oripathy, and Rest Action helpers store
-  state under `flags.ak5e` on the Actor, so they do not corrupt D&D5e data.
-- AK5e condition markers are available in Foundry's status UI. Their damage,
-  roll penalties, action restrictions, and special removal rules remain
-  explicitly GM-resolved until a combat integration is tested against D&D5e.
-- The origin menu adds namespaced Lore, Wilderness and Technology skills using
-  D&D5e's configurable skill schema. It does not migrate existing characters'
-  History/Religion or Nature/Survival proficiencies; those need GM review.
-- No ASI feat replacement, construct-healing prevention, Alternate Class
-  switching, or spell-slot replacement is silently forced on a World. Their
-  rules are installed as Chapter 1 references and the stateful portions have
-  APIs above.
+- Dying/Mettle, SP, Arts Point, Oripathy, Rest Action and World-rule state live
+  under `flags.ak5e` on Actors. Some conditions retain manual damage, removal,
+  movement and turn accounting pending tested activities.
 - Character Origins are source-complete content entries, but their highly
   varied effects are not claimed to be universally automated. Add and test
   Active Effects, activities, and custom automation one origin feature at a
@@ -524,10 +786,9 @@ node ak5e/tools/build-chapter-five-content.mjs
 The Chapter 5 installer creates 128 D&D5e Items in batches of 50 and four
 Journal Entries. Its 111 new Art descriptions become `spell` Items with their
 source level, school, casting time, range, components, and duration populated;
-Arts are marked always prepared. Standard
-and Special Arts Pools are separate `feat` Items. Arts still spend Chapter 1
-Arts Points rather than D&D5e spell slots, so add per-actor casting automation
-only after it has been tested against the applicable Class and Branch.
+Arts are marked always prepared. Standard and Special Arts Pools are separate
+`feat` Items. The World-wide casting adapter spends configured Arts Points in
+place of spell slots. Class and Branch pool grants remain separately reviewed.
 
 ## Chapter 6 content
 
@@ -559,39 +820,64 @@ npm test
 ```
 
 The suite validates both JSON files and syntax-checks every `.mjs` file;
-regenerates Chapters 2–6 and the content map, failing if regeneration changes a
-tracked output; verifies all 1,442 top-level records and 801 embedded Chapter 6
+regenerates Chapters 1–6 and the content map, failing if regeneration changes a
+tracked output; verifies all 1,843 top-level records and 801 embedded Chapter 6
 features against the v1.3.1 source; runs source-section, table, HTML, and monster
 parser fixtures; exercises rule-helper edge cases with a mocked Foundry
 lifecycle; and verifies the supported types and traceability flags produced by
 all six development installers. Individual commands are listed in the root
 `package.json` when a narrower check is useful.
 
-Node.js cannot reproduce Foundry's D&D5e data models, sheets, permissions,
-persistence, or browser lifecycle. Complete
+The optional installed D&D5e bundle exercises native data models in Node, but
+does not replace Foundry checks of sheets, permissions, persistence or browser
+lifecycle. Complete
 [`FOUNDRY_SMOKE_TEST.md`](FOUNDRY_SMOKE_TEST.md) in a clean World for those
 behaviors. See `CONTENT_AUDIT.md` for the completed source audit and its runtime
 test boundary.
-# Arts casting adapter (0.3.0 development)
+# Arts casting adapter and sheet UI (0.3.1 development)
 
-The **Spells** tab shows current and maximum Arts Points once configured, even
-when the character has no Arts Items. Dropping Caster alone does not configure
+The **Arts** tab and sheet header show current and maximum Arts Points once
+configured, even when the actor has no Arts Items. Edit current AP directly or
+use the −/+ buttons. Dropping Caster alone does not configure
 AP or grant its Arts pools yet. Click **Set up AK5e Arts** in that tab (or open
-**AK5e Arts** from the sheet header menu), enter the source-defined
+**Arts settings** from the sheet header menu), enter the source-defined
 casting ability, AP, maximum Art level and recovery, and select an equipped
 Casting Unit. Review the spell adoption preview before applying. Setup does not
 refill existing AP or reset the ninth-level limit. Adopted spells retain original
 preparation/material fields in their flags; ordinary actors remain unchanged.
 
-Use an Art's activity to open the AP casting dialog and choose its cast level.
-Cancellation does not spend AP. The GM can configure documented free-use grants,
-discounts and focus exceptions through **Art grants / exceptions**. After a
+Use an Art's activity to open one casting dialog with its legal levels, exact
+cost and projected AP. Unlimited free grants are preferred, followed by AP and
+then limited free grants; ritual casting remains an explicit option unless it is
+the only legal mode. Cancellation does not spend AP. Unavailable casts show
+their reason. Castable now hides unavailable adopted Arts without removing them.
+The GM can configure documented free-use grants,
+discounts and focus exceptions through **Casting rules** on each Art row. After a
 partially failed cast, inspect its outcome before using **Undo last cast**; undo
 restores Arts resources only, not other costs, effects or chat messages.
 
-This adapter is not yet live-validated in a clean Foundry v13/D&D5e 5.3.3 World.
-Use a development World and one operating client per Actor. Class progression,
-special casting modes, pool grants, cantrip bonuses and Conductive/Infected rules
-remain unfinished. Ritual timing and exception eligibility require GM review.
+The core sheet/casting flows passed live checks in a clean Foundry 13.351 /
+D&D5e 5.3.3 World with GM, player-owner and observer clients. A separate
+World-rule check verified the first completed damaging cantrip roll in combat.
+See [`FOUNDRY_SMOKE_TEST.md`](FOUNDRY_SMOKE_TEST.md) for the tested scope and
+remaining checks. Use one operating client per Actor. Class progression, special
+casting modes, pool grants and Conductive bonuses remain unfinished. Infected
+Casting Unit exceptions use the Actor's explicit Oripathy state. Ritual timing
+and other exception eligibility require GM review.
 Existing content without roll activities still needs those activities authored;
 this adapter does not automate individual Art effects.
+
+The settings cog separates **Save configuration** from reviewed **Adopt existing
+spells**. Configuration saves preserve current AP, free-use counters and ninth
+use, and do not update Items. The casting ability is the default for adoption and
+new Arts; existing Items retain their explicit ability. NPC **Recover Arts**
+applies Short/Long Rest Arts recovery only, without recovering HP or other
+features. The collapsed Stat-block Arts section opens managed Spellcasting and
+explicitly labelled `(Art)` features as references.
+
+Public owner-checked helpers: `await game.ak5e.setActorArtsValue(actor, value)`
+sets a nonnegative whole-number AP value without creating temporary excess;
+`await game.ak5e.recoverActorArts(actor, "short" | "long")` applies Arts recovery.
+Both share the casting operation lock and invalidate the previous cast receipt.
+Use `configureActorArts(actor, { ...options, adopt: false })` to save settings
+without adopting spells; existing callers retain reviewed adoption by default.

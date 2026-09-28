@@ -1,6 +1,7 @@
 import { CHAPTER_TWO_ORIGINS as ORIGINS } from "./chapter-two-content.mjs";
 import { CHAPTER_THREE_CLASSES as CLASSES } from "./chapter-three-content.mjs";
 import { CHAPTER_FOUR_EQUIPMENT as EQUIPMENT } from "./chapter-four-content.mjs";
+import { nativeOriginUses, registerFeatureTrackerHooks } from "./feature-trackers.mjs";
 
 // Only AK5e-tagged origin Items opt into this workflow. No stock advancement patching.
 const VERSION = 1;
@@ -106,7 +107,7 @@ export function buildOriginPlan(entry, actor) {
     plan.manual.push("The nationality feature is retained on this Item. Conditional bonuses and GM-mediated benefits are not automatic. Your unique background must be selected separately.");
   } else {
     const parent = entry.parent ? ORIGINS.find(e => e.kind === "species" && e.name === entry.parent) : null;
-    plan.features = ORIGINS.filter(e => e.kind === "species-feature" && [entry.name, parent?.name].includes(e.parent)).map(e => ({ name: e.name, content: e.content }));
+    plan.features = ORIGINS.filter(e => e.kind === "species-feature" && [entry.name, parent?.name].includes(e.parent)).map(e => ({ name: e.name, content: e.content, sourceId: e.id, sourceHeading: e.sourceHeading }));
     plan.manual.push("Species setup currently adds the feature cards for review, including parent-species features for a subspecies. Ability increases, size variants, Ancient Versatility, Arts selections and other species choices must still be resolved with the GM and recorded below. This is not a completed species-stat builder.");
   }
   plan.manual.push("Conditional advantages, extra damage, story benefits, and future-level changes are preserved as rules text unless explicitly listed in the review as applied. Tool proficiency does not grant ownership of a toolkit.");
@@ -170,11 +171,15 @@ export function prepareOriginChanges(plan, values, actor, item) {
     summary.push(`Specific equipment proficiency: ${weapons.join(", ")} (not the whole D&D5e weapon/armour category)`);
   }
   const makeFeat = (name, content, system = {}) => ({ name, type: "feat", img: "icons/svg/book.svg", system: { advancement: [], description: { value: content }, ...system } });
-  for (const feat of plan.features) grants.push(makeFeat(feat.name, feat.content));
+  for (const feat of plan.features) {
+    const uses = nativeOriginUses(feat.sourceId);
+    grants.push(makeFeat(feat.name, feat.content, uses ? { uses } : {}));
+  }
   const resource = {
     "Military School Graduate": ["Acumen (Officer)", "3", "lr"], Samurai: ["Pride", "2", "lr"],
     "Pontifica Cohors Lateran": ["Legion of Heaven", "1", "sr"], "Taran Nationalist": ["Great Flame of Tara", "1", "lr"],
-    "Martial Arts Practitioner": ["Wuxia", "@prof", "lr"], Entertainer: ["Finger on the Pulse", "1", "lr"]
+    "Martial Arts Practitioner": ["Wuxia", "@prof", "lr"], Entertainer: ["Finger on the Pulse", "1", "lr"],
+    "Ægir Sage": ["Legacy of the Predecessors", "1", "sr"]
   }[plan.entry.name];
   const alreadyTactician = plan.entry.name === "Military School Graduate" && entries(actor.items).some(i => i.type === "subclass" && (i.system?.identifier === "tactician" || i.name === "Tactician" || flag(i, "parentBranch") === "Tactician"));
   if (alreadyTactician) summary.push("Officer: increase your existing Tactician Acumen maximum by 3 with the GM. No separate pool is created.");
@@ -210,7 +215,10 @@ export function prepareOriginChanges(plan, values, actor, item) {
   if (plan.entry.name === "Labourer") summary.push("Maximum HP bonus: +1 per character level (transfer effect).");
   if (plan.entry.name === "Miner") summary.push("Blindsight: +10 feet (transfer effect).");
   for (const [index, data] of grants.entries()) {
-    data.flags = { ak5e: { originGrant: { originId: plan.entry.id, itemId: item.id, index }, sourceHeading: plan.entry.sourceHeading } };
+    const feature = plan.features[index];
+    data.flags = { ak5e: { originGrant: { originId: plan.entry.id, itemId: item.id, index },
+      sourceHeading: feature?.sourceHeading ?? plan.entry.sourceHeading,
+      ...(feature?.sourceId ? { chapterTwoId: feature.sourceId } : {}) } };
     summary.push(`Add ${data.type === "feat" ? "feature" : "equipment"}: ${data.name}`);
   }
   return { update, grants, summary };
@@ -338,21 +346,50 @@ export function registerOriginHooks() {
       onClick: () => safely(openActorOrigins(actor))
     });
   });
-  // Also put a visible shortcut in the D&D5e character header. Actor sheet
-  // render hooks receive inner sheet HTML, including partial renders, so query
-  // .sheet-header here, never the outer .window-header.
-  Hooks.on("renderActorSheetV2", (app, element) => {
-    const actor = actorFor(app);
-    if (!canOpen(actor) || element.querySelector(".ak5e-origins-button")) return;
-    const header = element.querySelector(".sheet-header .right");
-    if (!header) return;
+  Hooks.on("renderActorSheetV2", renderOriginControls);
+  registerFeatureTrackerHooks();
+}
+
+/** Origins belong beside species/background in D&D5e's Details part. */
+export function renderOriginControls(app, element) {
+  const actor = app?.document?.documentName === "Actor" ? app.document : app?.actor;
+  if (!(app instanceof foundry.applications.sheets.ActorSheetV2) || actor?.type !== "character" || !element?.querySelector) return;
+  // Remove the former header shortcut when a full sheet is available.
+  for (const old of element.querySelectorAll(".sheet-header .ak5e-origins-button")) old.remove();
+  const details = element.matches?.('.tab[data-tab="details"]') ? element : element.querySelector('.tab[data-tab="details"]');
+  if (!details) return;
+  for (const old of details.querySelectorAll(".ak5e-origins-section")) old.remove();
+  const target = details.querySelector(".pills-lg");
+  const origins = entries(actor.items).filter(getOriginEntry);
+  if (!target || !origins.length) return;
+  const section = document.createElement("section");
+  section.className = "ak5e-origins-section";
+  const title = document.createElement("h3");
+  title.textContent = game.i18n.localize("AK5E.Origins.Title");
+  section.append(title);
+  for (const item of origins) {
+    const entry = getOriginEntry(item);
+    const row = document.createElement("div");
+    row.className = "ak5e-origin-summary";
+    const label = document.createElement("span");
+    label.textContent = game.i18n.localize(`AK5E.Origins.${entry.kind}`);
+    const name = document.createElement("button");
+    name.type = "button";
+    name.textContent = item.name;
+    name.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); item.sheet.render(true); });
+    row.append(label, name);
+    section.append(row);
+  }
+  if (actor.isOwner) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "ak5e-origins-button gold-button";
-    button.innerHTML = '<i class="fa-solid fa-compass" inert></i><span>AK5e Origins</span>';
-    button.title = "Set up backgrounds and review origin choices";
-    button.setAttribute("aria-label", button.title);
-    button.addEventListener("click", event => { event.preventDefault(); safely(openActorOrigins(actor)); });
-    header.append(button);
-  });
+    button.className = "ak5e-origins-button";
+    button.textContent = game.i18n.localize("AK5E.Origins.Setup");
+    button.addEventListener("click", event => {
+      event.preventDefault(); event.stopPropagation();
+      openActorOrigins(actor).catch(error => { console.error("AK5e | Origin setup", error); ui.notifications.error(error.message); });
+    });
+    section.append(button);
+  }
+  target.append(section);
 }

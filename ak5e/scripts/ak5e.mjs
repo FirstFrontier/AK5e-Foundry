@@ -6,7 +6,14 @@ import { CHAPTER_FIVE_ARTS } from "./chapter-five-content.mjs";
 import { CHAPTER_SIX_CREATURES } from "./chapter-six-content.mjs";
 import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./asset-library.mjs";
 import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
-import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, undoLastArt } from "./arts-casting.mjs";
+import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt } from "./arts-casting.mjs";
+import { applyFeatureTag, applyTagPreset, removeFeatureTag, resolveFeatureTag, setTagCounter, featureTags, openFeatureTagSetup } from "./feature-tags.mjs";
+import { sourceTagPresets } from "./tag-presets.mjs";
+import { registerWorldRuleSettings, configureWorldConditions, registerWorldRuleHooks, refreshConditionReferences, openWorldRuleControl,
+  previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
+  previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup } from "./world-rules.mjs";
+import { registerOperatorSkillHooks, openOperatorSkills, openOperatorSkillChoices, getOperatorSkillChoices, configureOperatorSkill, recordSkillPointEvent, recoverOperatorSkills,
+  isOperatorActor, getIntegratedOperatorState, submitOperatorCommand, adjustOperatorSP, activateIntegratedSkill, endIntegratedSkill } from "./operator-skills.mjs";
 
 const MODULE_ID = "ak5e";
 const CONTENT_VERSION = "0.2.4";
@@ -30,6 +37,7 @@ const STATUS_EFFECTS = [
 Hooks.once("init", () => {
   if (game.system.id === "dnd5e") registerOriginConfig();
   if (game.system.id === "dnd5e") registerArtsConfig();
+  registerWorldRuleSettings();
   game.settings.register(MODULE_ID, "chapterOneRules", {
     name: "AK5E.Settings.ChapterOneRules.Name",
     hint: "AK5E.Settings.ChapterOneRules.Hint",
@@ -60,6 +68,7 @@ Hooks.once("init", () => {
 // V13 initializes settings after init. Read them no earlier than setup.
 Hooks.once("setup", () => {
   registerStatusEffects();
+  configureWorldConditions();
 });
 
 Hooks.once("ready", () => {
@@ -71,13 +80,25 @@ Hooks.once("ready", () => {
   game.ak5e = Object.freeze({
     openOriginSetup,
     openActorOrigins,
+    applyFeatureTag,
+    applyTagPreset,
+    sourceTagPresets,
+    resolveFeatureTag,
+    setTagCounter,
+    removeFeatureTag,
+    featureTags,
+    openFeatureTagSetup,
     openActorArts,
     configureActorArts,
     previewActorArts,
     configureArt,
     adjustActorArts,
+    setActorArtsValue,
+    recoverActorArts,
     undoLastArt,
     conditions: Object.freeze(Object.fromEntries(STATUS_EFFECTS.map(effect => [effect.key, effect]))),
+    openWorldRuleControl, previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
+    previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup,
     assets: Object.freeze({ get: getAsset, list: listAssets, openLibrary: openAssetLibrary }),
     installChapterOneRules,
     installChapterTwoOrigins,
@@ -91,6 +112,7 @@ Hooks.once("ready", () => {
     enterDying,
     leaveDying,
     recordDeathSave,
+    grantMettle,
     resolveDyingTurnStart,
     recordHealingWhileDying,
     resolveDyingTurnEnd,
@@ -101,6 +123,12 @@ Hooks.once("ready", () => {
     adjustSkillPoints,
     activateOperatorSkill,
     endOperatorSkill,
+    openOperatorSkills,
+    openOperatorSkillChoices,
+    getOperatorSkillChoices,
+    configureOperatorSkill,
+    recordSkillPointEvent,
+    recoverOperatorSkills,
     getArtsPointState,
     configureArtsPoints,
     spendArtsPoints,
@@ -115,6 +143,8 @@ Hooks.once("ready", () => {
   });
   registerOriginHooks();
   registerArtsHooks();
+  registerOperatorSkillHooks();
+  registerWorldRuleHooks(game.ak5e);
 });
 
 function registerStatusEffects() {
@@ -241,6 +271,15 @@ async function recordDeathSave(actor, successful) {
   return next;
 }
 
+async function grantMettle(actor, amount) {
+  actor = assertActor(actor);
+  const state = await requireDying(actor);
+  if (!state) return null;
+  const gain = Number(amount);
+  if (!Number.isSafeInteger(gain) || gain < 0) throw new Error("Mettle gain must be a nonnegative integer.");
+  return setDyingState(actor, { mettle: state.mettle + gain });
+}
+
 async function recordHealingWhileDying(actor, hitPointsRegained) {
   actor = assertActor(actor);
   const state = await requireDying(actor);
@@ -304,6 +343,7 @@ async function resolveStabilise(actor) {
 
 function getOperatorSkillState(actor) {
   actor = assertActor(actor);
+  if (isOperatorActor(actor)) return getIntegratedOperatorState(actor);
   const stored = actor.getFlag(MODULE_ID, "operatorSkills") ?? {};
   const maximum = Math.max(0, Number(stored.maximum) || 0);
   return {
@@ -315,7 +355,7 @@ function getOperatorSkillState(actor) {
 }
 
 async function setOperatorSkillState(actor, change) {
-  const next = { ...getOperatorSkillState(actor), ...change };
+  const next = { ...actor.getFlag(MODULE_ID, "operatorSkills"), ...getOperatorSkillState(actor), ...change };
   next.maximum = Math.max(0, Number(next.maximum) || 0);
   next.points = clamp(next.points, 0, next.maximum);
   next.start = clamp(next.start, 0, next.maximum);
@@ -323,20 +363,30 @@ async function setOperatorSkillState(actor, change) {
   return next;
 }
 
-async function configureOperatorSkills(actor, { maximum, start = 0, points = start } = {}) {
+async function configureOperatorSkills(actor, options = {}) {
   actor = assertActor(actor);
+  if ("enabled" in options) {
+    await submitOperatorCommand(actor, "enable", { enabled: options.enabled });
+    return getOperatorSkillState(actor);
+  }
+  if (isOperatorActor(actor)) throw new Error("Pool limits come from learned Skills. Configure the Skill Items instead.");
+  const { maximum, start = 0, points = start } = options;
   return setOperatorSkillState(actor, { maximum, start, points, active: null });
 }
 
-async function adjustSkillPoints(actor, amount) {
+async function adjustSkillPoints(actor, amount, options = {}) {
   actor = assertActor(actor);
+  if (isOperatorActor(actor)) return adjustOperatorSP(actor, amount, options);
   const state = getOperatorSkillState(actor);
   if (state.active) return state;
   return setOperatorSkillState(actor, { points: state.points + (Number(amount) || 0) });
 }
 
-async function activateOperatorSkill(actor, { id, name, cost } = {}) {
+async function activateOperatorSkill(actor, options = {}) {
   actor = assertActor(actor);
+  if (options.itemId) return activateIntegratedSkill(actor, options.itemId);
+  if (isOperatorActor(actor)) return submitOperatorCommand(actor, "activateManual", options);
+  const { id, name, cost } = options;
   const state = getOperatorSkillState(actor);
   if (state.active) {
     ui.notifications.warn(localize("SkillAlreadyActive", { name: actor.name }));
@@ -353,6 +403,7 @@ async function activateOperatorSkill(actor, { id, name, cost } = {}) {
 
 async function endOperatorSkill(actor) {
   actor = assertActor(actor);
+  if (isOperatorActor(actor)) return endIntegratedSkill(actor);
   return setOperatorSkillState(actor, { active: null });
 }
 
@@ -524,6 +575,7 @@ async function installChapterOneRules() {
 
   const changed = created + updated;
   const key = changed ? "ChapterOneInstalled" : "ChapterOneAlreadyInstalled";
+  refreshConditionReferences();
   ui.notifications.info(game.i18n.format(`AK5E.Notifications.${key}`, { count: changed }));
   return { created, updated, skipped: CHAPTER_ONE_ENTRIES.length - changed };
 }
@@ -693,7 +745,8 @@ async function installChapterThreeClasses() {
     class: "Classes",
     subclass: "Branches",
     "class-feature": "Class Features & Options",
-    "subclass-feature": "Branch Features & Options"
+    "subclass-feature": "Branch Features & Options",
+    "operator-skill": "Operator Skills"
   })) {
     folders.set(kind, await ensureItemFolder(name, `chapterThree-${kind}`, root));
   }
@@ -703,7 +756,7 @@ async function installChapterThreeClasses() {
     .map(item => item.getFlag(MODULE_ID, "chapterThreeId")));
   const missing = itemEntries.filter(entry => !existing.has(entry.id));
   for (const batch of chunks(missing, 50)) {
-    await Item.createDocuments(batch.map(entry => ({
+    await Item.implementation.createDocuments(batch.map(entry => ({
       name: entry.name,
       type: entry.itemType,
       img: "icons/svg/book.svg",
@@ -716,6 +769,7 @@ async function installChapterThreeClasses() {
         [MODULE_ID]: {
           chapterThreeId: entry.id,
           classContentKind: entry.kind,
+          ...(entry.operatorSkill ? { operatorSkill: entry.operatorSkill } : {}),
           parentClass: entry.parentClass,
           parentBranch: entry.parentBranch,
           classLevel: entry.level,
@@ -796,16 +850,21 @@ async function installChapterFourEquipment() {
     folders.set(kind, await ensureItemFolder(name, `chapterFour-${kind}`, root));
   }
 
+  folders.set("magic-weapon", folders.get("magic-item"));
+  const magicReferences = await ensureItemFolder("Magic Item References", "chapterFour-magic-references", root);
+  const itemFolder = entry => entry.referenceOnly ? magicReferences : folders.get(entry.kind);
+  const itemVersion = entry => entry.contentVersion ?? CONTENT_VERSION;
+
   const existing = new Set(game.items
     .filter(item => item.getFlag(MODULE_ID, "chapterFourId"))
     .map(item => item.getFlag(MODULE_ID, "chapterFourId")));
   const missing = itemEntries.filter(entry => !existing.has(entry.id));
   for (const batch of chunks(missing, 50)) {
-    await Item.createDocuments(batch.map(entry => ({
+    await Item.implementation.createDocuments(batch.map(entry => ({
       name: entry.name,
       type: entry.itemType,
       img: "icons/svg/book.svg",
-      folder: folders.get(entry.kind).id,
+      folder: itemFolder(entry).id,
       system: { ...entry.systemData, description: { value: entry.content, chat: "" } },
       flags: {
         [MODULE_ID]: {
@@ -813,9 +872,12 @@ async function installChapterFourEquipment() {
           equipmentKind: entry.kind,
           sourceHeading: entry.sourceHeading,
           sourceFile: "04_chapter_4_equipment.txt",
-          contentVersion: CONTENT_VERSION,
+          contentVersion: itemVersion(entry),
           tableData: entry.tableData,
-          rawSource: entry.rawSource
+          rawSource: entry.rawSource,
+          ...(entry.rawSources ? { rawSources: entry.rawSources } : {}),
+          ...(entry.enhancement ? { enhancement: entry.enhancement } : {}),
+          ...(entry.referenceOnly ? { enhancementReference: true } : {})
         },
         dnd5e: { sourceBook: "AK5E" }
       }
@@ -824,17 +886,33 @@ async function installChapterFourEquipment() {
 
   const stale = itemEntries.filter(entry => {
     const item = game.items.find(candidate => candidate.getFlag(MODULE_ID, "chapterFourId") === entry.id);
-    return item && item.getFlag(MODULE_ID, "contentVersion") !== CONTENT_VERSION;
+    return item && item.getFlag(MODULE_ID, "contentVersion") !== itemVersion(entry);
   });
   for (const entry of stale) {
     const item = game.items.find(candidate => candidate.getFlag(MODULE_ID, "chapterFourId") === entry.id);
+    if (entry.referenceOnly) {
+      // Keep existing links, custom names, descriptions, and unrelated fields intact.
+      const description = item.system.description?.value ?? "";
+      await item.update({
+        ...(item.name === entry.previousName ? { name: entry.name } : {}),
+        folder: itemFolder(entry).id,
+        ...(!description.includes("data-ak5e-enhancement-reference") ? {
+          "system.description.value": description + entry.referenceNotice
+        } : {}),
+        [`flags.${MODULE_ID}.contentVersion`]: itemVersion(entry),
+        [`flags.${MODULE_ID}.enhancementReference`]: true
+      });
+      continue;
+    }
     await item.update({
       name: entry.name,
-      folder: folders.get(entry.kind).id,
+      folder: itemFolder(entry).id,
       system: { ...entry.systemData, description: { value: entry.content, chat: "" } },
-      [`flags.${MODULE_ID}.contentVersion`]: CONTENT_VERSION,
+      [`flags.${MODULE_ID}.contentVersion`]: itemVersion(entry),
       [`flags.${MODULE_ID}.tableData`]: entry.tableData,
-      [`flags.${MODULE_ID}.rawSource`]: entry.rawSource
+      [`flags.${MODULE_ID}.rawSource`]: entry.rawSource,
+      ...(entry.rawSources ? { [`flags.${MODULE_ID}.rawSources`]: entry.rawSources } : {}),
+      ...(entry.enhancement ? { [`flags.${MODULE_ID}.enhancement`]: entry.enhancement } : {})
     });
   }
   updated += stale.length;

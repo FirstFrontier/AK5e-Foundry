@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { sourceToHtml } from "./source-html.mjs";
 import { extractMonsterBlocks, parseMonsterStatblock } from "./monster-statblock.mjs";
 import { sourceHeadings, splitSourceSections } from "./source-sections.mjs";
+import { operatorSkillRecords } from "./operator-skill-content.mjs";
 
 const sourceUrl = new URL("../../AK5e_1.3.1_Foundry_Source/03_chapter_3_character_classes.txt", import.meta.url);
 const outputUrl = new URL("../scripts/chapter-three-content.mjs", import.meta.url);
@@ -98,7 +99,7 @@ console.log(Object.entries(counts).map(([kind, entries]) => `${kind}: ${entries.
 function extractFeatureRecords(section, parentClass, parentBranch, kind) {
   const h4 = splitSections(section.raw, 4).map(featureRecord);
   const h5 = splitSections(section.raw, 5).map(featureRecord);
-  return [...h4, ...h5];
+  return [...h4, ...h5, ...splitSections(section.raw, 5).flatMap(table => operatorSkillRecords(table, parentClass, parentBranch))];
 
   function featureRecord(feature) {
     const prefix = parentBranch ? `${parentClass}-${parentBranch}` : parentClass;

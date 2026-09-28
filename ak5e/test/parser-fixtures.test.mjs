@@ -38,6 +38,54 @@ test("HTML renderer converts supported source markup and removes layout/images",
   assert.doesNotMatch(html, /imageMask|<img|\\page/);
 });
 
+test("HTML renderer produces readable tables with source values and category rows", async () => {
+  const html = sourceToHtml(await fixture("table.md"));
+  assert.match(html, /<table class="ak5e-source-table">/);
+  assert.match(html, /<th scope="col" class="ak5e-source-table__center">Damage<\/th>/);
+  assert.match(html, /<th scope="rowgroup" colspan="3"><em>Light Gear<\/em><\/th>/);
+  assert.match(html, /&emsp; Test &lt;Blade&gt;/);
+  assert.match(html, /<td class="ak5e-source-table__right">10 LMD<\/td>/);
+  assert.doesNotMatch(html, /<pre>/);
+
+  const irregular = sourceToHtml("| Name | Effect | Duration |\n|:---|:---|:---|\n| Cluster Bombs | Three points | | Instant");
+  assert.match(irregular, /<td class="ak5e-source-table__left">Instant<\/td>/);
+  assert.equal((irregular.match(/<td /g) ?? []).length, 3);
+});
+
+test("HTML renderer retains source paragraph separators and intentional line breaks", async () => {
+  const html = sourceToHtml("First paragraph.\n:\nSecond paragraph.\nContinued line.\n\nThird paragraph.");
+  assert.deepEqual([...html.matchAll(/<p class="ak5e-source-paragraph">(.*?)<\/p>/g)].map(match => match[1]), [
+    "First paragraph.", "Second paragraph.<br>Continued line.", "Third paragraph."
+  ]);
+
+  // The nationality shown in the origin wizard uses ':' between all five prose paragraphs.
+  const source = await readFile(new URL("../../AK5e_1.3.1_Foundry_Source/02_chapter_2_character_origins.txt", import.meta.url), "utf8");
+  const prose = source.slice(source.indexOf("Up until around two centuries ago"), source.indexOf("{{note", source.indexOf("Up until around two centuries ago")));
+  const paragraphs = [...sourceToHtml(prose).matchAll(/<p class="ak5e-source-paragraph">(.*?)<\/p>/g)].map(match => match[1]);
+  assert.deepEqual(paragraphs, prose.split("\n").map(line => line.trim()).filter(line => line && line !== ":"));
+  assert.equal(paragraphs.length, 5);
+});
+
+test("every source pipe-table block renders as one table", async () => {
+  const sourceFiles = [
+    "01_chapter_1_changing_the_game.txt",
+    "02_chapter_2_character_origins.txt",
+    "03_chapter_3_character_classes.txt",
+    "04_chapter_4_equipment.txt",
+    "05_chapter_5_arts.txt",
+    "06_chapter_6_dwellers_of_terra.txt"
+  ];
+  for (const name of sourceFiles) {
+    const source = await readFile(new URL(`../../AK5e_1.3.1_Foundry_Source/${name}`, import.meta.url), "utf8");
+    const lines = source.split("\n");
+    const blocks = lines.filter((line, index) =>
+      line.trim().startsWith("|") && !lines[index - 1]?.trim().startsWith("|")).length;
+    const html = sourceToHtml(source);
+    assert.equal((html.match(/<table class="ak5e-source-table">/g) ?? []).length, blocks, name);
+    assert.doesNotMatch(html, /<pre>/, name);
+  }
+});
+
 test("monster parser extracts core statistics, defenses, senses, and movement", async () => {
   const blocks = extractMonsterBlocks(await fixture("monster.md"));
   assert.equal(blocks.length, 1);

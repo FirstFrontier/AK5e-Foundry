@@ -30,12 +30,12 @@ assertKinds(CHAPTER_TWO_ORIGINS, {
 });
 assertKinds(CHAPTER_THREE_CLASSES, {
   reference: 1, class: 8, "class-summon": 8, "class-feature": 232,
-  subclass: 54, "subclass-feature": 483
+  subclass: 54, "subclass-feature": 483, "operator-skill": 320
 });
 assertKinds(CHAPTER_FOUR_EQUIPMENT, {
   reference: 6, weapon: 27, equipment: 16, tool: 13, loot: 15,
   "weapon-property": 13, "armour-property": 1, "tool-rule": 13,
-  "gear-rule": 15, "magic-item": 13
+  "gear-rule": 15, "magic-item": 13, "magic-weapon": 81
 });
 assertKinds(CHAPTER_FIVE_ARTS, {
   reference: 4, "standard-art-pool": 11, "special-art-pool": 6, art: 111
@@ -202,12 +202,12 @@ function expectedItemType(chapterNumber, kind) {
     },
     3: {
       reference: null, class: "class", "class-summon": null, "class-feature": "feat",
-      subclass: "subclass", "subclass-feature": "feat"
+      subclass: "subclass", "subclass-feature": "feat", "operator-skill": "feat"
     },
     4: {
       reference: null, weapon: "weapon", equipment: "equipment", tool: "tool", loot: "loot",
       "weapon-property": "feat", "armour-property": "feat", "tool-rule": "feat",
-      "gear-rule": "feat", "magic-item": "equipment"
+      "gear-rule": "feat", "magic-item": "equipment", "magic-weapon": "weapon"
     },
     5: { reference: null, "standard-art-pool": "feat", "special-art-pool": "feat", art: "spell" }
   };

@@ -1,15 +1,27 @@
 <section class="ak5e-arts-dialog">
   <fieldset>
-    <legend>Arts casting</legend>
-    <p>{{ak5eArts.value}} / {{ak5eArts.maximum}} Arts Points</p>
-    <label>Casting mode
+    <legend>{{localize "AK5E.Arts.Casting"}}</legend>
+    <p>{{ak5eArts.value}} / {{ak5eArts.maximum}} {{localize "AK5E.Arts.AP"}}</p>
+    {{#if ak5eArts.chooseMode}}
+    <label>{{localize "AK5E.Arts.CastingMode"}}
       <select name="ak5eMode">{{selectOptions ak5eArts.modes selected=ak5eArts.mode valueAttr="value" labelAttr="label"}}</select>
     </label>
-    <label>Cast level and cost
+    {{else}}
+    <p>{{ak5eArts.modeLabel}}</p><input type="hidden" name="ak5eMode" value="{{ak5eArts.mode}}">
+    {{/if}}
+    {{#if ak5eArts.chooseLevel}}
+    <label>{{localize "AK5E.Arts.CastLevel"}}
       <select name="ak5eLevel">{{selectOptions ak5eArts.options selected=ak5eArts.level valueAttr="value" labelAttr="label"}}</select>
     </label>
-    {{#if ak5eArts.unavailable}}<p role="alert">No legal cast is available in this mode. Check AP, maximum level, free uses and the ninth-level limit.</p>{{/if}}
+    {{else}}
+    {{#unless ak5eArts.unavailable}}<p>{{ak5eArts.levelLabel}}</p>{{/unless}}
+    <input type="hidden" name="ak5eLevel" value="{{ak5eArts.level}}">
+    {{/if}}
+    {{#if ak5eArts.unavailable}}<p role="alert">{{ak5eArts.reason}}</p>{{else}}
+    <p role="status">{{localize "AK5E.Arts.AfterCast"}}: {{ak5eArts.remaining}} {{localize "AK5E.Arts.AP"}}</p>
+    {{/if}}
     {{#if ak5eArts.source}}<p>{{ak5eArts.source}}</p>{{/if}}
-    <p>AP is spent when casting is confirmed. Ritual mode adds ten minutes to the casting time.</p>
+    {{#if ak5eArts.ritual}}<p>{{localize "AK5E.Arts.RitualHint"}}</p>{{/if}}
+    <p>{{localize "AK5E.Arts.ConsumptionHint"}}</p>
   </fieldset>
 </section>

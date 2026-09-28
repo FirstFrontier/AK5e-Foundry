@@ -11,6 +11,34 @@ The backlog is [TODO.md](TODO.md); mapping decisions are in
 
 ## 1. Current state: start here
 
+The repository module is now **0.3.4**, adding level-2/7/14 Operator Skill choice
+popups, catch-up, branch eligibility, persistent choices and Choose Later.
+It includes 320 individual Operator Skills and
+opt-in stacked SP charging, GM-verified owner controls, Skill lifecycle and rest
+recovery. The earlier native multi-client SP slice and repository tests passed;
+see [FOUNDRY_SMOKE_TEST.md](ak5e/FOUNDRY_SMOKE_TEST.md) for scope and limits.
+The 0.3.4 choice flow passed all 123 tests and isolated Foundry/D&D5e browser
+checks, including native advancement, catch-up, ownership and persistence.
+It also includes 81 individual enhanced weapon Items, safe migration of combined
+upgrade references, and registered PC/NPC Arts controls in
+the native header and Arts tab, simplified casting, configuration/adoption
+separation, and Arts-only NPC recovery. Run `npm install` before `npm test` for
+the DOM regression dependency. See [CHANGELOG.md](ak5e/CHANGELOG.md) and the
+Arts and Operator Skills sections of the module README for remaining manual workflows.
+This increment does not update the existing installed module or World data.
+
+September 27 resource/tag changes are in the repository; they have not been
+copied to the installed module. Origins now appear in the Details sidebar, with
+reviewed Origin trackers, configurable counters for other AK5e features, and
+temporary creature tags/linked Ægir skill benefits. Tags now accept Arts and
+equipment sources and owned weapon targets, with 53 reviewed profiles, combined
+expiry triggers, concentration links, replacement groups and recipient counters.
+Class/NPC conditional effects use source-guided custom tags and native effect
+editing. `npm test` passed; the optional installed D&D5e 5.3.3 run passed all 51
+origin/sheet/tracker/tag regressions, including 16 new tag tests.
+Clean-World effects, rests, expiry and persistence testing is pending. Review
+[RESOURCE_AUDIT.md](ak5e/RESOURCE_AUDIT.md) for scan results and manual boundaries.
+
 September 13 sheet fix: **0.2.6** is installed locally. Applying Military School
 Graduate exposed a missing `CONFIG.DND5E.toolProficiencies` label registration:
 D&D5e tried a base-item lookup with an undefined ID while preparing the sheet.
@@ -28,7 +56,7 @@ again before working; these are a snapshot, not permanent assumptions.
 
 The origin menu covers 33 backgrounds and 20 nationalities. It opens when an
 AK5e-tagged origin Item is created on an owned character. Players can also use
-the **AK5e Origins** button in the character sheet's header for existing Items.
+the **AK5e Origins** button beside race/background in the Details sidebar for existing Items.
 The steps are choices → feature rules → review → explicit Apply.
 
 Military School Graduate is the main regression example: Messenger Kit
@@ -94,6 +122,10 @@ task does not authorize future agents to deploy or change World data by itself.
 | Module identity, version, script/CSS registration | `ak5e/module.json` |
 | Lifecycle registration, public API, World installers | `ak5e/scripts/ak5e.mjs` |
 | Origin choices, validation, grants, popup and sheet button | `ak5e/scripts/origin-setup.mjs` |
+| Feature resource catalogue, choices and counters | `ak5e/scripts/feature-trackers.mjs` |
+| Temporary creature tags, expiry and linked Ægir skill benefits | `ak5e/scripts/feature-tags.mjs` |
+| Reviewed Origin, Art and equipment tag profiles | `ak5e/scripts/tag-presets.mjs` |
+| Resource scan and reviewed/manual mapping boundaries | `ak5e/RESOURCE_AUDIT.md` |
 | Popup layout | `ak5e/styles/origin-setup.css` |
 | Origin regression tests | `ak5e/test/origin-setup.test.mjs` |
 | Generated origin records | `ak5e/scripts/chapter-two-content.mjs` |
@@ -176,8 +208,9 @@ Follow these rules when editing UI code:
    Recheck permission when applying changes; hiding a button is insufficient.
 2. **Expect rerenders.** Restrict sheet controls to ActorSheetV2 instances and use the actor-sheet render hook for visible controls. Use namespaced selectors such as
    `.ak5e-origins-button`. Skip insertion when the button/action already exists;
-   return safely when its target is absent. The current D&D5e header target is
-   `.sheet-header .right`; verify it after system upgrades. Avoid global DOM
+   return safely when its target is absent. Origins target the Details sidebar's
+   `.pills-lg`, resources target its direct `.right` column, and tags target
+   Effects; verify these selectors after system upgrades. Avoid global DOM
    queries and repeated document-level listeners.
 3. **Wire buttons explicitly.** Use `type="button"` for injected controls and
    `preventDefault()` where needed. Catch asynchronous errors, log the stack,
@@ -337,6 +370,32 @@ to the isolated test browser, keep actor persistence in memory, and use the
 installed Foundry/D&D5e classes. If automating this routinely, add a maintained
 browser harness in a separately scoped task. Do not read/reset Administrator
 credentials to get past a locked World; ask the owner to launch the test World.
+
+All Playwright Chromium tests, including temporary scripts, must use the shared
+GPU-enabled launcher (install full Chromium with `npx playwright install chromium`
+in the environment that supplies Playwright):
+
+```js
+import { chromium } from 'playwright';
+import { launchTestBrowser } from '/home/patch/AK5e-Foundry/ak5e/tools/test-browser.mjs';
+
+const browser = await launchTestBrowser(chromium);
+try {
+  // Run the browser checks here.
+} finally {
+  await browser.close();
+}
+```
+
+The launcher selects `channel: "chromium"` to use
+[Playwright's full Chromium headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode)
+and adds `--enable-gpu`, preserving additional launch options and arguments.
+It requests acceleration without forcing a software renderer. On Linux, GPU
+device permissions, working drivers and a compatible display/backend are still
+required; see [Chromium's headless GPU guidance](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/gpu/using-gpu-hardware-in-headless-chrome.md).
+Record the actual WebGL renderer or `chrome://gpu` status with live-test results;
+a successful launch alone does not verify hardware acceleration. The Node-only
+`npm test` suite does not render graphics and needs no GPU setting.
 
 ## 7. Deploy only when requested
 

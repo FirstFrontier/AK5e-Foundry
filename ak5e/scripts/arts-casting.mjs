@@ -1,4 +1,7 @@
-import { ARTS_METHOD, adoptedSpellData, artsState, castingConfig, integer, quoteArt, recoveryValue, restArtsUpdates } from "./arts-rules.mjs";
+import { ARTS_METHOD, ArtsRuleError, adoptedSpellData, artsChoices, artsState, castingConfig, integer, quoteArt, recoveryValue, restArtsUpdates } from "./arts-rules.mjs";
+import { worldRulesEnabled } from "./world-rule-state.mjs";
+import { registerArtsSheetHooks } from "./arts-sheet.mjs";
+export { renderArtsControls } from "./arts-sheet.mjs";
 
 const sessions = new Map();
 const busy = new Set();
@@ -10,6 +13,8 @@ const list = collection => Array.from(collection?.values?.() ?? collection ?? []
 const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const notice = error => { console.error("AK5e | Arts", error); ui.notifications.error(error.message ?? String(error)); };
 const safely = promise => Promise.resolve(promise).catch(notice);
+export const artsText = (key, data) => data === undefined ? game.i18n.localize(`AK5E.Arts.${key}`) : game.i18n.format(`AK5E.Arts.${key}`, data);
+export const artsErrorText = error => error?.key ? artsText(error.key, error.data) : error?.message ?? String(error);
 
 export function registerArtsConfig() {
   if (!CONFIG.DND5E) return;
@@ -19,17 +24,22 @@ export function registerArtsConfig() {
 }
 
 export function isArtsActor(actor) {
-  return actor?.getFlag?.("ak5e", "casting")?.enabled === true;
+  return worldRulesEnabled() ? actor?.documentName === "Actor" && ["character", "npc"].includes(actor.type)
+    : actor?.getFlag?.("ak5e", "casting")?.enabled === true;
 }
 
 export function hasArtsContent(actor) {
+  if (worldRulesEnabled()) return Boolean(actor?.getFlag?.("ak5e", "artsPoints") ||
+    list(actor?.items).some(item => item.type === "spell" ||
+      (item.type === "class" && item.system?.spellcasting?.progression && item.system.spellcasting.progression !== "none")));
   return isArtsActor(actor) || list(actor?.items).some(item =>
     item?.getFlag?.("ak5e", "chapterFiveId") || item?.getFlag?.("ak5e", "chapterThreeId") ||
     item?.flags?.ak5e?.chapterFiveId || item?.flags?.ak5e?.chapterThreeId);
 }
 
 export function isArt(activity) {
-  return activity?.item?.type === "spell" && isArtsActor(activity.actor) && flags(activity.item).enabled !== false;
+  return activity?.item?.type === "spell" && isArtsActor(activity.actor) &&
+    (worldRulesEnabled() || flags(activity.item).enabled !== false);
 }
 
 function own(actor) {
@@ -41,17 +51,30 @@ function idle(actor) {
   if (busy.has(actor.uuid)) throw new Error("Finish the current Arts operation for this actor first.");
 }
 
-function grantFor(item) {
+export function grantFor(item, actor = item.actor) {
   const grant = flags(item);
-  return { ...grant, free: grant.free ? { ...grant.free, spent: item.actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined };
+  return { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined };
 }
 
 function checkFocus(actor, item) {
-  if (actor.statuses?.has("ak5e-silenced")) throw new Error("Silenced creatures cannot cast Arts.");
-  if (flags(item).noCastingUnit === true) return;
+  if (actor.statuses?.has("ak5e-silenced")) throw new ArtsRuleError("Silenced", "Silenced creatures cannot cast Arts.");
+  if (worldRulesEnabled() && !artsState(actor).configured) {
+    throw new ArtsRuleError("UnconfiguredAP", "The GM must set Arts Points and a maximum Art level before this creature can cast.");
+  }
+  if (flags(item).noCastingUnit === true || actor.getFlag?.("ak5e", "oripathy")?.infected === true) return;
   const focusId = artsState(actor).castingUnit;
   const focus = actor.items.get(focusId);
-  if (!focus || focus.system.equipped !== true) throw new Error("Equip the Casting Unit selected in Arts setup, or configure this Art's source-defined exception.");
+  if (!focus || focus.system.equipped !== true) throw new ArtsRuleError("FocusMissing", "Equip the Casting Unit selected in Arts setup, or configure this Art's source-defined exception.");
+  const properties = focus.getFlag?.("ak5e", "tableData")?.properties ?? focus.flags?.ak5e?.tableData?.properties ?? "";
+  if (worldRulesEnabled() && !/\bCasting Unit\b/i.test(properties)) {
+    throw new ArtsRuleError("FocusInvalid", "The selected equipment must have the Casting Unit property.");
+  }
+}
+
+export function artAvailability(actor, item, selection = {}) {
+  let blocker;
+  try { checkFocus(actor, item); } catch (error) { blocker = error; }
+  return artsChoices(artsState(actor), item.system.level, grantFor(item, actor), { ...selection, blocker });
 }
 
 /** Review data only. No World/Actor writes until configureActorArts is explicitly invoked. */
@@ -64,7 +87,7 @@ export function previewActorArts(actor, options = {}) {
   const value = integer(options.value ?? state.value, "Arts Points");
   const maximumArtLevel = integer(options.maximumArtLevel ?? state.maximumArtLevel, "Maximum Art level", 0, 9);
   if (value > Math.max(maximum, state.value)) throw new Error("Use an explicit over-cap recovery for temporary AP above the maximum.");
-  const items = list(actor.items).filter(item => item.type === "spell" && flags(item).enabled !== false);
+  const items = options.adopt === false ? [] : list(actor.items).filter(item => item.type === "spell" && flags(item).enabled !== false);
   return {
     actor: { "flags.ak5e.casting": config, "flags.ak5e.artsPoints": {
       ...(actor.getFlag("ak5e", "artsPoints") ?? {}), maximum, value, maximumArtLevel,
@@ -77,14 +100,22 @@ export function previewActorArts(actor, options = {}) {
 
 export async function configureActorArts(actor, options = {}) {
   own(actor); idle(actor);
+  if (worldRulesEnabled() && !game.user.isGM && !list(actor.items).some(item =>
+    item.type === "class" && (item.getFlag?.("ak5e", "chapterThreeId") || item.flags?.ak5e?.chapterThreeId))) {
+    throw new Error("The GM must assign Arts Points for a caster without an AK5e class.");
+  }
   if (!available) throw new Error("Arts integration requires the supported D&D5e activity API (tested with 5.3.3).");
   const plan = previewActorArts(actor, options);
   busy.add(actor.uuid);
   try {
+    if (options.adopt === false) {
+      await actor.update({ ...plan.actor, "flags.ak5e.lastArtCast": null });
+      return artsState(actor);
+    }
     // Preserve a recovery record before a multi-document adoption. Retrying is idempotent.
     await actor.update({ "flags.ak5e.artsSetup": { status: "pending", itemIds: plan.items.map(i => i._id) } });
     if (plan.items.length) await actor.updateEmbeddedDocuments("Item", plan.items);
-    await actor.update({ ...plan.actor, "flags.ak5e.artsSetup.status": "complete" });
+    await actor.update({ ...plan.actor, "flags.ak5e.artsSetup.status": "complete", "flags.ak5e.lastArtCast": null });
     return artsState(actor);
   } finally { busy.delete(actor.uuid); }
 }
@@ -99,6 +130,42 @@ export async function adjustActorArts(actor, amount, options = {}) {
     await actor.update({ "flags.ak5e.artsPoints.value": value, "flags.ak5e.lastArtCast": null });
     return artsState(actor);
   } finally { busy.delete(actor.uuid); }
+}
+
+export async function setActorArtsValue(actor, value) {
+  own(actor); idle(actor);
+  const state = artsState(actor);
+  const next = integer(value, "Arts Points");
+  if (next > Math.max(state.maximum, state.value)) throw new Error(artsText("NoOverflow"));
+  return adjustActorArts(actor, next - state.value);
+}
+
+function artsRecoveryUpdates(actor, type) {
+  const updates = { ...restArtsUpdates(actor, type), "flags.ak5e.lastArtCast": null };
+  for (const item of list(actor.items)) {
+    const free = flags(item).free;
+    if (!free || free.recovery === "manual" || (type !== "long" && free.recovery !== "short")) continue;
+    updates[`flags.ak5e.artFreeUses.${item.id}`] = 0;
+  }
+  return updates;
+}
+
+export async function recoverActorArts(actor, type) {
+  own(actor); idle(actor);
+  if (!isArtsActor(actor)) throw new Error(artsText("EnableFirst"));
+  if (!["short", "long"].includes(type)) throw new Error(artsText("ChooseRest"));
+  busy.add(actor.uuid);
+  try { await actor.update(artsRecoveryUpdates(actor, type)); return artsState(actor); }
+  finally { busy.delete(actor.uuid); }
+}
+
+export async function equipActorCastingUnit(actor) {
+  own(actor); idle(actor);
+  const item = actor.items.get(artsState(actor).castingUnit);
+  if (!isArtsActor(actor) || !item || !["weapon", "equipment", "tool"].includes(item.type)) throw new Error(artsText("FocusMissing"));
+  busy.add(actor.uuid);
+  try { await item.update({ "system.equipped": true }); }
+  finally { busy.delete(actor.uuid); }
 }
 
 /** Explicit GM rule configuration; a free cast is a documented grant, not a consumption bypass. */
@@ -157,14 +224,13 @@ export function prepareArtUse(activity, usage, dialog, message) {
   if (!isArt(activity)) return;
   const session = sessions.get(usage.ak5eCastId);
   if (!session) { ui.notifications.error("Arts casting must use the activity's Cast action."); return false; }
-  try { own(activity.actor); checkFocus(activity.actor, activity.item); }
-  catch (error) { ui.notifications.warn(error.message); return false; }
+  try { own(activity.actor); }
+  catch (error) { ui.notifications.warn(artsErrorText(error)); return false; }
   usage.consume = { ...(typeof usage.consume === "object" ? usage.consume : {}), spellSlot: false };
   // Do not let a stale D&D5e slot name replace our numeric scaling later.
   delete usage.spell;
   usage.scaling = 0;
   usage.ak5eLevel ??= activity.item.system.level;
-  usage.ak5eMode ??= "ap";
   usage.hasConsumption = true;
   dialog.configure = true;
   dialog.applicationClass = artsDialogClass(dialog.applicationClass);
@@ -208,22 +274,16 @@ export function consumeArt(activity, usage, message, updates) {
     message.data.system.spellLevel = quote.level;
     session.receipt = receipt;
     session.committed = true;
-  } catch (error) { ui.notifications.warn(error.message); return false; }
+  } catch (error) { ui.notifications.warn(artsErrorText(error)); return false; }
 }
 
 export function completeArtsRest(actor, result, config) {
-  if (!isArtsActor(actor)) return;
+  if (!isArtsActor(actor) || (worldRulesEnabled() && !artsState(actor).configured)) return;
   if (busy.has(actor.uuid)) { ui.notifications.warn("Finish the current Arts operation before resting."); return false; }
   const type = config.type ?? result.type;
-  const updates = restArtsUpdates(actor, type);
   if (!["short", "long"].includes(type)) return;
   result.updateData ??= {};
-  Object.assign(result.updateData, updates, { "flags.ak5e.lastArtCast": null });
-  for (const item of list(actor.items)) {
-    const free = flags(item).free;
-    if (!free || free.recovery === "manual" || (type !== "long" && free.recovery !== "short")) continue;
-    result.updateData[`flags.ak5e.artFreeUses.${item.id}`] = 0;
-  }
+  Object.assign(result.updateData, artsRecoveryUpdates(actor, type));
 }
 
 const dialogClasses = new WeakMap();
@@ -232,33 +292,34 @@ export function artsDialogClass(Base) {
   class ArtsUsageDialog extends Base {
     async _prepareScalingContext(context) {
       const state = artsState(this.actor);
-      const base = sessions.get(this.config.ak5eCastId)?.baseLevel ?? this.item.system.level;
       const grant = grantFor(this.item);
-      const mode = this.config.ak5eMode ?? "ap";
-      const modes = [{ value: "ap", label: "Arts Points" }];
-      if (grant.free) modes.push({ value: "free", label: "Free cast — source grant" });
-      if (grant.ritual) modes.push({ value: "ritual", label: "Ritual — base level, +10 minutes" });
-      const options = [];
-      for (let level = base; level <= (base === 0 ? 0 : 9); level++) {
-        try {
-          const quote = quoteArt(state, base, level, grant, { mode });
-          options.push({ value: String(level), label: `${level === 0 ? "Cantrip" : `Level ${level}`} — ${quote.cost} AP` });
-        } catch { /* Invalid levels are shown through the no-legal-cast notice. */ }
-      }
+      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      this.config.ak5eMode = choices.mode;
+      this.config.ak5eLevel = choices.level;
+      const modes = choices.modes.map(m => ({ value: m.value, label: artsText(`Mode.${m.value}`) }));
+      const options = choices.quotes.map(q => ({ value: String(q.level), label: artsText(q.level === 0 ? "CantripCost" : "LevelCost", q) }));
       return { ...context, hasScaling: true, spellSlots: null, scaling: null,
-        ak5eArts: { modes, mode, options, level: String(this.config.ak5eLevel ?? base),
+        ak5eArts: { modes, mode: choices.mode, options, level: String(choices.level),
+          modeLabel: artsText(`Mode.${choices.mode}`), levelLabel: options.find(o => Number(o.value) === choices.level)?.label,
+          chooseMode: modes.length > 1, chooseLevel: options.length > 1,
+          cost: choices.quote?.cost, remaining: choices.quote ? state.value - choices.quote.cost : null,
           value: state.value, maximum: state.maximum, source: grant.source ?? "",
-          unavailable: !options.length } };
+          ritual: choices.mode === "ritual", unavailable: !choices.quote,
+          reason: choices.error ? artsErrorText(choices.error) : "" } };
     }
 
     async _prepareSubmitData(event, formData) {
       const data = await super._prepareSubmitData(event, formData);
       const base = sessions.get(this.config.ak5eCastId)?.baseLevel ?? this.item.system.level;
-      const level = Number(data.ak5eLevel ?? base);
-      const mode = data.ak5eMode ?? "ap";
-      data.ak5eLevel = level;
-      data.ak5eMode = mode;
-      data.scaling = level - base;
+      const selected = { mode: data.ak5eMode ?? this.config.ak5eMode, level: data.ak5eLevel ?? this.config.ak5eLevel };
+      // Native change events recalculate choices. Confirmation retains the requested cast:
+      // consumption must reject a stale selection rather than silently cast at a lower level.
+      const choices = event?.type === "click"
+        ? { mode: selected.mode, level: integer(selected.level, "Cast level", base, 9) }
+        : artAvailability(this.actor, this.item, selected);
+      data.ak5eLevel = choices.level;
+      data.ak5eMode = choices.mode;
+      data.scaling = choices.level - base;
       // Parent usage scaling must receive a level delta, never a fabricated slot.
       delete data.spell;
       data.consume = { ...(data.consume ?? this.config.consume ?? {}), spellSlot: false };
@@ -274,8 +335,19 @@ export function artsDialogClass(Base) {
 
     async _prepareFooterContext(context, options) {
       const result = await super._prepareFooterContext(context, options);
-      for (const button of result.buttons ?? []) if (button.action === "use") button.label = "Cast Art";
+      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      for (const button of result.buttons ?? []) if (button.action === "use") {
+        button.label = artsText("Cast");
+        button.disabled = !choices.quote;
+      }
       return result;
+    }
+
+    async _onRender(context, options) {
+      await super._onRender(context, options);
+      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const button = this.element.querySelector('[data-action="use"]');
+      if (button) button.disabled = !choices.quote;
     }
 
     static PARTS = { ...Base.PARTS, scaling: { template: "modules/ak5e/templates/arts-usage.hbs" } };
@@ -345,139 +417,121 @@ export function registerArtsHooks() {
     data["system.ability"] = item.system.ability || artsState(item.parent).ability;
     item.updateSource(data);
   });
-  Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
-    const actor = sheetActor(app);
-    if (!(app instanceof foundry.applications.sheets.ActorSheetV2) || !actor?.isOwner ||
-        !hasArtsContent(actor) || controls.some(c => c.action === "ak5eArts")) return;
-    controls.unshift({ action: "ak5eArts", icon: "fa-solid fa-wand-magic-sparkles", label: "AK5e Arts", ownership: "OWNER", onClick: () => safely(openActorArts(actor)) });
-  });
-  Hooks.on("renderActorSheetV2", renderArtsControls);
-}
-
-function sheetActor(app) {
-  const actor = app?.document?.documentName === "Actor" ? app.document : null;
-  return ["character", "npc"].includes(actor?.type) ? actor : null;
-}
-
-export function renderArtsControls(app, element) {
-  const actor = sheetActor(app);
-  if (!actor || !element?.querySelector) return;
-  const relevant = hasArtsContent(actor);
-  const state = artsState(actor);
-  // The spells part may render without the header (including an empty spell list).
-  const spells = element.matches?.('.tab[data-tab="spells"]') ? element
-    : element.querySelector('.tab[data-tab="spells"]');
-  element.classList.toggle("ak5e-arts-enabled", relevant && state.enabled);
-  for (const control of element.querySelectorAll(".ak5e-arts-controls")) control.remove();
-  if (!relevant || !spells || (!state.enabled && !actor.isOwner)) return;
-  const div = document.createElement("div");
-  div.className = "ak5e-arts-controls";
-  const summary = document.createElement("span");
-  summary.textContent = state.enabled
-    ? `Arts Points: ${state.value} / ${state.maximum} · Maximum Art level: ${state.maximumArtLevel}`
-    : "Arts Points have not been configured. Set up Arts using your class or branch values.";
-  div.append(summary);
-  if (actor.isOwner) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "gold-button";
-    button.textContent = state.enabled ? "Manage Arts Points" : "Set up AK5e Arts";
-    button.addEventListener("click", event => { event.preventDefault(); safely(openActorArts(actor)); });
-    div.append(button);
-  }
-  if (state.enabled && state.maximumArtLevel === 9) {
-    const span = document.createElement("span");
-    span.textContent = state.ninthLevelCast ? "9th-level Art used" : "9th-level Art available";
-    div.append(span);
-  }
-  spells.prepend(div);
+  registerArtsSheetHooks();
 }
 
 async function dialogPage(title, content, buttons) {
-  return foundry.applications.api.DialogV2.wait({ window: { title }, content: `<div class="ak5e-arts-dialog">${content}</div>`, buttons, rejectClose: false });
+  let closed;
+  const result = await foundry.applications.api.DialogV2.wait({ window: { title }, content: `<div class="ak5e-arts-dialog">${content}</div>`, buttons, rejectClose: false,
+    render: (_event, dialog) => { closed = new Promise(resolve => dialog.addEventListener("close", resolve, { once: true })); } });
+  if (closed) await closed;
+  return result;
 }
+
+function input(name, value, attributes = "") {
+  return '<input name="' + name + '" value="' + escape(value) + '" ' + attributes + '>';
+}
+function field(key, control) { return '<label>' + escape(artsText(key)) + control + '</label>'; }
+function select(name, current, options) {
+  return '<select name="' + name + '">' + options.map(([value, label]) => '<option value="' + escape(value) + '"' +
+    (value === current ? ' selected' : '') + '>' + escape(label) + '</option>').join("") + '</select>';
+}
+function check(name, value) { return input(name, "on", 'type="checkbox"' + (value ? ' checked' : '')); }
 
 export async function openActorArts(actor) {
   own(actor); idle(actor);
-  if (!available) throw new Error("Arts casting could not find the supported D&D5e activity API. Use D&D5e 5.3.3.");
-  const state = artsState(actor);
-  if (!state.enabled || actor.getFlag("ak5e", "artsSetup")?.status === "pending") return openArtsSetup(actor);
-  const receipt = actor.getFlag("ak5e", "lastArtCast");
-  const content = `<p><strong>${escape(actor.name)}</strong>: ${state.value}/${state.maximum} AP. Maximum Art level ${state.maximumArtLevel}.</p>
-    <p>${state.ninthLevelCast ? "9th-level Art used since the last Long Rest." : "No 9th-level Art used since the last Long Rest."}</p>
-    <p>Recovery: ${escape(state.recovery)} rest. Cast Arts from the sheet's spell list.</p>
-    <label>AP adjustment<input name="adjustment" type="number" step="1" value="0"></label>
-    <label><input name="overflow" type="checkbox"> Allow temporary AP above maximum (source feature required)</label>
-    ${receipt ? `<p>Last cast: ${escape(receipt.name)}, level ${receipt.level}, ${receipt.cost} AP.</p>` : ""}`;
-  const action = await dialogPage("AK5e Arts", content, [
-    { action: "adjust", label: "Adjust AP", callback: (_event, button) => ({ kind: "adjust", amount: button.form.elements.adjustment.value, overflow: button.form.elements.overflow.checked }) },
-    { action: "setup", label: "Configure / adopt spells", callback: () => ({ kind: "setup" }) },
-    ...(game.user.isGM ? [{ action: "rules", label: "Art grants / exceptions", callback: () => ({ kind: "rules" }) },
-      ...(receipt ? [{ action: "undo", label: "Undo last cast", callback: () => ({ kind: "undo" }) }] : [])] : []),
-    { action: "close", label: "Close", default: true }
-  ]);
-  if (action?.kind === "adjust") await adjustActorArts(actor, action.amount, { overflow: action.overflow });
-  if (action?.kind === "setup") await openArtsSetup(actor);
-  if (action?.kind === "undo") await undoLastArt(actor);
-  if (action?.kind === "rules") await openArtRules(actor);
+  return openArtsSetup(actor, { adopt: !isArtsActor(actor) || actor.getFlag("ak5e", "artsSetup")?.status === "pending" });
 }
 
-export async function openArtsSetup(actor) {
+export async function openArtsSetup(actor, { adopt = true } = {}) {
   own(actor); idle(actor);
+  if (!available) throw new Error(artsText("Unsupported"));
   const state = artsState(actor);
-  const options = list(actor.items).filter(item => ["weapon", "equipment", "tool"].includes(item.type));
-  const selected = (value, current) => value === current ? " selected" : "";
-  const content = `<p>Configure values from your AK5e class/branch or NPC stat block. Changing configuration does not refill AP or clear the 9th-level limit.</p>
-    <label>Casting ability<select name="ability">${["int", "wis", "cha"].map(key => `<option value="${key}"${selected(key, state.ability)}>${escape(CONFIG.DND5E.abilities?.[key]?.label ?? key)}</option>`).join("")}</select></label>
-    <label>Maximum AP<input name="maximum" type="number" min="0" step="1" value="${state.maximum}"></label>
-    <label>Current AP<input name="value" type="number" min="0" step="1" value="${state.value}"></label>
-    <label>Maximum Art level<input name="maximumArtLevel" type="number" min="0" max="9" step="1" value="${state.maximumArtLevel}"></label>
-    <label>AP recovery<select name="recovery">${[["long", "Long Rest"], ["short", "Short or Long Rest"], ["manual", "Manual"]].map(([key, label]) => `<option value="${key}"${selected(key, state.recovery)}>${label}</option>`).join("")}</select></label>
-    <label>Casting Unit<select name="castingUnit"><option value="">None (requires an Art-specific exception)</option>${options.map(item => `<option value="${escape(item.id)}"${selected(item.id, state.castingUnit)}>${escape(item.name)}</option>`).join("")}</select></label>
-    <p>The selected item must have the Casting Unit property in its rules and be equipped. Rule-granted exceptions can be configured by the GM.</p>`;
-  const values = await dialogPage("AK5e Arts setup", content, [
-    { action: "review", label: "Review changes", default: true, callback: (_event, button) => Object.fromEntries(new FormData(button.form)) },
-    { action: "cancel", label: "Cancel" }
+  const initial = !state.enabled || actor.getFlag("ak5e", "artsSetup")?.status === "pending";
+  const units = list(actor.items).filter(item => ["weapon", "equipment", "tool"].includes(item.type));
+  const receipt = actor.getFlag("ak5e", "lastArtCast");
+  const content = '<p>' + escape(artsText("ConfigurationHint")) + '</p>' +
+    field("Ability", select("ability", state.ability, ["int", "wis", "cha"].map(key => [key, CONFIG.DND5E.abilities?.[key]?.label ?? key]))) +
+    '<p>' + escape(artsText("AbilityHint")) + '</p>' +
+    field("MaximumAP", input("maximum", state.maximum, 'type="number" min="0" step="1" required')) +
+    (initial ? field("CurrentAP", input("value", state.value, 'type="number" min="0" step="1" required')) : '') +
+    field("MaximumArtLevel", input("maximumArtLevel", state.maximumArtLevel, 'type="number" min="0" max="9" step="1" required')) +
+    field("RecoveryLabel", select("recovery", state.recovery, ["long", "short", "manual"].map(key => [key, artsText("Recovery." + key)]))) +
+    field("CastingUnit", select("castingUnit", state.castingUnit, [["", artsText("None")], ...units.map(item => [item.id, item.name])])) +
+    '<p>' + escape(artsText("UnitHint")) + '</p>' +
+    (!initial ? '<details><summary>' + escape(artsText("Advanced")) + '</summary>' +
+      field("Adjustment", input("adjustment", 0, 'type="number" step="1"')) +
+      field("Overflow", check("overflow", false)) +
+      (receipt ? '<p>' + escape(artsText("LastCast", receipt)) + '</p>' : '') + '</details>' : '');
+  const collect = button => ({ kind: "save", values: Object.fromEntries(new FormData(button.form)) });
+  const action = await dialogPage(artsText(initial ? "Setup" : "Settings"), content, [
+    { action: "save", label: artsText(initial || adopt ? "Review" : "SaveConfiguration"), default: true, callback: (_event, button) => ({ ...collect(button), adopt: initial || adopt }) },
+    ...(!initial ? [
+      { action: "adopt", label: artsText("Adopt"), callback: (_event, button) => ({ ...collect(button), adopt: true }) },
+      { action: "adjust", label: artsText("Adjust"), callback: (_event, button) => ({
+        kind: "adjust", amount: button.form.elements.adjustment.value, overflow: button.form.elements.overflow.checked
+      }) },
+      ...(game.user.isGM ? [
+        { action: "rules", label: artsText("CastingRules"), callback: () => ({ kind: "rules" }) },
+        ...(receipt ? [{ action: "undo", label: artsText("Undo"), callback: () => ({ kind: "undo" }) }] : [])
+      ] : [])
+    ] : []),
+    { action: "cancel", label: artsText("Cancel") }
   ]);
-  if (!values || typeof values !== "object") return;
-  const plan = previewActorArts(actor, values);
-  const confirmed = await dialogPage("Review Arts setup", `<p>Set AP to ${escape(values.value)}/${escape(values.maximum)}, maximum Art level ${escape(values.maximumArtLevel)}.</p>
-    <p>Adopt ${plan.items.length} spell Items as always-prepared Arts without material components or spell-slot costs. Their original casting fields are retained in AK5e flags.</p>
-    <ul>${plan.names.map(name => `<li>${escape(name)}</li>`).join("")}</ul>
-    <p>Class/pool selection and individual Art effects remain as configured on the Items.</p>`, [
-    { action: "apply", label: "Apply Arts setup", callback: () => true }, { action: "cancel", label: "Cancel", default: true }
+  if (action?.kind === "adjust") return adjustActorArts(actor, action.amount, { overflow: action.overflow });
+  if (action?.kind === "rules") return openArtRules(actor);
+  if (action?.kind === "undo") return undoLastArt(actor);
+  if (action?.kind !== "save") return;
+  // Read current counters at Apply time; settings do not restore a stale form snapshot.
+  const options = { ...action.values, adopt: action.adopt };
+  if (!initial) delete options.value;
+  const plan = previewActorArts(actor, options);
+  if (!action.adopt) return configureActorArts(actor, options);
+  const confirmed = await dialogPage(artsText("Review"), '<p>' +
+    escape(artsText("ReviewSummary", { ...options, value: plan.actor["flags.ak5e.artsPoints"].value })) + '</p><p>' +
+    escape(artsText("AdoptionHint", { count: plan.items.length })) + '</p><ul>' +
+    plan.names.map(name => '<li>' + escape(name) + '</li>').join("") + '</ul>', [
+    { action: "apply", label: artsText("Apply"), callback: () => true },
+    { action: "cancel", label: artsText("Cancel"), default: true }
   ]);
-  if (confirmed === true) await configureActorArts(actor, values);
+  if (confirmed === true) {
+    if (!initial) delete options.value;
+    return configureActorArts(actor, options);
+  }
 }
 
-async function openArtRules(actor) {
+export async function openArtRules(actor, itemId) {
+  own(actor); idle(actor);
+  if (!game.user.isGM) throw new Error(artsText("GMOnly"));
   const items = list(actor.items).filter(item => item.type === "spell");
-  if (!items.length) throw new Error("Add an Art to this actor first.");
-  const id = await dialogPage("Choose Art", `<label>Art<select name="item">${items.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join("")}</select></label>`, [
-    { action: "choose", label: "Configure", default: true, callback: (_event, button) => button.form.elements.item.value }, { action: "cancel", label: "Cancel" }
+  if (!items.length) throw new Error(artsText("AddFirst"));
+  const id = itemId ?? await dialogPage(artsText("ChooseArt"), field("Art", select("item", "", items.map(item => [item.id, item.name]))), [
+    { action: "choose", label: artsText("Settings"), default: true, callback: (_event, button) => button.form.elements.item.value },
+    { action: "cancel", label: artsText("Cancel") }
   ]);
   const item = actor.items.get(id);
-  if (!item) return;
+  if (!item || item.type !== "spell") return;
   const grant = flags(item);
-  const checked = value => value ? " checked" : "";
-  const value = await dialogPage(`Casting rules: ${item.name}`, `
-    <label>Source feature / GM ruling<input name="source" value="${escape(grant.source)}"></label>
-    <label><input name="noCastingUnit" type="checkbox"${checked(grant.noCastingUnit)}> Does not require a Casting Unit</label>
-    <label><input name="ritual" type="checkbox"${checked(grant.ritual)}> Can be cast as a ritual</label>
-    <label><input name="onlyFree" type="checkbox"${checked(grant.onlyFree)}> Only through the free casting grant</label>
-    <label>AP reduction<input name="reduction" type="number" min="0" max="9" value="${grant.reduction ?? 0}"></label>
-    <label>Minimum AP cost<input name="minimumCost" type="number" min="0" max="9" value="${grant.minimumCost ?? 0}"></label>
-    <label>Free casts per rest (blank = no grant, 0 = unlimited)<input name="freeMaximum" type="number" min="0" value="${grant.free ? grant.free.maximum ?? 0 : ""}"></label>
-    <label>Free cast maximum level<input name="freeLevel" type="number" min="${item.system.level}" max="9" value="${grant.free?.level ?? item.system.level}"></label>
-    <label>Free-use recovery<select name="freeRecovery">${["long", "short", "manual"].map(key => `<option value="${key}"${key === grant.free?.recovery ? " selected" : ""}>${key}</option>`).join("")}</select></label>
-    <label>Block ordinary casting with this explanation (special workflows)<input name="blocked" value="${escape(grant.blocked)}"></label>
-    <p>Use these controls for source-defined exceptions. Spellsword attacks and Bard performances require their own resolution; a free grant alone does not automate them.</p>`, [
-    { action: "apply", label: "Save casting rules", callback: (_event, button) => {
+  const content = field("Source", input("source", grant.source)) +
+    field("Enabled", check("enabled", grant.enabled !== false)) +
+    field("NoUnit", check("noCastingUnit", grant.noCastingUnit)) +
+    field("Ritual", check("ritual", grant.ritual)) +
+    field("OnlyFreeLabel", check("onlyFree", grant.onlyFree)) +
+    field("Reduction", input("reduction", grant.reduction ?? 0, 'type="number" min="0" max="9" step="1"')) +
+    field("MinimumCost", input("minimumCost", grant.minimumCost ?? 0, 'type="number" min="0" max="9" step="1"')) +
+    field("FreeMaximum", input("freeMaximum", grant.free ? grant.free.maximum ?? 0 : "", 'type="number" min="0" step="1"')) +
+    field("FreeLevel", input("freeLevel", grant.free?.level ?? item.system.level, 'type="number" min="' + item.system.level + '" max="9" step="1"')) +
+    field("FreeRecovery", select("freeRecovery", grant.free?.recovery ?? "long", ["long", "short", "manual"].map(key => [key, artsText("Recovery." + key)]))) +
+    field("BlockReason", input("blocked", grant.blocked)) + '<p>' + escape(artsText("ExceptionHint")) + '</p>';
+  const value = await dialogPage(artsText("RulesTitle", { name: item.name }), content, [
+    { action: "apply", label: artsText("SaveRules"), callback: (_event, button) => {
       const form = button.form.elements;
-      return { source: form.source.value, noCastingUnit: form.noCastingUnit.checked, ritual: form.ritual.checked,
+      return { source: form.source.value, enabled: form.enabled.checked,
+        noCastingUnit: form.noCastingUnit.checked, ritual: form.ritual.checked,
         onlyFree: form.onlyFree.checked, reduction: form.reduction.value, minimumCost: form.minimumCost.value, blocked: form.blocked.value,
         free: form.freeMaximum.value === "" ? null : { maximum: Number(form.freeMaximum.value) === 0 ? null : form.freeMaximum.value, level: form.freeLevel.value, recovery: form.freeRecovery.value } };
-    } }, { action: "cancel", label: "Cancel", default: true }
+    } },
+    { action: "cancel", label: artsText("Cancel"), default: true }
   ]);
-  if (value && typeof value === "object") await configureArt(item, value);
+  if (value && typeof value === "object") return configureArt(item, value);
 }

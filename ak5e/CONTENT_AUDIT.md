@@ -27,8 +27,8 @@ node ak5e/tools/verify-chapter-one-helpers.mjs
 | --- | ---: |
 | 1 | 8 rules journals |
 | 2 | 231 Items, 3 guidance journals, 3 summon Actors |
-| 3 | 777 Items, 1 overview journal, 8 summon Actors |
-| 4 | 126 Items, 6 reference journals |
+| 3 | 1,097 Items (including 320 Operator Skills), 1 overview journal, 8 summon Actors |
+| 4 | 207 Items, 6 reference journals |
 | 5 | 128 Items, 4 reference journals |
 | 6 | 145 creature Actors, 2 reference journals |
 
@@ -56,6 +56,19 @@ Actors. The complete inventory is in `CONTENT_MAP.md`.
 
 ## Runtime boundary
 
+### Enhanced weapons (0.3.2, 2026-09-27)
+
+Chapter 4 now includes 81 source-backed enhanced weapons: three Staff variants,
+three Wand variants, six launcher variants and 69 other weapon variants. Source
+fragments preserve both the enhancement paragraph and the base table row.
+Staff Conductive is 2/3/4, Wand Conductive is 1/2/3, and launcher upgrades affect
+only Martial DC for Splash. Ordinary weapon upgrades use one native magical
+bonus; variants preserve versatile damage and thrown/reach/ranged values.
+The four original combined entries remain references with their legacy IDs.
+Node regressions verify all variants, source fragments, counts, menu exclusions,
+and upgrades preserving customized references and Actor inventories. Native
+Foundry roll/persistence verification is tracked in `FOUNDRY_SMOKE_TEST.md`.
+
 This audit verifies generated source fidelity and helper behavior in plain Node.js.
 It does not replace the clean-World Foundry VTT 13 and D&D5e 5.3.3 tests in TODO
 section 3. Activities and Active Effects remain deliberately manual where the
@@ -69,26 +82,50 @@ test full and partial renders. Generated rules text instead enters native D&D5e
 Item, Actor, and Journal descriptions through `sourceToHtml()` in
 `tools/source-html.mjs`. A sheet hook should not reformat those descriptions.
 
-Read-only inspection of all 1,442 generated records found the following
-presentation issue. `sourceToHtml()` emits each pipe-table line as a separate
-`<pre>` element. This preserves the literal text, but it does not create table
-headers or cells and can make wide progression and statblock tables hard to
-read on a sheet.
+The 2026-09-24 read-only audit found 5,417 separate `<pre>` rows across
+357 generated records. The shared converter now groups consecutive pipe lines
+into semantic tables with column headers and category rows. Its wrapper allows
+horizontal scrolling on narrow sheets, and standalone pipe text remains
+preformatted. No rules text or numeric value was changed.
 
-| Chapter | Records containing `<pre>` rows | Total `<pre>` rows |
+| Chapter | Source table blocks | Generated table instances |
 | --- | ---: | ---: |
-| 1 | 1 | 11 |
-| 2 | 20 | 184 |
-| 3 | 161 | 4,184 |
-| 4 | 8 | 145 |
-| 5 | 20 | 421 |
-| 6 | 147 | 472 |
+| 1 | 1 | 1 |
+| 2 | 11 | 24 |
+| 3 | 102 | 328 |
+| 4 | 9 | 11 |
+| 5 | 18 | 35 |
+| 6 | 148 | 148 |
+| **Total** | **289** | **547** |
 
-For example, Caster has 152 separate `<pre>` rows for source tables. Collapsed
-Construct has three for its ability-score table. The current parser fixture
-explicitly expects this form, so a passing parser test is not evidence that
-the tables are usable in Foundry. Change the shared converter and regenerate
-only after reviewing the affected source chapters and preserving their table
-values. Check the result on real Item, Actor, and Journal sheets, including
-partial renders and locked-pack imports. No live-World presentation claim is
-made by this audit.
+A table can appear in more than one generated entry, so generated instances
+outnumber source blocks. Chapter 3's Advanced Specialist Skills has one
+redundant empty cell before Cluster Bombs' Duration value; the renderer removes
+only that empty cell and retains `Instant` in the Duration column. All six
+chapters now regenerate through `npm run regenerate`, including Chapter 1.
+The source-wide table test confirms every pipe-table block renders as one
+table with no fallback `<pre>` block; the full Node suite passes.
+
+Visual legibility, scroll behavior, headings, and browser-console errors still
+need a live clean-World check on Item, Actor, and Journal sheets and on locked
+release-pack imports. Existing World documents are refreshed by the explicit
+installers only after their content version is advanced; that migration is
+still pending live validation.
+
+## Paragraph spacing review (2026-09-27)
+
+The converter removed standalone Homebrewery `:` paragraph separators before
+parsing them, merging separate paragraphs with `<br>` tags. Retaining those
+separators now produces separate paragraphs, including all five prose paragraphs
+in the Ægir nationality shown by origin setup. Ordinary newlines still produce
+intentional line breaks. Generated paragraphs carry a module-scoped CSS class
+for paragraph margins and a 1.55 line height in native descriptions and journals.
+The origin dialog uses normal block flow, with explicit paragraph and heading
+margins, instead of applying a grid gap between every text element.
+
+Regeneration preserves source fields, IDs, document counts, and mechanical data.
+The paragraph regression and full Node validation suite pass (the optional native
+D&D5e sheet check was skipped). One source markup defect becomes visible at a
+paragraph boundary: Basin Sea Reaper's `**Enrage.***` leaves an extra asterisk;
+its source wording is retained and the cleanup is tracked in TODO.md. Live
+Foundry visual checks and deployment remain pending.

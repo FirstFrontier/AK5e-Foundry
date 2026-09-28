@@ -129,6 +129,13 @@ Treat its linked Foundry VTT Version 13 API pages as the platform authority.
 5. Re-open the World after a restart to check persisted documents and links.
 6. Re-test a small sample after every Foundry VTT or D&D5e system upgrade.
 
+For all Playwright Chromium tests, including temporary `/tmp` scripts, use
+`launchTestBrowser()` from `ak5e/tools/test-browser.mjs`. It selects full Chromium
+headless mode and requests hardware acceleration with `--enable-gpu`. Do not
+disable the GPU or force SwiftShader for routine tests. Record the actual
+renderer before claiming hardware acceleration works; if hardware is unavailable,
+report the environment limitation. Always close browsers in `finally`.
+
 ### 6. Release safely
 
 1. Increment the module version for every distributable update.

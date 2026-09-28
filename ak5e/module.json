@@ -2,7 +2,7 @@
   "id": "ak5e",
   "title": "AK5e",
   "description": "AK5e 1st Edition content and rules support for Foundry VTT.",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "authors": [
     {
       "name": "AK5e Foundry Contributors"
@@ -33,7 +33,8 @@
   "styles": [
     "styles/ak5e.css",
     "styles/origin-setup.css",
-    "styles/arts.css"
+    "styles/arts.css",
+    "styles/operator.css"
   ],
   "languages": [
     {

@@ -1,0 +1,13 @@
+.ak5e-operator-skills { border-top: 1px solid var(--color-border-light-primary); margin-top: 10px; padding-top: 8px; }
+.ak5e-operator-skills p { margin: 4px 0; font-size: 12px; }
+.ak5e-operator-skills button { display: inline-block; width: auto; min-height: 24px; height: auto; margin: 3px 2px; padding: 2px 5px; font-size: 11px; white-space: normal; }
+.ak5e-operator-skill { border-top: 1px dotted var(--color-border-light-primary); padding: 5px 0; }
+.ak5e-operator-skill span { display: block; font-size: 12px; }
+.ak5e-operator-dialog { min-width: 340px; max-width: 700px; }
+.ak5e-operator-dialog label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; }
+.ak5e-operator-dialog input:not([type="checkbox"]), .ak5e-operator-dialog select { width: 55%; }
+.ak5e-skill-choices section { border-top: 1px solid var(--color-border-light-primary); margin-top: 12px; padding-top: 8px; }
+.ak5e-skill-choices { max-height: 55vh; overflow-y: auto; padding-right: 5px; }
+.ak5e-skill-choices select { min-width: 0; }
+.ak5e-choice-preview { max-height: 260px; overflow-y: auto; line-height: 1.5; }
+.ak5e-choice-warning { color: var(--color-text-primary); font-weight: bold; }

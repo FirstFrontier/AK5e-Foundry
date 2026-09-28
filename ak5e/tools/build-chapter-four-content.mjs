@@ -38,17 +38,24 @@ records.push(...toolkitRules.map(section => featureRecord("tool-rule", `Toolkit 
 const gearRules = splitSections(gear.raw, 4);
 records.push(...gearRules.map(section => featureRecord("gear-rule", `Gear Rule: ${section.name}`, section)));
 
-records.push(...splitSections(magicItems.raw, 4).map(section => ({
+const magicSections = splitSections(magicItems.raw, 4);
+const enhancementHeadings = new Set(["Arts Staff +1/+2/+3", "Arts Wand +1/+2/+3", "Launcher +1/+2/+3", "Weapon +1/+2/+3"]);
+const referenceNotice = '<aside class="ak5e-note" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>';
+records.push(...magicSections.map(section => ({
   id: `magic-item-${slugify(section.name)}-${section.index}`,
   kind: "magic-item",
-  name: section.name,
+  name: enhancementHeadings.has(section.name) ? `Reference: ${section.name}` : section.name,
   itemType: "equipment",
   sourceHeading: section.name,
-  content: toHtml(section.raw),
+  content: toHtml(section.raw) + (enhancementHeadings.has(section.name) ? referenceNotice : ""),
   rawSource: section.raw.trim(),
   tableData: null,
-  systemData: {}
+  systemData: {},
+  ...(enhancementHeadings.has(section.name) ? {
+    referenceOnly: true, previousName: section.name, contentVersion: "0.3.2", referenceNotice
+  } : {})
 })));
+records.push(...enhancedWeapons());
 
 assertUnique(records.map(record => record.id), "record IDs");
 const output = [
@@ -64,6 +71,61 @@ const counts = records.reduce((all, record) => {
 }, {});
 console.log(`Read ${fileURLToPath(sourceUrl)} and wrote ${records.length} records to ${fileURLToPath(outputUrl)}.`);
 console.log(Object.entries(counts).map(([kind, entries]) => `${kind}: ${entries.length}`).join(", "));
+
+function enhancedWeapons() {
+  const result = [];
+  for (const base of records.filter(record => record.kind === "weapon")) {
+    const family = base.name === "Arts Staff" ? "staff" : base.name === "Arts Wand" ? "wand"
+      : base.tableData.category === "Special Ranged Weapons" ? "launcher" : "weapon";
+    const heading = { staff: "Arts Staff +1/+2/+3", wand: "Arts Wand +1/+2/+3", launcher: "Launcher +1/+2/+3", weapon: "Weapon +1/+2/+3" }[family];
+    const section = magicSections.find(section => section.name === heading);
+    if (!section) throw new Error(`Missing enhancement source: ${heading}`);
+    if (family === "launcher" && !["Grenade Launcher", "Rocket Launcher"].includes(base.name)) {
+      throw new Error(`Unmapped special ranged weapon: ${base.name}`);
+    }
+    for (const bonus of [1, 2, 3]) {
+      const name = `${base.name} +${bonus}`;
+      const systemData = structuredClone(base.systemData);
+      const conductive = family === "staff" ? 1 + bonus : family === "wand" ? bonus : 0;
+      const effectiveProperties = conductive ? base.tableData.properties.replace(/,?\s*Conductive \(\d+\)/, "") + `, Conductive (${conductive})` : base.tableData.properties;
+      systemData.rarity = ["uncommon", "rare", "veryRare"][bonus - 1];
+      systemData.attunement = "";
+      systemData.equipped = false;
+      systemData.properties.push("mgc");
+      systemData.magicalBonus = family === "weapon" ? String(bonus) : "";
+      // Resolve source-defined reach/versatile dice for variants without refreshing unrelated base Items.
+      const ranged = /ranged/i.test(base.tableData.category);
+      systemData.range = { value: null, long: null, units: "ft", ...systemData.range,
+        reach: ranged ? null : systemData.properties.includes("rch") ? 10 : 5 };
+      const versatile = base.tableData.properties.match(/Versatile \((\d+)d(\d+)\)/);
+      if (versatile) systemData.damage.versatile = { ...structuredClone(systemData.damage.base), number: Number(versatile[1]), denomination: Number(versatile[2]) };
+      const activityId = family === "launcher" ? "ak5eSplashDamage" : "ak5eWeaponAttack";
+      systemData.activities = {
+        [activityId]: {
+          _id: activityId, type: family === "launcher" ? "damage" : "attack",
+          name: family === "launcher" ? "Splash damage (manual resolution)" : "Attack",
+          activation: { type: "action", value: 1 },
+          ...(family === "launcher" ? { damage: { critical: { allow: false, bonus: "" }, parts: [structuredClone(systemData.damage.base)] } } : {})
+        }
+      };
+      const instructions = conductive
+        ? `While this weapon is equipped, manually apply +${conductive} to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.`
+        : family === "launcher"
+          ? `Resolve Splash manually: choose a point within the weapon's range, then each Creature within ${base.name === "Grenade Launcher" ? 5 : 10} feet makes a Dexterity Saving Throw against your Martial DC + ${bonus}. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading${base.name === "Rocket Launcher" ? " and Brace (30ft Movement with Loading)" : ""} manually.`
+          : `The native weapon bonus adds +${bonus} once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.`;
+      const rawSources = [section.raw.trim(), base.rawSource];
+      result.push({
+        id: `magic-weapon-${slugify(base.name)}-plus-${bonus}`, kind: "magic-weapon", name, itemType: "weapon",
+        sourceHeading: heading, contentVersion: "0.3.2",
+        enhancement: { baseWeaponId: base.id, family, bonus, conductive, martialDCBonus: family === "launcher" ? bonus : 0 },
+        content: `<h3>${escapeHtml(name)}</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> ${["Uncommon", "Rare", "Very Rare"][bonus - 1]}; no Attunement required.</p><p><strong>Effective properties:</strong> ${escapeHtml(effectiveProperties)}</p><p>${escapeHtml(instructions)}</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: ${["4,500", "10,000", "50,000"][bonus - 1]} LMD for this rarity. Native price is unset.</p><h4>Enhancement source: ${escapeHtml(heading)}</h4>${toHtml(section.raw)}<h4>Base weapon source (unenhanced)</h4>${base.content}`,
+        rawSource: rawSources.join("\n\n"), rawSources, tableData: structuredClone(base.tableData), systemData
+      });
+    }
+  }
+  if (result.length !== 81) throw new Error(`Expected 81 enhanced weapons, received ${result.length}`);
+  return result;
+}
 
 function referenceRecord(section, leadingRaw = "") {
   const rawSources = [leadingRaw, section.raw].map(raw => raw.trim()).filter(Boolean);

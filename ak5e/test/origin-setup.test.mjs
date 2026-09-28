@@ -84,6 +84,7 @@ test("equipment choices exclude Firearms and special weapons; variant background
   const weapons = soldier.choices.find(c => c.key === "equipment").options;
   assert.ok(weapons.includes("Sword") && weapons.includes("Nailgun"));
   assert.ok(!weapons.includes("Handgun") && !weapons.includes("Rocket Launcher") && !weapons.includes("Heavy Defender Shield"));
+  assert.ok(weapons.every(name => !/\+\d/.test(name)), "enhanced weapons must not be starting-equipment choices");
   const veteran = buildOriginPlan(fixture("Ursus Army Veteran").entry, actor);
   const armour = prepareOriginChanges(veteran, { equipment: ["Combat Gear"] }, actor, item);
   assert.equal(armour.grants[1].type, "equipment");

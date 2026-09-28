@@ -6,7 +6,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Currency on Terra",
     "itemType": null,
     "sourceHeading": "Currency on Terra",
-    "content": "<h1>Chapter 4: Equipment</h1>\n<p>Right place, right time;</p>\n<p>That is the modus operandi for equipment. If you do not have the right equipment when and where you need it, you may as well have never had it. But just as this equipment can be defined by its wielder, so too does it define them.</p>\n<h2>Currency on Terra</h2>\n<p>While a majority of Terran nations have their own currencies, there is one that stands out: Lungmen Dollars, or LMD as it is commonly known. Terra's political and financial landscapes are volatile and unstable; since the War of the Four Emperors and its consequences, many nations sought common ground on which to conduct fair trade and fund rebuilding efforts. The currency of neutral Lungmen, already an international centre of trade, came to be that common ground. It is a relatively stable currency, and is the main currency used in international transactions. As such, it is accepted in all but the most remote locations.</p>\n<h5>Conversion from 5e</h5>\n<pre>| Coin | Equivalent in LMD  |</pre>\n<pre>|:--------------:|:--------:|</pre>\n<pre>| 1 Copper Piece | 1 LMD   |</pre>\n<pre>| 1 Silver Piece | 10 LMD  |</pre>\n<pre>| 1 Gold Piece   | 100 LMD |</pre>\n<aside class=\"ak5e-note\">\n<h5>Other Currencies on Terra</h5>\n<p>For mechanical reasons, the cost of items is listed in LMD. However, as it may be useful to know the currencies of other Terran nations, here is a list of extant currencies:</p>\n<p>• Bolivarian Sol</p>\n<p>• Columbian Gold Certificate</p>\n<p>• Higashinese Yen</p>\n<p>• Iberian Doubloon</p>\n<p>• Kazimierzian Mark</p>\n<p>• Kjeragian Franc</p>\n<p>• Lateran Signa Certificatorum</p>\n<p>• Leithanien Ducat</p>\n<p>• Minoan Stater</p>\n<p>• Rim Billitonian Karrot</p>\n<p>• Sargonian Dinar</p>\n<p>• Siracusan Florin</p>\n<p>• Ursine Chervonets</p>\n<p>• Victorian Pound</p>\n<p>• Yanese Wen</p>\n</aside>",
+    "content": "<h1>Chapter 4: Equipment</h1>\n<p class=\"ak5e-source-paragraph\">Right place, right time;</p>\n<p class=\"ak5e-source-paragraph\">That is the modus operandi for equipment. If you do not have the right equipment when and where you need it, you may as well have never had it. But just as this equipment can be defined by its wielder, so too does it define them.</p>\n<h2>Currency on Terra</h2>\n<p class=\"ak5e-source-paragraph\">While a majority of Terran nations have their own currencies, there is one that stands out: Lungmen Dollars, or LMD as it is commonly known. Terra's political and financial landscapes are volatile and unstable; since the War of the Four Emperors and its consequences, many nations sought common ground on which to conduct fair trade and fund rebuilding efforts. The currency of neutral Lungmen, already an international centre of trade, came to be that common ground. It is a relatively stable currency, and is the main currency used in international transactions. As such, it is accepted in all but the most remote locations.</p>\n<h5>Conversion from 5e</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__center\">Coin</th><th scope=\"col\" class=\"ak5e-source-table__center\">Equivalent in LMD</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__center\">1 Copper Piece</td><td class=\"ak5e-source-table__center\">1 LMD</td></tr><tr><td class=\"ak5e-source-table__center\">1 Silver Piece</td><td class=\"ak5e-source-table__center\">10 LMD</td></tr><tr><td class=\"ak5e-source-table__center\">1 Gold Piece</td><td class=\"ak5e-source-table__center\">100 LMD</td></tr></tbody></table></div>\n<aside class=\"ak5e-note\">\n<h5>Other Currencies on Terra</h5>\n<p class=\"ak5e-source-paragraph\">For mechanical reasons, the cost of items is listed in LMD. However, as it may be useful to know the currencies of other Terran nations, here is a list of extant currencies:</p>\n<p class=\"ak5e-source-paragraph\">• Bolivarian Sol</p>\n<p class=\"ak5e-source-paragraph\">• Columbian Gold Certificate</p>\n<p class=\"ak5e-source-paragraph\">• Higashinese Yen</p>\n<p class=\"ak5e-source-paragraph\">• Iberian Doubloon</p>\n<p class=\"ak5e-source-paragraph\">• Kazimierzian Mark</p>\n<p class=\"ak5e-source-paragraph\">• Kjeragian Franc</p>\n<p class=\"ak5e-source-paragraph\">• Lateran Signa Certificatorum</p>\n<p class=\"ak5e-source-paragraph\">• Leithanien Ducat</p>\n<p class=\"ak5e-source-paragraph\">• Minoan Stater</p>\n<p class=\"ak5e-source-paragraph\">• Rim Billitonian Karrot</p>\n<p class=\"ak5e-source-paragraph\">• Sargonian Dinar</p>\n<p class=\"ak5e-source-paragraph\">• Siracusan Florin</p>\n<p class=\"ak5e-source-paragraph\">• Ursine Chervonets</p>\n<p class=\"ak5e-source-paragraph\">• Victorian Pound</p>\n<p class=\"ak5e-source-paragraph\">• Yanese Wen</p>\n</aside>",
     "rawSource": "# Chapter 4: Equipment\n\nRight place, right time;\n\nThat is the modus operandi for equipment. If you do not have the right equipment when and where you need it, you may as well have never had it. But just as this equipment can be defined by its wielder, so too does it define them.\n\n## Currency on Terra\n:\nWhile a majority of Terran nations have their own currencies, there is one that stands out: Lungmen Dollars, or LMD as it is commonly known. Terra's political and financial landscapes are volatile and unstable; since the War of the Four Emperors and its consequences, many nations sought common ground on which to conduct fair trade and fund rebuilding efforts. The currency of neutral Lungmen, already an international centre of trade, came to be that common ground. It is a relatively stable currency, and is the main currency used in international transactions. As such, it is accepted in all but the most remote locations.\n\n##### Conversion from 5e\n| Coin | Equivalent in LMD  | \n|:--------------:|:--------:|\n| 1 Copper Piece | 1 LMD   |\n| 1 Silver Piece | 10 LMD  |\n| 1 Gold Piece   | 100 LMD |\n::\n{{note\n##### Other Currencies on Terra\nFor mechanical reasons, the cost of items is listed in LMD. However, as it may be useful to know the currencies of other Terran nations, here is a list of extant currencies:\n- Bolivarian Sol\n- Columbian Gold Certificate\n- Higashinese Yen\n- Iberian Doubloon\n- Kazimierzian Mark\n- Kjeragian Franc\n- Lateran Signa Certificatorum\n- Leithanien Ducat\n- Minoan Stater\n- Rim Billitonian Karrot\n- Sargonian Dinar\n- Siracusan Florin\n- Ursine Chervonets\n- Victorian Pound\n- Yanese Wen\n}}\n\n\n\n{{imageMaskEdge3,--offset:3%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/8/85/Swire_Skin_1.png' \n  style='position:absolute;top:-200px;right:-530px;width:1500px' />\n}}\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide",
     "rawSources": [
       "# Chapter 4: Equipment\n\nRight place, right time;\n\nThat is the modus operandi for equipment. If you do not have the right equipment when and where you need it, you may as well have never had it. But just as this equipment can be defined by its wielder, so too does it define them.",
@@ -21,7 +21,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Weapons",
     "itemType": null,
     "sourceHeading": "Weapons",
-    "content": "<h2>Weapons</h2>\n<p>The Weapons table in this section shows the game’s main weapons. The table lists the cost and weight of each weapon, as well as the following details:<br><strong>Category:</strong> Every Weapon falls into one of five categories;</p>\n<p>• Light Melee</p>\n<p>• Heavy Melee</p>\n<p>• Light Ranged</p>\n<p>• Heavy Ranged</p>\n<p>• Special Ranged.</p>\n<p><strong>Damage:</strong> The amount and type of Damage dealt when an Attack using that weapon hits.</p>\n<p><strong>Properties:</strong> Any Special Properties a Weapon has is listed in the Properties column. New Special Properties are defined in the “Properties” section later in this chapter.</p>\n<h5>Melee Weapons</h5>\n<pre>| Name | Damage | Properties | Weight | Cost |</pre>\n<pre>|:-----|:------:|:----------:|:------:|:----:|</pre>\n<pre>| *Light Melee Weapons*</pre>\n<pre>| &amp;emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|</pre>\n<pre>| &amp;emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|</pre>\n<pre>| &amp;emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|</pre>\n<pre>| &amp;emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|</pre>\n<pre>| &amp;emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|</pre>\n<pre>| &amp;emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|</pre>\n<pre>| &amp;emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|</pre>\n<pre>| &amp;emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|</pre>\n<pre>| *Heavy Melee Weapons*</pre>\n<pre>| &amp;emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|</pre>\n<pre>| &amp;emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|</pre>\n<pre>| &amp;emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|</pre>\n<pre>| &amp;emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|</pre>\n<pre>| *Special Melee Weapons*</pre>\n<pre>| &amp;emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|</pre>\n<aside class=\"ak5e-note\">\n<h5>Heavy Defender Shield</h5>\n<p>The Heavy Defender Shield can also be used as a weapon using this profile while you are wielding it.</p>\n</aside>\n<h5>Ranged Weapons</h5>\n<pre>| Name | Damage | Properties | Weight | Cost |</pre>\n<pre>|:-----|:------:|:----------:|:------:|:----:|</pre>\n<pre>| *Light Ranged Weapons*</pre>\n<pre>| &amp;emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|</pre>\n<pre>| &amp;emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|</pre>\n<pre>| &amp;emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|</pre>\n<pre>| &amp;emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|</pre>\n<pre>| &amp;emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|</pre>\n<pre>| &amp;emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|</pre>\n<pre>| *Heavy Ranged Weapons*</pre>\n<pre>| &amp;emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|</pre>\n<pre>| &amp;emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD</pre>\n<pre>| &amp;emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|</pre>\n<pre>| &amp;emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|</pre>\n<pre>| &amp;emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|</pre>\n<pre>| &amp;emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|</pre>\n<pre>| *Special Ranged Weapons*</pre>\n<pre>| &amp;emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|</pre>\n<pre>| &amp;emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|</pre>\n<aside class=\"ak5e-note\">\n<h5>Firearm Prices and Availability</h5>\n<p>Firearms are still a rare commodity on Terra; until very recently their manufacture was conducted entirely inside Laterano, and few were exported. Some other nations and companies have now begun to develop their own firearms, but they are still extremely expensive, and will not be available except from special sources.</p>\n</aside>\n<h3>New Properties</h3>\n<p>AK5e introduces a number of new Special Properties for weapons.</p>\n<h4>Bound</h4>\n<p>Weapons with this Property have been bound by a Flinger.</p>\n<h4>Brace</h4>\n<p>To make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement.<br>If the weapon also has the Loading Property, this cost is increased to 30ft.</p>\n<h4>Casting Unit</h4>\n<p>Weapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.</p>\n<h4>Conductive (X)</h4>\n<p>While you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied.</p>\n<h4>Couch</h4>\n<p>If you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus.</p>\n<h4>Crush (X)</h4>\n<p>If you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further.</p>\n<h4>CQC</h4>\n<p>You do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.</p>\n<h4>Deadly</h4>\n<p>The first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.</p>\n<h4>Firearm</h4>\n<p>This weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.</p>\n<h4>Rapid Fire</h4>\n<p>If you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.</p>\n<h4>Returning</h4>\n<p>If you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.</p>\n<h4>Splash (X)</h4>\n<p>You do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.</p>\n<h4>Spread</h4>\n<p>When you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.</p>",
+    "content": "<h2>Weapons</h2>\n<p class=\"ak5e-source-paragraph\">The Weapons table in this section shows the game’s main weapons. The table lists the cost and weight of each weapon, as well as the following details:</p>\n<p class=\"ak5e-source-paragraph\"><strong>Category:</strong> Every Weapon falls into one of five categories;</p>\n<p class=\"ak5e-source-paragraph\">• Light Melee</p>\n<p class=\"ak5e-source-paragraph\">• Heavy Melee</p>\n<p class=\"ak5e-source-paragraph\">• Light Ranged</p>\n<p class=\"ak5e-source-paragraph\">• Heavy Ranged</p>\n<p class=\"ak5e-source-paragraph\">• Special Ranged.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Damage:</strong> The amount and type of Damage dealt when an Attack using that weapon hits.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Properties:</strong> Any Special Properties a Weapon has is listed in the Properties column. New Special Properties are defined in the “Properties” section later in this chapter.</p>\n<h5>Melee Weapons</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Name</th><th scope=\"col\" class=\"ak5e-source-table__center\">Damage</th><th scope=\"col\" class=\"ak5e-source-table__center\">Properties</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Light Melee Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Arts Staff</td><td class=\"ak5e-source-table__center\">1d6 Bludgeoning</td><td class=\"ak5e-source-table__center\">Casting Unit, Conductive (1), Two-Handed</td><td class=\"ak5e-source-table__center\">4 lb.</td><td class=\"ak5e-source-table__center\">700 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Arts Wand</td><td class=\"ak5e-source-table__center\">1d4 Bludgeoning</td><td class=\"ak5e-source-table__center\">Casting Unit, Light</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Axe</td><td class=\"ak5e-source-table__center\">2d4 Slashing</td><td class=\"ak5e-source-table__center\">Deadly</td><td class=\"ak5e-source-table__center\">3 lb.</td><td class=\"ak5e-source-table__center\">85 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Hammer</td><td class=\"ak5e-source-table__center\">1d8 Bludgeoning</td><td class=\"ak5e-source-table__center\">Crush (5)</td><td class=\"ak5e-source-table__center\">3 lb.</td><td class=\"ak5e-source-table__center\">65 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Knife</td><td class=\"ak5e-source-table__center\">1d6 Piercing</td><td class=\"ak5e-source-table__center\">Finesse, Light, Thrown (20/60)</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">50 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Spear</td><td class=\"ak5e-source-table__center\">1d8 Piercing</td><td class=\"ak5e-source-table__center\">Couch, Finesse, Thrown (40/80)</td><td class=\"ak5e-source-table__center\">3 lb.</td><td class=\"ak5e-source-table__center\">90 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Sword</td><td class=\"ak5e-source-table__center\">1d8 Slashing</td><td class=\"ak5e-source-table__center\">Finesse, Versatile (1d10)</td><td class=\"ak5e-source-table__center\">3 lb.</td><td class=\"ak5e-source-table__center\">225 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Whip</td><td class=\"ak5e-source-table__center\">1d6 Bludgeoning</td><td class=\"ak5e-source-table__center\">Finesse, Reach</td><td class=\"ak5e-source-table__center\">3 lb.</td><td class=\"ak5e-source-table__center\">100 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Heavy Melee Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Greataxe</td><td class=\"ak5e-source-table__center\">1d10 Slashing</td><td class=\"ak5e-source-table__center\">Deadly, Two-Handed</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">450 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Greatsword</td><td class=\"ak5e-source-table__center\">2d6 Slashing</td><td class=\"ak5e-source-table__center\">Two-Handed</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">700 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Hammer</td><td class=\"ak5e-source-table__center\">1d10 Bludgeoning</td><td class=\"ak5e-source-table__center\">Crush (10), Two-Handed</td><td class=\"ak5e-source-table__center\">12 lb.</td><td class=\"ak5e-source-table__center\">350 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Polearm</td><td class=\"ak5e-source-table__center\">1d10 Piercing</td><td class=\"ak5e-source-table__center\">Couch, Reach, Two-Handed</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Special Melee Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Defender Shield*</td><td class=\"ak5e-source-table__center\">1d12 Bludgeoning</td><td class=\"ak5e-source-table__center\">Brace, Crush (5), Two-Handed</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">750 LMD</td></tr></tbody></table></div>\n<aside class=\"ak5e-note\">\n<h5>Heavy Defender Shield</h5>\n<p class=\"ak5e-source-paragraph\">The Heavy Defender Shield can also be used as a weapon using this profile while you are wielding it.</p>\n</aside>\n<h5>Ranged Weapons</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Name</th><th scope=\"col\" class=\"ak5e-source-table__center\">Damage</th><th scope=\"col\" class=\"ak5e-source-table__center\">Properties</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Light Ranged Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Bow</td><td class=\"ak5e-source-table__center\">1d8 Piercing</td><td class=\"ak5e-source-table__center\">Range (75/200), Two-Handed</td><td class=\"ak5e-source-table__center\">4 lb.</td><td class=\"ak5e-source-table__center\">85 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Crossbow</td><td class=\"ak5e-source-table__center\">1d8 Piercing</td><td class=\"ak5e-source-table__center\">Range (75/200), Two-Handed</td><td class=\"ak5e-source-table__center\">4 lb.</td><td class=\"ak5e-source-table__center\">85 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Hand Crossbow</td><td class=\"ak5e-source-table__center\">1d6 Piercing</td><td class=\"ak5e-source-table__center\">Light, Range (50/100)</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">125 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Handgun</td><td class=\"ak5e-source-table__center\">1d6 Piercing</td><td class=\"ak5e-source-table__center\">Firearm, Rapid Fire, Range (50/100)</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">700* LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Nailgun</td><td class=\"ak5e-source-table__center\">1d6 Piercing</td><td class=\"ak5e-source-table__center\">Spread, Range (30/50)</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">65 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Throwing Disc</td><td class=\"ak5e-source-table__center\">1d6 Slashing</td><td class=\"ak5e-source-table__center\">CQC, Light, Returning, Thrown (40/80)</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">65 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Heavy Ranged Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Greatbow</td><td class=\"ak5e-source-table__center\">2d8 Piercing</td><td class=\"ak5e-source-table__center\">Crush (5), Brace, Range (100/400), Two-Handed</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">600 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Crossbow</td><td class=\"ak5e-source-table__center\">2d10 Piercing</td><td class=\"ak5e-source-table__center\">Deadly, Loading, Range (100/400), Two-Handed</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">600 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Throwing Disc</td><td class=\"ak5e-source-table__center\">2d6 Slashing</td><td class=\"ak5e-source-table__center\">Brace, CQC, Returning, Thrown (50/100)</td><td class=\"ak5e-source-table__center\">4 lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Machine Gun</td><td class=\"ak5e-source-table__center\">2d6 Piercing</td><td class=\"ak5e-source-table__center\">Firearm, Range (75/200), Rapid Fire, Two-Handed</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">1400* LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Rifle</td><td class=\"ak5e-source-table__center\">2d12 Piercing</td><td class=\"ak5e-source-table__center\">Deadly, Firearm, Loading, Range (100/400), Two-Handed</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">1100* LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Shotgun</td><td class=\"ak5e-source-table__center\">2d6 Piercing</td><td class=\"ak5e-source-table__center\">Firearm, Range (50/100), Spread, Two-Handed</td><td class=\"ak5e-source-table__center\">6 lb.</td><td class=\"ak5e-source-table__center\">1100* LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"5\"><em>Special Ranged Weapons</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Grenade Launcher</td><td class=\"ak5e-source-table__center\">1d8 Thunder</td><td class=\"ak5e-source-table__center\">Loading, Range (50), Splash (5), Two-Handed</td><td class=\"ak5e-source-table__center\">12 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Rocket Launcher</td><td class=\"ak5e-source-table__center\">2d8 Thunder</td><td class=\"ak5e-source-table__center\">Brace, Loading, Range (100), Splash (10), Two-Handed</td><td class=\"ak5e-source-table__center\">20 lb.</td><td class=\"ak5e-source-table__center\">700 LMD</td></tr></tbody></table></div>\n<aside class=\"ak5e-note\">\n<h5>Firearm Prices and Availability</h5>\n<p class=\"ak5e-source-paragraph\">Firearms are still a rare commodity on Terra; until very recently their manufacture was conducted entirely inside Laterano, and few were exported. Some other nations and companies have now begun to develop their own firearms, but they are still extremely expensive, and will not be available except from special sources.</p>\n</aside>\n<h3>New Properties</h3>\n<p class=\"ak5e-source-paragraph\">AK5e introduces a number of new Special Properties for weapons.</p>\n<h4>Bound</h4>\n<p class=\"ak5e-source-paragraph\">Weapons with this Property have been bound by a Flinger.</p>\n<h4>Brace</h4>\n<p class=\"ak5e-source-paragraph\">To make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement.</p>\n<p class=\"ak5e-source-paragraph\">If the weapon also has the Loading Property, this cost is increased to 30ft.</p>\n<h4>Casting Unit</h4>\n<p class=\"ak5e-source-paragraph\">Weapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.</p>\n<h4>Conductive (X)</h4>\n<p class=\"ak5e-source-paragraph\">While you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied.</p>\n<h4>Couch</h4>\n<p class=\"ak5e-source-paragraph\">If you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus.</p>\n<h4>Crush (X)</h4>\n<p class=\"ak5e-source-paragraph\">If you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further.</p>\n<h4>CQC</h4>\n<p class=\"ak5e-source-paragraph\">You do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.</p>\n<h4>Deadly</h4>\n<p class=\"ak5e-source-paragraph\">The first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.</p>\n<h4>Firearm</h4>\n<p class=\"ak5e-source-paragraph\">This weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.</p>\n<h4>Rapid Fire</h4>\n<p class=\"ak5e-source-paragraph\">If you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.</p>\n<h4>Returning</h4>\n<p class=\"ak5e-source-paragraph\">If you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.</p>\n<h4>Splash (X)</h4>\n<p class=\"ak5e-source-paragraph\">You do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.</p>\n<h4>Spread</h4>\n<p class=\"ak5e-source-paragraph\">When you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.</p>",
     "rawSource": "## Weapons\n:\nThe Weapons table in this section shows the game’s main weapons. The table lists the cost and weight of each weapon, as well as the following details:\n:\n**Category:** Every Weapon falls into one of five categories; \n- Light Melee\n- Heavy Melee\n- Light Ranged\n- Heavy Ranged\n- Special Ranged.\n\n{{align-text:left\n**Damage:** The amount and type of Damage dealt when an Attack using that weapon hits.\n}}\n:\n**Properties:** Any Special Properties a Weapon has is listed in the Properties column. New Special Properties are defined in the “Properties” section later in this chapter.\n}}\n\n{{wide\n##### Melee Weapons\n| Name | Damage | Properties | Weight | Cost |\n|:-----|:------:|:----------:|:------:|:----:|\n| *Light Melee Weapons*\n| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|\n| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|\n| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|\n| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|\n| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|\n| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|\n| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|\n| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|\n| *Heavy Melee Weapons*\n| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|\n| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|\n| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|\n| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|\n| *Special Melee Weapons*\n| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|\n\n{{note,wide\n##### Heavy Defender Shield\nThe Heavy Defender Shield can also be used as a weapon using this profile while you are wielding it.\n}}\n\n}}\n\n{{imageMaskEdge6,--offset:18%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/d/d2/IS-Lappland_vs_Texas.png?ae1b6b' \n  style='position:absolute;top:600px;right:-250px;width:1300px' />\n}}\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n##### Ranged Weapons\n| Name | Damage | Properties | Weight | Cost |\n|:-----|:------:|:----------:|:------:|:----:|\n| *Light Ranged Weapons*\n| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|\n| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|\n| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|\n| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|\n| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|\n| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|\n| *Heavy Ranged Weapons*\n| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|\n| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD\n| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|\n| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|\n| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|\n| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|\n| *Special Ranged Weapons*\n| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|\n| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|\n\n\n}}\n\n{{note,wide\n##### Firearm Prices and Availability\nFirearms are still a rare commodity on Terra; until very recently their manufacture was conducted entirely inside Laterano, and few were exported. Some other nations and companies have now begun to develop their own firearms, but they are still extremely expensive, and will not be available except from special sources.\n}}\n\n{{imageMaskEdge2,--offset:-5%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/7/74/Sankta_Miksaparato_Elite_2.png?1bda91' \n  style='position:absolute;top:260px;right:-110px;width:1000px' />\n}}\n\n\n\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n### New Properties\n\nAK5e introduces a number of new Special Properties for weapons. \n\n#### Bound\nWeapons with this Property have been bound by a Flinger.\n:\n#### Brace\nTo make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement. \n:\nIf the weapon also has the Loading Property, this cost is increased to 30ft. \n:\n#### Casting Unit\nWeapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.\n:\n#### Conductive (X)\nWhile you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied. \n:\n#### Couch\nIf you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus. \n:\n#### Crush (X)\nIf you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further. \n:\n#### CQC\nYou do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.\n:\n#### Deadly\nThe first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.\n:\n#### Firearm\nThis weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.\n\n\n\\column\n#### Rapid Fire\nIf you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.\n\n#### Returning\nIf you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.\n\n#### Splash (X)\nYou do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.\n:\n#### Spread\nWhen you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.\n\n{{imageMaskCorner25,--offsetX:52%,--offsetY:-57%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/f/fa/Executor_Elite_2.png' \n  style='position:absolute;top:350px;right:-450px;width:1400px'/>\n}}\n\n\n\\page\n{{pageNumber,auto}}\n\n\n\n{{wide",
     "rawSources": [
       "## Weapons\n:\nThe Weapons table in this section shows the game’s main weapons. The table lists the cost and weight of each weapon, as well as the following details:\n:\n**Category:** Every Weapon falls into one of five categories; \n- Light Melee\n- Heavy Melee\n- Light Ranged\n- Heavy Ranged\n- Special Ranged.\n\n{{align-text:left\n**Damage:** The amount and type of Damage dealt when an Attack using that weapon hits.\n}}\n:\n**Properties:** Any Special Properties a Weapon has is listed in the Properties column. New Special Properties are defined in the “Properties” section later in this chapter.\n}}\n\n{{wide\n##### Melee Weapons\n| Name | Damage | Properties | Weight | Cost |\n|:-----|:------:|:----------:|:------:|:----:|\n| *Light Melee Weapons*\n| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|\n| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|\n| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|\n| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|\n| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|\n| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|\n| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|\n| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|\n| *Heavy Melee Weapons*\n| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|\n| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|\n| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|\n| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|\n| *Special Melee Weapons*\n| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|\n\n{{note,wide\n##### Heavy Defender Shield\nThe Heavy Defender Shield can also be used as a weapon using this profile while you are wielding it.\n}}\n\n}}\n\n{{imageMaskEdge6,--offset:18%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/d/d2/IS-Lappland_vs_Texas.png?ae1b6b' \n  style='position:absolute;top:600px;right:-250px;width:1300px' />\n}}\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n##### Ranged Weapons\n| Name | Damage | Properties | Weight | Cost |\n|:-----|:------:|:----------:|:------:|:----:|\n| *Light Ranged Weapons*\n| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|\n| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|\n| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|\n| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|\n| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|\n| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|\n| *Heavy Ranged Weapons*\n| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|\n| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD\n| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|\n| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|\n| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|\n| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|\n| *Special Ranged Weapons*\n| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|\n| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|\n\n\n}}\n\n{{note,wide\n##### Firearm Prices and Availability\nFirearms are still a rare commodity on Terra; until very recently their manufacture was conducted entirely inside Laterano, and few were exported. Some other nations and companies have now begun to develop their own firearms, but they are still extremely expensive, and will not be available except from special sources.\n}}\n\n{{imageMaskEdge2,--offset:-5%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/7/74/Sankta_Miksaparato_Elite_2.png?1bda91' \n  style='position:absolute;top:260px;right:-110px;width:1000px' />\n}}\n\n\n\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n### New Properties\n\nAK5e introduces a number of new Special Properties for weapons. \n\n#### Bound\nWeapons with this Property have been bound by a Flinger.\n:\n#### Brace\nTo make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement. \n:\nIf the weapon also has the Loading Property, this cost is increased to 30ft. \n:\n#### Casting Unit\nWeapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.\n:\n#### Conductive (X)\nWhile you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied. \n:\n#### Couch\nIf you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus. \n:\n#### Crush (X)\nIf you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further. \n:\n#### CQC\nYou do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.\n:\n#### Deadly\nThe first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.\n:\n#### Firearm\nThis weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.\n\n\n\\column\n#### Rapid Fire\nIf you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.\n\n#### Returning\nIf you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.\n\n#### Splash (X)\nYou do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.\n:\n#### Spread\nWhen you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.\n\n{{imageMaskCorner25,--offsetX:52%,--offsetY:-57%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/f/fa/Executor_Elite_2.png' \n  style='position:absolute;top:350px;right:-450px;width:1400px'/>\n}}\n\n\n\\page\n{{pageNumber,auto}}\n\n\n\n{{wide"
@@ -35,7 +35,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Armour",
     "itemType": null,
     "sourceHeading": "Armour",
-    "content": "<h2>Armour</h2>\n<p>The Armour table lists all of the basic Armour types available in AK5e. It includes the following details:</p>\n<p><strong>Category:</strong> All Armour is either Light, Medium, or Heavy Armour. The distinction matters primarily for how long it takes to Don and Doff the Armour, but some Features may also reference this.</p>\n<p><strong>Armour Class (AC):</strong> Your Base AC is equal to this value while you are wearing this Armour.</p>\n<p><strong>Damage Reduction (DR):</strong> When you take Damage from an Attack or Art while you are wearing this Armour, it is reduced by this value, to a minimum of 1. This DR only applies to the type of Damage specified.</p>\n<p><strong>Strength:</strong> If your Strength is less than this value, your Speed is reduced by 10ft while you are wearing this Armour.</p>\n<p><strong>Special:</strong> What other effects are conferred when you are wearing this Armour.</p>\n<h5>Armour</h5>\n<pre>| Name | Armour Class | Damage Reduction | Strength | Special | Weight | Cost |</pre>\n<pre>|:-----|:------------:|:----------------:|:--------:|:-------:|:------:|:----:|</pre>\n<pre>| *Light Armor*</pre>\n<pre>| &amp;emsp; Protective Clothing|11 + Dexterity Modifier|0|-|Passes for Clothing|8 lb.|85 LMD|</pre>\n<pre>| &amp;emsp; Reinforced Outfit|12 + Dexterity Modifier|0|-|Passes for Clothing|10 lb.|250 LMD|</pre>\n<pre>| &amp;emsp; Light Combat Gear|13 + Dexterity Modifier|2 (Physical)|-|-|13 lb.|650 LMD|</pre>\n<pre>| &amp;emsp; Vanguard Armour|14 + Dexterity Modifier|0|-|-|10 lb.|650 LMD|</pre>\n<pre>| *Medium Armor*</pre>\n<pre>| &amp;emsp; Underarmour|11 + Dex Modifier (Max 2)|2 (Physical)|-|Passes for Clothing|12 lb.|125 LMD|</pre>\n<pre>| &amp;emsp; Combat Gear|12 + Dex Modifier (Max 2)|3 (Physical)|12|Stealth Disadvantage|25 lb.|400 LMD|</pre>\n<pre>| &amp;emsp; Hazardous Environment Gear|11 + Dex Modifier (Max 2)|5 (Arts)|-|Stealth Disadvantage, Immunity to gases and Originium particulate matter for up to 1 hour|35 lb.|400 LMD|</pre>\n<pre>| &amp;emsp; Heavy Combat Gear |14|4 (Physical)|14|Stealth Disadvantage|40 lb.|800 LMD|</pre>\n<pre>| *Heavy Armor*</pre>\n<pre>| &amp;emsp; Metal Armour|11|3 (Physical)|12|Stealth Disadvantage|40 lb.|200 LMD|</pre>\n<pre>| &amp;emsp; Defender Armour|11|5 (Physical)|14|Stealth Disadvantage|50 lb.|500 LMD|</pre>\n<pre>| &amp;emsp; Heavy Defender Armour|12|7 (Physical)|16|Stealth Disadvantage|60 lb.|1100 LMD|</pre>\n<pre>| &amp;emsp; Juggernaut Armour|12|5 (All)|16|Stealth Disadvantage|75 lb.|1100 LMD|</pre>\n<pre>| *Light Shields*</pre>\n<pre>| &amp;emsp; Small Shield|+2|0|-|-|4 lb.|125 LMD|</pre>\n<pre>| &amp;emsp; Combat Shield|0|2 (Physical)|-|-|8 lb.|125 LMD|</pre>\n<pre>| *Heavy Shields*</pre>\n<pre>| &amp;emsp; Defender Shield|0|2 (Physical)|12|Bastion, Stealth Disadvantage|20 lb.|300 LMD|</pre>\n<pre>| &amp;emsp; Heavy Defender Shield*|0|4 (Physical)|14|Bastion, Stealth Disadvantage, Two-Handed|30 lb.|750 LMD|</pre>\n<aside class=\"ak5e-note\">\n<h5>Bastion Special Property</h5>\n<p>When a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.</p>\n</aside>",
+    "content": "<h2>Armour</h2>\n<p class=\"ak5e-source-paragraph\">The Armour table lists all of the basic Armour types available in AK5e. It includes the following details:</p>\n<p class=\"ak5e-source-paragraph\"><strong>Category:</strong> All Armour is either Light, Medium, or Heavy Armour. The distinction matters primarily for how long it takes to Don and Doff the Armour, but some Features may also reference this.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Armour Class (AC):</strong> Your Base AC is equal to this value while you are wearing this Armour.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Damage Reduction (DR):</strong> When you take Damage from an Attack or Art while you are wearing this Armour, it is reduced by this value, to a minimum of 1. This DR only applies to the type of Damage specified.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Strength:</strong> If your Strength is less than this value, your Speed is reduced by 10ft while you are wearing this Armour.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Special:</strong> What other effects are conferred when you are wearing this Armour.</p>\n<h5>Armour</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Name</th><th scope=\"col\" class=\"ak5e-source-table__center\">Armour Class</th><th scope=\"col\" class=\"ak5e-source-table__center\">Damage Reduction</th><th scope=\"col\" class=\"ak5e-source-table__center\">Strength</th><th scope=\"col\" class=\"ak5e-source-table__center\">Special</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><th scope=\"rowgroup\" colspan=\"7\"><em>Light Armor</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Protective Clothing</td><td class=\"ak5e-source-table__center\">11 + Dexterity Modifier</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">Passes for Clothing</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">85 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Reinforced Outfit</td><td class=\"ak5e-source-table__center\">12 + Dexterity Modifier</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">Passes for Clothing</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">250 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Light Combat Gear</td><td class=\"ak5e-source-table__center\">13 + Dexterity Modifier</td><td class=\"ak5e-source-table__center\">2 (Physical)</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">13 lb.</td><td class=\"ak5e-source-table__center\">650 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Vanguard Armour</td><td class=\"ak5e-source-table__center\">14 + Dexterity Modifier</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">650 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"7\"><em>Medium Armor</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Underarmour</td><td class=\"ak5e-source-table__center\">11 + Dex Modifier (Max 2)</td><td class=\"ak5e-source-table__center\">2 (Physical)</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">Passes for Clothing</td><td class=\"ak5e-source-table__center\">12 lb.</td><td class=\"ak5e-source-table__center\">125 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Combat Gear</td><td class=\"ak5e-source-table__center\">12 + Dex Modifier (Max 2)</td><td class=\"ak5e-source-table__center\">3 (Physical)</td><td class=\"ak5e-source-table__center\">12</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">25 lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Hazardous Environment Gear</td><td class=\"ak5e-source-table__center\">11 + Dex Modifier (Max 2)</td><td class=\"ak5e-source-table__center\">5 (Arts)</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage, Immunity to gases and Originium particulate matter for up to 1 hour</td><td class=\"ak5e-source-table__center\">35 lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Combat Gear</td><td class=\"ak5e-source-table__center\">14</td><td class=\"ak5e-source-table__center\">4 (Physical)</td><td class=\"ak5e-source-table__center\">14</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">40 lb.</td><td class=\"ak5e-source-table__center\">800 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"7\"><em>Heavy Armor</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Metal Armour</td><td class=\"ak5e-source-table__center\">11</td><td class=\"ak5e-source-table__center\">3 (Physical)</td><td class=\"ak5e-source-table__center\">12</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">40 lb.</td><td class=\"ak5e-source-table__center\">200 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Defender Armour</td><td class=\"ak5e-source-table__center\">11</td><td class=\"ak5e-source-table__center\">5 (Physical)</td><td class=\"ak5e-source-table__center\">14</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">50 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Defender Armour</td><td class=\"ak5e-source-table__center\">12</td><td class=\"ak5e-source-table__center\">7 (Physical)</td><td class=\"ak5e-source-table__center\">16</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">60 lb.</td><td class=\"ak5e-source-table__center\">1100 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Juggernaut Armour</td><td class=\"ak5e-source-table__center\">12</td><td class=\"ak5e-source-table__center\">5 (All)</td><td class=\"ak5e-source-table__center\">16</td><td class=\"ak5e-source-table__center\">Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">75 lb.</td><td class=\"ak5e-source-table__center\">1100 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"7\"><em>Light Shields</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Small Shield</td><td class=\"ak5e-source-table__center\">+2</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">4 lb.</td><td class=\"ak5e-source-table__center\">125 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Combat Shield</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">2 (Physical)</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">-</td><td class=\"ak5e-source-table__center\">8 lb.</td><td class=\"ak5e-source-table__center\">125 LMD</td></tr></tbody><tbody><tr><th scope=\"rowgroup\" colspan=\"7\"><em>Heavy Shields</em></th></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Defender Shield</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">2 (Physical)</td><td class=\"ak5e-source-table__center\">12</td><td class=\"ak5e-source-table__center\">Bastion, Stealth Disadvantage</td><td class=\"ak5e-source-table__center\">20 lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">&emsp; Heavy Defender Shield*</td><td class=\"ak5e-source-table__center\">0</td><td class=\"ak5e-source-table__center\">4 (Physical)</td><td class=\"ak5e-source-table__center\">14</td><td class=\"ak5e-source-table__center\">Bastion, Stealth Disadvantage, Two-Handed</td><td class=\"ak5e-source-table__center\">30 lb.</td><td class=\"ak5e-source-table__center\">750 LMD</td></tr></tbody></table></div>\n<aside class=\"ak5e-note\">\n<h5>Bastion Special Property</h5>\n<p class=\"ak5e-source-paragraph\">When a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.</p>\n</aside>",
     "rawSource": "## Armour\n:\nThe Armour table lists all of the basic Armour types available in AK5e. It includes the following details:\n\n**Category:** All Armour is either Light, Medium, or Heavy Armour. The distinction matters primarily for how long it takes to Don and Doff the Armour, but some Features may also reference this. \n\n**Armour Class (AC):** Your Base AC is equal to this value while you are wearing this Armour.\n\n**Damage Reduction (DR):** When you take Damage from an Attack or Art while you are wearing this Armour, it is reduced by this value, to a minimum of 1. This DR only applies to the type of Damage specified.\n\n**Strength:** If your Strength is less than this value, your Speed is reduced by 10ft while you are wearing this Armour.\n\n**Special:** What other effects are conferred when you are wearing this Armour.\n:\n##### Armour\n| Name | Armour Class | Damage Reduction | Strength | Special | Weight | Cost |\n|:-----|:------------:|:----------------:|:--------:|:-------:|:------:|:----:|\n| *Light Armor*\n| &emsp; Protective Clothing|11 + Dexterity Modifier|0|-|Passes for Clothing|8 lb.|85 LMD|\n| &emsp; Reinforced Outfit|12 + Dexterity Modifier|0|-|Passes for Clothing|10 lb.|250 LMD|\n| &emsp; Light Combat Gear|13 + Dexterity Modifier|2 (Physical)|-|-|13 lb.|650 LMD|\n| &emsp; Vanguard Armour|14 + Dexterity Modifier|0|-|-|10 lb.|650 LMD|\n| *Medium Armor*\n| &emsp; Underarmour|11 + Dex Modifier (Max 2)|2 (Physical)|-|Passes for Clothing|12 lb.|125 LMD|\n| &emsp; Combat Gear|12 + Dex Modifier (Max 2)|3 (Physical)|12|Stealth Disadvantage|25 lb.|400 LMD|\n| &emsp; Hazardous Environment Gear|11 + Dex Modifier (Max 2)|5 (Arts)|-|Stealth Disadvantage, Immunity to gases and Originium particulate matter for up to 1 hour|35 lb.|400 LMD|\n| &emsp; Heavy Combat Gear |14|4 (Physical)|14|Stealth Disadvantage|40 lb.|800 LMD|\n| *Heavy Armor*\n| &emsp; Metal Armour|11|3 (Physical)|12|Stealth Disadvantage|40 lb.|200 LMD|\n| &emsp; Defender Armour|11|5 (Physical)|14|Stealth Disadvantage|50 lb.|500 LMD|\n| &emsp; Heavy Defender Armour|12|7 (Physical)|16|Stealth Disadvantage|60 lb.|1100 LMD|\n| &emsp; Juggernaut Armour|12|5 (All)|16|Stealth Disadvantage|75 lb.|1100 LMD|\n| *Light Shields*\n| &emsp; Small Shield|+2|0|-|-|4 lb.|125 LMD|\n| &emsp; Combat Shield|0|2 (Physical)|-|-|8 lb.|125 LMD|\n| *Heavy Shields*\n| &emsp; Defender Shield|0|2 (Physical)|12|Bastion, Stealth Disadvantage|20 lb.|300 LMD|\n| &emsp; Heavy Defender Shield*|0|4 (Physical)|14|Bastion, Stealth Disadvantage, Two-Handed|30 lb.|750 LMD|\n\n}}\n\n\n{{note,wide\n##### Bastion Special Property\nWhen a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.\n\n}}\n\n\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide",
     "rawSources": [
       "## Armour\n:\nThe Armour table lists all of the basic Armour types available in AK5e. It includes the following details:\n\n**Category:** All Armour is either Light, Medium, or Heavy Armour. The distinction matters primarily for how long it takes to Don and Doff the Armour, but some Features may also reference this. \n\n**Armour Class (AC):** Your Base AC is equal to this value while you are wearing this Armour.\n\n**Damage Reduction (DR):** When you take Damage from an Attack or Art while you are wearing this Armour, it is reduced by this value, to a minimum of 1. This DR only applies to the type of Damage specified.\n\n**Strength:** If your Strength is less than this value, your Speed is reduced by 10ft while you are wearing this Armour.\n\n**Special:** What other effects are conferred when you are wearing this Armour.\n:\n##### Armour\n| Name | Armour Class | Damage Reduction | Strength | Special | Weight | Cost |\n|:-----|:------------:|:----------------:|:--------:|:-------:|:------:|:----:|\n| *Light Armor*\n| &emsp; Protective Clothing|11 + Dexterity Modifier|0|-|Passes for Clothing|8 lb.|85 LMD|\n| &emsp; Reinforced Outfit|12 + Dexterity Modifier|0|-|Passes for Clothing|10 lb.|250 LMD|\n| &emsp; Light Combat Gear|13 + Dexterity Modifier|2 (Physical)|-|-|13 lb.|650 LMD|\n| &emsp; Vanguard Armour|14 + Dexterity Modifier|0|-|-|10 lb.|650 LMD|\n| *Medium Armor*\n| &emsp; Underarmour|11 + Dex Modifier (Max 2)|2 (Physical)|-|Passes for Clothing|12 lb.|125 LMD|\n| &emsp; Combat Gear|12 + Dex Modifier (Max 2)|3 (Physical)|12|Stealth Disadvantage|25 lb.|400 LMD|\n| &emsp; Hazardous Environment Gear|11 + Dex Modifier (Max 2)|5 (Arts)|-|Stealth Disadvantage, Immunity to gases and Originium particulate matter for up to 1 hour|35 lb.|400 LMD|\n| &emsp; Heavy Combat Gear |14|4 (Physical)|14|Stealth Disadvantage|40 lb.|800 LMD|\n| *Heavy Armor*\n| &emsp; Metal Armour|11|3 (Physical)|12|Stealth Disadvantage|40 lb.|200 LMD|\n| &emsp; Defender Armour|11|5 (Physical)|14|Stealth Disadvantage|50 lb.|500 LMD|\n| &emsp; Heavy Defender Armour|12|7 (Physical)|16|Stealth Disadvantage|60 lb.|1100 LMD|\n| &emsp; Juggernaut Armour|12|5 (All)|16|Stealth Disadvantage|75 lb.|1100 LMD|\n| *Light Shields*\n| &emsp; Small Shield|+2|0|-|-|4 lb.|125 LMD|\n| &emsp; Combat Shield|0|2 (Physical)|-|-|8 lb.|125 LMD|\n| *Heavy Shields*\n| &emsp; Defender Shield|0|2 (Physical)|12|Bastion, Stealth Disadvantage|20 lb.|300 LMD|\n| &emsp; Heavy Defender Shield*|0|4 (Physical)|14|Bastion, Stealth Disadvantage, Two-Handed|30 lb.|750 LMD|\n\n}}\n\n\n{{note,wide\n##### Bastion Special Property\nWhen a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.\n\n}}\n\n\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide"
@@ -49,7 +49,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Toolkits and other Equipment",
     "itemType": null,
     "sourceHeading": "Toolkits and other Equipment",
-    "content": "<h2>Toolkits and other Equipment</h2>\n<p>AK5e has a number of Toolkits available, representing a variety of skills and professions that characters may be able to practice in the field. The description of a Toolkit includes the following information:<br><strong>Starting Charges:</strong> How many Charges this Toolkit has when it is unused. Certain uses of a Toolkit will consume these Charges; Uses that require Charges cannot be performed if the Toolkit does not have enough Charges.<br><strong>Uses:</strong> What you can do with this Toolkit, as well as the cost in Charges, if there is one. You do not need to proficient in the Toolkit to use these options.</p>\n<aside class=\"ak5e-note\">\n<h5>Alternative Toolkit Uses</h5>\n<p>The uses for each Toolkit listed here are not to be considered an exhaustive list. If you have an idea for a way to use a kit that is not one of the proscribed ways, raise it with the GM; ultimately, they have final jurisdiction on what you are and are not allowed to do outside of what is listed.</p>\n</aside>\n<p><strong>Proficient Uses:</strong> What you can do with this Toolkit, as well as the cost in Charges, if there is one. You must be proficient in the Toolkit to use these options.<br><strong>Variants:</strong> This entry appears if the tool has variants, which are listed. Each requires a separate proficiency.</p>\n<aside class=\"ak5e-note\">\n<h5>Refill Cost</h5>\n<p>You don't need to buy a whole new Kit to regain Charges for a Kit you already have. Instead, anywhere you could buy that Kit, you can restore 1 Charge back to a Toolkit by paying its Refill Cost.</p>\n</aside>\n<h5>Toolkits</h5>\n<pre>| Toolkit | Weight | Cost | Refill Cost |</pre>\n<pre>|:--------|:------:|:----:|:-----------:|</pre>\n<pre>| Art Kit |10 lb.|250 LMD| 20 LMD</pre>\n<pre>| Brewing Kit |15 lb.|500 LMD| 45 LMD</pre>\n<pre>| Cooking Kit |15 lb.|250 LMD| 40 LMD</pre>\n<pre>| Engineering Kit |15 lb.|750 LMD| 140 LMD</pre>\n<pre>| Instrument (X) |10 lb.|250 LMD| N/A</pre>\n<pre>| Maintenance Kit |15 lb.|500 LMD| 45 LMD</pre>\n<pre>| Makeup Kit |10 lb.|250 LMD| 20 LMD</pre>\n<pre>| Mechanism Kit |10 lb.|500 LMD| 45 LMD</pre>\n<pre>| Medical Kit |10 lb.|750 LMD| 70 LMD</pre>\n<pre>| Messenger Kit |10 lb.|500 LMD| 90 LMD</pre>\n<pre>| Pharmacology Kit |10 lb.|750 LMD| 70 LMD</pre>\n<pre>| Tailoring Kit |10 lb.|500 LMD| 45 LMD</pre>\n<pre>| Woodwork Kit |15 lb.|500 LMD| 90 LMD</pre>\n<h4>Art Kit</h4>\n<p>Just as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Create Art (2 Charges):</em></strong> As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD.</p>\n<p><strong><em>Mark (1 Charges):</em></strong> Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Artist's Eye:</em></strong> Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.</p>\n<p><strong><em>Disguise Appearance (2 Charges):</em></strong> Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.</p>\n<h4>Brewing Kit</h4>\n<p>Alcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Brew Alcohol (2 Charges):</em></strong> As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0.</p>\n<p><strong><em>Purify Water (1 Charge):</em></strong> Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Analyse Fluids:</em></strong> Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.</p>\n<p><strong><em>Mass Purify Water (3 Charges):</em></strong> Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<aside class=\"ak5e-note\">\n<h5>Alcohol</h5>\n<p>Alcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.<br>A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws.</p>\n</aside>\n<h4>Cooking Kit</h4>\n<p>Cooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Create Rations (1 Charge):</em></strong> Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<p><strong><em>Prepare Ingredients:</em></strong> As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Camp Cooking (2 Charge):</em></strong> Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.</p>\n<p><strong><em>Poison Tasting:</em></strong> Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check.</p>\n<h4>Engineering Kit</h4>\n<p>Wrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Emergency Repairs (1 Charge):</em></strong> With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points.</p>\n<p><strong><em>Examine Machinery:</em></strong> The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Automaton Automation (2 Charges):</em></strong> As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.</p>\n<p><strong><em>Jury Rig (1 Charge):</em></strong>  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:</p>\n<p>• Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<p>• Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<h4>Instrument (X)</h4>\n<p>On earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.<br><strong>Starting Charges:</strong> -<br><strong>Uses:</strong> -<br><strong><em>Play a known Tune:</em></strong> By succeeding on a DC12 Performance Check, you can play an already existing song or tune.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Compose a Tune:</em></strong> As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check.</p>\n<p><strong><em>Improvise a Tune:</em></strong> By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it.<br><strong>Variants:</strong></p>\n<pre>| Instrument | Weight | Cost |</pre>\n<pre>|:--------|:------:|:----:|</pre>\n<pre>| Bagpipes |6lb. | 300 LMD|</pre>\n<pre>| Bass |8lb.|300 LMD|</pre>\n<pre>| Cello |7lb.|500 LMD|</pre>\n<pre>| Drums |15lb.|400 LMD|</pre>\n<pre>| Flute |1lb.|300 LMD|</pre>\n<pre>| Guitar |6lb.|300 LMD|</pre>\n<pre>| Keyboard |20lb. |200 LMD|</pre>\n<pre>| Lyre |3lb. |500 LMD|</pre>\n<pre>| Microphone |1lb. |200 LMD|</pre>\n<pre>| Trombone |4lb. |400 LMD|</pre>\n<pre>| Tuba |20lb. |500 LMD|</pre>\n<pre>| Turntable |10lb.|400 LMD|</pre>\n<pre>| Violin |3lb.|500 LMD|</pre>\n<h4>Maintenance Kit</h4>\n<p>As any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Maintain Weapon (2 Charge):</em></strong> As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice):</p>\n<p>• +1 to Attack Rolls using that weapon</p>\n<p>• +1 to Damage Rolls with that weapon</p>\n<p>• The value of the Range Property is increased by 50%.</p>\n<p>A Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.</p>\n<p><strong><em>Repair Weapon/Armour (2 Charges):</em></strong> As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.<br>On a failure, nothing happens, but the charge and time are consumed.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Material Analysis:</em></strong> Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.</p>\n<p><strong><em>Mobile Workshop:</em></strong> When you use the <strong><em>Repair Weapon/Armour</em></strong> or <strong><em>Maintain Weapon</em></strong> options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.</p>\n<h4>Makeover Kit</h4>\n<p>Many people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Cover Up (1 Charge):</em></strong> As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.</p>\n<p><strong><em>Lay Bare (1 Charge):</em></strong> Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Assemble Disguise (2 Charges):</em></strong> As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.<br>However, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.</p>\n<p><strong><em>Make an Impression (1 Charge):</em></strong> As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time.</p>\n<aside class=\"ak5e-note\">\n<h5>Disguise Requirements</h5>\n<p>If the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution!</p>\n</aside>\n<h4>Mechanism Kit</h4>\n<p>Often associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Break and Enter:</em></strong> Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.</p>\n<p><strong><em>Secure (1 Charge):</em></strong> Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Red Wire, Blue Wire (1 Charge):</em></strong> The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.</p>\n<p><strong><em>The Best Laid Plans (2 Charges):</em></strong> As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.</p>\n<h4>Medical Kit</h4>\n<p>Even during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Aftercare (1 Charges):</em></strong> As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice.</p>\n<p><strong>First Aid (1 Charge):</strong> As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Paramedic (1 Charge):</em></strong> When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative.</p>\n<p><strong><em>Patient Assessment:</em></strong> The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.</p>\n<h4>Messenger Kit</h4>\n<p>The role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Communications Know-How:</em></strong> Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters.</p>\n<p><strong><em>Short Range Radio:</em></strong> Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Draw Map (1 Charge):</em></strong> A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area.</p>\n<p><strong><em>Establish Communications (1 Charge):</em></strong> As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.</p>\n<h4>Pharmacology Kit</h4>\n<p>Medicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Drug Testing (1 Charge):</em></strong> Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.</p>\n<p><strong><em>Pharmacological Intervention (1 Charge):</em></strong> As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:</p>\n<p>• Painkiller</p>\n<p>• Antibiotics</p>\n<p>• Antivirals</p>\n<p>• Antidote</p>\n<p>Consuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action.</p>\n<aside class=\"ak5e-note\">\n<h5>Information on the Medications</h5>\n<p><strong>Painkillers:</strong> Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.<br><strong>Antibiotics:</strong> Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.<br><strong>Antivirals:</strong> Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.<br><strong>Antidote:</strong> Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n</aside>\n<p><strong>Proficient Uses:</strong></p>\n<p><strong><em>Monitor Oripathy:</em></strong> As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.</p>\n<p><strong><em>Toxicology (2 Charges):</em></strong> As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:</p>\n<p>• Cytotoxin</p>\n<p>• Neurotoxin</p>\n<p>• Necrotoxin</p>\n<p>• Haemotoxin</p>\n<p>See Adventuring Equipment for information on the effects of the Toxins.</p>\n<aside class=\"ak5e-note\">\n<h5>Monitoring, not Diagnostic</h5>\n<p>This Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.<br>Any patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.</p>\n</aside>\n<h4>Tailoring Kit</h4>\n<p>Throughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Create Outfit (X Charges):</em></strong> As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:</p>\n<p>#####</p>\n<pre>| Item | Charges |</pre>\n<pre>|:------------------|:-----:|</pre>\n<pre>| Clothing | 1 |</pre>\n<pre>| Protective Clothing | 2 |</pre>\n<pre>| Reinforced Outfit | 5 |</pre>\n<p>On a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.</p>\n<p><strong><em>Stitch Together (1 Charge):</em></strong> As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Best Fit (1 Charge):</em></strong> As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):</p>\n<p>• Remove Stealth Disadvantage</p>\n<p>• Reduce Strength Requirement by 2.</p>\n<p>• -5lb Weight (-15lb for Heavy Armour)</p>\n<p>On a failure, nothing happens, but the charge and time are consumed.</p>\n<p>&nbsp;<strong><em>Tailor's Tale:</em></strong> For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?</p>\n<h4>Woodwork Kit</h4>\n<p>Wood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Firestarter (1 Charge):</em></strong> Over the course of a minute, you can create and light a small Campfire.<br><strong><em>Carve Symbol:</em></strong> As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Calming Carving (1 Charge):</em></strong> Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.</p>\n<p><strong><em>Carpentry (1 Charge):</em></strong> As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.</p>",
+    "content": "<h2>Toolkits and other Equipment</h2>\n<p class=\"ak5e-source-paragraph\">AK5e has a number of Toolkits available, representing a variety of skills and professions that characters may be able to practice in the field. The description of a Toolkit includes the following information:</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> How many Charges this Toolkit has when it is unused. Certain uses of a Toolkit will consume these Charges; Uses that require Charges cannot be performed if the Toolkit does not have enough Charges.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong> What you can do with this Toolkit, as well as the cost in Charges, if there is one. You do not need to proficient in the Toolkit to use these options.</p>\n<aside class=\"ak5e-note\">\n<h5>Alternative Toolkit Uses</h5>\n<p class=\"ak5e-source-paragraph\">The uses for each Toolkit listed here are not to be considered an exhaustive list. If you have an idea for a way to use a kit that is not one of the proscribed ways, raise it with the GM; ultimately, they have final jurisdiction on what you are and are not allowed to do outside of what is listed.</p>\n</aside>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong> What you can do with this Toolkit, as well as the cost in Charges, if there is one. You must be proficient in the Toolkit to use these options.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Variants:</strong> This entry appears if the tool has variants, which are listed. Each requires a separate proficiency.</p>\n<aside class=\"ak5e-note\">\n<h5>Refill Cost</h5>\n<p class=\"ak5e-source-paragraph\">You don't need to buy a whole new Kit to regain Charges for a Kit you already have. Instead, anywhere you could buy that Kit, you can restore 1 Charge back to a Toolkit by paying its Refill Cost.</p>\n</aside>\n<h5>Toolkits</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Toolkit</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th><th scope=\"col\" class=\"ak5e-source-table__center\">Refill Cost</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Art Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">250 LMD</td><td class=\"ak5e-source-table__center\">20 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Brewing Kit</td><td class=\"ak5e-source-table__center\">15 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">45 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Cooking Kit</td><td class=\"ak5e-source-table__center\">15 lb.</td><td class=\"ak5e-source-table__center\">250 LMD</td><td class=\"ak5e-source-table__center\">40 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Engineering Kit</td><td class=\"ak5e-source-table__center\">15 lb.</td><td class=\"ak5e-source-table__center\">750 LMD</td><td class=\"ak5e-source-table__center\">140 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Instrument (X)</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">250 LMD</td><td class=\"ak5e-source-table__center\">N/A</td></tr><tr><td class=\"ak5e-source-table__left\">Maintenance Kit</td><td class=\"ak5e-source-table__center\">15 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">45 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Makeup Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">250 LMD</td><td class=\"ak5e-source-table__center\">20 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Mechanism Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">45 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Medical Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">750 LMD</td><td class=\"ak5e-source-table__center\">70 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Messenger Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">90 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Pharmacology Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">750 LMD</td><td class=\"ak5e-source-table__center\">70 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Tailoring Kit</td><td class=\"ak5e-source-table__center\">10 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">45 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Woodwork Kit</td><td class=\"ak5e-source-table__center\">15 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td><td class=\"ak5e-source-table__center\">90 LMD</td></tr></tbody></table></div>\n<h4>Art Kit</h4>\n<p class=\"ak5e-source-paragraph\">Just as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Art (2 Charges):</em></strong> As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mark (1 Charges):</em></strong> Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Artist's Eye:</em></strong> Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Disguise Appearance (2 Charges):</em></strong> Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.</p>\n<h4>Brewing Kit</h4>\n<p class=\"ak5e-source-paragraph\">Alcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Brew Alcohol (2 Charges):</em></strong> As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Purify Water (1 Charge):</em></strong> Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Analyse Fluids:</em></strong> Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mass Purify Water (3 Charges):</em></strong> Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<aside class=\"ak5e-note\">\n<h5>Alcohol</h5>\n<p class=\"ak5e-source-paragraph\">Alcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.</p>\n<p class=\"ak5e-source-paragraph\">A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws.</p>\n</aside>\n<h4>Cooking Kit</h4>\n<p class=\"ak5e-source-paragraph\">Cooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Rations (1 Charge):</em></strong> Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Prepare Ingredients:</em></strong> As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Camp Cooking (2 Charge):</em></strong> Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Poison Tasting:</em></strong> Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check.</p>\n<h4>Engineering Kit</h4>\n<p class=\"ak5e-source-paragraph\">Wrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Emergency Repairs (1 Charge):</em></strong> With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Examine Machinery:</em></strong> The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Automaton Automation (2 Charges):</em></strong> As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Jury Rig (1 Charge):</em></strong>  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:</p>\n<p class=\"ak5e-source-paragraph\">• Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<p class=\"ak5e-source-paragraph\">• Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<h4>Instrument (X)</h4>\n<p class=\"ak5e-source-paragraph\">On earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> -</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong> -</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Play a known Tune:</em></strong> By succeeding on a DC12 Performance Check, you can play an already existing song or tune.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Compose a Tune:</em></strong> As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Improvise a Tune:</em></strong> By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Variants:</strong></p>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Instrument</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Bagpipes</td><td class=\"ak5e-source-table__center\">6lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Bass</td><td class=\"ak5e-source-table__center\">8lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Cello</td><td class=\"ak5e-source-table__center\">7lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Drums</td><td class=\"ak5e-source-table__center\">15lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Flute</td><td class=\"ak5e-source-table__center\">1lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Guitar</td><td class=\"ak5e-source-table__center\">6lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Keyboard</td><td class=\"ak5e-source-table__center\">20lb.</td><td class=\"ak5e-source-table__center\">200 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Lyre</td><td class=\"ak5e-source-table__center\">3lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Microphone</td><td class=\"ak5e-source-table__center\">1lb.</td><td class=\"ak5e-source-table__center\">200 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Trombone</td><td class=\"ak5e-source-table__center\">4lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Tuba</td><td class=\"ak5e-source-table__center\">20lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Turntable</td><td class=\"ak5e-source-table__center\">10lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Violin</td><td class=\"ak5e-source-table__center\">3lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr></tbody></table></div>\n<h4>Maintenance Kit</h4>\n<p class=\"ak5e-source-paragraph\">As any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Maintain Weapon (2 Charge):</em></strong> As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice):</p>\n<p class=\"ak5e-source-paragraph\">• +1 to Attack Rolls using that weapon</p>\n<p class=\"ak5e-source-paragraph\">• +1 to Damage Rolls with that weapon</p>\n<p class=\"ak5e-source-paragraph\">• The value of the Range Property is increased by 50%.</p>\n<p class=\"ak5e-source-paragraph\">A Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Repair Weapon/Armour (2 Charges):</em></strong> As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.</p>\n<p class=\"ak5e-source-paragraph\">On a failure, nothing happens, but the charge and time are consumed.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Material Analysis:</em></strong> Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mobile Workshop:</em></strong> When you use the <strong><em>Repair Weapon/Armour</em></strong> or <strong><em>Maintain Weapon</em></strong> options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.</p>\n<h4>Makeover Kit</h4>\n<p class=\"ak5e-source-paragraph\">Many people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Cover Up (1 Charge):</em></strong> As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Lay Bare (1 Charge):</em></strong> Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Assemble Disguise (2 Charges):</em></strong> As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.</p>\n<p class=\"ak5e-source-paragraph\">However, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Make an Impression (1 Charge):</em></strong> As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time.</p>\n<aside class=\"ak5e-note\">\n<h5>Disguise Requirements</h5>\n<p class=\"ak5e-source-paragraph\">If the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution!</p>\n</aside>\n<h4>Mechanism Kit</h4>\n<p class=\"ak5e-source-paragraph\">Often associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Break and Enter:</em></strong> Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Secure (1 Charge):</em></strong> Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Red Wire, Blue Wire (1 Charge):</em></strong> The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>The Best Laid Plans (2 Charges):</em></strong> As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.</p>\n<h4>Medical Kit</h4>\n<p class=\"ak5e-source-paragraph\">Even during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Aftercare (1 Charges):</em></strong> As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice.</p>\n<p class=\"ak5e-source-paragraph\"><strong>First Aid (1 Charge):</strong> As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Paramedic (1 Charge):</em></strong> When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Patient Assessment:</em></strong> The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.</p>\n<h4>Messenger Kit</h4>\n<p class=\"ak5e-source-paragraph\">The role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Communications Know-How:</em></strong> Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Short Range Radio:</em></strong> Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Draw Map (1 Charge):</em></strong> A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Establish Communications (1 Charge):</em></strong> As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.</p>\n<h4>Pharmacology Kit</h4>\n<p class=\"ak5e-source-paragraph\">Medicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Drug Testing (1 Charge):</em></strong> Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Pharmacological Intervention (1 Charge):</em></strong> As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:</p>\n<p class=\"ak5e-source-paragraph\">• Painkiller</p>\n<p class=\"ak5e-source-paragraph\">• Antibiotics</p>\n<p class=\"ak5e-source-paragraph\">• Antivirals</p>\n<p class=\"ak5e-source-paragraph\">• Antidote</p>\n<p class=\"ak5e-source-paragraph\">Consuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action.</p>\n<aside class=\"ak5e-note\">\n<h5>Information on the Medications</h5>\n<p class=\"ak5e-source-paragraph\"><strong>Painkillers:</strong> Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antibiotics:</strong> Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antivirals:</strong> Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antidote:</strong> Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n</aside>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Monitor Oripathy:</em></strong> As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Toxicology (2 Charges):</em></strong> As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:</p>\n<p class=\"ak5e-source-paragraph\">• Cytotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Neurotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Necrotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Haemotoxin</p>\n<p class=\"ak5e-source-paragraph\">See Adventuring Equipment for information on the effects of the Toxins.</p>\n<aside class=\"ak5e-note\">\n<h5>Monitoring, not Diagnostic</h5>\n<p class=\"ak5e-source-paragraph\">This Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.</p>\n<p class=\"ak5e-source-paragraph\">Any patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.</p>\n</aside>\n<h4>Tailoring Kit</h4>\n<p class=\"ak5e-source-paragraph\">Throughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Outfit (X Charges):</em></strong> As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:</p>\n<p class=\"ak5e-source-paragraph\">#####</p>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Item</th><th scope=\"col\" class=\"ak5e-source-table__center\">Charges</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Clothing</td><td class=\"ak5e-source-table__center\">1</td></tr><tr><td class=\"ak5e-source-table__left\">Protective Clothing</td><td class=\"ak5e-source-table__center\">2</td></tr><tr><td class=\"ak5e-source-table__left\">Reinforced Outfit</td><td class=\"ak5e-source-table__center\">5</td></tr></tbody></table></div>\n<p class=\"ak5e-source-paragraph\">On a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Stitch Together (1 Charge):</em></strong> As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Best Fit (1 Charge):</em></strong> As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):</p>\n<p class=\"ak5e-source-paragraph\">• Remove Stealth Disadvantage</p>\n<p class=\"ak5e-source-paragraph\">• Reduce Strength Requirement by 2.</p>\n<p class=\"ak5e-source-paragraph\">• -5lb Weight (-15lb for Heavy Armour)</p>\n<p class=\"ak5e-source-paragraph\">On a failure, nothing happens, but the charge and time are consumed.</p>\n<p class=\"ak5e-source-paragraph\">&nbsp;<strong><em>Tailor's Tale:</em></strong> For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?</p>\n<h4>Woodwork Kit</h4>\n<p class=\"ak5e-source-paragraph\">Wood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Firestarter (1 Charge):</em></strong> Over the course of a minute, you can create and light a small Campfire.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Carve Symbol:</em></strong> As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Calming Carving (1 Charge):</em></strong> Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Carpentry (1 Charge):</em></strong> As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.</p>",
     "rawSource": "## Toolkits and other Equipment\n:\nAK5e has a number of Toolkits available, representing a variety of skills and professions that characters may be able to practice in the field. The description of a Toolkit includes the following information:\n:\n**Starting Charges:** How many Charges this Toolkit has when it is unused. Certain uses of a Toolkit will consume these Charges; Uses that require Charges cannot be performed if the Toolkit does not have enough Charges.\n:\n**Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You do not need to proficient in the Toolkit to use these options.\n{{note\n##### Alternative Toolkit Uses\nThe uses for each Toolkit listed here are not to be considered an exhaustive list. If you have an idea for a way to use a kit that is not one of the proscribed ways, raise it with the GM; ultimately, they have final jurisdiction on what you are and are not allowed to do outside of what is listed.\n}}\n:\n**Proficient Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You must be proficient in the Toolkit to use these options.\n:\n**Variants:** This entry appears if the tool has variants, which are listed. Each requires a separate proficiency.\n:\n\n{{note\n##### Refill Cost\nYou don't need to buy a whole new Kit to regain Charges for a Kit you already have. Instead, anywhere you could buy that Kit, you can restore 1 Charge back to a Toolkit by paying its Refill Cost.\n}}\n\n##### Toolkits\n| Toolkit | Weight | Cost | Refill Cost |\n|:--------|:------:|:----:|:-----------:|\n| Art Kit |10 lb.|250 LMD| 20 LMD\n| Brewing Kit |15 lb.|500 LMD| 45 LMD\n| Cooking Kit |15 lb.|250 LMD| 40 LMD\n| Engineering Kit |15 lb.|750 LMD| 140 LMD\n| Instrument (X) |10 lb.|250 LMD| N/A\n| Maintenance Kit |15 lb.|500 LMD| 45 LMD\n| Makeup Kit |10 lb.|250 LMD| 20 LMD\n| Mechanism Kit |10 lb.|500 LMD| 45 LMD\n| Medical Kit |10 lb.|750 LMD| 70 LMD\n| Messenger Kit |10 lb.|500 LMD| 90 LMD\n| Pharmacology Kit |10 lb.|750 LMD| 70 LMD\n| Tailoring Kit |10 lb.|500 LMD| 45 LMD\n| Woodwork Kit |15 lb.|500 LMD| 90 LMD\n\n\n}}\n\n{{imageMaskEdge5,--offset:22%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/9/9e/Background-PL_Safehouse.png' \n  style='position:absolute;top:550px;right:-100px;width:1000px;clip-path:rect(32% auto auto auto);' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n\n#### Art Kit\n:\nJust as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Art (2 Charges):*** As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD. \n\n***Mark (1 Charges):*** Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment. \n:\n**Proficient Uses:** \n\n***Artist's Eye:*** Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.\n\n***Disguise Appearance (2 Charges):*** Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.\n\n\n\n{{imageMaskEdge1,--offset:3%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n{{imageMaskEdge1,--offset:17%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}\n\n#### Brewing Kit\n:\nAlcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Brew Alcohol (2 Charges):*** As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0. \n\n***Purify Water (1 Charge):*** Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day. \n:\n**Proficient Uses:**\n\n***Analyse Fluids:*** Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.\n\n***Mass Purify Water (3 Charges):*** Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n:\n{{note\n##### Alcohol\nAlcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.\n:\nA Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws. \n}}\n\n\\column\n\n#### Cooking Kit\n:\nCooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Create Rations (1 Charge):*** Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n\n***Prepare Ingredients:*** As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.\n:\n**Proficient Uses:** \n\n***Camp Cooking (2 Charge):*** Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.\n\n***Poison Tasting:*** Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check. \n\n\\page\n{{pageNumber,auto}}\n\n#### Engineering Kit\n:\nWrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Emergency Repairs (1 Charge):*** With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points. \n\n***Examine Machinery:*** The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative. \n:\n**Proficient Uses:** \n\n***Automaton Automation (2 Charges):*** As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.\n\n***Jury Rig (1 Charge):***  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:\n- Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.\n- Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.\n\n\n\n\n\n\\column\n\n#### Instrument (X)\n:\nOn earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.\n:\n**Starting Charges:** -\n:\n**Uses:** -\n:\n***Play a known Tune:*** By succeeding on a DC12 Performance Check, you can play an already existing song or tune.\n:\n**Proficient Uses:** \n\n***Compose a Tune:*** As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check. \n\n***Improvise a Tune:*** By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it. \n:\n**Variants:** \n| Instrument | Weight | Cost |\n|:--------|:------:|:----:|\n| Bagpipes |6lb. | 300 LMD|\n| Bass |8lb.|300 LMD|\n| Cello |7lb.|500 LMD|\n| Drums |15lb.|400 LMD|\n| Flute |1lb.|300 LMD|\n| Guitar |6lb.|300 LMD|\n| Keyboard |20lb. |200 LMD| \n| Lyre |3lb. |500 LMD|\n| Microphone |1lb. |200 LMD|\n| Trombone |4lb. |400 LMD|\n| Tuba |20lb. |500 LMD|\n| Turntable |10lb.|400 LMD|\n| Violin |3lb.|500 LMD|\n\n\n{{imageMaskEdge1,--offset:22%,--rotation:-12\n<img \n  src='https://arknights.wiki.gg/images/0/0e/Ambience_Synesthesia_2024_Nova_Five_Ultra_Live.png' \n  style='position:absolute;top:700px;right:-100px;width:1000px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n#### Maintenance Kit\n:\nAs any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Maintain Weapon (2 Charge):*** As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice): \n- +1 to Attack Rolls using that weapon\n- +1 to Damage Rolls with that weapon\n- The value of the Range Property is increased by 50%.\n\nA Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.\n\n***Repair Weapon/Armour (2 Charges):*** As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.\n:\nOn a failure, nothing happens, but the charge and time are consumed.\n:\n**Proficient Uses:** \n\n***Material Analysis:*** Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.\n\n***Mobile Workshop:*** When you use the ***Repair Weapon/Armour*** or ***Maintain Weapon*** options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.\n\n{{imageMaskEdge1,--offset:0%,--rotation:280\n<img \n  src='https://arknights.wiki.gg/images/d/df/Vulcan.png' \n  style='position:absolute;top:30px;right:-170px;width:600px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge3,--offset:3%,--rotation:90\n<img \n  src='https://arknights.wiki.gg/images/1/11/Roberta.png' \n  style='position:absolute;top:50px;right:150px;width:900px' />\n}}\n\n\n\\column\n\n#### Makeover Kit\n:\nMany people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.\n:\n**Starting Charges:** 10\n:\n**Uses:**\n\n***Cover Up (1 Charge):*** As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.\n\n***Lay Bare (1 Charge):*** Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot. \n:\n**Proficient Uses:** \n\n***Assemble Disguise (2 Charges):*** As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.\n:\nHowever, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.\n\n***Make an Impression (1 Charge):*** As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time. \n\n{{note\n##### Disguise Requirements\nIf the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution! \n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge1,--offset:10%,--rotation:180\n<img \n  src='https://arknights.wiki.gg/images/e/ee/Amiya_In_Danger.png' \n  style='position:absolute;top:-50px;right:-180px;width:1000px;clip-path:rect(auto auto 88% auto);' />\n}}\n\n\n{{margin-top:400px\n\n#### Mechanism Kit\n:\nOften associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Break and Enter:*** Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.\n\n***Secure (1 Charge):*** Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier. \n:\n**Proficient Uses:** \n\n***Red Wire, Blue Wire (1 Charge):*** The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.\n\n***The Best Laid Plans (2 Charges):*** As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.\n\n}}\n\n\n\n{{margin-top:400px\n\n#### Medical Kit\n:\nEven during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Aftercare (1 Charges):*** As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice. \n\n**First Aid (1 Charge):** As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it. \n:\n**Proficient Uses:** \n\n***Paramedic (1 Charge):*** When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative. \n\n***Patient Assessment:*** The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.\n\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n#### Messenger Kit\n:\nThe role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned. \n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Communications Know-How:*** Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters. \n\n***Short Range Radio:*** Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.\n:\n**Proficient Uses:** \n\n***Draw Map (1 Charge):*** A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area. \n\n***Establish Communications (1 Charge):*** As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.\n\n}}\n\n\n{{imageMaskEdge7,--offset:2%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/7/7f/Mulberry_Elite_2.png' \n  style='position:absolute;top:230px;right:-50px;width:900px' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n#### Pharmacology Kit\n:\nMedicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Drug Testing (1 Charge):*** Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.\n\n***Pharmacological Intervention (1 Charge):*** As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:\n- Painkiller\n- Antibiotics\n- Antivirals\n- Antidote\n\n{{align-text:left\nConsuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action. \n}}\n\n{{note\n##### Information on the Medications\n**Painkillers:** Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.\n:\n**Antibiotics:** Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antivirals:** Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antidote:** Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n}}\n\n**Proficient Uses:**\n\n***Monitor Oripathy:*** As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.\n\n***Toxicology (2 Charges):*** As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:\n- Cytotoxin \n- Neurotoxin \n- Necrotoxin \n- Haemotoxin \n\n{{align-text:left\nSee Adventuring Equipment for information on the effects of the Toxins.\n}}\n:\n{{note\n##### Monitoring, not Diagnostic\nThis Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.\n:\nAny patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.\n}}\n\n\n\n}}\n\n\\page\n{{pageNumber,auto}}\n\n#### Tailoring Kit\n:\nThroughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Outfit (X Charges):*** As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:\n\n##### \n| Item | Charges | \n|:------------------|:-----:|\n| Clothing | 1 |\n| Protective Clothing | 2 |\n| Reinforced Outfit | 5 |\n\n{{align-text:left\nOn a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.\n}}\n:\n***Stitch Together (1 Charge):*** As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).\n:\n**Proficient Uses:** \n\n***Best Fit (1 Charge):*** As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):\n- Remove Stealth Disadvantage\n- Reduce Strength Requirement by 2.\n- -5lb Weight (-15lb for Heavy Armour)\n\n{{align-text:left\nOn a failure, nothing happens, but the charge and time are consumed.\n}}\n&nbsp;***Tailor's Tale:*** For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?\n\n{{imageMaskEdge3,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/a1/Ines.png' \n  style='position:absolute;top:80px;right:-270px;width:900px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n\n#### Woodwork Kit\n:\nWood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Firestarter (1 Charge):*** Over the course of a minute, you can create and light a small Campfire.\n:\n***Carve Symbol:*** As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.\n:\n**Proficient Uses:**\n\n***Calming Carving (1 Charge):*** Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.\n\n***Carpentry (1 Charge):*** As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.\n\n{{imageMaskEdge8,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n{{imageMaskEdge7,--offset:26%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n\n\n\n\\page\n{{pageNumber,auto}}",
     "rawSources": [
       "## Toolkits and other Equipment\n:\nAK5e has a number of Toolkits available, representing a variety of skills and professions that characters may be able to practice in the field. The description of a Toolkit includes the following information:\n:\n**Starting Charges:** How many Charges this Toolkit has when it is unused. Certain uses of a Toolkit will consume these Charges; Uses that require Charges cannot be performed if the Toolkit does not have enough Charges.\n:\n**Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You do not need to proficient in the Toolkit to use these options.\n{{note\n##### Alternative Toolkit Uses\nThe uses for each Toolkit listed here are not to be considered an exhaustive list. If you have an idea for a way to use a kit that is not one of the proscribed ways, raise it with the GM; ultimately, they have final jurisdiction on what you are and are not allowed to do outside of what is listed.\n}}\n:\n**Proficient Uses:** What you can do with this Toolkit, as well as the cost in Charges, if there is one. You must be proficient in the Toolkit to use these options.\n:\n**Variants:** This entry appears if the tool has variants, which are listed. Each requires a separate proficiency.\n:\n\n{{note\n##### Refill Cost\nYou don't need to buy a whole new Kit to regain Charges for a Kit you already have. Instead, anywhere you could buy that Kit, you can restore 1 Charge back to a Toolkit by paying its Refill Cost.\n}}\n\n##### Toolkits\n| Toolkit | Weight | Cost | Refill Cost |\n|:--------|:------:|:----:|:-----------:|\n| Art Kit |10 lb.|250 LMD| 20 LMD\n| Brewing Kit |15 lb.|500 LMD| 45 LMD\n| Cooking Kit |15 lb.|250 LMD| 40 LMD\n| Engineering Kit |15 lb.|750 LMD| 140 LMD\n| Instrument (X) |10 lb.|250 LMD| N/A\n| Maintenance Kit |15 lb.|500 LMD| 45 LMD\n| Makeup Kit |10 lb.|250 LMD| 20 LMD\n| Mechanism Kit |10 lb.|500 LMD| 45 LMD\n| Medical Kit |10 lb.|750 LMD| 70 LMD\n| Messenger Kit |10 lb.|500 LMD| 90 LMD\n| Pharmacology Kit |10 lb.|750 LMD| 70 LMD\n| Tailoring Kit |10 lb.|500 LMD| 45 LMD\n| Woodwork Kit |15 lb.|500 LMD| 90 LMD\n\n\n}}\n\n{{imageMaskEdge5,--offset:22%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/9/9e/Background-PL_Safehouse.png' \n  style='position:absolute;top:550px;right:-100px;width:1000px;clip-path:rect(32% auto auto auto);' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n\n#### Art Kit\n:\nJust as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Art (2 Charges):*** As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD. \n\n***Mark (1 Charges):*** Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment. \n:\n**Proficient Uses:** \n\n***Artist's Eye:*** Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.\n\n***Disguise Appearance (2 Charges):*** Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.\n\n\n\n{{imageMaskEdge1,--offset:3%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n{{imageMaskEdge1,--offset:17%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}\n\n#### Brewing Kit\n:\nAlcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Brew Alcohol (2 Charges):*** As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0. \n\n***Purify Water (1 Charge):*** Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day. \n:\n**Proficient Uses:**\n\n***Analyse Fluids:*** Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.\n\n***Mass Purify Water (3 Charges):*** Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n:\n{{note\n##### Alcohol\nAlcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.\n:\nA Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws. \n}}\n\n\\column\n\n#### Cooking Kit\n:\nCooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Create Rations (1 Charge):*** Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n\n***Prepare Ingredients:*** As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.\n:\n**Proficient Uses:** \n\n***Camp Cooking (2 Charge):*** Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.\n\n***Poison Tasting:*** Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check. \n\n\\page\n{{pageNumber,auto}}\n\n#### Engineering Kit\n:\nWrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Emergency Repairs (1 Charge):*** With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points. \n\n***Examine Machinery:*** The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative. \n:\n**Proficient Uses:** \n\n***Automaton Automation (2 Charges):*** As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.\n\n***Jury Rig (1 Charge):***  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:\n- Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.\n- Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.\n\n\n\n\n\n\\column\n\n#### Instrument (X)\n:\nOn earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.\n:\n**Starting Charges:** -\n:\n**Uses:** -\n:\n***Play a known Tune:*** By succeeding on a DC12 Performance Check, you can play an already existing song or tune.\n:\n**Proficient Uses:** \n\n***Compose a Tune:*** As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check. \n\n***Improvise a Tune:*** By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it. \n:\n**Variants:** \n| Instrument | Weight | Cost |\n|:--------|:------:|:----:|\n| Bagpipes |6lb. | 300 LMD|\n| Bass |8lb.|300 LMD|\n| Cello |7lb.|500 LMD|\n| Drums |15lb.|400 LMD|\n| Flute |1lb.|300 LMD|\n| Guitar |6lb.|300 LMD|\n| Keyboard |20lb. |200 LMD| \n| Lyre |3lb. |500 LMD|\n| Microphone |1lb. |200 LMD|\n| Trombone |4lb. |400 LMD|\n| Tuba |20lb. |500 LMD|\n| Turntable |10lb.|400 LMD|\n| Violin |3lb.|500 LMD|\n\n\n{{imageMaskEdge1,--offset:22%,--rotation:-12\n<img \n  src='https://arknights.wiki.gg/images/0/0e/Ambience_Synesthesia_2024_Nova_Five_Ultra_Live.png' \n  style='position:absolute;top:700px;right:-100px;width:1000px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n#### Maintenance Kit\n:\nAs any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Maintain Weapon (2 Charge):*** As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice): \n- +1 to Attack Rolls using that weapon\n- +1 to Damage Rolls with that weapon\n- The value of the Range Property is increased by 50%.\n\nA Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.\n\n***Repair Weapon/Armour (2 Charges):*** As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.\n:\nOn a failure, nothing happens, but the charge and time are consumed.\n:\n**Proficient Uses:** \n\n***Material Analysis:*** Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.\n\n***Mobile Workshop:*** When you use the ***Repair Weapon/Armour*** or ***Maintain Weapon*** options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.\n\n{{imageMaskEdge1,--offset:0%,--rotation:280\n<img \n  src='https://arknights.wiki.gg/images/d/df/Vulcan.png' \n  style='position:absolute;top:30px;right:-170px;width:600px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge3,--offset:3%,--rotation:90\n<img \n  src='https://arknights.wiki.gg/images/1/11/Roberta.png' \n  style='position:absolute;top:50px;right:150px;width:900px' />\n}}\n\n\n\\column\n\n#### Makeover Kit\n:\nMany people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.\n:\n**Starting Charges:** 10\n:\n**Uses:**\n\n***Cover Up (1 Charge):*** As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.\n\n***Lay Bare (1 Charge):*** Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot. \n:\n**Proficient Uses:** \n\n***Assemble Disguise (2 Charges):*** As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.\n:\nHowever, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.\n\n***Make an Impression (1 Charge):*** As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time. \n\n{{note\n##### Disguise Requirements\nIf the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution! \n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge1,--offset:10%,--rotation:180\n<img \n  src='https://arknights.wiki.gg/images/e/ee/Amiya_In_Danger.png' \n  style='position:absolute;top:-50px;right:-180px;width:1000px;clip-path:rect(auto auto 88% auto);' />\n}}\n\n\n{{margin-top:400px\n\n#### Mechanism Kit\n:\nOften associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Break and Enter:*** Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.\n\n***Secure (1 Charge):*** Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier. \n:\n**Proficient Uses:** \n\n***Red Wire, Blue Wire (1 Charge):*** The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.\n\n***The Best Laid Plans (2 Charges):*** As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.\n\n}}\n\n\n\n{{margin-top:400px\n\n#### Medical Kit\n:\nEven during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Aftercare (1 Charges):*** As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice. \n\n**First Aid (1 Charge):** As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it. \n:\n**Proficient Uses:** \n\n***Paramedic (1 Charge):*** When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative. \n\n***Patient Assessment:*** The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.\n\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n#### Messenger Kit\n:\nThe role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned. \n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Communications Know-How:*** Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters. \n\n***Short Range Radio:*** Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.\n:\n**Proficient Uses:** \n\n***Draw Map (1 Charge):*** A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area. \n\n***Establish Communications (1 Charge):*** As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.\n\n}}\n\n\n{{imageMaskEdge7,--offset:2%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/7/7f/Mulberry_Elite_2.png' \n  style='position:absolute;top:230px;right:-50px;width:900px' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide\n\n#### Pharmacology Kit\n:\nMedicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Drug Testing (1 Charge):*** Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.\n\n***Pharmacological Intervention (1 Charge):*** As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:\n- Painkiller\n- Antibiotics\n- Antivirals\n- Antidote\n\n{{align-text:left\nConsuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action. \n}}\n\n{{note\n##### Information on the Medications\n**Painkillers:** Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.\n:\n**Antibiotics:** Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antivirals:** Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antidote:** Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n}}\n\n**Proficient Uses:**\n\n***Monitor Oripathy:*** As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.\n\n***Toxicology (2 Charges):*** As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:\n- Cytotoxin \n- Neurotoxin \n- Necrotoxin \n- Haemotoxin \n\n{{align-text:left\nSee Adventuring Equipment for information on the effects of the Toxins.\n}}\n:\n{{note\n##### Monitoring, not Diagnostic\nThis Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.\n:\nAny patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.\n}}\n\n\n\n}}\n\n\\page\n{{pageNumber,auto}}\n\n#### Tailoring Kit\n:\nThroughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Outfit (X Charges):*** As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:\n\n##### \n| Item | Charges | \n|:------------------|:-----:|\n| Clothing | 1 |\n| Protective Clothing | 2 |\n| Reinforced Outfit | 5 |\n\n{{align-text:left\nOn a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.\n}}\n:\n***Stitch Together (1 Charge):*** As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).\n:\n**Proficient Uses:** \n\n***Best Fit (1 Charge):*** As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):\n- Remove Stealth Disadvantage\n- Reduce Strength Requirement by 2.\n- -5lb Weight (-15lb for Heavy Armour)\n\n{{align-text:left\nOn a failure, nothing happens, but the charge and time are consumed.\n}}\n&nbsp;***Tailor's Tale:*** For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?\n\n{{imageMaskEdge3,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/a1/Ines.png' \n  style='position:absolute;top:80px;right:-270px;width:900px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n\n#### Woodwork Kit\n:\nWood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Firestarter (1 Charge):*** Over the course of a minute, you can create and light a small Campfire.\n:\n***Carve Symbol:*** As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.\n:\n**Proficient Uses:**\n\n***Calming Carving (1 Charge):*** Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.\n\n***Carpentry (1 Charge):*** As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.\n\n{{imageMaskEdge8,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n{{imageMaskEdge7,--offset:26%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n\n\n\n\\page\n{{pageNumber,auto}}"
@@ -63,7 +63,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Adventuring Gear",
     "itemType": null,
     "sourceHeading": "Adventuring Gear",
-    "content": "<h2>Adventuring Gear</h2>\n<p>The following section contains additional Adventuring Gear that can be acquired and used. The items are listed alphabetically with price and weight; descriptions of effects can be found afterwards.</p>\n<aside class=\"ak5e-note\">\n<h5>5e Adventuring Gear</h5>\n<p>For the sake of expedience, all of the available Adventuring Gear from 5e will not be relisted. The items listed here are an addition to that list. Thus, if you require a piece of Adventuring Gear that it is not listed here but exists within 5e, consult the DM as to where you might get it, and if it makes sense within the Arknights setting; a rope is universal, a scroll of magic missile is not!</p>\n</aside>\n<h5>Adventuring Gear</h5>\n<pre>| Gear | Weight | Cost |</pre>\n<pre>|:--------|:------:|:----:|</pre>\n<pre>| Alcohol |1 lb.|25 LMD |</pre>\n<pre>| Antibiotics |0.1 lb.|50 LMD|</pre>\n<pre>| Antidote |0.1 lb.|50 LMD|</pre>\n<pre>| Antivirals |0.1 lb.| 50 LMD |</pre>\n<pre>| Art (Trade Good) |2 lb.|100 LMD|</pre>\n<pre>| Autoinjector | 1 lb. | 150 LMD</pre>\n<pre>| Autoinjector (Advanced) | 1 lb. | 450 LMD</pre>\n<pre>| Cytotoxin |1 lb.|140 LMD|</pre>\n<pre>| Flashlight | 1 lb. | 75 LMD |</pre>\n<pre>| Haemotoxin |1 lb.|140 LMD|</pre>\n<pre>| Necrotoxin |1 lb.|140 LMD|</pre>\n<pre>| Neurotoxin |1 lb.|140 LMD|</pre>\n<pre>| Oripathy Suppressant (Poor)|1 lb.|150 LMD|</pre>\n<pre>| Oripathy Suppressant|1 lb.|500 LMD|</pre>\n<pre>| Painkillers |0.1 lb.|50 LMD|</pre>\n<aside class=\"ak5e-note\">\n<h5>Toxins and Poisons</h5>\n<p>The four Toxins (Cytotoxin, Haemotoxin, Necrotoxin, and Neurotoxin) are considered to be Poisons. Advantage on Saving Throws against the Poisoned Condition grants Advantage on Saving Throws against Toxins, and Immunity to the Poisoned Condition grants Immunity to any effect of a Toxin that requires a Saving Throw.</p>\n</aside>\n<h4>Alcohol</h4>\n<p>Can be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.</p>\n<h4>Antibiotics</h4>\n<p>Can be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<h4>Antidote</h4>\n<p>Can be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n<h4>Antivirals</h4>\n<p>Can be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<h4>Art (Trade Good)</h4>\n<p>A piece of Art. It is valuable to the right people.</p>\n<h4>Autoinjector</h4>\n<p>A medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.</p>\n<h4>Autoinjector (Advanced)</h4>\n<p>A advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are <strong>Dying</strong>, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.</p>\n<h4>Cytotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.</p>\n<h4>Flashlight</h4>\n<p>A flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.</p>\n<h4>Haemotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage.</p>\n<h4>Necrotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes.</p>\n<h4>Neurotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes.</p>\n<h4>Oripathy Suppressant (Poor)</h4>\n<p>A concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.</p>\n<h4>Oripathy Suppressant</h4>\n<p>A specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease.</p>\n<h4>Painkillers</h4>\n<p>A drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.</p>",
+    "content": "<h2>Adventuring Gear</h2>\n<p class=\"ak5e-source-paragraph\">The following section contains additional Adventuring Gear that can be acquired and used. The items are listed alphabetically with price and weight; descriptions of effects can be found afterwards.</p>\n<aside class=\"ak5e-note\">\n<h5>5e Adventuring Gear</h5>\n<p class=\"ak5e-source-paragraph\">For the sake of expedience, all of the available Adventuring Gear from 5e will not be relisted. The items listed here are an addition to that list. Thus, if you require a piece of Adventuring Gear that it is not listed here but exists within 5e, consult the DM as to where you might get it, and if it makes sense within the Arknights setting; a rope is universal, a scroll of magic missile is not!</p>\n</aside>\n<h5>Adventuring Gear</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Gear</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Alcohol</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">25 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Antibiotics</td><td class=\"ak5e-source-table__center\">0.1 lb.</td><td class=\"ak5e-source-table__center\">50 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Antidote</td><td class=\"ak5e-source-table__center\">0.1 lb.</td><td class=\"ak5e-source-table__center\">50 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Antivirals</td><td class=\"ak5e-source-table__center\">0.1 lb.</td><td class=\"ak5e-source-table__center\">50 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Art (Trade Good)</td><td class=\"ak5e-source-table__center\">2 lb.</td><td class=\"ak5e-source-table__center\">100 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Autoinjector</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">150 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Autoinjector (Advanced)</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">450 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Cytotoxin</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">140 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Flashlight</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">75 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Haemotoxin</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">140 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Necrotoxin</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">140 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Neurotoxin</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">140 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Oripathy Suppressant (Poor)</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">150 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Oripathy Suppressant</td><td class=\"ak5e-source-table__center\">1 lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Painkillers</td><td class=\"ak5e-source-table__center\">0.1 lb.</td><td class=\"ak5e-source-table__center\">50 LMD</td></tr></tbody></table></div>\n<aside class=\"ak5e-note\">\n<h5>Toxins and Poisons</h5>\n<p class=\"ak5e-source-paragraph\">The four Toxins (Cytotoxin, Haemotoxin, Necrotoxin, and Neurotoxin) are considered to be Poisons. Advantage on Saving Throws against the Poisoned Condition grants Advantage on Saving Throws against Toxins, and Immunity to the Poisoned Condition grants Immunity to any effect of a Toxin that requires a Saving Throw.</p>\n</aside>\n<h4>Alcohol</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.</p>\n<h4>Antibiotics</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<h4>Antidote</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n<h4>Antivirals</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<h4>Art (Trade Good)</h4>\n<p class=\"ak5e-source-paragraph\">A piece of Art. It is valuable to the right people.</p>\n<h4>Autoinjector</h4>\n<p class=\"ak5e-source-paragraph\">A medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.</p>\n<h4>Autoinjector (Advanced)</h4>\n<p class=\"ak5e-source-paragraph\">A advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are <strong>Dying</strong>, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.</p>\n<h4>Cytotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.</p>\n<h4>Flashlight</h4>\n<p class=\"ak5e-source-paragraph\">A flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.</p>\n<h4>Haemotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage.</p>\n<h4>Necrotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes.</p>\n<h4>Neurotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes.</p>\n<h4>Oripathy Suppressant (Poor)</h4>\n<p class=\"ak5e-source-paragraph\">A concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.</p>\n<h4>Oripathy Suppressant</h4>\n<p class=\"ak5e-source-paragraph\">A specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease.</p>\n<h4>Painkillers</h4>\n<p class=\"ak5e-source-paragraph\">A drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.</p>",
     "rawSource": "## Adventuring Gear\n:\n{{wide\nThe following section contains additional Adventuring Gear that can be acquired and used. The items are listed alphabetically with price and weight; descriptions of effects can be found afterwards.\n\n{{note\n##### 5e Adventuring Gear\nFor the sake of expedience, all of the available Adventuring Gear from 5e will not be relisted. The items listed here are an addition to that list. Thus, if you require a piece of Adventuring Gear that it is not listed here but exists within 5e, consult the DM as to where you might get it, and if it makes sense within the Arknights setting; a rope is universal, a scroll of magic missile is not!\n}}\n\n##### Adventuring Gear\n| Gear | Weight | Cost |\n|:--------|:------:|:----:|\n| Alcohol |1 lb.|25 LMD |\n| Antibiotics |0.1 lb.|50 LMD|\n| Antidote |0.1 lb.|50 LMD|\n| Antivirals |0.1 lb.| 50 LMD |\n| Art (Trade Good) |2 lb.|100 LMD|\n| Autoinjector | 1 lb. | 150 LMD\n| Autoinjector (Advanced) | 1 lb. | 450 LMD\n| Cytotoxin |1 lb.|140 LMD|\n| Flashlight | 1 lb. | 75 LMD |\n| Haemotoxin |1 lb.|140 LMD|\n| Necrotoxin |1 lb.|140 LMD|\n| Neurotoxin |1 lb.|140 LMD|\n| Oripathy Suppressant (Poor)|1 lb.|150 LMD|\n| Oripathy Suppressant|1 lb.|500 LMD|\n| Painkillers |0.1 lb.|50 LMD|\n\n{{note\n##### Toxins and Poisons\nThe four Toxins (Cytotoxin, Haemotoxin, Necrotoxin, and Neurotoxin) are considered to be Poisons. Advantage on Saving Throws against the Poisoned Condition grants Advantage on Saving Throws against Toxins, and Immunity to the Poisoned Condition grants Immunity to any effect of a Toxin that requires a Saving Throw.\n}}\n\n}}\n\n#### Alcohol\nCan be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.\n:\n#### Antibiotics\nCan be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n#### Antidote\nCan be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n:\n#### Antivirals\nCan be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n\n\\column\n\n#### Art (Trade Good)\nA piece of Art. It is valuable to the right people.\n:\n#### Autoinjector\nA medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.\n:\n#### Autoinjector (Advanced)\nA advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are **Dying**, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.\n:\n\n\\page\n{{pageNumber,auto}}\n\n#### Cytotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.\n:\n#### Flashlight\nA flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.\n:\n#### Haemotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage. \n:\n\n\n\\column\n\n#### Necrotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes. \n\n<img \n  src='https://arknights.wiki.gg/images/Thorns.png?895d3e' \n  style='position:absolute;top:400px;right:0px;width:400px' />\n\n\\page\n{{pageNumber,auto}}\n\n\\column\n\n#### Neurotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes. \n:\n#### Oripathy Suppressant (Poor)\nA concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.\n:\n#### Oripathy Suppressant\nA specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease. \n:\n#### Painkillers\nA drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/Kal%27tsit.png?ddef02' \n  style='position:absolute;top:0px;right:50px;width:1100px' />\n\n\n\\page\n{{pageNumber,auto}}",
     "rawSources": [
       "## Adventuring Gear\n:\n{{wide\nThe following section contains additional Adventuring Gear that can be acquired and used. The items are listed alphabetically with price and weight; descriptions of effects can be found afterwards.\n\n{{note\n##### 5e Adventuring Gear\nFor the sake of expedience, all of the available Adventuring Gear from 5e will not be relisted. The items listed here are an addition to that list. Thus, if you require a piece of Adventuring Gear that it is not listed here but exists within 5e, consult the DM as to where you might get it, and if it makes sense within the Arknights setting; a rope is universal, a scroll of magic missile is not!\n}}\n\n##### Adventuring Gear\n| Gear | Weight | Cost |\n|:--------|:------:|:----:|\n| Alcohol |1 lb.|25 LMD |\n| Antibiotics |0.1 lb.|50 LMD|\n| Antidote |0.1 lb.|50 LMD|\n| Antivirals |0.1 lb.| 50 LMD |\n| Art (Trade Good) |2 lb.|100 LMD|\n| Autoinjector | 1 lb. | 150 LMD\n| Autoinjector (Advanced) | 1 lb. | 450 LMD\n| Cytotoxin |1 lb.|140 LMD|\n| Flashlight | 1 lb. | 75 LMD |\n| Haemotoxin |1 lb.|140 LMD|\n| Necrotoxin |1 lb.|140 LMD|\n| Neurotoxin |1 lb.|140 LMD|\n| Oripathy Suppressant (Poor)|1 lb.|150 LMD|\n| Oripathy Suppressant|1 lb.|500 LMD|\n| Painkillers |0.1 lb.|50 LMD|\n\n{{note\n##### Toxins and Poisons\nThe four Toxins (Cytotoxin, Haemotoxin, Necrotoxin, and Neurotoxin) are considered to be Poisons. Advantage on Saving Throws against the Poisoned Condition grants Advantage on Saving Throws against Toxins, and Immunity to the Poisoned Condition grants Immunity to any effect of a Toxin that requires a Saving Throw.\n}}\n\n}}\n\n#### Alcohol\nCan be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.\n:\n#### Antibiotics\nCan be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n#### Antidote\nCan be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n:\n#### Antivirals\nCan be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n\n\\column\n\n#### Art (Trade Good)\nA piece of Art. It is valuable to the right people.\n:\n#### Autoinjector\nA medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.\n:\n#### Autoinjector (Advanced)\nA advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are **Dying**, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.\n:\n\n\\page\n{{pageNumber,auto}}\n\n#### Cytotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.\n:\n#### Flashlight\nA flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.\n:\n#### Haemotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage. \n:\n\n\n\\column\n\n#### Necrotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes. \n\n<img \n  src='https://arknights.wiki.gg/images/Thorns.png?895d3e' \n  style='position:absolute;top:400px;right:0px;width:400px' />\n\n\\page\n{{pageNumber,auto}}\n\n\\column\n\n#### Neurotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes. \n:\n#### Oripathy Suppressant (Poor)\nA concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.\n:\n#### Oripathy Suppressant\nA specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease. \n:\n#### Painkillers\nA drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/Kal%27tsit.png?ddef02' \n  style='position:absolute;top:0px;right:50px;width:1100px' />\n\n\n\\page\n{{pageNumber,auto}}"
@@ -77,7 +77,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Chapter 4: Magic Items",
     "itemType": null,
     "sourceHeading": "Magic Items",
-    "content": "<h2>Magic Items</h2>\n<p>Magic items within the world of Arknights are mechanically identical to those of Dungeons and Dragons, but the reason behind them is different. In Dungeons and Dragons, a Magic Item is normally something crafted in a particular arcane way, or instilled with a particularly powerful enchantment. In AK5e, while some Magic Items may indeed fall into those categories, most are instead the result of strange innovations, or are prototype technologies that are not replicable yet.<br>The following is a selection of Magic Items that may be found on Terra; it is not an exhaustive list. If you would like to try and find a Magic Item that is not listed here, consult with your DM to see if it makes sense within the Arknights setting, and where you might get it if it does.</p>\n<aside class=\"ak5e-note\">\n<h5>Magic Item Pricing</h5>\n<p>The pricing of Magical Items is a difficult subject; they are not regularly available, and thus are not subject to supply and demand like mundane items are. This table is to help estimate the cost of these items; it is in no way prescriptive, and the DM has the final call on the price of an item, if it can even be bought in the first place.</p>\n<h5>Magic Item Rarity</h5>\n<pre>| Rarity            | Price |</pre>\n<pre>|:------------------|:-----:|</pre>\n<pre>| Common            | 1500 LMD</pre>\n<pre>| Uncommon          | 4500 LMD</pre>\n<pre>| Rare              | 10,000 LMD</pre>\n<pre>| Very Rare         | 50,000 LMD</pre>\n<pre>| Legendary         | 1,000,000 LMD</pre>\n<pre>| Artifact          | Priceless</pre>\n</aside>\n<h5>Banshee's Kiss</h5>\n<h4>Arts Staff +1/+2/+3</h4>\n<p><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em><br>The Conductive Property on this Staff is increased by 1/2/3.</p>\n<h4>Arts Wand +1/+2/+3</h4>\n<p><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em><br>This Wand gains the Conductive (1/2/3) Property.</p>\n<h4>Banshee's Kiss</h4>\n<p><em>Wondrous Item, Very Rare (Attunement required)</em><br>A symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent.</p>\n<p><strong>Fearless.</strong> While you are wearing this item and are attuned to it, you are immune to the Frightened Condition.</p>\n<p><strong>Jealousy.</strong> While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.</p>\n<h4>Blacksteel</h4>\n<p><em>Weapon (Handgun), Artifact (Attunement by a Sankta required)</em><br>A patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder.</p>\n<p><strong>Magic Weapon.</strong> You have a +1 bonus to Attack and Damage rolls made using Blacksteel.</p>\n<p><strong>Stroke of Thunder.</strong> As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.</p>\n<p><strong>Passing of War.</strong> If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed.</p>\n<h4>Divine Oath</h4>\n<p><em>Weapon (Grenade Launcher), Artifact (Attunement required)</em><br>A one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.</p>\n<p><strong>Magic Weapon.</strong> Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<p><strong>Light Judgement.</strong> This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.</p>\n<p><strong>Melee Attachment.</strong> This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage.</p>\n<h4>Fearless Blade</h4>\n<p><em>Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)</em><br>Throughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.</p>\n<p><strong>Oath of Moment.</strong> As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.</p>\n<h4>King's Armour</h4>\n<p><em>Armour (Heavy Combat Gear), Artifact (Attunement required)</em><br>The lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Hope.</strong> While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points.</p>\n<h4>King's Crown</h4>\n<p><em>Wondrous Item, Artifact (Attunement required)</em><br>The lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Drive.</strong> When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.</p>\n<h5>Fearless Blade</h5>\n<h4>King's Lance</h4>\n<p><em>Weapon (Polearm), Artifact (Attunement required)</em><br>The lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Wishes.</strong> When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.<br>Additionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.</p>\n<h4>Launcher +1/+2/+3</h4>\n<p><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em><br>Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<h4>Rusted Hammer</h4>\n<p><em>Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)</em><br>These hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.</p>\n<p><strong>Durable.</strong> This weapon cannot be damaged unless it would be destroyed completely.</p>\n<p><strong>Enduring.</strong> After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.</p>\n<p><strong>Survivor.</strong> When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8.</p>\n<p><strong>Symbol.</strong> What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.</p>\n<h5>Rusted Hammer</h5>\n<h4>The Black Lock and The White Key</h4>\n<p><em>Weapons (Arts Staves), Artifact (Attunement required)</em><br>The Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.</p>\n<p><strong>Magic Staves.</strong> These Staves have the Conductive (4) Property.</p>\n<p><strong>Time Warp.</strong> While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.</p>\n<p><strong>Lock and Key.</strong> These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.<br><strong>Key of Chronology (1 Charge).</strong> As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.</p>\n<p><strong>Lock of Shattered Time (1 Charge).</strong> As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.</p>\n<p><strong>Subjective Time Acceleration (1 Charge).</strong> All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.</p>\n<h4>Weapon +1/+2/+3</h4>\n<p><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em><br>You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p>",
+    "content": "<h2>Magic Items</h2>\n<p class=\"ak5e-source-paragraph\">Magic items within the world of Arknights are mechanically identical to those of Dungeons and Dragons, but the reason behind them is different. In Dungeons and Dragons, a Magic Item is normally something crafted in a particular arcane way, or instilled with a particularly powerful enchantment. In AK5e, while some Magic Items may indeed fall into those categories, most are instead the result of strange innovations, or are prototype technologies that are not replicable yet.</p>\n<p class=\"ak5e-source-paragraph\">The following is a selection of Magic Items that may be found on Terra; it is not an exhaustive list. If you would like to try and find a Magic Item that is not listed here, consult with your DM to see if it makes sense within the Arknights setting, and where you might get it if it does.</p>\n<aside class=\"ak5e-note\">\n<h5>Magic Item Pricing</h5>\n<p class=\"ak5e-source-paragraph\">The pricing of Magical Items is a difficult subject; they are not regularly available, and thus are not subject to supply and demand like mundane items are. This table is to help estimate the cost of these items; it is in no way prescriptive, and the DM has the final call on the price of an item, if it can even be bought in the first place.</p>\n<h5>Magic Item Rarity</h5>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Rarity</th><th scope=\"col\" class=\"ak5e-source-table__center\">Price</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Common</td><td class=\"ak5e-source-table__center\">1500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Uncommon</td><td class=\"ak5e-source-table__center\">4500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Rare</td><td class=\"ak5e-source-table__center\">10,000 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Very Rare</td><td class=\"ak5e-source-table__center\">50,000 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Legendary</td><td class=\"ak5e-source-table__center\">1,000,000 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Artifact</td><td class=\"ak5e-source-table__center\">Priceless</td></tr></tbody></table></div>\n</aside>\n<h5>Banshee's Kiss</h5>\n<h4>Arts Staff +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">The Conductive Property on this Staff is increased by 1/2/3.</p>\n<h4>Arts Wand +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">This Wand gains the Conductive (1/2/3) Property.</p>\n<h4>Banshee's Kiss</h4>\n<p class=\"ak5e-source-paragraph\"><em>Wondrous Item, Very Rare (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">A symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Fearless.</strong> While you are wearing this item and are attuned to it, you are immune to the Frightened Condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Jealousy.</strong> While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.</p>\n<h4>Blacksteel</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Handgun), Artifact (Attunement by a Sankta required)</em></p>\n<p class=\"ak5e-source-paragraph\">A patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Weapon.</strong> You have a +1 bonus to Attack and Damage rolls made using Blacksteel.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Stroke of Thunder.</strong> As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Passing of War.</strong> If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed.</p>\n<h4>Divine Oath</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">A one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Weapon.</strong> Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Light Judgement.</strong> This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Melee Attachment.</strong> This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage.</p>\n<h4>Fearless Blade</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">Throughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Oath of Moment.</strong> As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.</p>\n<h4>King's Armour</h4>\n<p class=\"ak5e-source-paragraph\"><em>Armour (Heavy Combat Gear), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Hope.</strong> While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points.</p>\n<h4>King's Crown</h4>\n<p class=\"ak5e-source-paragraph\"><em>Wondrous Item, Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Drive.</strong> When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.</p>\n<h5>Fearless Blade</h5>\n<h4>King's Lance</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Polearm), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Wishes.</strong> When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.</p>\n<p class=\"ak5e-source-paragraph\">Additionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.</p>\n<h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<h4>Rusted Hammer</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)</em></p>\n<p class=\"ak5e-source-paragraph\">These hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Durable.</strong> This weapon cannot be damaged unless it would be destroyed completely.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Enduring.</strong> After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Survivor.</strong> When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Symbol.</strong> What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.</p>\n<h5>Rusted Hammer</h5>\n<h4>The Black Lock and The White Key</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapons (Arts Staves), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Staves.</strong> These Staves have the Conductive (4) Property.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Time Warp.</strong> While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Lock and Key.</strong> These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Key of Chronology (1 Charge).</strong> As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Lock of Shattered Time (1 Charge).</strong> As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Subjective Time Acceleration (1 Charge).</strong> All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.</p>\n<h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p>",
     "rawSource": "## Magic Items\nMagic items within the world of Arknights are mechanically identical to those of Dungeons and Dragons, but the reason behind them is different. In Dungeons and Dragons, a Magic Item is normally something crafted in a particular arcane way, or instilled with a particularly powerful enchantment. In AK5e, while some Magic Items may indeed fall into those categories, most are instead the result of strange innovations, or are prototype technologies that are not replicable yet.\n:\nThe following is a selection of Magic Items that may be found on Terra; it is not an exhaustive list. If you would like to try and find a Magic Item that is not listed here, consult with your DM to see if it makes sense within the Arknights setting, and where you might get it if it does.\n\n{{note\n##### Magic Item Pricing\nThe pricing of Magical Items is a difficult subject; they are not regularly available, and thus are not subject to supply and demand like mundane items are. This table is to help estimate the cost of these items; it is in no way prescriptive, and the DM has the final call on the price of an item, if it can even be bought in the first place. \n\n##### Magic Item Rarity\n| Rarity            | Price | \n|:------------------|:-----:|\n| Common            | 1500 LMD \n| Uncommon          | 4500 LMD \n| Rare              | 10,000 LMD\n| Very Rare         | 50,000 LMD\n| Legendary         | 1,000,000 LMD\n| Artifact          | Priceless\n\n\n}}\n\n\n<img \n  src='https://arknights.wiki.gg/images/1/17/Banshee%27s_Kiss.png?e7797b' \n  style='position:absolute;top:650px;right:450px;width:300px' />\n\n{{artist,bottom:100px,left:160px\n##### Banshee's Kiss\n}}\n\n\n\n\n\\column\n\n#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.\n\n#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.\n\n\n#### Banshee's Kiss\n*Wondrous Item, Very Rare (Attunement required)*\n:\nA symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent. \n\n**Fearless.** While you are wearing this item and are attuned to it, you are immune to the Frightened Condition. \n\n**Jealousy.** While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.\n\n#### Blacksteel\n*Weapon (Handgun), Artifact (Attunement by a Sankta required)*\n:\nA patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder. \n\n**Magic Weapon.** You have a +1 bonus to Attack and Damage rolls made using Blacksteel.\n\n**Stroke of Thunder.** As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.\n\n**Passing of War.** If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed. \n\n\n\\page\n{{pageNumber,auto}}\n\n#### Divine Oath\n*Weapon (Grenade Launcher), Artifact (Attunement required)*\n:\nA one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.\n\n**Magic Weapon.** Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.\n\n**Light Judgement.** This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.\n\n**Melee Attachment.** This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage. \n\n#### Fearless Blade\n*Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)*\n:\nThroughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.\n\n**Oath of Moment.** As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.\n\n\n\n\n\\column\n\n#### King's Armour\n*Armour (Heavy Combat Gear), Artifact (Attunement required)*\n:\nThe lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Hope.** While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points. \n\n#### King's Crown\n*Wondrous Item, Artifact (Attunement required)*\n:\nThe lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Drive.** When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/d/dc/Fearless_Blade.png?4a72f7&20250209155616' \n  style='position:absolute;top:700px;right:100px;width:300px' />\n  \n{{artist,bottom:150px,left:620px\n##### Fearless Blade\n}}\n  \n\n\n\\page\n{{pageNumber,auto}}\n\n#### King's Lance\n*Weapon (Polearm), Artifact (Attunement required)*\n:\nThe lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Wishes.** When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.\n:\nAdditionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.\n\n#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n#### Rusted Hammer\n*Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)*\n:\nThese hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.\n\n**Durable.** This weapon cannot be damaged unless it would be destroyed completely.\n\n**Enduring.** After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.\n\n**Survivor.** When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8. \n\n**Symbol.** What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.\n\n<img \n  src='https://arknights.wiki.gg/images/3/3a/Rusted_Iron_Hammer.png?b6bb7e' \n  style='position:absolute;top:600px;right:100px;width:300px' />\n  \n{{artist,bottom:250px,left:650px\n##### Rusted Hammer\n}}\n  \n  \n\\page\n{{pageNumber,auto}}\n\n#### The Black Lock and The White Key\n*Weapons (Arts Staves), Artifact (Attunement required)*\n:\nThe Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.\n\n**Magic Staves.** These Staves have the Conductive (4) Property.\n\n**Time Warp.** While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.\n\n**Lock and Key.** These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.\n:\n**Key of Chronology (1 Charge).** As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.\n\n**Lock of Shattered Time (1 Charge).** As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.\n\n**Subjective Time Acceleration (1 Charge).** All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.\n\n#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
     "rawSources": [
       "## Magic Items\nMagic items within the world of Arknights are mechanically identical to those of Dungeons and Dragons, but the reason behind them is different. In Dungeons and Dragons, a Magic Item is normally something crafted in a particular arcane way, or instilled with a particularly powerful enchantment. In AK5e, while some Magic Items may indeed fall into those categories, most are instead the result of strange innovations, or are prototype technologies that are not replicable yet.\n:\nThe following is a selection of Magic Items that may be found on Terra; it is not an exhaustive list. If you would like to try and find a Magic Item that is not listed here, consult with your DM to see if it makes sense within the Arknights setting, and where you might get it if it does.\n\n{{note\n##### Magic Item Pricing\nThe pricing of Magical Items is a difficult subject; they are not regularly available, and thus are not subject to supply and demand like mundane items are. This table is to help estimate the cost of these items; it is in no way prescriptive, and the DM has the final call on the price of an item, if it can even be bought in the first place. \n\n##### Magic Item Rarity\n| Rarity            | Price | \n|:------------------|:-----:|\n| Common            | 1500 LMD \n| Uncommon          | 4500 LMD \n| Rare              | 10,000 LMD\n| Very Rare         | 50,000 LMD\n| Legendary         | 1,000,000 LMD\n| Artifact          | Priceless\n\n\n}}\n\n\n<img \n  src='https://arknights.wiki.gg/images/1/17/Banshee%27s_Kiss.png?e7797b' \n  style='position:absolute;top:650px;right:450px;width:300px' />\n\n{{artist,bottom:100px,left:160px\n##### Banshee's Kiss\n}}\n\n\n\n\n\\column\n\n#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.\n\n#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.\n\n\n#### Banshee's Kiss\n*Wondrous Item, Very Rare (Attunement required)*\n:\nA symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent. \n\n**Fearless.** While you are wearing this item and are attuned to it, you are immune to the Frightened Condition. \n\n**Jealousy.** While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.\n\n#### Blacksteel\n*Weapon (Handgun), Artifact (Attunement by a Sankta required)*\n:\nA patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder. \n\n**Magic Weapon.** You have a +1 bonus to Attack and Damage rolls made using Blacksteel.\n\n**Stroke of Thunder.** As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.\n\n**Passing of War.** If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed. \n\n\n\\page\n{{pageNumber,auto}}\n\n#### Divine Oath\n*Weapon (Grenade Launcher), Artifact (Attunement required)*\n:\nA one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.\n\n**Magic Weapon.** Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.\n\n**Light Judgement.** This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.\n\n**Melee Attachment.** This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage. \n\n#### Fearless Blade\n*Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)*\n:\nThroughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.\n\n**Oath of Moment.** As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.\n\n\n\n\n\\column\n\n#### King's Armour\n*Armour (Heavy Combat Gear), Artifact (Attunement required)*\n:\nThe lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Hope.** While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points. \n\n#### King's Crown\n*Wondrous Item, Artifact (Attunement required)*\n:\nThe lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Drive.** When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/d/dc/Fearless_Blade.png?4a72f7&20250209155616' \n  style='position:absolute;top:700px;right:100px;width:300px' />\n  \n{{artist,bottom:150px,left:620px\n##### Fearless Blade\n}}\n  \n\n\n\\page\n{{pageNumber,auto}}\n\n#### King's Lance\n*Weapon (Polearm), Artifact (Attunement required)*\n:\nThe lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Wishes.** When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.\n:\nAdditionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.\n\n#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n#### Rusted Hammer\n*Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)*\n:\nThese hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.\n\n**Durable.** This weapon cannot be damaged unless it would be destroyed completely.\n\n**Enduring.** After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.\n\n**Survivor.** When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8. \n\n**Symbol.** What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.\n\n<img \n  src='https://arknights.wiki.gg/images/3/3a/Rusted_Iron_Hammer.png?b6bb7e' \n  style='position:absolute;top:600px;right:100px;width:300px' />\n  \n{{artist,bottom:250px,left:650px\n##### Rusted Hammer\n}}\n  \n  \n\\page\n{{pageNumber,auto}}\n\n#### The Black Lock and The White Key\n*Weapons (Arts Staves), Artifact (Attunement required)*\n:\nThe Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.\n\n**Magic Staves.** These Staves have the Conductive (4) Property.\n\n**Time Warp.** While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.\n\n**Lock and Key.** These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.\n:\n**Key of Chronology (1 Charge).** As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.\n\n**Lock of Shattered Time (1 Charge).** As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.\n\n**Subjective Time Acceleration (1 Charge).** All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.\n\n#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}"
@@ -2579,7 +2579,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Bound",
     "itemType": "feat",
     "sourceHeading": "Bound",
-    "content": "<h4>Bound</h4>\n<p>Weapons with this Property have been bound by a Flinger.</p>",
+    "content": "<h4>Bound</h4>\n<p class=\"ak5e-source-paragraph\">Weapons with this Property have been bound by a Flinger.</p>",
     "rawSource": "#### Bound\nWeapons with this Property have been bound by a Flinger.\n:",
     "tableData": null,
     "systemData": {}
@@ -2590,7 +2590,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Brace",
     "itemType": "feat",
     "sourceHeading": "Brace",
-    "content": "<h4>Brace</h4>\n<p>To make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement.<br>If the weapon also has the Loading Property, this cost is increased to 30ft.</p>",
+    "content": "<h4>Brace</h4>\n<p class=\"ak5e-source-paragraph\">To make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement.</p>\n<p class=\"ak5e-source-paragraph\">If the weapon also has the Loading Property, this cost is increased to 30ft.</p>",
     "rawSource": "#### Brace\nTo make an Attack using a weapon you are wielding with the Brace Property, you must also pay 10ft of Movement. \n:\nIf the weapon also has the Loading Property, this cost is increased to 30ft. \n:",
     "tableData": null,
     "systemData": {}
@@ -2601,7 +2601,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Casting Unit",
     "itemType": "feat",
     "sourceHeading": "Casting Unit",
-    "content": "<h4>Casting Unit</h4>\n<p>Weapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.</p>",
+    "content": "<h4>Casting Unit</h4>\n<p class=\"ak5e-source-paragraph\">Weapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.</p>",
     "rawSource": "#### Casting Unit\nWeapons with this Special Property can be used to cast Arts; if you are wielding a Weapon with this Property, you may ignore the Somatic Components of Arts.\n:",
     "tableData": null,
     "systemData": {}
@@ -2612,7 +2612,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Conductive (X)",
     "itemType": "feat",
     "sourceHeading": "Conductive (X)",
-    "content": "<h4>Conductive (X)</h4>\n<p>While you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied.</p>",
+    "content": "<h4>Conductive (X)</h4>\n<p class=\"ak5e-source-paragraph\">While you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied.</p>",
     "rawSource": "#### Conductive (X)\nWhile you have a weapon with the Conductive (X) Property Equipped, you gain +X to your Spell Attack Rolls and Spell Save DC. If you have multiple weapons with this property Equipped, only the largest value of X is applied. \n:",
     "tableData": null,
     "systemData": {}
@@ -2623,7 +2623,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Couch",
     "itemType": "feat",
     "sourceHeading": "Couch",
-    "content": "<h4>Couch</h4>\n<p>If you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus.</p>",
+    "content": "<h4>Couch</h4>\n<p class=\"ak5e-source-paragraph\">If you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus.</p>",
     "rawSource": "#### Couch\nIf you make an Attack with a weapon with the Couch Property while it is not your Turn, that Attack deals additional Damage equal to your Proficiency Bonus. \n:",
     "tableData": null,
     "systemData": {}
@@ -2634,7 +2634,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Crush (X)",
     "itemType": "feat",
     "sourceHeading": "Crush (X)",
-    "content": "<h4>Crush (X)</h4>\n<p>If you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further.</p>",
+    "content": "<h4>Crush (X)</h4>\n<p class=\"ak5e-source-paragraph\">If you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further.</p>",
     "rawSource": "#### Crush (X)\nIf you hit a Creature with an Attack with this Property, the Damage of that Attack cannot be reduced to less than X by Damage Reduction or Resistance (Immunities apply as normal). If the rolled Damage of the Attack is less than X, it instead cannot be reduced any further. \n:",
     "tableData": null,
     "systemData": {}
@@ -2645,7 +2645,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: CQC",
     "itemType": "feat",
     "sourceHeading": "CQC",
-    "content": "<h4>CQC</h4>\n<p>You do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.</p>",
+    "content": "<h4>CQC</h4>\n<p class=\"ak5e-source-paragraph\">You do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.</p>",
     "rawSource": "#### CQC\nYou do not suffer Disadvantage on Ranged Attack Rolls using a Weapon with this Property against a Creature within 5 feet of you.\n:",
     "tableData": null,
     "systemData": {}
@@ -2656,7 +2656,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Deadly",
     "itemType": "feat",
     "sourceHeading": "Deadly",
-    "content": "<h4>Deadly</h4>\n<p>The first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.</p>",
+    "content": "<h4>Deadly</h4>\n<p class=\"ak5e-source-paragraph\">The first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.</p>",
     "rawSource": "#### Deadly\nThe first time each Turn you hit with an Attack using a weapon with the Deadly Property, you may cause that Attack to deal additional Damage equal to your Proficiency Bonus.\n:",
     "tableData": null,
     "systemData": {}
@@ -2667,7 +2667,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Firearm",
     "itemType": "feat",
     "sourceHeading": "Firearm",
-    "content": "<h4>Firearm</h4>\n<p>This weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.</p>",
+    "content": "<h4>Firearm</h4>\n<p class=\"ak5e-source-paragraph\">This weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.</p>",
     "rawSource": "#### Firearm\nThis weapon is a Terran firearm, which operate on Originium Arts. You do not need to be able to cast any Arts to use weapons with this Property, but any effect that prevents the casting of Arts also prevents use of this weapon.\n\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2678,7 +2678,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Rapid Fire",
     "itemType": "feat",
     "sourceHeading": "Rapid Fire",
-    "content": "<h4>Rapid Fire</h4>\n<p>If you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.</p>",
+    "content": "<h4>Rapid Fire</h4>\n<p class=\"ak5e-source-paragraph\">If you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.</p>",
     "rawSource": "#### Rapid Fire\nIf you have attacked with a weapon with this Property this Turn, you may make an additional Attack with that weapon as a Bonus Action. If you are wielding two weapons with this Property, you may instead make an Attack with each of those Weapons as a Bonus Action. However, you do not add your Ability Modifier to the Damage Roll for Attacks you make using this Property.",
     "tableData": null,
     "systemData": {}
@@ -2689,7 +2689,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Returning",
     "itemType": "feat",
     "sourceHeading": "Returning",
-    "content": "<h4>Returning</h4>\n<p>If you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.</p>",
+    "content": "<h4>Returning</h4>\n<p class=\"ak5e-source-paragraph\">If you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.</p>",
     "rawSource": "#### Returning\nIf you make a Ranged Attack using the Thrown Property of this weapon, it returns to your hand after the Attack. If the Attack Roll result is a Natural 1, the weapon does not return, and falls at the feet of the target of that Attack.",
     "tableData": null,
     "systemData": {}
@@ -2700,7 +2700,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Splash (X)",
     "itemType": "feat",
     "sourceHeading": "Splash (X)",
-    "content": "<h4>Splash (X)</h4>\n<p>You do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.</p>",
+    "content": "<h4>Splash (X)</h4>\n<p class=\"ak5e-source-paragraph\">You do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.</p>",
     "rawSource": "#### Splash (X)\nYou do not make Attack Rolls when attacking using a weapon with this Property. Instead, choose a point within the weapon's range; all Creatures within X feet of that Point must succeed on a Dexterity Saving Throw against your Martial DC, suffering the weapon’s normal Damage plus your Ability Score Modifier on a failed Save, or half that amount on a successful Save. If you are not Proficient with the weapon, Creatures have Advantage on this Saving Throw.\n:",
     "tableData": null,
     "systemData": {}
@@ -2711,7 +2711,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Weapon Property: Spread",
     "itemType": "feat",
     "sourceHeading": "Spread",
-    "content": "<h4>Spread</h4>\n<p>When you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.</p>",
+    "content": "<h4>Spread</h4>\n<p class=\"ak5e-source-paragraph\">When you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.</p>",
     "rawSource": "#### Spread\nWhen you hit with an Attack using a weapon with this Property against a Creature within its normal range, you may deal Piercing Damage equal to the Ability Modifier used for the Attack to a different Creature within 5 feet of the original Creature.\n\n{{imageMaskCorner25,--offsetX:52%,--offsetY:-57%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/f/fa/Executor_Elite_2.png' \n  style='position:absolute;top:350px;right:-450px;width:1400px'/>\n}}\n\n\n\\page\n{{pageNumber,auto}}\n\n\n\n{{wide",
     "tableData": null,
     "systemData": {}
@@ -2722,7 +2722,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Armour Property: Bastion",
     "itemType": "feat",
     "sourceHeading": "Bastion Special Property",
-    "content": "<h5>Bastion Special Property</h5>\n<p>When a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.</p>",
+    "content": "<h5>Bastion Special Property</h5>\n<p class=\"ak5e-source-paragraph\">When a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.</p>",
     "rawSource": "##### Bastion Special Property\nWhen a Creature has a piece of Equipment with this Special Property equipped, they have Advantage on Strength and Dexterity Saving Throws against hostile effects they can see.\n\n}}\n\n\n\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide",
     "tableData": null,
     "systemData": {}
@@ -2733,7 +2733,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Art Kit",
     "itemType": "feat",
     "sourceHeading": "Art Kit",
-    "content": "<h4>Art Kit</h4>\n<p>Just as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Create Art (2 Charges):</em></strong> As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD.</p>\n<p><strong><em>Mark (1 Charges):</em></strong> Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Artist's Eye:</em></strong> Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.</p>\n<p><strong><em>Disguise Appearance (2 Charges):</em></strong> Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.</p>",
+    "content": "<h4>Art Kit</h4>\n<p class=\"ak5e-source-paragraph\">Just as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Art (2 Charges):</em></strong> As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mark (1 Charges):</em></strong> Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Artist's Eye:</em></strong> Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Disguise Appearance (2 Charges):</em></strong> Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.</p>",
     "rawSource": "#### Art Kit\n:\nJust as every artist is different, every Art Kit is different, suited to the person who put it together. A street artist's kit may be full of spray cans, while a \"traditional\" artist's may be full of brush and canvas. Ultimately however, artists have more in common than they do apart; a desire to send a message, and the vision to see it done.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Art (2 Charges):*** As a Long Rest Activity, you can create a piece of Art; this Art can depict whatever you wish. To do so, you must make a DC13 Wisdom Check; if you are Proficient with this Kit, you may add your Proficiency Bonus to this roll. On a success, the Art you create is valuable, and can be sold for normal price (100 LMD), On a failure, you still create the Art, but its value is reduced to 0 LMD. \n\n***Mark (1 Charges):*** Over the course of a minute, you can quickly sketch/spray/paint a symbol or sign onto a material or the environment. \n:\n**Proficient Uses:** \n\n***Artist's Eye:*** Your familiarity with art and its tools gives you insight into deciphering the meanings behind art. You have a +5 modifier to any Check to determine meaning or messages in art, including hidden messages and codes, as well as the mindset of the person who made that art.\n\n***Disguise Appearance (2 Charges):*** Your expertise with your tools allows you (either doing it yourself or instructing others), as a Long Rest Activity, to paint an object, vehicle, or piece of armour into a design of your choice. This design could be camouflage, providing a bonus to Stealth Checks involving the subject, or even a disguise to disguise the subject as a member of a faction.\n\n\n\n{{imageMaskEdge1,--offset:3%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n{{imageMaskEdge1,--offset:17%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/a/aa/WR-Everlasting_Magnum_Opus.png?2f9bde' \n  style='position:absolute;top:00px;right:-600px;width:1900px;;transform: scaleX(-1);revealImage' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2744,7 +2744,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Brewing Kit",
     "itemType": "feat",
     "sourceHeading": "Brewing Kit",
-    "content": "<h4>Brewing Kit</h4>\n<p>Alcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Brew Alcohol (2 Charges):</em></strong> As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0.</p>\n<p><strong><em>Purify Water (1 Charge):</em></strong> Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Analyse Fluids:</em></strong> Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.</p>\n<p><strong><em>Mass Purify Water (3 Charges):</em></strong> Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<aside class=\"ak5e-note\">\n<h5>Alcohol</h5>\n<p>Alcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.<br>A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws.</p>\n</aside>",
+    "content": "<h4>Brewing Kit</h4>\n<p class=\"ak5e-source-paragraph\">Alcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Brew Alcohol (2 Charges):</em></strong> As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Purify Water (1 Charge):</em></strong> Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Analyse Fluids:</em></strong> Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mass Purify Water (3 Charges):</em></strong> Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<aside class=\"ak5e-note\">\n<h5>Alcohol</h5>\n<p class=\"ak5e-source-paragraph\">Alcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.</p>\n<p class=\"ak5e-source-paragraph\">A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws.</p>\n</aside>",
     "rawSource": "#### Brewing Kit\n:\nAlcohol is a nearly universal truth in all civilisations. It bridges gaps and opens doors in a way that words alone often cannot. The talents and tools used in creating it, however, have more than one application, turning poisoned and polluted water into lifesaving drinking water. The brewer can always find a place, or people, who need them. The Brewer's Kit contains brewing and distillation equipment, as well as instruments for monitoring the contents of fluids.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Brew Alcohol (2 Charges):*** As a Long Rest Activity, you can begin to brew alcohol. It finishes brewing when you next complete a Long Rest; the number of servings brewed is equal to your Proficiency Bonus. To do so, when it finishes brewing, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the Alcohol you create is valuable, and can be sold for normal price (25 LMD), On a failure, you still create the alcohol, but it is of lower quality, and its value is reduced to 0. \n\n***Purify Water (1 Charge):*** Over the duration of a Short Rest, you can use the distilling tools present in this kit to purify enough water for a single person to drink for one day. \n:\n**Proficient Uses:**\n\n***Analyse Fluids:*** Modern brewing is a careful, scientific process that requires close monitoring and fine instrumentation in order to avoid contamination. Using the instruments and your knowledge, you can grant yourself a +5 bonus to any check to determine the contents of a body of liquid, including if it is poisoned/alcoholic/etc.\n\n***Mass Purify Water (3 Charges):*** Your familiarity with the kit allows you to process vast amounts of fluid when you have concerted time to work at it. As a Long Rest Activity, you may purify enough drinking water for a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n:\n{{note\n##### Alcohol\nAlcohol has been a feature of almost every civilisation since mankind learned the art of fermentation. It can break the ice between strangers, either as a gift, or through removing their inhibitions.\n:\nA Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws. \n}}\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2755,7 +2755,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Cooking Kit",
     "itemType": "feat",
     "sourceHeading": "Cooking Kit",
-    "content": "<h4>Cooking Kit</h4>\n<p>Cooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Create Rations (1 Charge):</em></strong> Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<p><strong><em>Prepare Ingredients:</em></strong> As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Camp Cooking (2 Charge):</em></strong> Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.</p>\n<p><strong><em>Poison Tasting:</em></strong> Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check.</p>",
+    "content": "<h4>Cooking Kit</h4>\n<p class=\"ak5e-source-paragraph\">Cooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Rations (1 Charge):</em></strong> Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Prepare Ingredients:</em></strong> As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Camp Cooking (2 Charge):</em></strong> Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Poison Tasting:</em></strong> Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check.</p>",
     "rawSource": "#### Cooking Kit\n:\nCooking food could be argued to be one of the things that defines civilisation; one of the things that divides man from animal. People with a good meal in their bellies can bear hardship that the hungry cannot, and the person that can provide this will be forever beloved. The Cooking Kit contains the tools necessary to cook away from a kitchen, in addition to a spread of long-life ingredients.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Create Rations (1 Charge):*** Without the aid of a kitchen, sometimes just keeping people from starving to death is enough. As a Long Rest Activity, you can cook enough Rations to feed a number of people equal to your Wisdom Modifier + your Proficiency Bonus.\n\n***Prepare Ingredients:*** As a Short Rest Activity, you can either scavenge vegetation or prepare a dead animal for consumption (if there is one available). To do so, you must make a DC13 Wisdom Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Furthermore, if you are preparing an animal, you have Advantage on this Roll. On a success, you restore one Charge of this Kit, up to its maximum of 5. On a failure, you waste the ingredients, and do not restore a Charge.\n:\n**Proficient Uses:** \n\n***Camp Cooking (2 Charge):*** Being in the wilderness is no excuse for anyone to eat badly. As a Long Rest Activity, you can create a Meal for a number of Creatures equal to your Proficiency Bonus + Wisdom Modifier (unless it is negative). Creatures that consume the meal roll one of their Hit Dice (this does not expend their Hit Dice) and gain that many Temporary Hit Points.\n\n***Poison Tasting:*** Your expertise with the tools of cooking gives you special insight. Using these tools, you can identify whether food is safe or dangerous to eat by succeeding on a DC13 Perception Check. \n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2766,7 +2766,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Engineering Kit",
     "itemType": "feat",
     "sourceHeading": "Engineering Kit",
-    "content": "<h4>Engineering Kit</h4>\n<p>Wrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Emergency Repairs (1 Charge):</em></strong> With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points.</p>\n<p><strong><em>Examine Machinery:</em></strong> The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Automaton Automation (2 Charges):</em></strong> As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.</p>\n<p><strong><em>Jury Rig (1 Charge):</em></strong>  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:</p>\n<p>• Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<p>• Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.</p>",
+    "content": "<h4>Engineering Kit</h4>\n<p class=\"ak5e-source-paragraph\">Wrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Emergency Repairs (1 Charge):</em></strong> With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Examine Machinery:</em></strong> The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Automaton Automation (2 Charges):</em></strong> As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Jury Rig (1 Charge):</em></strong>  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:</p>\n<p class=\"ak5e-source-paragraph\">• Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.</p>\n<p class=\"ak5e-source-paragraph\">• Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.</p>",
     "rawSource": "#### Engineering Kit\n:\nWrenches, screwdrivers, wire cutters and strippers, blowtorches; these are the tools by which mechanics and engineers weave their \"magic\", turning inert metal into vehicles. The kit of an engineer is equal parts toolbox and portable scrapheap.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Emergency Repairs (1 Charge):*** With the right tools, you can often keep a machine ticking longer than it should. Choose a Vehicle or Construct within 5 feet. If you work on it uninterrupted for 1 minute, roll a number of d4's equal to your Intelligence Modifier (or your Intelligence Modifier + your Proficiency Bonus if you are Proficient with this Kit); it regains that many Hit Points, and gains any excess as Temporary Hit Points. \n\n***Examine Machinery:*** The tools in this kit are useful in essentially all interactions with machinery, but especially useful when trying to figure out what has gone wrong. If you take 10 minutes to examine them, you gain a +5 Bonus to Technology Tests to determine the state and function of those constructs or machines that is not cumulative. \n:\n**Proficient Uses:** \n\n***Automaton Automation (2 Charges):*** As a Long Rest Activity, you can prepare an Automaton (Turret) for use (Page 467). The Turret begins in its portable form. A minute after being unfolded from its portable form for the first time, a Turret created in this way dies.  You can only have one such Turret at a time, but it does not count against the maximum amount of Automatons or Drones you can control.\n\n***Jury Rig (1 Charge):***  As a Short Rest Activity, you can \"improve\" a Vehicle or Construct. You can either:\n- Give the target a +2 Bonus to all Driving Checks performed with it. A Vehicle or Construct can only be the target of this Proficient Use once.\n- Give one Weapon on the target a +2 Bonus to Attack Rolls with that Weapon. Each Weapon on that Vehicle or Construct can only be the target of this Proficient Use once.\n\n\n\n\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2777,7 +2777,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Instrument (X)",
     "itemType": "feat",
     "sourceHeading": "Instrument (X)",
-    "content": "<h4>Instrument (X)</h4>\n<p>On earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.<br><strong>Starting Charges:</strong> -<br><strong>Uses:</strong> -<br><strong><em>Play a known Tune:</em></strong> By succeeding on a DC12 Performance Check, you can play an already existing song or tune.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Compose a Tune:</em></strong> As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check.</p>\n<p><strong><em>Improvise a Tune:</em></strong> By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it.<br><strong>Variants:</strong></p>\n<pre>| Instrument | Weight | Cost |</pre>\n<pre>|:--------|:------:|:----:|</pre>\n<pre>| Bagpipes |6lb. | 300 LMD|</pre>\n<pre>| Bass |8lb.|300 LMD|</pre>\n<pre>| Cello |7lb.|500 LMD|</pre>\n<pre>| Drums |15lb.|400 LMD|</pre>\n<pre>| Flute |1lb.|300 LMD|</pre>\n<pre>| Guitar |6lb.|300 LMD|</pre>\n<pre>| Keyboard |20lb. |200 LMD|</pre>\n<pre>| Lyre |3lb. |500 LMD|</pre>\n<pre>| Microphone |1lb. |200 LMD|</pre>\n<pre>| Trombone |4lb. |400 LMD|</pre>\n<pre>| Tuba |20lb. |500 LMD|</pre>\n<pre>| Turntable |10lb.|400 LMD|</pre>\n<pre>| Violin |3lb.|500 LMD|</pre>",
+    "content": "<h4>Instrument (X)</h4>\n<p class=\"ak5e-source-paragraph\">On earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> -</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong> -</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Play a known Tune:</em></strong> By succeeding on a DC12 Performance Check, you can play an already existing song or tune.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Compose a Tune:</em></strong> As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Improvise a Tune:</em></strong> By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Variants:</strong></p>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Instrument</th><th scope=\"col\" class=\"ak5e-source-table__center\">Weight</th><th scope=\"col\" class=\"ak5e-source-table__center\">Cost</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Bagpipes</td><td class=\"ak5e-source-table__center\">6lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Bass</td><td class=\"ak5e-source-table__center\">8lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Cello</td><td class=\"ak5e-source-table__center\">7lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Drums</td><td class=\"ak5e-source-table__center\">15lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Flute</td><td class=\"ak5e-source-table__center\">1lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Guitar</td><td class=\"ak5e-source-table__center\">6lb.</td><td class=\"ak5e-source-table__center\">300 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Keyboard</td><td class=\"ak5e-source-table__center\">20lb.</td><td class=\"ak5e-source-table__center\">200 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Lyre</td><td class=\"ak5e-source-table__center\">3lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Microphone</td><td class=\"ak5e-source-table__center\">1lb.</td><td class=\"ak5e-source-table__center\">200 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Trombone</td><td class=\"ak5e-source-table__center\">4lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Tuba</td><td class=\"ak5e-source-table__center\">20lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Turntable</td><td class=\"ak5e-source-table__center\">10lb.</td><td class=\"ak5e-source-table__center\">400 LMD</td></tr><tr><td class=\"ak5e-source-table__left\">Violin</td><td class=\"ak5e-source-table__center\">3lb.</td><td class=\"ak5e-source-table__center\">500 LMD</td></tr></tbody></table></div>",
     "rawSource": "#### Instrument (X)\n:\nOn earth, musical instruments have existed in some form for as long as 40,000 years. Music is a form of self-expression that is like nothing else, touching the hearts of everyone, from newborn babes to the most hardened soldiers.\n:\n**Starting Charges:** -\n:\n**Uses:** -\n:\n***Play a known Tune:*** By succeeding on a DC12 Performance Check, you can play an already existing song or tune.\n:\n**Proficient Uses:** \n\n***Compose a Tune:*** As a Long Rest Activity, you can compose new music by succeeding on a DC15 Performance Check. \n\n***Improvise a Tune:*** By succeeding on a DC17 Performance Check, you can improvise a new song or tune as you play it. \n:\n**Variants:** \n| Instrument | Weight | Cost |\n|:--------|:------:|:----:|\n| Bagpipes |6lb. | 300 LMD|\n| Bass |8lb.|300 LMD|\n| Cello |7lb.|500 LMD|\n| Drums |15lb.|400 LMD|\n| Flute |1lb.|300 LMD|\n| Guitar |6lb.|300 LMD|\n| Keyboard |20lb. |200 LMD| \n| Lyre |3lb. |500 LMD|\n| Microphone |1lb. |200 LMD|\n| Trombone |4lb. |400 LMD|\n| Tuba |20lb. |500 LMD|\n| Turntable |10lb.|400 LMD|\n| Violin |3lb.|500 LMD|\n\n\n{{imageMaskEdge1,--offset:22%,--rotation:-12\n<img \n  src='https://arknights.wiki.gg/images/0/0e/Ambience_Synesthesia_2024_Nova_Five_Ultra_Live.png' \n  style='position:absolute;top:700px;right:-100px;width:1000px' />\n}}\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2788,7 +2788,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Maintenance Kit",
     "itemType": "feat",
     "sourceHeading": "Maintenance Kit",
-    "content": "<h4>Maintenance Kit</h4>\n<p>As any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Maintain Weapon (2 Charge):</em></strong> As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice):</p>\n<p>• +1 to Attack Rolls using that weapon</p>\n<p>• +1 to Damage Rolls with that weapon</p>\n<p>• The value of the Range Property is increased by 50%.</p>\n<p>A Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.</p>\n<p><strong><em>Repair Weapon/Armour (2 Charges):</em></strong> As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.<br>On a failure, nothing happens, but the charge and time are consumed.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Material Analysis:</em></strong> Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.</p>\n<p><strong><em>Mobile Workshop:</em></strong> When you use the <strong><em>Repair Weapon/Armour</em></strong> or <strong><em>Maintain Weapon</em></strong> options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.</p>",
+    "content": "<h4>Maintenance Kit</h4>\n<p class=\"ak5e-source-paragraph\">As any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Maintain Weapon (2 Charge):</em></strong> As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice):</p>\n<p class=\"ak5e-source-paragraph\">• +1 to Attack Rolls using that weapon</p>\n<p class=\"ak5e-source-paragraph\">• +1 to Damage Rolls with that weapon</p>\n<p class=\"ak5e-source-paragraph\">• The value of the Range Property is increased by 50%.</p>\n<p class=\"ak5e-source-paragraph\">A Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Repair Weapon/Armour (2 Charges):</em></strong> As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.</p>\n<p class=\"ak5e-source-paragraph\">On a failure, nothing happens, but the charge and time are consumed.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Material Analysis:</em></strong> Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Mobile Workshop:</em></strong> When you use the <strong><em>Repair Weapon/Armour</em></strong> or <strong><em>Maintain Weapon</em></strong> options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.</p>",
     "rawSource": "#### Maintenance Kit\n:\nAs any soldier or engineer will tell you, if you fail to take care of your tools, they will fail to take care of you. The maintenance kit contains all of the necessary equipment to perform rudimentary metalwork away from a dedicated workshop; you won't make anything new, but you can keep what you have in good condition.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Maintain Weapon (2 Charge):*** As a Short Rest Activity, you can choose a weapon to work on and maintain it back to its peak performance. That weapon gains one of the following benefits (your choice): \n- +1 to Attack Rolls using that weapon\n- +1 to Damage Rolls with that weapon\n- The value of the Range Property is increased by 50%.\n\nA Weapon can only have one of these benefits at a time, and loses these benefits at the end of any fight in which they were used to make an Attack.\n\n***Repair Weapon/Armour (2 Charges):*** As a Long Rest Activity, you can repair a damaged Weapon, Medium Armour, or Heavy Armour. To do so, you must succeed on a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll. Any item that has been repaired has its value reduced to half (rounding up) of its original value.\n:\nOn a failure, nothing happens, but the charge and time are consumed.\n:\n**Proficient Uses:** \n\n***Material Analysis:*** Your knowledge of weapons and armour gives you special insight into what events lead to what effects on the metal. If you take a minute to examine a weapon or piece of medium/heavy armour, you gain a +5 Bonus to Checks to learn about its recent history and provenance, such as how often it has been used, what caused particular marks or damage to it, or where it was likely made.\n\n***Mobile Workshop:*** When you use the ***Repair Weapon/Armour*** or ***Maintain Weapon*** options of this Toolkit, you can instead target a number of things equal to your Strength Modifier (unless it is negative) + your Proficiency Bonus, as opposed to just one.\n\n{{imageMaskEdge1,--offset:0%,--rotation:280\n<img \n  src='https://arknights.wiki.gg/images/d/df/Vulcan.png' \n  style='position:absolute;top:30px;right:-170px;width:600px' />\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge3,--offset:3%,--rotation:90\n<img \n  src='https://arknights.wiki.gg/images/1/11/Roberta.png' \n  style='position:absolute;top:50px;right:150px;width:900px' />\n}}\n\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2799,7 +2799,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Makeover Kit",
     "itemType": "feat",
     "sourceHeading": "Makeover Kit",
-    "content": "<h4>Makeover Kit</h4>\n<p>Many people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Cover Up (1 Charge):</em></strong> As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.</p>\n<p><strong><em>Lay Bare (1 Charge):</em></strong> Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Assemble Disguise (2 Charges):</em></strong> As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.<br>However, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.</p>\n<p><strong><em>Make an Impression (1 Charge):</em></strong> As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time.</p>\n<aside class=\"ak5e-note\">\n<h5>Disguise Requirements</h5>\n<p>If the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution!</p>\n</aside>",
+    "content": "<h4>Makeover Kit</h4>\n<p class=\"ak5e-source-paragraph\">Many people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Cover Up (1 Charge):</em></strong> As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Lay Bare (1 Charge):</em></strong> Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Assemble Disguise (2 Charges):</em></strong> As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.</p>\n<p class=\"ak5e-source-paragraph\">However, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Make an Impression (1 Charge):</em></strong> As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time.</p>\n<aside class=\"ak5e-note\">\n<h5>Disguise Requirements</h5>\n<p class=\"ak5e-source-paragraph\">If the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution!</p>\n</aside>",
     "rawSource": "#### Makeover Kit\n:\nMany people underestimate how easy it is to throw off the perception of a casual observer; to make someone appear to be someone they are not. It is a skill set used commonly in films and theatre, but also in espionage. The Makeover Kit contains a wealth of makeup and other cosmetics, as well as a variety of simple textiles used to modify the appearance of outfits.\n:\n**Starting Charges:** 10\n:\n**Uses:**\n\n***Cover Up (1 Charge):*** As a Short Rest Activity, you can cover a small injury, scar, or superficial mark on a willing Creature, making it much harder to spot until your next Long Rest. It is not impossible to spot, and cannot cover over features that extrude from the body, such as horns or tails.\n\n***Lay Bare (1 Charge):*** Using the tools and chemicals in the kit, over the course of a minute you can remove makeup from a person, or paint from an area no more than 1 square foot. \n:\n**Proficient Uses:** \n\n***Assemble Disguise (2 Charges):*** As a Short Rest Activity, you can put together a disguise to make a Creature appear to be someone they are not, or part of a particular organisation. While that Creature is wearing the disguise, they have a +10 Bonus to any Deception Check to pass themselves off as who they are pretending to be.\n:\nHowever, this disguise is only visual; it does not change their voice, and it will not apply against people who know the organisation or person they are pretending to be.\n\n***Make an Impression (1 Charge):*** As a Short Rest Activity, you can curate the appearance of a willing Creature to help them give off a particular impression. When you do so, choose either Intimidation, Deception, or Persuasion; until they next complete a Long Rest, that Creature has Advantage on Checks of the chosen type. A Creature can only have one makeover active at a time. \n\n{{note\n##### Disguise Requirements\nIf the person/organisation you are making a disguise to blend in with wears a particular outfit or uniform, your GM may rule that you have to secure a copy (or at least an approximation) of that uniform first. Makeovers can do a lot of work, but they're not a magic solution! \n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{imageMaskEdge1,--offset:10%,--rotation:180\n<img \n  src='https://arknights.wiki.gg/images/e/ee/Amiya_In_Danger.png' \n  style='position:absolute;top:-50px;right:-180px;width:1000px;clip-path:rect(auto auto 88% auto);' />\n}}\n\n\n{{margin-top:400px",
     "tableData": null,
     "systemData": {}
@@ -2810,7 +2810,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Mechanism Kit",
     "itemType": "feat",
     "sourceHeading": "Mechanism Kit",
-    "content": "<h4>Mechanism Kit</h4>\n<p>Often associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Break and Enter:</em></strong> Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.</p>\n<p><strong><em>Secure (1 Charge):</em></strong> Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Red Wire, Blue Wire (1 Charge):</em></strong> The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.</p>\n<p><strong><em>The Best Laid Plans (2 Charges):</em></strong> As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.</p>",
+    "content": "<h4>Mechanism Kit</h4>\n<p class=\"ak5e-source-paragraph\">Often associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Break and Enter:</em></strong> Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Secure (1 Charge):</em></strong> Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Red Wire, Blue Wire (1 Charge):</em></strong> The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>The Best Laid Plans (2 Charges):</em></strong> As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.</p>",
     "rawSource": "#### Mechanism Kit\n:\nOften associated with ne'er-do-wells, the Mechanism Kit contains all the tools necessary for the manipulation of locks and tumblers. However, to those skilled with it, those fine but strong tools and high dexterity lends itself well to the fine manipulation of high tension wires, triggers, and trapdoors often used in traps.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Break and Enter:*** Using this Kit as an Action, you may attempt to pick a non-electronic lock that you can touch. This is a Sleight of Hand Check, the DC of which is determined by the GM based on the security of the lock.\n\n***Secure (1 Charge):*** Just as you can open doors, you can close them. As an Action, you can lock a door, container, or other lockable object that you can touch. The DC for a Creature to pick that lock is equal to 8 + your Sleight of Hand Modifier. \n:\n**Proficient Uses:** \n\n***Red Wire, Blue Wire (1 Charge):*** The tools found in this kit are, as it turns out, very useful for manipulating fine wires and holding things in very specific places. As an Action, you gain a +5 Modifier to your next Check to disarm a Trap.\n\n***The Best Laid Plans (2 Charges):*** As a Long Rest Activity, you can prepare one of the Traps from Trapmaster's Place Trap Feature (except Timed Explosive). After doing so, you may set that prepared Trap as an Action once. However, if you are not a Trapmaster, the Damage of these Traps does not scale with your Level.\n\n}}\n\n\n\n{{margin-top:400px",
     "tableData": null,
     "systemData": {}
@@ -2821,7 +2821,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Medical Kit",
     "itemType": "feat",
     "sourceHeading": "Medical Kit",
-    "content": "<h4>Medical Kit</h4>\n<p>Even during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Aftercare (1 Charges):</em></strong> As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice.</p>\n<p><strong>First Aid (1 Charge):</strong> As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Paramedic (1 Charge):</em></strong> When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative.</p>\n<p><strong><em>Patient Assessment:</em></strong> The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.</p>",
+    "content": "<h4>Medical Kit</h4>\n<p class=\"ak5e-source-paragraph\">Even during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Aftercare (1 Charges):</em></strong> As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice.</p>\n<p class=\"ak5e-source-paragraph\"><strong>First Aid (1 Charge):</strong> As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Paramedic (1 Charge):</em></strong> When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Patient Assessment:</em></strong> The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.</p>",
     "rawSource": "#### Medical Kit\n:\nEven during wartime, it is commonly accepted wisdom that medics are permitted to save lives without fearing for their own. Medicine is apolitical by nature, wielded by those willing to dedicate their own lives for others. A Medical Kit contains a variety of tools to clean and treat wounds, stem bleeding, secure broken bones, and whatever else is necessary to preserve life in the field.\n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Aftercare (1 Charges):*** As a Short Rest Activity, you can target a number of Creatures up your Intelligence Modifier (minimum 1). The first time during that Rest those Creatures expend a Hit Dice, they do not roll for Hit Points recovered, and instead recover the maximum amount possible on their Hit Dice. \n\n**First Aid (1 Charge):** As an Action, you can cause a willing Creature you can touch to immediately expend and roll one of its Hit Dice, recovering that many Hit Points. This is considered to be you restoring Hit Points to them, for any feature that requires it. \n:\n**Proficient Uses:** \n\n***Paramedic (1 Charge):*** When you would make a Medicine Check to Triage a Dying Creature, you can use this (no Action required) to grant yourself a +5 Modifier to that Check. This effect is not cumulative. \n\n***Patient Assessment:*** The equipment you have, and your knowledge of how best to use it, allows you to accurately monitor a patient's state better than a layman. If you spend a minute assessing them using this kit, you gain Advantage on your next Medicine Check against them.\n\n}}\n\n\\page\n{{pageNumber,auto}}\n\n{{wide",
     "tableData": null,
     "systemData": {}
@@ -2832,7 +2832,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Messenger Kit",
     "itemType": "feat",
     "sourceHeading": "Messenger Kit",
-    "content": "<h4>Messenger Kit</h4>\n<p>The role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Communications Know-How:</em></strong> Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters.</p>\n<p><strong><em>Short Range Radio:</em></strong> Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Draw Map (1 Charge):</em></strong> A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area.</p>\n<p><strong><em>Establish Communications (1 Charge):</em></strong> As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.</p>",
+    "content": "<h4>Messenger Kit</h4>\n<p class=\"ak5e-source-paragraph\">The role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Communications Know-How:</em></strong> Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Short Range Radio:</em></strong> Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Draw Map (1 Charge):</em></strong> A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Establish Communications (1 Charge):</em></strong> As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.</p>",
     "rawSource": "#### Messenger Kit\n:\nThe role of a messenger is an oft-unappreciated but essential one; the need for prompt communication over distance has been the cause of many a technological or cultural development. On Terra, they serve an additional purpose; maintaining communication lines over the constantly shifting geography, and warning of Catastrophes where electronic communication can fail. The word of a Catastrophe Messenger can move an entire city if they are believed; but the disruption their messages can cause, especially if the report was mistaken, often causes them to be maligned. \n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Communications Know-How:*** Communications equipment is often both mechanical and electrical in nature, requiring tools from both disciplines. This kit has these tools, granting you a +5 Bonus to Technology Checks to repair communications equipment such as radios or transmitters. \n\n***Short Range Radio:*** Through the kit, you have access to a Short Range radio which can send and receive signals up to 10 miles away. Setting up the radio to send and recieve signals, or packing it away again, takes a minute.\n:\n**Proficient Uses:** \n\n***Draw Map (1 Charge):*** A messenger's job doesn't just involve speaking over the radio, but often travelling directly to places, either to deliver messages manually or to maintain radio lines. For this, they rely on maps, but Terra's Catastrophes mean the geography often changes, and they must draw their own maps. As a Long Rest Activity, you may draw a map of the surrounding five miles. Anyone holding this map has a +5 Bonus to Wilderness Checks to navigate within this  area. \n\n***Establish Communications (1 Charge):*** As a Long Rest Activity, you can establish a temporary communication station. Through this, you can send radio signals up to 50 miles; this can be further extended if there are other communications stations (temporary or otherwise) within this range.\n\n}}\n\n\n{{imageMaskEdge7,--offset:2%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/7/7f/Mulberry_Elite_2.png' \n  style='position:absolute;top:230px;right:-50px;width:900px' />\n}}\n\n\n\n\\page\n{{pageNumber,auto}}\n\n{{wide",
     "tableData": null,
     "systemData": {}
@@ -2843,7 +2843,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Pharmacology Kit",
     "itemType": "feat",
     "sourceHeading": "Pharmacology Kit",
-    "content": "<h4>Pharmacology Kit</h4>\n<p>Medicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Drug Testing (1 Charge):</em></strong> Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.</p>\n<p><strong><em>Pharmacological Intervention (1 Charge):</em></strong> As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:</p>\n<p>• Painkiller</p>\n<p>• Antibiotics</p>\n<p>• Antivirals</p>\n<p>• Antidote</p>\n<p>Consuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action.</p>\n<aside class=\"ak5e-note\">\n<h5>Information on the Medications</h5>\n<p><strong>Painkillers:</strong> Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.<br><strong>Antibiotics:</strong> Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.<br><strong>Antivirals:</strong> Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.<br><strong>Antidote:</strong> Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n</aside>\n<p><strong>Proficient Uses:</strong></p>\n<p><strong><em>Monitor Oripathy:</em></strong> As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.</p>\n<p><strong><em>Toxicology (2 Charges):</em></strong> As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:</p>\n<p>• Cytotoxin</p>\n<p>• Neurotoxin</p>\n<p>• Necrotoxin</p>\n<p>• Haemotoxin</p>\n<p>See Adventuring Equipment for information on the effects of the Toxins.</p>\n<aside class=\"ak5e-note\">\n<h5>Monitoring, not Diagnostic</h5>\n<p>This Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.<br>Any patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.</p>\n</aside>",
+    "content": "<h4>Pharmacology Kit</h4>\n<p class=\"ak5e-source-paragraph\">Medicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Drug Testing (1 Charge):</em></strong> Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Pharmacological Intervention (1 Charge):</em></strong> As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:</p>\n<p class=\"ak5e-source-paragraph\">• Painkiller</p>\n<p class=\"ak5e-source-paragraph\">• Antibiotics</p>\n<p class=\"ak5e-source-paragraph\">• Antivirals</p>\n<p class=\"ak5e-source-paragraph\">• Antidote</p>\n<p class=\"ak5e-source-paragraph\">Consuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action.</p>\n<aside class=\"ak5e-note\">\n<h5>Information on the Medications</h5>\n<p class=\"ak5e-source-paragraph\"><strong>Painkillers:</strong> Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antibiotics:</strong> Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antivirals:</strong> Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Antidote:</strong> Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>\n</aside>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Monitor Oripathy:</em></strong> As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Toxicology (2 Charges):</em></strong> As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:</p>\n<p class=\"ak5e-source-paragraph\">• Cytotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Neurotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Necrotoxin</p>\n<p class=\"ak5e-source-paragraph\">• Haemotoxin</p>\n<p class=\"ak5e-source-paragraph\">See Adventuring Equipment for information on the effects of the Toxins.</p>\n<aside class=\"ak5e-note\">\n<h5>Monitoring, not Diagnostic</h5>\n<p class=\"ak5e-source-paragraph\">This Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.</p>\n<p class=\"ak5e-source-paragraph\">Any patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.</p>\n</aside>",
     "rawSource": "#### Pharmacology Kit\n:\nMedicine and Pharmacology are separate disciplines, but are often considered in the same breath. While a physician can close a wound or set a bone, the pharmacist can ease the pain, reduce the likelihood of opportunistic infections, cure the diseased, and treat the afflicted. The Pharmacology Kit contains a number of medications, as well as equipment for analysing the contents of bodily fluids such as blood. The darker side of Pharmacology, however, is that every drug has a lethal dose; those capable of producing drugs to heal could also produce them to harm, if they wish.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Drug Testing (1 Charge):*** Using the simple tools provided in the toolkit, over the course of ten minutes you can perform rudimentary checks on the blood of a creature to ascertain the presence of drugs or toxins.\n\n***Pharmacological Intervention (1 Charge):*** As a Bonus Action, you may give a willing Creature you can touch of you one of the following medications:\n- Painkiller\n- Antibiotics\n- Antivirals\n- Antidote\n\n{{align-text:left\nConsuming a medication requires a Bonus Action. If the Creature is Incapacitated, you may administer it to them as part of the original Bonus Action. \n}}\n\n{{note\n##### Information on the Medications\n**Painkillers:** Provides a Creature missing any Hit Points with 2 DR against all Damage and a +2 bonus to Death Saving Throws for an hour.\n:\n**Antibiotics:** Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antivirals:** Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:\n**Antidote:** Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n}}\n\n**Proficient Uses:**\n\n***Monitor Oripathy:*** As a Short Rest Activity, you can conduct tests on a willing Creature to measure blood markers that are associated with Oripathy progression. Through this, you can determine the relative progression of the condition compared to its last measurement.\n\n***Toxicology (2 Charges):*** As a Long Rest Activity, you can attempt to create a dose of Toxin. To do so, you must make a DC13 Intelligence Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, you create a dose of the intended Toxin. On a failure, no Toxin is created, and the Charges are wasted. The four toxins you can produce are:\n- Cytotoxin \n- Neurotoxin \n- Necrotoxin \n- Haemotoxin \n\n{{align-text:left\nSee Adventuring Equipment for information on the effects of the Toxins.\n}}\n:\n{{note\n##### Monitoring, not Diagnostic\nThis Toolkit is only capable of monitoring the progression of Oripathy, and even then only in relative terms; a patient with a lower Blood-Originium Crystal Density (measured in Units per Litre) may be a more life-threatening case than one with a greater density. It is absolutely not a diagnostic method, which requires far more advanced methods than can be achieved in the field, such as radiography and tissue biopsies.\n:\nAny patient with a condition severe enough to be theoretically confirmed by this kit will almost certainly have other severe symptoms, such as partial crystallisation, that would be a more conclusive way of determining an Oripathy diagnosis.\n}}\n\n\n\n}}\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2854,7 +2854,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Tailoring Kit",
     "itemType": "feat",
     "sourceHeading": "Tailoring Kit",
-    "content": "<h4>Tailoring Kit</h4>\n<p>Throughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.<br><strong>Starting Charges:</strong> 10<br><strong>Uses:</strong></p>\n<p><strong><em>Create Outfit (X Charges):</em></strong> As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:</p>\n<p>#####</p>\n<pre>| Item | Charges |</pre>\n<pre>|:------------------|:-----:|</pre>\n<pre>| Clothing | 1 |</pre>\n<pre>| Protective Clothing | 2 |</pre>\n<pre>| Reinforced Outfit | 5 |</pre>\n<p>On a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.</p>\n<p><strong><em>Stitch Together (1 Charge):</em></strong> As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Best Fit (1 Charge):</em></strong> As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):</p>\n<p>• Remove Stealth Disadvantage</p>\n<p>• Reduce Strength Requirement by 2.</p>\n<p>• -5lb Weight (-15lb for Heavy Armour)</p>\n<p>On a failure, nothing happens, but the charge and time are consumed.</p>\n<p>&nbsp;<strong><em>Tailor's Tale:</em></strong> For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?</p>",
+    "content": "<h4>Tailoring Kit</h4>\n<p class=\"ak5e-source-paragraph\">Throughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 10</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Create Outfit (X Charges):</em></strong> As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:</p>\n<p class=\"ak5e-source-paragraph\">#####</p>\n<div class=\"ak5e-source-table-wrap\"><table class=\"ak5e-source-table\"><thead><tr><th scope=\"col\" class=\"ak5e-source-table__left\">Item</th><th scope=\"col\" class=\"ak5e-source-table__center\">Charges</th></tr></thead><tbody><tr><td class=\"ak5e-source-table__left\">Clothing</td><td class=\"ak5e-source-table__center\">1</td></tr><tr><td class=\"ak5e-source-table__left\">Protective Clothing</td><td class=\"ak5e-source-table__center\">2</td></tr><tr><td class=\"ak5e-source-table__left\">Reinforced Outfit</td><td class=\"ak5e-source-table__center\">5</td></tr></tbody></table></div>\n<p class=\"ak5e-source-paragraph\">On a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Stitch Together (1 Charge):</em></strong> As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Best Fit (1 Charge):</em></strong> As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):</p>\n<p class=\"ak5e-source-paragraph\">• Remove Stealth Disadvantage</p>\n<p class=\"ak5e-source-paragraph\">• Reduce Strength Requirement by 2.</p>\n<p class=\"ak5e-source-paragraph\">• -5lb Weight (-15lb for Heavy Armour)</p>\n<p class=\"ak5e-source-paragraph\">On a failure, nothing happens, but the charge and time are consumed.</p>\n<p class=\"ak5e-source-paragraph\">&nbsp;<strong><em>Tailor's Tale:</em></strong> For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?</p>",
     "rawSource": "#### Tailoring Kit\n:\nThroughout history, many armies have been defeated because they failed to have adequate clothing for the weather. Every day, people become ill or even perish as a result of exposure. And yet, many treat the ability to tailor as a luxury, rather than the lifesaving, civilisation defining skill it is. The Tailoring Kit contains all the tools and materials needed to weave, sew, and tailor in both textiles and leather.  \n:\n**Starting Charges:** 10\n:\n**Uses:** \n\n***Create Outfit (X Charges):*** As a Long Rest Activity, you can tailor together a piece of Clothing, Protective Clothing, or a Reinforced Outfit. You must make a DC13 Dexterity Check (if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll) and expend the required charges for the item:\n\n##### \n| Item | Charges | \n|:------------------|:-----:|\n| Clothing | 1 |\n| Protective Clothing | 2 |\n| Reinforced Outfit | 5 |\n\n{{align-text:left\nOn a success, you create the intended item. On a failure, you still create the item, but any Creature wearing it suffers a -2 to their AC, and its value is 0 LMD.\n}}\n:\n***Stitch Together (1 Charge):*** As a Long Rest Activity, you can repair a damaged light armour or piece of clothing. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll).\n:\n**Proficient Uses:** \n\n***Best Fit (1 Charge):*** As a skilled clothier, you can adjust a piece of Armour as a Long Rest Activity. To do so, you must succeed on a DC13 Dexterity Check (If you are Proficient in this Kit, you may add your Proficiency Bonus to this Roll). On a success, you may apply one of the following adjustments of your choice (each piece of Armour can only have one adjustment):\n- Remove Stealth Disadvantage\n- Reduce Strength Requirement by 2.\n- -5lb Weight (-15lb for Heavy Armour)\n\n{{align-text:left\nOn a failure, nothing happens, but the charge and time are consumed.\n}}\n&nbsp;***Tailor's Tale:*** For the experienced tailor, there is a story in every thread. Your experience with the kit and its tools allows you to analyse a piece of Light Armour or clothing for 10 minutes; after doing so, you gain a +10 Modifier to Tests to determine information about the recent history of the item and who wore it; what species were they, what colour is their hair or fur, how often was it worn?\n\n{{imageMaskEdge3,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/a/a1/Ines.png' \n  style='position:absolute;top:80px;right:-270px;width:900px' />\n}}\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2865,7 +2865,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Toolkit Rule: Woodwork Kit",
     "itemType": "feat",
     "sourceHeading": "Woodwork Kit",
-    "content": "<h4>Woodwork Kit</h4>\n<p>Wood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.<br><strong>Starting Charges:</strong> 5<br><strong>Uses:</strong></p>\n<p><strong><em>Firestarter (1 Charge):</em></strong> Over the course of a minute, you can create and light a small Campfire.<br><strong><em>Carve Symbol:</em></strong> As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.<br><strong>Proficient Uses:</strong></p>\n<p><strong><em>Calming Carving (1 Charge):</em></strong> Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.</p>\n<p><strong><em>Carpentry (1 Charge):</em></strong> As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.</p>",
+    "content": "<h4>Woodwork Kit</h4>\n<p class=\"ak5e-source-paragraph\">Wood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Starting Charges:</strong> 5</p>\n<p class=\"ak5e-source-paragraph\"><strong>Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Firestarter (1 Charge):</em></strong> Over the course of a minute, you can create and light a small Campfire.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Carve Symbol:</em></strong> As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Proficient Uses:</strong></p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Calming Carving (1 Charge):</em></strong> Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.</p>\n<p class=\"ak5e-source-paragraph\"><strong><em>Carpentry (1 Charge):</em></strong> As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.</p>",
     "rawSource": "#### Woodwork Kit\n:\nWood is one of the first construction materials ever utilised by mankind. It is sturdy, weather resistant, readily available, and renewable. Even in the modern age, wood is still commonly used, with no universally suitable replacement. The Woodwork Kit contains the saws, hammers, nails and other tools necessary for carpentry, as well as a supply of wood to do it with.\n:\n**Starting Charges:** 5\n:\n**Uses:** \n\n***Firestarter (1 Charge):*** Over the course of a minute, you can create and light a small Campfire.\n:\n***Carve Symbol:*** As an Action, you can carve a simple symbol of your choice into a wooden surface within 5 feet of you. If you spend a minute instead, you can carve a complex symbol or a message.\n:\n**Proficient Uses:**\n\n***Calming Carving (1 Charge):*** Many people who practice woodcarving describe it as a therapeutic exercise. As a Short Rest Activity, you can carve a trinket. The trinket can depict whatever you like. To do so, you must make a DC13 Strength Check; if you are Proficient in this Kit, you may add your Proficiency Bonus to this roll. On a success, the trinket is good enough to be sold, and has a value of 50 LMD. On a failure, it has no value beyond the sentimental. Regardless of success or failure, however, you have Advantage on the next Wisdom Saving Throw you make.\n\n***Carpentry (1 Charge):*** As an Action, if you are holding nothing in your hands, you can use this Kit to put up a rudimentary wooden barricade over a door, window, or similar portal; this Barricade has an AC of 11 and Hit Points equal to 3d6 + your Strength Modifier. Each portal can only have one Barricade. You can also use this to reinforce an existing barricade, increasing its AC by 1 and its maximum and current Hit Points by 3d6 + your Strength Modifier; each Barricade can only be reinforced twice.\n\n{{imageMaskEdge8,--offset:5%,--rotation:270\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n{{imageMaskEdge7,--offset:26%,--rotation:0\n<img \n  src='https://arknights.wiki.gg/images/9/99/Meteor_Skin_2.png' \n  style='position:absolute;top:-50px;right:-400px;width:1200px' />\n}}\n\n\n\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2876,7 +2876,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Alcohol",
     "itemType": "feat",
     "sourceHeading": "Alcohol",
-    "content": "<h4>Alcohol</h4>\n<p>Can be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.</p>",
+    "content": "<h4>Alcohol</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.</p>",
     "rawSource": "#### Alcohol\nCan be consumed as an Action. A Creature that consumes Alcohol has a -1 Modifier to Dexterity Checks and Saving Throws, but a +1 to Charisma Checks and Wisdom Saving Throws for the next hour.\n:",
     "tableData": null,
     "systemData": {}
@@ -2887,7 +2887,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Antibiotics",
     "itemType": "feat",
     "sourceHeading": "Antibiotics",
-    "content": "<h4>Antibiotics</h4>\n<p>Can be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>",
+    "content": "<h4>Antibiotics</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>",
     "rawSource": "#### Antibiotics\nCan be consumed as a Bonus Action. Helps cure bacterial infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n:",
     "tableData": null,
     "systemData": {}
@@ -2898,7 +2898,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Antidote",
     "itemType": "feat",
     "sourceHeading": "Antidote",
-    "content": "<h4>Antidote</h4>\n<p>Can be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>",
+    "content": "<h4>Antidote</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.</p>",
     "rawSource": "#### Antidote\nCan be consumed as a Bonus Action. Ends the Poisoned Condition or the effects of a Toxin on that Creature.\n:",
     "tableData": null,
     "systemData": {}
@@ -2909,7 +2909,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Antivirals",
     "itemType": "feat",
     "sourceHeading": "Antivirals",
-    "content": "<h4>Antivirals</h4>\n<p>Can be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>",
+    "content": "<h4>Antivirals</h4>\n<p class=\"ak5e-source-paragraph\">Can be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.</p>",
     "rawSource": "#### Antivirals\nCan be consumed as a Bonus Action. Helps cure viral infections in that Creature. Requires an extended course to cure them completely, but will alleviate the condition.\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2920,7 +2920,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Art (Trade Good)",
     "itemType": "feat",
     "sourceHeading": "Art (Trade Good)",
-    "content": "<h4>Art (Trade Good)</h4>\n<p>A piece of Art. It is valuable to the right people.</p>",
+    "content": "<h4>Art (Trade Good)</h4>\n<p class=\"ak5e-source-paragraph\">A piece of Art. It is valuable to the right people.</p>",
     "rawSource": "#### Art (Trade Good)\nA piece of Art. It is valuable to the right people.\n:",
     "tableData": null,
     "systemData": {}
@@ -2931,7 +2931,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Autoinjector",
     "itemType": "feat",
     "sourceHeading": "Autoinjector",
-    "content": "<h4>Autoinjector</h4>\n<p>A medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.</p>",
+    "content": "<h4>Autoinjector</h4>\n<p class=\"ak5e-source-paragraph\">A medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.</p>",
     "rawSource": "#### Autoinjector\nA medical autoinjector containing an antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, and thus preventing bleeding. When administered to a Creature within 5 feet as an Action, that Creature regains 2d4+2 Hit Points.\n:",
     "tableData": null,
     "systemData": {}
@@ -2942,7 +2942,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Autoinjector (Advanced)",
     "itemType": "feat",
     "sourceHeading": "Autoinjector (Advanced)",
-    "content": "<h4>Autoinjector (Advanced)</h4>\n<p>A advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are <strong>Dying</strong>, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.</p>",
+    "content": "<h4>Autoinjector (Advanced)</h4>\n<p class=\"ak5e-source-paragraph\">A advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are <strong>Dying</strong>, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.</p>",
     "rawSource": "#### Autoinjector (Advanced)\nA advanced medical autoinjector containing a novel antifibrinolytic medication, when administered to a patient it increases their chances of surviving a traumatic injury by inhibiting the breakdown of blood clots, thus preventing bleeding, and additionally promotes clotting factors. When administered to a Creature within 5 feet as an Action, that Creature regains 4d4+4 Hit Points, and if they are **Dying**, they gain 1 Mettle in addition to any Mettle they gain from recovering Hit Points.\n:\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -2953,7 +2953,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Cytotoxin",
     "itemType": "feat",
     "sourceHeading": "Cytotoxin",
-    "content": "<h4>Cytotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.</p>",
+    "content": "<h4>Cytotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.</p>",
     "rawSource": "#### Cytotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, for the next ten minutes that Weapon deals 1d6 additional Poison Damage on hit.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC18 Constitution Saving Throw. On a failed save, they are Paralyzed and take 2d6 Poison Damage at the beginning of each of their Turns. They may attempt this Saving Throw again at the end of each of their Turns, ending the effect on a success. On a successful save, they take 2d6 Poison Damage, and are not Paralyzed.\n:",
     "tableData": null,
     "systemData": {}
@@ -2964,7 +2964,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Flashlight",
     "itemType": "feat",
     "sourceHeading": "Flashlight",
-    "content": "<h4>Flashlight</h4>\n<p>A flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.</p>",
+    "content": "<h4>Flashlight</h4>\n<p class=\"ak5e-source-paragraph\">A flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.</p>",
     "rawSource": "#### Flashlight\nA flashlight requires one hand to wield, and can be turned on or off as a Bonus Action. While it is on, it projects bright light in a 60-foot cone, and dim light for an additional 60 feet.\n:",
     "tableData": null,
     "systemData": {}
@@ -2975,7 +2975,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Haemotoxin",
     "itemType": "feat",
     "sourceHeading": "Haemotoxin",
-    "content": "<h4>Haemotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage.</p>",
+    "content": "<h4>Haemotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage.</p>",
     "rawSource": "#### Haemotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 2d10 Poison Damage; on a succesful Save, they take half as much Damage.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they take 60 Poison Damage. On a successful save, they take 6d10 Poison Damage. \n:\n\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2986,7 +2986,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Necrotoxin",
     "itemType": "feat",
     "sourceHeading": "Necrotoxin",
-    "content": "<h4>Necrotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes.</p>",
+    "content": "<h4>Necrotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes.</p>",
     "rawSource": "#### Necrotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and are Necrotised until the end of their next Turn. On a succesful Save, they take half as much Damage, and are not Necrotised.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they are Necrotised until they complete a Long Rest.  On a successful save, they are Necrotised for 10 minutes. \n\n<img \n  src='https://arknights.wiki.gg/images/Thorns.png?895d3e' \n  style='position:absolute;top:400px;right:0px;width:400px' />\n\n\\page\n{{pageNumber,auto}}\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -2997,7 +2997,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Neurotoxin",
     "itemType": "feat",
     "sourceHeading": "Neurotoxin",
-    "content": "<h4>Neurotoxin</h4>\n<p>As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.<br>When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.<br>If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes.</p>",
+    "content": "<h4>Neurotoxin</h4>\n<p class=\"ak5e-source-paragraph\">As an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.</p>\n<p class=\"ak5e-source-paragraph\">When applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.</p>\n<p class=\"ak5e-source-paragraph\">If a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes.</p>",
     "rawSource": "#### Neurotoxin\nAs an Action, you can apply this to a Weapon you are carrying, or poison food/drink within 5ft of you. Each Weapon or other object can only contain one Toxin at a time; applying a new Toxin overwrites the effect of the old toxin.\n:\nWhen applied to a Weapon, the effect lasts for ten minutes. The first time each Turn you hit a Creature with that Weapon, that Creature must make a DC15 Constitution Saving Throw. On a failed Save, they take 1d8 Poison Damage and have Nervous Impairment until the end of their next Turn. On a succesful Save, they take half as much Damage, and do not have Nervous Impairment.\n:\nIf a Creature consumes food/drink that has been poisoned using this, they must make a DC15 Constitution Saving Throw. On a failed save, they have Nervous Impairment until they complete a Long Rest.  On a successful save, they  have Nervous Impairment for 10 minutes. \n:",
     "tableData": null,
     "systemData": {}
@@ -3008,7 +3008,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Oripathy Suppressant (Poor)",
     "itemType": "feat",
     "sourceHeading": "Oripathy Suppressant (Poor)",
-    "content": "<h4>Oripathy Suppressant (Poor)</h4>\n<p>A concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.</p>",
+    "content": "<h4>Oripathy Suppressant (Poor)</h4>\n<p class=\"ak5e-source-paragraph\">A concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.</p>",
     "rawSource": "#### Oripathy Suppressant (Poor)\nA concoction of NSAIDs, placebo tablets, and stimulants; its almost impossible for them to know what it truly contains. Often given or sold fraudulently by the unscrupulous to appear generous to the Infected, it typically does nothing to slow the progression of the disease or improve the prognosis of the patient, but it may ease their suffering somewhat. Can be consumed as an Action; when it is, roll 1d10. On a result of 7 or higher, the progression of the disease is suppressed. On any other result, it is not suppressed.\n:",
     "tableData": null,
     "systemData": {}
@@ -3019,7 +3019,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Oripathy Suppressant",
     "itemType": "feat",
     "sourceHeading": "Oripathy Suppressant",
-    "content": "<h4>Oripathy Suppressant</h4>\n<p>A specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease.</p>",
+    "content": "<h4>Oripathy Suppressant</h4>\n<p class=\"ak5e-source-paragraph\">A specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease.</p>",
     "rawSource": "#### Oripathy Suppressant\nA specially made drug that stimulates living cell regeneration and forms a protective protein cover over tissues to halt further assimilation of Originium granules. Can be consumed as an Action to suppress the progression of the disease. \n:",
     "tableData": null,
     "systemData": {}
@@ -3030,7 +3030,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Gear Rule: Painkillers",
     "itemType": "feat",
     "sourceHeading": "Painkillers",
-    "content": "<h4>Painkillers</h4>\n<p>A drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.</p>",
+    "content": "<h4>Painkillers</h4>\n<p class=\"ak5e-source-paragraph\">A drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.</p>",
     "rawSource": "#### Painkillers\nA drug designed to inhibit the ability of a person to feel pain. Can be consumed as a Bonus Action if you are missing any Hit Points. Grants 2 DR against all Damage and a +2 to Death Saving Throws for an hour.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/Kal%27tsit.png?ddef02' \n  style='position:absolute;top:0px;right:50px;width:1100px' />\n\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -3038,24 +3038,32 @@ export const CHAPTER_FOUR_EQUIPMENT = [
   {
     "id": "magic-item-arts-staff-1-2-3-1668",
     "kind": "magic-item",
-    "name": "Arts Staff +1/+2/+3",
+    "name": "Reference: Arts Staff +1/+2/+3",
     "itemType": "equipment",
     "sourceHeading": "Arts Staff +1/+2/+3",
-    "content": "<h4>Arts Staff +1/+2/+3</h4>\n<p><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em><br>The Conductive Property on this Staff is increased by 1/2/3.</p>",
+    "content": "<h4>Arts Staff +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">The Conductive Property on this Staff is increased by 1/2/3.</p><aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>",
     "rawSource": "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.",
     "tableData": null,
-    "systemData": {}
+    "systemData": {},
+    "referenceOnly": true,
+    "previousName": "Arts Staff +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "referenceNotice": "<aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>"
   },
   {
     "id": "magic-item-arts-wand-1-2-3-1804",
     "kind": "magic-item",
-    "name": "Arts Wand +1/+2/+3",
+    "name": "Reference: Arts Wand +1/+2/+3",
     "itemType": "equipment",
     "sourceHeading": "Arts Wand +1/+2/+3",
-    "content": "<h4>Arts Wand +1/+2/+3</h4>\n<p><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em><br>This Wand gains the Conductive (1/2/3) Property.</p>",
+    "content": "<h4>Arts Wand +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">This Wand gains the Conductive (1/2/3) Property.</p><aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>",
     "rawSource": "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.",
     "tableData": null,
-    "systemData": {}
+    "systemData": {},
+    "referenceOnly": true,
+    "previousName": "Arts Wand +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "referenceNotice": "<aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>"
   },
   {
     "id": "magic-item-banshee-s-kiss-1927",
@@ -3063,7 +3071,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Banshee's Kiss",
     "itemType": "equipment",
     "sourceHeading": "Banshee's Kiss",
-    "content": "<h4>Banshee's Kiss</h4>\n<p><em>Wondrous Item, Very Rare (Attunement required)</em><br>A symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent.</p>\n<p><strong>Fearless.</strong> While you are wearing this item and are attuned to it, you are immune to the Frightened Condition.</p>\n<p><strong>Jealousy.</strong> While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.</p>",
+    "content": "<h4>Banshee's Kiss</h4>\n<p class=\"ak5e-source-paragraph\"><em>Wondrous Item, Very Rare (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">A symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Fearless.</strong> While you are wearing this item and are attuned to it, you are immune to the Frightened Condition.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Jealousy.</strong> While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.</p>",
     "rawSource": "#### Banshee's Kiss\n*Wondrous Item, Very Rare (Attunement required)*\n:\nA symbol of trust and affection from a powerful Banshee, the Banshee's Kiss is in actuality a gemstone necklace infused with the potent incantations Banshee-kind is known for. Each has a particular scent, representing the Banshee who gifted it; the knowledge of how to create these is closely guarded, passed down from mother to daughter in the Convallis of the Banshees, and only when the time is right. For those who possess one, their mind is armoured against fear and manipulation, protected by that gentle scent. \n\n**Fearless.** While you are wearing this item and are attuned to it, you are immune to the Frightened Condition. \n\n**Jealousy.** While you are wearing this item and are attuned to it, when you would be charmed by a Creature, you can choose to not be Charmed instead. If you do, the Creature that attempted to Charm you takes 4d8 Psychic Damage, and is charmed by the Banshee's Kiss until the end of their Turn.",
     "tableData": null,
     "systemData": {}
@@ -3074,7 +3082,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Blacksteel",
     "itemType": "equipment",
     "sourceHeading": "Blacksteel",
-    "content": "<h4>Blacksteel</h4>\n<p><em>Weapon (Handgun), Artifact (Attunement by a Sankta required)</em><br>A patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder.</p>\n<p><strong>Magic Weapon.</strong> You have a +1 bonus to Attack and Damage rolls made using Blacksteel.</p>\n<p><strong>Stroke of Thunder.</strong> As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.</p>\n<p><strong>Passing of War.</strong> If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed.</p>",
+    "content": "<h4>Blacksteel</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Handgun), Artifact (Attunement by a Sankta required)</em></p>\n<p class=\"ak5e-source-paragraph\">A patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Weapon.</strong> You have a +1 bonus to Attack and Damage rolls made using Blacksteel.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Stroke of Thunder.</strong> As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Passing of War.</strong> If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed.</p>",
     "rawSource": "#### Blacksteel\n*Weapon (Handgun), Artifact (Attunement by a Sankta required)*\n:\nA patron firearm revolver wielded by the legendary mercenary and founder of Blacksteel Worldwide PMC, \"Clip\" Cliff. Endless is the list of lives claimed by this weapon; endless is the list of regrets of its wielder. \n\n**Magic Weapon.** You have a +1 bonus to Attack and Damage rolls made using Blacksteel.\n\n**Stroke of Thunder.** As an Action, you can make six Attacks using Blacksteel against a single Creature within its normal range. If you do, you cannot make any Attacks using Blacksteel during your next Turn. Once you have used this Feature, you must complete a Short Rest before you can use it again.\n\n**Passing of War.** If you reduce a Creature to 0 Hit Points with an Attack using Blacksteel, you may immediately expend your Reaction to move up to half of your Speed. \n\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -3085,7 +3093,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Divine Oath",
     "itemType": "equipment",
     "sourceHeading": "Divine Oath",
-    "content": "<h4>Divine Oath</h4>\n<p><em>Weapon (Grenade Launcher), Artifact (Attunement required)</em><br>A one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.</p>\n<p><strong>Magic Weapon.</strong> Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<p><strong>Light Judgement.</strong> This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.</p>\n<p><strong>Melee Attachment.</strong> This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage.</p>",
+    "content": "<h4>Divine Oath</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">A one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Weapon.</strong> Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Light Judgement.</strong> This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Melee Attachment.</strong> This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage.</p>",
     "rawSource": "#### Divine Oath\n*Weapon (Grenade Launcher), Artifact (Attunement required)*\n:\nA one-of-a-kind grenade launcher, with its mechanism truncated enough to be wielded in one hand, and a nasty looking knife mounted on the underside. With a swing-out cylinder for loading grenades, it gives the distinct impression of a strange revolver on first glace, at least until the trigger is pulled. The personal weapon of a Liberi known for three things; explosive temper, unshakable loyalty, and a theatrical naming sense.\n\n**Magic Weapon.** Your Martial DC is treated as being 1 higher for the purpose of the Splash (X) Property when using this weapon.\n\n**Light Judgement.** This weapon does not have the Two-Handed Property, and its weight is half of a typical Grenade Launcher.\n\n**Melee Attachment.** This weapon can be used to make Melee Attacks; your Dexterity Bonus can be used instead of Strength for the Attack and Damage rolls. On a hit, it deals 1d8 + your Ability Modifier in Slashing Damage.",
     "tableData": null,
     "systemData": {}
@@ -3096,7 +3104,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Fearless Blade",
     "itemType": "equipment",
     "sourceHeading": "Fearless Blade",
-    "content": "<h4>Fearless Blade</h4>\n<p><em>Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)</em><br>Throughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.</p>\n<p><strong>Oath of Moment.</strong> As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.</p>",
+    "content": "<h4>Fearless Blade</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">Throughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Oath of Moment.</strong> As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.</p>",
     "rawSource": "#### Fearless Blade\n*Weapon (Sword) or Weapon (Greatsword), Rare (Attunement required)*\n:\nThroughout Terran history, there have been legends and records of warriors standing firm against impossible odds, armed with only their blade and armoured in their self-belief. It is a recurring legend, pervasive through many cultures and origins, each time with the subject changed. One has to wonder, when does a legend become a pattern? This is a blade supposedly wielded by one such warrior, and the strength of their oath still dwells in it.\n\n**Oath of Moment.** As an Action during your Turn, you can declare a mighty oath to defend the place you stand. Until you willingly move more than 10 feet from where you made the oath, your Melee Attacks using this weapon deal an additional die of Weapon Damage, and you have Damage Reduction against all Damage that originates from more than 10 feet away from you equal to your Proficiency Bonus. Once you have used this Feature, you cannot do so again until a week has passed.\n\n\n\n\n\\column",
     "tableData": null,
     "systemData": {}
@@ -3107,7 +3115,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "King's Armour",
     "itemType": "equipment",
     "sourceHeading": "King's Armour",
-    "content": "<h4>King's Armour</h4>\n<p><em>Armour (Heavy Combat Gear), Artifact (Attunement required)</em><br>The lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Hope.</strong> While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points.</p>",
+    "content": "<h4>King's Armour</h4>\n<p class=\"ak5e-source-paragraph\"><em>Armour (Heavy Combat Gear), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Hope.</strong> While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points.</p>",
     "rawSource": "#### King's Armour\n*Armour (Heavy Combat Gear), Artifact (Attunement required)*\n:\nThe lost armour of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a ceremonial suit of armour, archaic even by the time of its disappearance during the Profound Silence, inscribed with prayers for Iberia's everlasting survival; strange then, that the armour has outlived the version of the nation that wrote those prayers. It was never worn to battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Hope.** While you are attuned to this armour and wearing it, your Hit Points cannot be greater than half of their maximum; if you have more than this amount of Hit Points, you lose Hit Points until you have half of your maximum remaining. However, when you complete a Short or Long Rest while wearing this armour, you gain Temporary Hit Points equal to half of your maximum Hit Points.",
     "tableData": null,
     "systemData": {}
@@ -3118,7 +3126,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "King's Crown",
     "itemType": "equipment",
     "sourceHeading": "King's Crown",
-    "content": "<h4>King's Crown</h4>\n<p><em>Wondrous Item, Artifact (Attunement required)</em><br>The lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Drive.</strong> When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.</p>\n<h5>Fearless Blade</h5>",
+    "content": "<h4>King's Crown</h4>\n<p class=\"ak5e-source-paragraph\"><em>Wondrous Item, Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Drive.</strong> When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.</p>\n<h5>Fearless Blade</h5>",
     "rawSource": "#### King's Crown\n*Wondrous Item, Artifact (Attunement required)*\n:\nThe lost crown of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be a baroque crown, inscribed with prayers for the health and happiness of the king; strange then, that these prayers fell on deaf ears. It was never worn in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Drive.** When you are wearing this item, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you gain 3 Skill Points at the beginning of your Turn.\n\n\n\n<img \n  src='https://arknights.wiki.gg/images/d/dc/Fearless_Blade.png?4a72f7&20250209155616' \n  style='position:absolute;top:700px;right:100px;width:300px' />\n  \n{{artist,bottom:150px,left:620px\n##### Fearless Blade\n}}\n  \n\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -3129,7 +3137,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "King's Lance",
     "itemType": "equipment",
     "sourceHeading": "King's Lance",
-    "content": "<h4>King's Lance</h4>\n<p><em>Weapon (Polearm), Artifact (Attunement required)</em><br>The lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?<br><strong>The Undone King's Wishes.</strong> When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.<br>Additionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.</p>",
+    "content": "<h4>King's Lance</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Polearm), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?</p>\n<p class=\"ak5e-source-paragraph\"><strong>The Undone King's Wishes.</strong> When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.</p>\n<p class=\"ak5e-source-paragraph\">Additionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.</p>",
     "rawSource": "#### King's Lance\n*Weapon (Polearm), Artifact (Attunement required)*\n:\nThe lost parade weapon of King Alejandro I of Iberia, the doomed lands' final monarch. It appears to be an ornate lance, inscribed with prayers for Iberia's everlasting dominance; strange then, that Iberia is now a land dominated by itself. It was never used in battle, and no records remain, so who can say if it always possessed these strange eccentricities, or if it gained them after it was lost?\n:\n**The Undone King's Wishes.** When you take the Attack Action while you are wielding this weapon, are attuned to it, and have equal to or less than half of your maximum Hit Points remaining, you can make an additional Attack with this weapon as part of that Action.\n:\nAdditionally, once per Turn when you hit a Creature with an Attack using this weapon while you have equal to or less than half of your maximum Hit Points, you can choose a friendly Creature you can see within 30 feet of you; that Creature can immediately expend its Reaction to make a single Attack.",
     "tableData": null,
     "systemData": {}
@@ -3137,13 +3145,17 @@ export const CHAPTER_FOUR_EQUIPMENT = [
   {
     "id": "magic-item-launcher-1-2-3-8815",
     "kind": "magic-item",
-    "name": "Launcher +1/+2/+3",
+    "name": "Reference: Launcher +1/+2/+3",
     "itemType": "equipment",
     "sourceHeading": "Launcher +1/+2/+3",
-    "content": "<h4>Launcher +1/+2/+3</h4>\n<p><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em><br>Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p>",
+    "content": "<h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>",
     "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
     "tableData": null,
-    "systemData": {}
+    "systemData": {},
+    "referenceOnly": true,
+    "previousName": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "referenceNotice": "<aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>"
   },
   {
     "id": "magic-item-rusted-hammer-9047",
@@ -3151,7 +3163,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "Rusted Hammer",
     "itemType": "equipment",
     "sourceHeading": "Rusted Hammer",
-    "content": "<h4>Rusted Hammer</h4>\n<p><em>Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)</em><br>These hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.</p>\n<p><strong>Durable.</strong> This weapon cannot be damaged unless it would be destroyed completely.</p>\n<p><strong>Enduring.</strong> After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.</p>\n<p><strong>Survivor.</strong> When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8.</p>\n<p><strong>Symbol.</strong> What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.</p>\n<h5>Rusted Hammer</h5>",
+    "content": "<h4>Rusted Hammer</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)</em></p>\n<p class=\"ak5e-source-paragraph\">These hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Durable.</strong> This weapon cannot be damaged unless it would be destroyed completely.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Enduring.</strong> After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Survivor.</strong> When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Symbol.</strong> What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.</p>\n<h5>Rusted Hammer</h5>",
     "rawSource": "#### Rusted Hammer\n*Weapon (Hammer) or Weapon (Heavy Hammer), Rare (Attunement Required)*\n:\nThese hammers are the symbol of the eponymous Rusthammers, an anarcho-primitivist militant group active in the Terran Barrenlands. In the sixty years since they were first reported, they have risen from minor Columbian bandits to an internationally active rebel group, often labelled terrorists by the powers that be. Anyone who wishes to join the Rusthammers is welcomed by them, on one condition; they must pass a trial proving themselves capable of surviving in the wilderness, as only those who can separate from modern living can become Rusthammers. That is what these hammers represent; the Rusthammers need not be the sharpest, only the most durable.\n\n**Durable.** This weapon cannot be damaged unless it would be destroyed completely.\n\n**Enduring.** After you take Damage, you can expend your Reaction to expend and roll one of your Hit Dice. You regain Hit Points equal to the amount rolled + your Constitution Modifier.\n\n**Survivor.** When you make a Survival Check while you are attuned to this weapon and the result on the d20 is less than 8, it becomes 8. \n\n**Symbol.** What this weapon represents is known to many people. Openly possessing it may earn your friendship from some, and hostility from others.\n\n<img \n  src='https://arknights.wiki.gg/images/3/3a/Rusted_Iron_Hammer.png?b6bb7e' \n  style='position:absolute;top:600px;right:100px;width:300px' />\n  \n{{artist,bottom:250px,left:650px\n##### Rusted Hammer\n}}\n  \n  \n\\page\n{{pageNumber,auto}}",
     "tableData": null,
     "systemData": {}
@@ -3162,7 +3174,7 @@ export const CHAPTER_FOUR_EQUIPMENT = [
     "name": "The Black Lock and The White Key",
     "itemType": "equipment",
     "sourceHeading": "The Black Lock and The White Key",
-    "content": "<h4>The Black Lock and The White Key</h4>\n<p><em>Weapons (Arts Staves), Artifact (Attunement required)</em><br>The Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.</p>\n<p><strong>Magic Staves.</strong> These Staves have the Conductive (4) Property.</p>\n<p><strong>Time Warp.</strong> While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.</p>\n<p><strong>Lock and Key.</strong> These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.<br><strong>Key of Chronology (1 Charge).</strong> As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.</p>\n<p><strong>Lock of Shattered Time (1 Charge).</strong> As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.</p>\n<p><strong>Subjective Time Acceleration (1 Charge).</strong> All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.</p>",
+    "content": "<h4>The Black Lock and The White Key</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapons (Arts Staves), Artifact (Attunement required)</em></p>\n<p class=\"ak5e-source-paragraph\">The Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Magic Staves.</strong> These Staves have the Conductive (4) Property.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Time Warp.</strong> While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Lock and Key.</strong> These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Key of Chronology (1 Charge).</strong> As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Lock of Shattered Time (1 Charge).</strong> As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.</p>\n<p class=\"ak5e-source-paragraph\"><strong>Subjective Time Acceleration (1 Charge).</strong> All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.</p>",
     "rawSource": "#### The Black Lock and The White Key\n*Weapons (Arts Staves), Artifact (Attunement required)*\n:\nThe Black Lock and The White Key are a pair of Arts Staves crafted from the bones of a Feranmut; a type of prehistoric titan that often possess incomprehensible abilities. This particular Feranmut possessed the ability to manipulate local space and time, a trait that, while distilled, has been passed down to these staves. They are currently wielded by Mostima, a powerful fallen Sankta and Legatus of Laterano.\n\n**Magic Staves.** These Staves have the Conductive (4) Property.\n\n**Time Warp.** While you are attuned to both the Black Lock and White Key, the rate at which you age is halved.\n\n**Lock and Key.** These Arts Staves do not have the Two-Handed Property, but you cannot use the following options unless you are wielding and attuned to both staves. The Lock and Key have a total of three charges, and regain 1d3 charges when you complete a Long Rest while attuned to them.\n:\n**Key of Chronology (1 Charge).** As an Action, all Creatures within a 30-foot cone originating from you must make a Dexterity Saving Throw againt your Spell Save DC as a pulse of temporal distortion washes over them. On a failed Save, they take 6d8 Force Damage and their Speed is halved until the end of their next Turn. On a successful Save, they take half as much Damage, and are not Slowed.\n\n**Lock of Shattered Time (1 Charge).** As an Action, choose a Creature you can see within 100 feet; that Creature must succeed on a Charisma Saving Throw against your Spell Save DC or be locked in time. While a Creature is locked in time, it is Stunned, but cannot take Damage, gain Temporary Hit Points, or regain Hit Points. It may reattempt the Saving Throw at the end of each of its Turns, ending the effect on a success.\n\n**Subjective Time Acceleration (1 Charge).** All allied Creatures within 30 feet of you gain 1d4 Skill Points, and their Speed is increased by 10ft until the end of their next Turn.",
     "tableData": null,
     "systemData": {}
@@ -3170,12 +3182,6592 @@ export const CHAPTER_FOUR_EQUIPMENT = [
   {
     "id": "magic-item-weapon-1-2-3-12588",
     "kind": "magic-item",
-    "name": "Weapon +1/+2/+3",
+    "name": "Reference: Weapon +1/+2/+3",
     "itemType": "equipment",
     "sourceHeading": "Weapon +1/+2/+3",
-    "content": "<h4>Weapon +1/+2/+3</h4>\n<p><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em><br>You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p>",
+    "content": "<h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>",
     "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
     "tableData": null,
-    "systemData": {}
+    "systemData": {},
+    "referenceOnly": true,
+    "previousName": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "referenceNotice": "<aside class=\"ak5e-note\" data-ak5e-enhancement-reference><h4>Equipment reference</h4><p>This combined entry is a rules reference. Use the individual +1, +2, or +3 weapon in Magic Items. Replace Actor-owned copies manually with the chosen variant; this installer does not change Actor inventories.</p></aside>"
+  },
+  {
+    "id": "magic-weapon-arts-staff-plus-1",
+    "kind": "magic-weapon",
+    "name": "Arts Staff +1",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Staff +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-staff-0",
+      "family": "staff",
+      "bonus": 1,
+      "conductive": 2,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Staff +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Two-Handed, Conductive (2)</p><p>While this weapon is equipped, manually apply +2 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Staff +1/+2/+3</h4><h4>Arts Staff +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">The Conductive Property on this Staff is increased by 1/2/3.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Staff</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Conductive (1), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.\n\n| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|",
+    "rawSources": [
+      "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.",
+      "| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Staff",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Casting Unit, Conductive (1), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-arts-staff-plus-2",
+    "kind": "magic-weapon",
+    "name": "Arts Staff +2",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Staff +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-staff-0",
+      "family": "staff",
+      "bonus": 2,
+      "conductive": 3,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Staff +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Two-Handed, Conductive (3)</p><p>While this weapon is equipped, manually apply +3 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Staff +1/+2/+3</h4><h4>Arts Staff +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">The Conductive Property on this Staff is increased by 1/2/3.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Staff</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Conductive (1), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.\n\n| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|",
+    "rawSources": [
+      "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.",
+      "| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Staff",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Casting Unit, Conductive (1), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-arts-staff-plus-3",
+    "kind": "magic-weapon",
+    "name": "Arts Staff +3",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Staff +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-staff-0",
+      "family": "staff",
+      "bonus": 3,
+      "conductive": 4,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Staff +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Two-Handed, Conductive (4)</p><p>While this weapon is equipped, manually apply +4 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Staff +1/+2/+3</h4><h4>Arts Staff +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Staff), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">The Conductive Property on this Staff is increased by 1/2/3.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Staff</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Conductive (1), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.\n\n| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|",
+    "rawSources": [
+      "#### Arts Staff +1/+2/+3\n*Weapon (Arts Staff), Uncommon/Rare/Very Rare*\n:\nThe Conductive Property on this Staff is increased by 1/2/3.",
+      "| &emsp; Arts Staff|1d6 Bludgeoning|Casting Unit, Conductive (1), Two-Handed|4 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Staff",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Casting Unit, Conductive (1), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-arts-wand-plus-1",
+    "kind": "magic-weapon",
+    "name": "Arts Wand +1",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Wand +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-wand-1",
+      "family": "wand",
+      "bonus": 1,
+      "conductive": 1,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Wand +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Light, Conductive (1)</p><p>While this weapon is equipped, manually apply +1 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Wand +1/+2/+3</h4><h4>Arts Wand +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">This Wand gains the Conductive (1/2/3) Property.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Wand</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d4 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Light</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.\n\n| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|",
+    "rawSources": [
+      "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.",
+      "| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Wand",
+      "damage": "1d4 Bludgeoning",
+      "properties": "Casting Unit, Light",
+      "weight": "2 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-arts-wand-plus-2",
+    "kind": "magic-weapon",
+    "name": "Arts Wand +2",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Wand +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-wand-1",
+      "family": "wand",
+      "bonus": 2,
+      "conductive": 2,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Wand +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Light, Conductive (2)</p><p>While this weapon is equipped, manually apply +2 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Wand +1/+2/+3</h4><h4>Arts Wand +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">This Wand gains the Conductive (1/2/3) Property.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Wand</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d4 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Light</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.\n\n| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|",
+    "rawSources": [
+      "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.",
+      "| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Wand",
+      "damage": "1d4 Bludgeoning",
+      "properties": "Casting Unit, Light",
+      "weight": "2 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-arts-wand-plus-3",
+    "kind": "magic-weapon",
+    "name": "Arts Wand +3",
+    "itemType": "weapon",
+    "sourceHeading": "Arts Wand +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-arts-wand-1",
+      "family": "wand",
+      "bonus": 3,
+      "conductive": 3,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Arts Wand +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Casting Unit, Light, Conductive (3)</p><p>While this weapon is equipped, manually apply +3 to Spell Attack Rolls and Spell Save DC. Only the highest equipped Conductive value applies. Casting Unit permits casting Arts and ignoring Somatic Components while wielding it. This upgrade grants no melee Attack or Damage bonus.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Arts Wand +1/+2/+3</h4><h4>Arts Wand +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Arts Wand), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">This Wand gains the Conductive (1/2/3) Property.</p><h4>Base weapon source (unenhanced)</h4><h3>Arts Wand</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d4 Bludgeoning</dd><dt>Properties</dt><dd>Casting Unit, Light</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.\n\n| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|",
+    "rawSources": [
+      "#### Arts Wand +1/+2/+3\n*Weapon (Arts Wand), Uncommon/Rare/Very Rare*\n:\nThis Wand gains the Conductive (1/2/3) Property.",
+      "| &emsp; Arts Wand|1d4 Bludgeoning|Casting Unit, Light|2 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Arts Wand",
+      "damage": "1d4 Bludgeoning",
+      "properties": "Casting Unit, Light",
+      "weight": "2 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-axe-plus-1",
+    "kind": "magic-weapon",
+    "name": "Axe +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-axe-2",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Axe +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Axe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>2d4 Slashing</dd><dt>Properties</dt><dd>Deadly</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Axe",
+      "damage": "2d4 Slashing",
+      "properties": "Deadly",
+      "weight": "3 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-axe-plus-2",
+    "kind": "magic-weapon",
+    "name": "Axe +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-axe-2",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Axe +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Axe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>2d4 Slashing</dd><dt>Properties</dt><dd>Deadly</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Axe",
+      "damage": "2d4 Slashing",
+      "properties": "Deadly",
+      "weight": "3 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-axe-plus-3",
+    "kind": "magic-weapon",
+    "name": "Axe +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-axe-2",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Axe +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Axe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>2d4 Slashing</dd><dt>Properties</dt><dd>Deadly</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Axe|2d4 Slashing|Deadly|3 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Axe",
+      "damage": "2d4 Slashing",
+      "properties": "Deadly",
+      "weight": "3 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 4,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hammer-plus-1",
+    "kind": "magic-weapon",
+    "name": "Hammer +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hammer-3",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hammer +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Bludgeoning</dd><dt>Properties</dt><dd>Crush (5)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Hammer",
+      "damage": "1d8 Bludgeoning",
+      "properties": "Crush (5)",
+      "weight": "3 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hammer-plus-2",
+    "kind": "magic-weapon",
+    "name": "Hammer +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hammer-3",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hammer +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Bludgeoning</dd><dt>Properties</dt><dd>Crush (5)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Hammer",
+      "damage": "1d8 Bludgeoning",
+      "properties": "Crush (5)",
+      "weight": "3 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hammer-plus-3",
+    "kind": "magic-weapon",
+    "name": "Hammer +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hammer-3",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hammer +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Bludgeoning</dd><dt>Properties</dt><dd>Crush (5)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hammer|1d8 Bludgeoning|Crush (5)|3 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Hammer",
+      "damage": "1d8 Bludgeoning",
+      "properties": "Crush (5)",
+      "weight": "3 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-knife-plus-1",
+    "kind": "magic-weapon",
+    "name": "Knife +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-knife-4",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Knife +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Light, Thrown (20/60)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Knife</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Finesse, Light, Thrown (20/60)</dd><dt>Weight</dt><dd>1 lb.</dd><dt>Cost</dt><dd>50 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Knife",
+      "damage": "1d6 Piercing",
+      "properties": "Finesse, Light, Thrown (20/60)",
+      "weight": "1 lb.",
+      "cost": "50 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 1,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 20,
+        "long": 60,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-knife-plus-2",
+    "kind": "magic-weapon",
+    "name": "Knife +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-knife-4",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Knife +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Light, Thrown (20/60)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Knife</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Finesse, Light, Thrown (20/60)</dd><dt>Weight</dt><dd>1 lb.</dd><dt>Cost</dt><dd>50 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Knife",
+      "damage": "1d6 Piercing",
+      "properties": "Finesse, Light, Thrown (20/60)",
+      "weight": "1 lb.",
+      "cost": "50 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 1,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 20,
+        "long": 60,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-knife-plus-3",
+    "kind": "magic-weapon",
+    "name": "Knife +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-knife-4",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Knife +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Light, Thrown (20/60)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Knife</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Finesse, Light, Thrown (20/60)</dd><dt>Weight</dt><dd>1 lb.</dd><dt>Cost</dt><dd>50 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Knife|1d6 Piercing|Finesse, Light, Thrown (20/60)|1 lb.|50 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Knife",
+      "damage": "1d6 Piercing",
+      "properties": "Finesse, Light, Thrown (20/60)",
+      "weight": "1 lb.",
+      "cost": "50 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 1,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 20,
+        "long": 60,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-spear-plus-1",
+    "kind": "magic-weapon",
+    "name": "Spear +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-spear-5",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Spear +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Finesse, Thrown (40/80)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Spear</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Couch, Finesse, Thrown (40/80)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>90 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Spear",
+      "damage": "1d8 Piercing",
+      "properties": "Couch, Finesse, Thrown (40/80)",
+      "weight": "3 lb.",
+      "cost": "90 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-spear-plus-2",
+    "kind": "magic-weapon",
+    "name": "Spear +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-spear-5",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Spear +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Finesse, Thrown (40/80)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Spear</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Couch, Finesse, Thrown (40/80)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>90 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Spear",
+      "damage": "1d8 Piercing",
+      "properties": "Couch, Finesse, Thrown (40/80)",
+      "weight": "3 lb.",
+      "cost": "90 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-spear-plus-3",
+    "kind": "magic-weapon",
+    "name": "Spear +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-spear-5",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Spear +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Finesse, Thrown (40/80)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Spear</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Couch, Finesse, Thrown (40/80)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>90 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Spear|1d8 Piercing|Couch, Finesse, Thrown (40/80)|3 lb.|90 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Spear",
+      "damage": "1d8 Piercing",
+      "properties": "Couch, Finesse, Thrown (40/80)",
+      "weight": "3 lb.",
+      "cost": "90 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": 5
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-sword-plus-1",
+    "kind": "magic-weapon",
+    "name": "Sword +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-sword-6",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Sword +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Versatile (1d10)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Sword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Slashing</dd><dt>Properties</dt><dd>Finesse, Versatile (1d10)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>225 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Sword",
+      "damage": "1d8 Slashing",
+      "properties": "Finesse, Versatile (1d10)",
+      "weight": "3 lb.",
+      "cost": "225 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "fin",
+        "ver",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        },
+        "versatile": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-sword-plus-2",
+    "kind": "magic-weapon",
+    "name": "Sword +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-sword-6",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Sword +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Versatile (1d10)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Sword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Slashing</dd><dt>Properties</dt><dd>Finesse, Versatile (1d10)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>225 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Sword",
+      "damage": "1d8 Slashing",
+      "properties": "Finesse, Versatile (1d10)",
+      "weight": "3 lb.",
+      "cost": "225 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "fin",
+        "ver",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        },
+        "versatile": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-sword-plus-3",
+    "kind": "magic-weapon",
+    "name": "Sword +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-sword-6",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Sword +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Versatile (1d10)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Sword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d8 Slashing</dd><dt>Properties</dt><dd>Finesse, Versatile (1d10)</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>225 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Sword|1d8 Slashing|Finesse, Versatile (1d10)|3 lb.|225 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Sword",
+      "damage": "1d8 Slashing",
+      "properties": "Finesse, Versatile (1d10)",
+      "weight": "3 lb.",
+      "cost": "225 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "fin",
+        "ver",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        },
+        "versatile": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-whip-plus-1",
+    "kind": "magic-weapon",
+    "name": "Whip +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-whip-7",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Whip +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Reach</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Whip</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Finesse, Reach</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Whip",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Finesse, Reach",
+      "weight": "3 lb.",
+      "cost": "100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "rch",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-whip-plus-2",
+    "kind": "magic-weapon",
+    "name": "Whip +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-whip-7",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Whip +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Reach</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Whip</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Finesse, Reach</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Whip",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Finesse, Reach",
+      "weight": "3 lb.",
+      "cost": "100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "rch",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-whip-plus-3",
+    "kind": "magic-weapon",
+    "name": "Whip +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-whip-7",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Whip +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Finesse, Reach</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Whip</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Light Melee Weapons</p><dl><dt>Damage</dt><dd>1d6 Bludgeoning</dd><dt>Properties</dt><dd>Finesse, Reach</dd><dt>Weight</dt><dd>3 lb.</dd><dt>Cost</dt><dd>100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Whip|1d6 Bludgeoning|Finesse, Reach|3 lb.|100 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Melee Weapons",
+      "name": "Whip",
+      "damage": "1d6 Bludgeoning",
+      "properties": "Finesse, Reach",
+      "weight": "3 lb.",
+      "cost": "100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 3,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "rch",
+        "fin",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greataxe-plus-1",
+    "kind": "magic-weapon",
+    "name": "Greataxe +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greataxe-8",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greataxe +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greataxe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Slashing</dd><dt>Properties</dt><dd>Deadly, Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>450 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greataxe",
+      "damage": "1d10 Slashing",
+      "properties": "Deadly, Two-Handed",
+      "weight": "10 lb.",
+      "cost": "450 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greataxe-plus-2",
+    "kind": "magic-weapon",
+    "name": "Greataxe +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greataxe-8",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greataxe +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greataxe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Slashing</dd><dt>Properties</dt><dd>Deadly, Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>450 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greataxe",
+      "damage": "1d10 Slashing",
+      "properties": "Deadly, Two-Handed",
+      "weight": "10 lb.",
+      "cost": "450 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greataxe-plus-3",
+    "kind": "magic-weapon",
+    "name": "Greataxe +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greataxe-8",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greataxe +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greataxe</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Slashing</dd><dt>Properties</dt><dd>Deadly, Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>450 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greataxe|1d10 Slashing|Deadly, Two-Handed|10 lb.|450 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greataxe",
+      "damage": "1d10 Slashing",
+      "properties": "Deadly, Two-Handed",
+      "weight": "10 lb.",
+      "cost": "450 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatsword-plus-1",
+    "kind": "magic-weapon",
+    "name": "Greatsword +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatsword-9",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatsword +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatsword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greatsword",
+      "damage": "2d6 Slashing",
+      "properties": "Two-Handed",
+      "weight": "8 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatsword-plus-2",
+    "kind": "magic-weapon",
+    "name": "Greatsword +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatsword-9",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatsword +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatsword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greatsword",
+      "damage": "2d6 Slashing",
+      "properties": "Two-Handed",
+      "weight": "8 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatsword-plus-3",
+    "kind": "magic-weapon",
+    "name": "Greatsword +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatsword-9",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatsword +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatsword</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatsword|2d6 Slashing|Two-Handed|8 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Greatsword",
+      "damage": "2d6 Slashing",
+      "properties": "Two-Handed",
+      "weight": "8 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-hammer-plus-1",
+    "kind": "magic-weapon",
+    "name": "Heavy Hammer +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-hammer-10",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Hammer +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (10), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Bludgeoning</dd><dt>Properties</dt><dd>Crush (10), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>350 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Heavy Hammer",
+      "damage": "1d10 Bludgeoning",
+      "properties": "Crush (10), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "350 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-hammer-plus-2",
+    "kind": "magic-weapon",
+    "name": "Heavy Hammer +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-hammer-10",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Hammer +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (10), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Bludgeoning</dd><dt>Properties</dt><dd>Crush (10), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>350 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Heavy Hammer",
+      "damage": "1d10 Bludgeoning",
+      "properties": "Crush (10), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "350 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-hammer-plus-3",
+    "kind": "magic-weapon",
+    "name": "Heavy Hammer +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-hammer-10",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Hammer +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (10), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Hammer</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Bludgeoning</dd><dt>Properties</dt><dd>Crush (10), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>350 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Hammer|1d10 Bludgeoning|Crush (10), Two-Handed|12 lb.|350 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Heavy Hammer",
+      "damage": "1d10 Bludgeoning",
+      "properties": "Crush (10), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "350 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-polearm-plus-1",
+    "kind": "magic-weapon",
+    "name": "Polearm +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-polearm-11",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Polearm +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Reach, Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Polearm</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Piercing</dd><dt>Properties</dt><dd>Couch, Reach, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Polearm",
+      "damage": "1d10 Piercing",
+      "properties": "Couch, Reach, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "rch",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-polearm-plus-2",
+    "kind": "magic-weapon",
+    "name": "Polearm +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-polearm-11",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Polearm +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Reach, Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Polearm</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Piercing</dd><dt>Properties</dt><dd>Couch, Reach, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Polearm",
+      "damage": "1d10 Piercing",
+      "properties": "Couch, Reach, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "rch",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-polearm-plus-3",
+    "kind": "magic-weapon",
+    "name": "Polearm +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-polearm-11",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Polearm +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Couch, Reach, Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Polearm</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Heavy Melee Weapons</p><dl><dt>Damage</dt><dd>1d10 Piercing</dd><dt>Properties</dt><dd>Couch, Reach, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Polearm|1d10 Piercing|Couch, Reach, Two-Handed|8 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Melee Weapons",
+      "name": "Polearm",
+      "damage": "1d10 Piercing",
+      "properties": "Couch, Reach, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "rch",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 10
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-defender-shield-plus-1",
+    "kind": "magic-weapon",
+    "name": "Heavy Defender Shield +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-defender-shield-12",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Defender Shield +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Crush (5), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Defender Shield</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Special Melee Weapons</p><dl><dt>Damage</dt><dd>1d12 Bludgeoning</dd><dt>Properties</dt><dd>Brace, Crush (5), Two-Handed</dd><dt>Weight</dt><dd>-</dd><dt>Cost</dt><dd>750 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Melee Weapons",
+      "name": "Heavy Defender Shield",
+      "damage": "1d12 Bludgeoning",
+      "properties": "Brace, Crush (5), Two-Handed",
+      "weight": "-",
+      "cost": "750 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-defender-shield-plus-2",
+    "kind": "magic-weapon",
+    "name": "Heavy Defender Shield +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-defender-shield-12",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Defender Shield +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Crush (5), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Defender Shield</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Special Melee Weapons</p><dl><dt>Damage</dt><dd>1d12 Bludgeoning</dd><dt>Properties</dt><dd>Brace, Crush (5), Two-Handed</dd><dt>Weight</dt><dd>-</dd><dt>Cost</dt><dd>750 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Melee Weapons",
+      "name": "Heavy Defender Shield",
+      "damage": "1d12 Bludgeoning",
+      "properties": "Brace, Crush (5), Two-Handed",
+      "weight": "-",
+      "cost": "750 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-defender-shield-plus-3",
+    "kind": "magic-weapon",
+    "name": "Heavy Defender Shield +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-defender-shield-12",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Defender Shield +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Crush (5), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Defender Shield</h3><p><strong>Source table:</strong> Melee Weapons</p><p><strong>Category:</strong> Special Melee Weapons</p><dl><dt>Damage</dt><dd>1d12 Bludgeoning</dd><dt>Properties</dt><dd>Brace, Crush (5), Two-Handed</dd><dt>Weight</dt><dd>-</dd><dt>Cost</dt><dd>750 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Defender Shield*|1d12 Bludgeoning|Brace, Crush (5), Two-Handed|-|750 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Melee Weapons",
+      "name": "Heavy Defender Shield",
+      "damage": "1d12 Bludgeoning",
+      "properties": "Brace, Crush (5), Two-Handed",
+      "weight": "-",
+      "cost": "750 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "type": {
+        "value": "simpleM",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "bludgeoning"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "range": {
+        "value": null,
+        "long": null,
+        "units": "ft",
+        "reach": 5
+      },
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-bow-plus-1",
+    "kind": "magic-weapon",
+    "name": "Bow +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-bow-0",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Bow +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Bow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Bow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-bow-plus-2",
+    "kind": "magic-weapon",
+    "name": "Bow +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-bow-0",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Bow +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Bow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Bow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-bow-plus-3",
+    "kind": "magic-weapon",
+    "name": "Bow +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-bow-0",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Bow +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Bow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Bow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Bow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-crossbow-plus-1",
+    "kind": "magic-weapon",
+    "name": "Crossbow +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-crossbow-1",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Crossbow +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Crossbow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-crossbow-plus-2",
+    "kind": "magic-weapon",
+    "name": "Crossbow +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-crossbow-1",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Crossbow +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Crossbow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-crossbow-plus-3",
+    "kind": "magic-weapon",
+    "name": "Crossbow +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-crossbow-1",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Crossbow +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Range (75/200), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Piercing</dd><dt>Properties</dt><dd>Range (75/200), Two-Handed</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>85 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Crossbow|1d8 Piercing|Range (75/200), Two-Handed|4 lb.|85 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Crossbow",
+      "damage": "1d8 Piercing",
+      "properties": "Range (75/200), Two-Handed",
+      "weight": "4 lb.",
+      "cost": "85 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hand-crossbow-plus-1",
+    "kind": "magic-weapon",
+    "name": "Hand Crossbow +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hand-crossbow-2",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hand Crossbow +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Light, Range (50/100)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hand Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Light, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>125 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Hand Crossbow",
+      "damage": "1d6 Piercing",
+      "properties": "Light, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "125 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hand-crossbow-plus-2",
+    "kind": "magic-weapon",
+    "name": "Hand Crossbow +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hand-crossbow-2",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hand Crossbow +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Light, Range (50/100)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hand Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Light, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>125 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Hand Crossbow",
+      "damage": "1d6 Piercing",
+      "properties": "Light, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "125 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-hand-crossbow-plus-3",
+    "kind": "magic-weapon",
+    "name": "Hand Crossbow +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-hand-crossbow-2",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Hand Crossbow +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Light, Range (50/100)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Hand Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Light, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>125 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Hand Crossbow|1d6 Piercing|Light, Range (50/100)|2 lb.|125 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Hand Crossbow",
+      "damage": "1d6 Piercing",
+      "properties": "Light, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "125 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-handgun-plus-1",
+    "kind": "magic-weapon",
+    "name": "Handgun +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-handgun-3",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Handgun +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Rapid Fire, Range (50/100)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Handgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Rapid Fire, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Handgun",
+      "damage": "1d6 Piercing",
+      "properties": "Firearm, Rapid Fire, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-handgun-plus-2",
+    "kind": "magic-weapon",
+    "name": "Handgun +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-handgun-3",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Handgun +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Rapid Fire, Range (50/100)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Handgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Rapid Fire, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Handgun",
+      "damage": "1d6 Piercing",
+      "properties": "Firearm, Rapid Fire, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-handgun-plus-3",
+    "kind": "magic-weapon",
+    "name": "Handgun +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-handgun-3",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Handgun +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Rapid Fire, Range (50/100)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Handgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Rapid Fire, Range (50/100)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Handgun|1d6 Piercing|Firearm, Rapid Fire, Range (50/100)|2 lb.|700* LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Handgun",
+      "damage": "1d6 Piercing",
+      "properties": "Firearm, Rapid Fire, Range (50/100)",
+      "weight": "2 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-nailgun-plus-1",
+    "kind": "magic-weapon",
+    "name": "Nailgun +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-nailgun-4",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Nailgun +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Spread, Range (30/50)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Nailgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Spread, Range (30/50)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Nailgun",
+      "damage": "1d6 Piercing",
+      "properties": "Spread, Range (30/50)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 30,
+        "long": 50,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-nailgun-plus-2",
+    "kind": "magic-weapon",
+    "name": "Nailgun +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-nailgun-4",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Nailgun +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Spread, Range (30/50)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Nailgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Spread, Range (30/50)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Nailgun",
+      "damage": "1d6 Piercing",
+      "properties": "Spread, Range (30/50)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 30,
+        "long": 50,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-nailgun-plus-3",
+    "kind": "magic-weapon",
+    "name": "Nailgun +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-nailgun-4",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Nailgun +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Spread, Range (30/50)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Nailgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Piercing</dd><dt>Properties</dt><dd>Spread, Range (30/50)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Nailgun|1d6 Piercing|Spread, Range (30/50)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Nailgun",
+      "damage": "1d6 Piercing",
+      "properties": "Spread, Range (30/50)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 30,
+        "long": 50,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-throwing-disc-plus-1",
+    "kind": "magic-weapon",
+    "name": "Throwing Disc +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-throwing-disc-5",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Throwing Disc +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> CQC, Light, Returning, Thrown (40/80)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Slashing</dd><dt>Properties</dt><dd>CQC, Light, Returning, Thrown (40/80)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Throwing Disc",
+      "damage": "1d6 Slashing",
+      "properties": "CQC, Light, Returning, Thrown (40/80)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-throwing-disc-plus-2",
+    "kind": "magic-weapon",
+    "name": "Throwing Disc +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-throwing-disc-5",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Throwing Disc +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> CQC, Light, Returning, Thrown (40/80)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Slashing</dd><dt>Properties</dt><dd>CQC, Light, Returning, Thrown (40/80)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Throwing Disc",
+      "damage": "1d6 Slashing",
+      "properties": "CQC, Light, Returning, Thrown (40/80)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-throwing-disc-plus-3",
+    "kind": "magic-weapon",
+    "name": "Throwing Disc +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-throwing-disc-5",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Throwing Disc +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> CQC, Light, Returning, Thrown (40/80)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Light Ranged Weapons</p><dl><dt>Damage</dt><dd>1d6 Slashing</dd><dt>Properties</dt><dd>CQC, Light, Returning, Thrown (40/80)</dd><dt>Weight</dt><dd>2 lb.</dd><dt>Cost</dt><dd>65 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Throwing Disc|1d6 Slashing|CQC, Light, Returning, Thrown (40/80)|2 lb.|65 LMD|"
+    ],
+    "tableData": {
+      "category": "Light Ranged Weapons",
+      "name": "Throwing Disc",
+      "damage": "1d6 Slashing",
+      "properties": "CQC, Light, Returning, Thrown (40/80)",
+      "weight": "2 lb.",
+      "cost": "65 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 2,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "lgt",
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 40,
+        "long": 80,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatbow-plus-1",
+    "kind": "magic-weapon",
+    "name": "Greatbow +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatbow-6",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatbow +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5), Brace, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Piercing</dd><dt>Properties</dt><dd>Crush (5), Brace, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Greatbow",
+      "damage": "2d8 Piercing",
+      "properties": "Crush (5), Brace, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatbow-plus-2",
+    "kind": "magic-weapon",
+    "name": "Greatbow +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatbow-6",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatbow +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5), Brace, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Piercing</dd><dt>Properties</dt><dd>Crush (5), Brace, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Greatbow",
+      "damage": "2d8 Piercing",
+      "properties": "Crush (5), Brace, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-greatbow-plus-3",
+    "kind": "magic-weapon",
+    "name": "Greatbow +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-greatbow-6",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Greatbow +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Crush (5), Brace, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Greatbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Piercing</dd><dt>Properties</dt><dd>Crush (5), Brace, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Greatbow|2d8 Piercing|Crush (5), Brace, Range (100/400), Two-Handed|8 lb.|600 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Greatbow",
+      "damage": "2d8 Piercing",
+      "properties": "Crush (5), Brace, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-crossbow-plus-1",
+    "kind": "magic-weapon",
+    "name": "Heavy Crossbow +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-crossbow-7",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Crossbow +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d10 Piercing</dd><dt>Properties</dt><dd>Deadly, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Crossbow",
+      "damage": "2d10 Piercing",
+      "properties": "Deadly, Loading, Range (100/400), Two-Handed",
+      "weight": "10 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-crossbow-plus-2",
+    "kind": "magic-weapon",
+    "name": "Heavy Crossbow +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-crossbow-7",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Crossbow +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d10 Piercing</dd><dt>Properties</dt><dd>Deadly, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Crossbow",
+      "damage": "2d10 Piercing",
+      "properties": "Deadly, Loading, Range (100/400), Two-Handed",
+      "weight": "10 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-crossbow-plus-3",
+    "kind": "magic-weapon",
+    "name": "Heavy Crossbow +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-crossbow-7",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Crossbow +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Crossbow</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d10 Piercing</dd><dt>Properties</dt><dd>Deadly, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>10 lb.</dd><dt>Cost</dt><dd>600 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Crossbow|2d10 Piercing|Deadly, Loading, Range (100/400), Two-Handed|10 lb.|600 LMD"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Crossbow",
+      "damage": "2d10 Piercing",
+      "properties": "Deadly, Loading, Range (100/400), Two-Handed",
+      "weight": "10 lb.",
+      "cost": "600 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 10,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 10,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-throwing-disc-plus-1",
+    "kind": "magic-weapon",
+    "name": "Heavy Throwing Disc +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-throwing-disc-8",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Throwing Disc +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, CQC, Returning, Thrown (50/100)</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Brace, CQC, Returning, Thrown (50/100)</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Throwing Disc",
+      "damage": "2d6 Slashing",
+      "properties": "Brace, CQC, Returning, Thrown (50/100)",
+      "weight": "4 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-throwing-disc-plus-2",
+    "kind": "magic-weapon",
+    "name": "Heavy Throwing Disc +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-throwing-disc-8",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Throwing Disc +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, CQC, Returning, Thrown (50/100)</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Brace, CQC, Returning, Thrown (50/100)</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Throwing Disc",
+      "damage": "2d6 Slashing",
+      "properties": "Brace, CQC, Returning, Thrown (50/100)",
+      "weight": "4 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-heavy-throwing-disc-plus-3",
+    "kind": "magic-weapon",
+    "name": "Heavy Throwing Disc +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-heavy-throwing-disc-8",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Heavy Throwing Disc +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, CQC, Returning, Thrown (50/100)</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Heavy Throwing Disc</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Slashing</dd><dt>Properties</dt><dd>Brace, CQC, Returning, Thrown (50/100)</dd><dt>Weight</dt><dd>4 lb.</dd><dt>Cost</dt><dd>300 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Heavy Throwing Disc|2d6 Slashing|Brace, CQC, Returning, Thrown (50/100)|4 lb.|300 LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Heavy Throwing Disc",
+      "damage": "2d6 Slashing",
+      "properties": "Brace, CQC, Returning, Thrown (50/100)",
+      "weight": "4 lb.",
+      "cost": "300 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 4,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "thr",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "slashing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-machine-gun-plus-1",
+    "kind": "magic-weapon",
+    "name": "Machine Gun +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-machine-gun-9",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Machine Gun +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (75/200), Rapid Fire, Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Machine Gun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (75/200), Rapid Fire, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1400 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Machine Gun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (75/200), Rapid Fire, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1400 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-machine-gun-plus-2",
+    "kind": "magic-weapon",
+    "name": "Machine Gun +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-machine-gun-9",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Machine Gun +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (75/200), Rapid Fire, Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Machine Gun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (75/200), Rapid Fire, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1400 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Machine Gun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (75/200), Rapid Fire, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1400 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-machine-gun-plus-3",
+    "kind": "magic-weapon",
+    "name": "Machine Gun +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-machine-gun-9",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Machine Gun +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (75/200), Rapid Fire, Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Machine Gun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (75/200), Rapid Fire, Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1400 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Machine Gun|2d6 Piercing|Firearm, Range (75/200), Rapid Fire, Two-Handed|8 lb.|1400* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Machine Gun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (75/200), Rapid Fire, Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1400 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 75,
+        "long": 200,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rifle-plus-1",
+    "kind": "magic-weapon",
+    "name": "Rifle +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rifle-10",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Rifle +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Firearm, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rifle</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d12 Piercing</dd><dt>Properties</dt><dd>Deadly, Firearm, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Rifle",
+      "damage": "2d12 Piercing",
+      "properties": "Deadly, Firearm, Loading, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rifle-plus-2",
+    "kind": "magic-weapon",
+    "name": "Rifle +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rifle-10",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Rifle +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Firearm, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rifle</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d12 Piercing</dd><dt>Properties</dt><dd>Deadly, Firearm, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Rifle",
+      "damage": "2d12 Piercing",
+      "properties": "Deadly, Firearm, Loading, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rifle-plus-3",
+    "kind": "magic-weapon",
+    "name": "Rifle +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rifle-10",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Rifle +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Deadly, Firearm, Loading, Range (100/400), Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rifle</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d12 Piercing</dd><dt>Properties</dt><dd>Deadly, Firearm, Loading, Range (100/400), Two-Handed</dd><dt>Weight</dt><dd>8 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Rifle|2d12 Piercing|Deadly, Firearm, Loading, Range (100/400), Two-Handed|8 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Rifle",
+      "damage": "2d12 Piercing",
+      "properties": "Deadly, Firearm, Loading, Range (100/400), Two-Handed",
+      "weight": "8 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 8,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 12,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": 400,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-shotgun-plus-1",
+    "kind": "magic-weapon",
+    "name": "Shotgun +1",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-shotgun-11",
+      "family": "weapon",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Shotgun +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (50/100), Spread, Two-Handed</p><p>The native weapon bonus adds +1 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Shotgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (50/100), Spread, Two-Handed</dd><dt>Weight</dt><dd>6 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Shotgun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (50/100), Spread, Two-Handed",
+      "weight": "6 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 6,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "1",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-shotgun-plus-2",
+    "kind": "magic-weapon",
+    "name": "Shotgun +2",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-shotgun-11",
+      "family": "weapon",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Shotgun +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (50/100), Spread, Two-Handed</p><p>The native weapon bonus adds +2 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Shotgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (50/100), Spread, Two-Handed</dd><dt>Weight</dt><dd>6 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Shotgun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (50/100), Spread, Two-Handed",
+      "weight": "6 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 6,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "2",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-shotgun-plus-3",
+    "kind": "magic-weapon",
+    "name": "Shotgun +3",
+    "itemType": "weapon",
+    "sourceHeading": "Weapon +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-shotgun-11",
+      "family": "weapon",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 0
+    },
+    "content": "<h3>Shotgun +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Firearm, Range (50/100), Spread, Two-Handed</p><p>The native weapon bonus adds +3 once to Attack and Damage rolls, including versatile and thrown attacks where applicable. AK5e-specific weapon properties remain manual.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Weapon +1/+2/+3</h4><h4>Weapon +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">You have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Shotgun</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Heavy Ranged Weapons</p><dl><dt>Damage</dt><dd>2d6 Piercing</dd><dt>Properties</dt><dd>Firearm, Range (50/100), Spread, Two-Handed</dd><dt>Weight</dt><dd>6 lb.</dd><dt>Cost</dt><dd>1100 LMD</dd></dl>",
+    "rawSource": "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}\n\n| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|",
+    "rawSources": [
+      "#### Weapon +1/+2/+3\n*Any Weapon (except Arts Staff, Arts Wand, or Special Ranged Weapons), Uncommon/Rare/Very Rare*\n:\nYou have a +1/+2/+3 bonus to Attack and Damage rolls made with this weapon.\n\n\\page\n{{pageNumber,auto}}",
+      "| &emsp; Shotgun|2d6 Piercing|Firearm, Range (50/100), Spread, Two-Handed|6 lb.|1100* LMD|"
+    ],
+    "tableData": {
+      "category": "Heavy Ranged Weapons",
+      "name": "Shotgun",
+      "damage": "2d6 Piercing",
+      "properties": "Firearm, Range (50/100), Spread, Two-Handed",
+      "weight": "6 lb.",
+      "cost": "1100 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 6,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "fir",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 6,
+          "bonus": "",
+          "types": [
+            "piercing"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": 100,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "3",
+      "activities": {
+        "ak5eWeaponAttack": {
+          "_id": "ak5eWeaponAttack",
+          "type": "attack",
+          "name": "Attack",
+          "activation": {
+            "type": "action",
+            "value": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-grenade-launcher-plus-1",
+    "kind": "magic-weapon",
+    "name": "Grenade Launcher +1",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-grenade-launcher-12",
+      "family": "launcher",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 1
+    },
+    "content": "<h3>Grenade Launcher +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Loading, Range (50), Splash (5), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 5 feet makes a Dexterity Saving Throw against your Martial DC + 1. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Grenade Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Thunder</dd><dt>Properties</dt><dd>Loading, Range (50), Splash (5), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>500 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Grenade Launcher",
+      "damage": "1d8 Thunder",
+      "properties": "Loading, Range (50), Splash (5), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "500 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-grenade-launcher-plus-2",
+    "kind": "magic-weapon",
+    "name": "Grenade Launcher +2",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-grenade-launcher-12",
+      "family": "launcher",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 2
+    },
+    "content": "<h3>Grenade Launcher +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Loading, Range (50), Splash (5), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 5 feet makes a Dexterity Saving Throw against your Martial DC + 2. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Grenade Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Thunder</dd><dt>Properties</dt><dd>Loading, Range (50), Splash (5), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>500 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Grenade Launcher",
+      "damage": "1d8 Thunder",
+      "properties": "Loading, Range (50), Splash (5), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "500 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-grenade-launcher-plus-3",
+    "kind": "magic-weapon",
+    "name": "Grenade Launcher +3",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-grenade-launcher-12",
+      "family": "launcher",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 3
+    },
+    "content": "<h3>Grenade Launcher +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Loading, Range (50), Splash (5), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 5 feet makes a Dexterity Saving Throw against your Martial DC + 3. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Grenade Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>1d8 Thunder</dd><dt>Properties</dt><dd>Loading, Range (50), Splash (5), Two-Handed</dd><dt>Weight</dt><dd>12 lb.</dd><dt>Cost</dt><dd>500 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Grenade Launcher|1d8 Thunder|Loading, Range (50), Splash (5), Two-Handed|12 lb.|500 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Grenade Launcher",
+      "damage": "1d8 Thunder",
+      "properties": "Loading, Range (50), Splash (5), Two-Handed",
+      "weight": "12 lb.",
+      "cost": "500 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 12,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 1,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 50,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rocket-launcher-plus-1",
+    "kind": "magic-weapon",
+    "name": "Rocket Launcher +1",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rocket-launcher-13",
+      "family": "launcher",
+      "bonus": 1,
+      "conductive": 0,
+      "martialDCBonus": 1
+    },
+    "content": "<h3>Rocket Launcher +1</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Uncommon; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Loading, Range (100), Splash (10), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 10 feet makes a Dexterity Saving Throw against your Martial DC + 1. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading and Brace (30ft Movement with Loading) manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 4,500 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rocket Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Thunder</dd><dt>Properties</dt><dd>Brace, Loading, Range (100), Splash (10), Two-Handed</dd><dt>Weight</dt><dd>20 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Rocket Launcher",
+      "damage": "2d8 Thunder",
+      "properties": "Brace, Loading, Range (100), Splash (10), Two-Handed",
+      "weight": "20 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 20,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "uncommon",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 2,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rocket-launcher-plus-2",
+    "kind": "magic-weapon",
+    "name": "Rocket Launcher +2",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rocket-launcher-13",
+      "family": "launcher",
+      "bonus": 2,
+      "conductive": 0,
+      "martialDCBonus": 2
+    },
+    "content": "<h3>Rocket Launcher +2</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Loading, Range (100), Splash (10), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 10 feet makes a Dexterity Saving Throw against your Martial DC + 2. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading and Brace (30ft Movement with Loading) manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 10,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rocket Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Thunder</dd><dt>Properties</dt><dd>Brace, Loading, Range (100), Splash (10), Two-Handed</dd><dt>Weight</dt><dd>20 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Rocket Launcher",
+      "damage": "2d8 Thunder",
+      "properties": "Brace, Loading, Range (100), Splash (10), Two-Handed",
+      "weight": "20 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 20,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "rare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 2,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "magic-weapon-rocket-launcher-plus-3",
+    "kind": "magic-weapon",
+    "name": "Rocket Launcher +3",
+    "itemType": "weapon",
+    "sourceHeading": "Launcher +1/+2/+3",
+    "contentVersion": "0.3.2",
+    "enhancement": {
+      "baseWeaponId": "weapon-rocket-launcher-13",
+      "family": "launcher",
+      "bonus": 3,
+      "conductive": 0,
+      "martialDCBonus": 3
+    },
+    "content": "<h3>Rocket Launcher +3</h3><h4>Variant summary</h4><p><strong>Rarity:</strong> Very Rare; no Attunement required.</p><p><strong>Effective properties:</strong> Brace, Loading, Range (100), Splash (10), Two-Handed</p><p>Resolve Splash manually: choose a point within the weapon's range, then each Creature within 10 feet makes a Dexterity Saving Throw against your Martial DC + 3. Add the weapon's Ability Modifier manually to the Thunder damage roll; on a successful save take half. If you are not Proficient with this weapon, Creatures have Advantage on the save. Do not make an Attack Roll. The upgrade grants no Attack or Damage bonus. Resolve Loading and Brace (30ft Movement with Loading) manually.</p><p>Magic Item pricing is a GM estimate, not a fixed purchase price: 50,000 LMD for this rarity. Native price is unset.</p><h4>Enhancement source: Launcher +1/+2/+3</h4><h4>Launcher +1/+2/+3</h4>\n<p class=\"ak5e-source-paragraph\"><em>Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare</em></p>\n<p class=\"ak5e-source-paragraph\">Your Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.</p><h4>Base weapon source (unenhanced)</h4><h3>Rocket Launcher</h3><p><strong>Source table:</strong> Ranged Weapons</p><p><strong>Category:</strong> Special Ranged Weapons</p><dl><dt>Damage</dt><dd>2d8 Thunder</dd><dt>Properties</dt><dd>Brace, Loading, Range (100), Splash (10), Two-Handed</dd><dt>Weight</dt><dd>20 lb.</dd><dt>Cost</dt><dd>700 LMD</dd></dl>",
+    "rawSource": "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column\n\n| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|",
+    "rawSources": [
+      "#### Launcher +1/+2/+3\n*Weapon (Grenade Launcher) or Weapon (Rocket Launcher), Uncommon/Rare/Very Rare*\n:\nYour Martial DC is treated as being 1/2/3 higher for the purpose of the Splash (X) Property when using this weapon.\n\n\\column",
+      "| &emsp; Rocket Launcher|2d8 Thunder|Brace, Loading, Range (100), Splash (10), Two-Handed|20 lb.|700 LMD|"
+    ],
+    "tableData": {
+      "category": "Special Ranged Weapons",
+      "name": "Rocket Launcher",
+      "damage": "2d8 Thunder",
+      "properties": "Brace, Loading, Range (100), Splash (10), Two-Handed",
+      "weight": "20 lb.",
+      "cost": "700 LMD"
+    },
+    "systemData": {
+      "quantity": 1,
+      "weight": {
+        "value": 20,
+        "units": "lb"
+      },
+      "type": {
+        "value": "simpleR",
+        "baseItem": ""
+      },
+      "properties": [
+        "two",
+        "lod",
+        "mgc"
+      ],
+      "damage": {
+        "base": {
+          "number": 2,
+          "denomination": 8,
+          "bonus": "",
+          "types": [
+            "thunder"
+          ],
+          "custom": {
+            "enabled": false,
+            "formula": ""
+          }
+        }
+      },
+      "range": {
+        "value": 100,
+        "long": null,
+        "units": "ft",
+        "reach": null
+      },
+      "rarity": "veryRare",
+      "attunement": "",
+      "equipped": false,
+      "magicalBonus": "",
+      "activities": {
+        "ak5eSplashDamage": {
+          "_id": "ak5eSplashDamage",
+          "type": "damage",
+          "name": "Splash damage (manual resolution)",
+          "activation": {
+            "type": "action",
+            "value": 1
+          },
+          "damage": {
+            "critical": {
+              "allow": false,
+              "bonus": ""
+            },
+            "parts": [
+              {
+                "number": 2,
+                "denomination": 8,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
   }
 ];

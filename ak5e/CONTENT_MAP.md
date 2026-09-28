@@ -11,7 +11,7 @@ packs, as described in the release checklist.
 
 - Source headings scanned: 2038
 - Markdown table blocks scanned: 289
-- Current top-level generated documents: 1442
+- Current top-level generated documents: 1843
 - Embedded Chapter 6 feature Items: 801 (part of their parent NPC Actor, not a separate pack document)
 - Planned standalone RollTables: 4
 
@@ -25,14 +25,14 @@ current module still uses development-World installers.
 | `ak5e.arts` | Item (feat) | 17 | Arts and Arts Pool Items |
 | `ak5e.arts` | Item (spell) | 111 | Arts and Arts Pool Items |
 | `ak5e.classes` | Item (class) | 8 | Classes, Branches, and Features |
-| `ak5e.classes` | Item (feat) | 715 | Classes, Branches, and Features |
+| `ak5e.classes` | Item (feat) | 1035 | Classes, Branches, and Features |
 | `ak5e.classes` | Item (subclass) | 54 | Classes, Branches, and Features |
 | `ak5e.creatures` | Actor (npc) | 156 | Creatures and source-defined summons |
 | `ak5e.equipment` | Item (equipment) | 29 | Equipment, properties, and rules Items |
 | `ak5e.equipment` | Item (feat) | 42 | Equipment, properties, and rules Items |
 | `ak5e.equipment` | Item (loot) | 15 | Equipment, properties, and rules Items |
 | `ak5e.equipment` | Item (tool) | 13 | Equipment, properties, and rules Items |
-| `ak5e.equipment` | Item (weapon) | 27 | Equipment, properties, and rules Items |
+| `ak5e.equipment` | Item (weapon) | 108 | Equipment, properties, and rules Items |
 | `ak5e.origins` | Item (background) | 33 | Origins, features, nationalities, and backgrounds |
 | `ak5e.origins` | Item (feat) | 162 | Origins, features, nationalities, and backgrounds |
 | `ak5e.origins` | Item (race) | 36 | Origins, features, nationalities, and backgrounds |
@@ -326,6 +326,47 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-caster-basic-caster-talents-23598` | Basic Caster Talents | Basic Caster Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-caster-advanced-caster-talents-27413` | Advanced Caster Talents | Advanced Caster Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-caster-advanced-caster-talents-continued-32237` | Advanced Caster Talents Continued | Advanced Caster Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-artseeker` | Artseeker | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-battle-chant` | Battle Chant | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-close-quarters-casting` | Close Quarters Casting | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-crimson-eyes` | Crimson Eyes | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-cull` | Cull | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-destiny` | Destiny | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-flashpoint` | Flashpoint | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-focus` | Focus | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-levitate` | Levitate | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-magnet-force` | Magnet Force | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-meditation` | Meditation | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-rebound` | Rebound | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-shell-shock` | Shell Shock | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-within-reach` | Within Reach | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-basic-you-shall-not-pass` | You Shall Not Pass | Basic Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-amplification-field` | Amplification Field | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-baptize-the-blade` | Baptize the Blade | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-crackling-mote` | Crackling Mote | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-emp-eruption` | EMP Eruption | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-gentle-binding-gaze` | Gentle Binding Gaze | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-laser-focus` | Laser Focus | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-meandering-stars` | Meandering Stars | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-phantom-force` | Phantom Force | Advanced Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-precise-redirection` | Precise Redirection | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-ring-of-purgatory` | Ring of Purgatory | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-salt-the-wound` | Salt the Wound | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-storm-s-wake` | Storm's Wake | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-terrifying-force` | Terrifying Force | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-advanced-ultimatum` | Ultimatum | Advanced Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-desolate-echo` | Desolate Echo | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-exclusion-zone` | Exclusion Zone | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-in-tune` | In Tune | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-leyline` | Leyline | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-lock-on` | Lock-On | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-maximise` | Maximise | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-power-battery` | Power Battery | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-punishment` | Punishment | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-scorched-earth` | Scorched Earth | Elite Caster Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-supreme-acuity` | Supreme Acuity | Elite Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-touch-the-heavens` | Touch the Heavens | Elite Caster Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-caster-elite-wolfpack` | Wolfpack | Elite Caster Skills Continued |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-caster-core` | Caster: Core | Core |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-caster-core-1st-level-versatile-caster-355` | Core: 1st Level: Versatile Caster | 1st Level: Versatile Caster |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-caster-core-3rd-level-power-from-within-949` | Core: 3rd Level: Power from Within | 3rd Level: Power from Within |
@@ -398,6 +439,40 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-defender-basic-defender-talents-20093` | Basic Defender Talents | Basic Defender Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-defender-advanced-defender-talents-25581` | Advanced Defender Talents | Advanced Defender Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-defender-advanced-defender-talents-continued-29981` | Advanced Defender Talents Continued | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-adrenaline-rush` | Adrenaline Rush | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-evasive-stance` | Evasive Stance | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-hidden-might` | Hidden Might | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-invariance-principle` | Invariance Principle | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-lifestealer` | Lifestealer | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-mark-prey` | Mark Prey | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-meditation` | Meditation | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-power-strike` | Power Strike | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-radial-guard` | Radial Guard | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-raise-guard` | Raise Guard | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-sap` | Sap | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-basic-spikeshield` | Spikeshield | Basic Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-breaker-of-the-broken` | Breaker of the Broken | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-counter-arc` | Counter Arc | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-current-conduit` | Current Conduit | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-deterring-radiance` | Deterring Radiance | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-earthen-might` | Earthen Might | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-emergency-camo` | Emergency Camo | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-halting-feather` | Halting Feather | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-last-word` | Last Word | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-mob-mauler` | Mob Mauler | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-ready-stance` | Ready Stance | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-shell-defence` | Shell Defence | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-sweeping-stance` | Sweeping Stance | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-thorn-counter` | Thorn Counter | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-advanced-vacuum-assault` | Vacuum Assault | Advanced Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-blood-boil` | Blood Boil | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-light-of-hope` | Light of Hope | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-oath` | Oath | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-rolling-stone` | Rolling Stone | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-seal-away` | Seal Away | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-structural-dissolution` | Structural Dissolution | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-structural-reinforcement` | Structural Reinforcement | Elite Defender Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-defender-elite-trial-of-thorns` | Trial of Thorns | Elite Defender Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-defender-artshield` | Defender: Artshield | Artshield |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-defender-artshield-1st-level-against-the-storm-376` | Artshield: 1st Level: Against the Storm | 1st Level: Against the Storm |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-defender-artshield-4th-level-weapons-of-the-enemy-1558` | Artshield: 4th Level: Weapons of the Enemy | 4th Level: Weapons of the Enemy |
@@ -491,6 +566,63 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-guard-basic-guard-talents-continued-37188` | Basic Guard Talents Continued | Basic Guard Talents Continued |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-guard-advanced-guard-talents-39603` | Advanced Guard Talents | Advanced Guard Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-guard-advanced-guard-talents-continued-43700` | Advanced Guard Talents Continued | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-adrenaline-rush` | Adrenaline Rush | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-blade-s-reach` | Blade’s Reach | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-blade-s-blessing` | Blade's Blessing | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-evasive-stance` | Evasive Stance | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-fearless-assault` | Fearless Assault | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-hidden-might` | Hidden Might | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-lifestealer` | Lifestealer | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-mark-prey` | Mark Prey | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-meditation` | Meditation | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-power-strike` | Power Strike | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-sap` | Sap | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-swift-strikes` | Swift Strikes | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-basic-wounding-blow` | Wounding Blow | Basic Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-armourburner` | Armourburner | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-dragonstrike` | Dragonstrike | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-earthen-might` | Earthen Might | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-fleeting-night` | Fleeting Night | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-frost-claw` | Frost Claw | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-half-sword-stance` | Half Sword Stance | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-halting-feather` | Halting Feather | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-high-current-strike` | High Current Strike | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-holding-shadow` | Holding Shadow | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-infected-wound` | Infected Wound | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-leaping-strike` | Leaping Strike | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-limit-break` | Limit Break | Advanced Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-line-breaker` | Line Breaker | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-night-splitting-light` | Night-Splitting Light | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-pin-down` | Pin Down | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-ready-stance` | Ready Stance | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-savagery-unrelenting` | Savagery Unrelenting | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-search-and-destroy` | Search and Destroy | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-self-sacrifice` | Self Sacrifice | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-stormbolt` | Stormbolt | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-sweeping-stance` | Sweeping Stance | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-thorn-counter` | Thorn Counter | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-to-part-the-seas` | To Part The Seas | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-twin-fangs` | Twin Fangs | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-vacuum-assault` | Vacuum Assault | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-wave-strike` | Wave Strike | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-advanced-wrathful-blow` | Wrathful Blow | Advanced Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-afterimage` | Afterimage | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-blade-of-light` | Blade of Light | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-blood-boil` | Blood Boil | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-flash-of-lightning` | Flash of Lightning | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-flicker` | Flicker | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-grand-cross` | Grand Cross | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-inexorable` | Inexorable | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-last-breath` | Last Breath | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-light-of-hope` | Light of Hope | Elite Guard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-meteoric-descent` | Meteoric Descent | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-oath` | Oath | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-shimotsuki` | Shimotsuki | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-the-supreme-art` | The Supreme Art | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-thousand-cuts` | Thousand Cuts | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-truesilver-slash` | Truesilver Slash | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-twilight` | Twilight | Elite Guard Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-elite-volcanian` | Volcanian | Elite Guard Skills Continued |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-guard-artsblade` | Guard: Artsblade | Artsblade |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-artsblade-1st-level-sword-and-sorcery-205` | Artsblade: 1st Level: Sword and Sorcery | 1st Level: Sword and Sorcery |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-artsblade-1st-level-resonance-4121` | Artsblade: 1st Level: Resonance | 1st Level: Resonance |
@@ -552,6 +684,18 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-liberator-liberator-basic-skills-6603` | Liberator: Liberator Basic Skills | Liberator Basic Skills |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-liberator-liberator-advanced-skills-8347` | Liberator: Liberator Advanced Skills | Liberator Advanced Skills |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-liberator-liberator-elite-skills-11415` | Liberator: Liberator Elite Skills | Liberator Elite Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-basic-defender-of-the-worthy` | Defender of the Worthy | Liberator Basic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-basic-esoteric-bladework` | Esoteric Bladework | Liberator Basic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-basic-flash-of-light` | Flash of Light | Liberator Basic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-basic-sweep-away` | Sweep Away | Liberator Basic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-advanced-edge-of-fate` | Edge of Fate | Liberator Advanced Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-advanced-from-on-high` | From on High | Liberator Advanced Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-advanced-heaven-piercer` | Heaven Piercer | Liberator Advanced Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-advanced-overrun` | Overrun | Liberator Advanced Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-elite-fortress` | Fortress | Liberator Elite Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-elite-glory` | Glory | Liberator Elite Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-elite-silence` | Silence | Liberator Elite Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-guard-liberator-elite-storm` | Storm | Liberator Elite Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-guard-lord` | Guard: Lord | Lord |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-lord-1st-level-authoritative-187` | Lord: 1st Level: Authoritative | 1st Level: Authoritative |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-guard-lord-1st-level-manifest-will-1941` | Lord: 1st Level: Manifest Will | 1st Level: Manifest Will |
@@ -618,6 +762,41 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-marksman-basic-marksman-talents-continued-25231` | Basic Marksman Talents Continued | Basic Marksman Talents Continued |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-marksman-advanced-marksman-talents-27470` | Advanced Marksman Talents | Advanced Marksman Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-marksman-advanced-marksman-talents-continued-31960` | Advanced Marksman Talents Continued | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-hidden-might` | Hidden Might | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-mark-prey` | Mark Prey | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-meditation` | Meditation | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-overpacked-charges` | Overpacked Charges | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-parting-shot` | Parting Shot | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-power-strike` | Power Strike | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-splinter-shot` | Splinter Shot | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-tracer` | Tracer | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-twinshot` | Twinshot | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-basic-wounding-blow` | Wounding Blow | Basic Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-area-overwatch` | Area Overwatch | Advanced Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-armour-piercer` | Armour-Piercer | Advanced Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-breacher-round` | Breacher Round | Advanced Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-cluster-bombs` | Cluster Bombs | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-fleeting-night` | Fleeting Night | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-flexible-camouflage` | Flexible Camouflage | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-incendiary-shots` | Incendiary Shots | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-radar-sweep` | Radar Sweep | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-ricochet` | Ricochet | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-saturation-fire` | Saturation Fire | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-search-and-destroy` | Search and Destroy | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-self-defence-shock` | Self-Defence Shock | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-spinning-edge` | Spinning Edge | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-advanced-umbral-ambush` | Umbral Ambush | Advanced Marksman Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-afterimage` | Afterimage | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-assault-tactics` | Assault Tactics | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-continental-style` | Continental Style | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-eternal-hunt` | Eternal Hunt | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-fortcracker` | Fortcracker | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-harpoon-shot` | Harpoon Shot | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-inexorable` | Inexorable | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-no-escape` | No Escape | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-silencer` | Silencer | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-the-hunt-is-on` | The Hunt is On | Elite Marksman Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-marksman-elite-like-a-scythe-through-wheat` | Like a Scythe through Wheat | Elite Marksman Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-marksman-anti-air` | Marksman: Anti-Air | Anti-Air |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-marksman-anti-air-1st-level-weight-of-fire-385` | Anti-Air: 1st Level: Weight of Fire | 1st Level: Weight of Fire |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-marksman-anti-air-1st-level-air-tracking-729` | Anti-Air: 1st Level: Air Tracking | 1st Level: Air Tracking |
@@ -702,6 +881,41 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-medic-basic-medic-talents-20862` | Basic Medic Talents | Basic Medic Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-medic-advanced-medic-talents-24714` | Advanced Medic Talents | Advanced Medic Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-medic-advanced-medic-talents-continued-28864` | Advanced Medic Talents Continued | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-artseeker` | Artseeker | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-battle-chant` | Battle Chant | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-cull` | Cull | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-emergency-aid` | Emergency Aid | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-empathic-rejuvenation` | Empathic Rejuvenation | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-flashpoint` | Flashpoint | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-magnet-force` | Magnet Force | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-mark-prey` | Mark Prey | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-meditation` | Meditation | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-focus` | Focus | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-levitate` | Levitate | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-placebo-effect` | Placebo Effect | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-within-reach` | Within Reach | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-basic-you-shall-not-pass` | You Shall Not Pass | Basic Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-anaesthesia` | Anaesthesia | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-auto-protect` | Auto-Protect | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-dangerous-operation` | Dangerous Operation | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-doctor-s-office` | Doctor's Office | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-healing-wave` | Healing Wave | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-laser-focus` | Laser Focus | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-nature-s-blessing` | Nature's Blessing | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-self-defence-shock` | Self-Defence Shock | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-slow-release-medication` | Slow Release Medication | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-to-take-umbrage` | To Take Umbrage | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-advanced-protocol-medical` | Protocol: Medical | Advanced Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-echoes-of-life` | Echoes of Life | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-empathic-obliteration` | Empathic Obliteration | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-in-tune` | In Tune | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-leyline` | Leyline | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-light-of-hope` | Light of Hope | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-miracle` | Miracle | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-supreme-acuity` | Supreme Acuity | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-supreme-care` | Supreme Care | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-the-past-unwritten` | The Past, Unwritten | Elite Medic Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-medic-elite-touch-the-heavens` | Touch the Heavens | Elite Medic Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-medic-physician` | Medic: Physician | Physician |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-medic-physician-1st-level-focused-treatment-287` | Physician: 1st Level: Focused Treatment | 1st Level: Focused Treatment |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-medic-physician-4th-level-intravenous-line-510` | Physician: 4th Level: Intravenous Line | 4th Level: Intravenous Line |
@@ -783,6 +997,40 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-specialist-elite-specialist-skills-20118` | Elite Specialist Skills | Elite Specialist Skills |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-specialist-basic-specialist-talents-24786` | Basic Specialist Talents | Basic Specialist Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-specialist-advanced-specialist-talents-29017` | Advanced Specialist Talents | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-death-detonation` | Death Detonation | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-drag-force` | Drag Force | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-evasive-stance` | Evasive Stance | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-exorcise-evil` | Exorcise Evil | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-hidden-might` | Hidden Might | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-mark-prey` | Mark Prey | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-meditation` | Meditation | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-sap` | Sap | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-silent-rain` | Silent Rain | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-spreading-chaos` | Spreading Chaos | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-basic-wounding-blow` | Wounding Blow | Basic Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-area-overwatch` | Area Overwatch | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-cluster-bombs` | Cluster Bombs | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-electrowebbing` | Electrowebbing | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-grave-howl` | Grave Howl | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-incendiary-shots` | Incendiary Shots | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-parabellum` | Parabellum | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-pursuit` | Pursuit | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-skydrop` | Skydrop | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-the-thirst` | The Thirst | Advanced Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-to-part-the-seas` | To Part The Seas | Advanced Specialist Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-umbral-ambush` | Umbral Ambush | Advanced Specialist Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-venom-fang` | Venom Fang | Advanced Specialist Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-advanced-weapons-team-formation` | Weapons Team Formation | Advanced Specialist Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-afterimage` | Afterimage | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-blade-dance` | Blade Dance | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-continental-style` | Continental Style | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-finality` | Finality | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-harpoon-shot` | Harpoon Shot | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-last-breath` | Last Breath | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-oath` | Oath | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-silencer` | Silencer | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-torrential-downpour` | Torrential Downpour | Elite Specialist Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-specialist-elite-when-space-obeys` | When Space Obeys | Elite Specialist Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-specialist-executor` | Specialist: Executor | Executor |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-specialist-executor-1st-level-the-wolf-and-the-shepherd-312` | Executor: 1st Level: The Wolf and the Shepherd | 1st Level: The Wolf and the Shepherd |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-specialist-executor-5th-level-in-every-shadow-2067` | Executor: 5th Level: In Every Shadow | 5th Level: In Every Shadow |
@@ -924,6 +1172,43 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-supporter-elite-supporter-skills-21564` | Elite Supporter Skills | Elite Supporter Skills |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-supporter-basic-supporter-talents-25371` | Basic Supporter Talents | Basic Supporter Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-supporter-advanced-supporter-talents-28887` | Advanced Supporter Talents | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-artseeker` | Artseeker | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-battle-chant` | Battle Chant | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-death-detonation` | Death Detonation | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-earth-meld` | Earth Meld | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-flashpoint` | Flashpoint | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-focus` | Focus | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-hidden-might` | Hidden Might | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-levitate` | Levitate | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-mark-prey` | Mark Prey | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-meditation` | Meditation | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-monitoring` | Monitoring | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-revealing-mist` | Revealing Mist | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-within-reach` | Within Reach | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-basic-you-shall-not-pass` | You Shall Not Pass | Basic Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-electrowebbing` | Electrowebbing | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-emp-eruption` | EMP Eruption | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-gentle-binding-gaze` | Gentle Binding Gaze | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-nature-s-blessing` | Nature's Blessing | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-omen-of-defeat` | Omen of Defeat | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-phantom-force` | Phantom Force | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-protocol-juggernaut` | Protocol: Juggernaut | Advanced Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-protocol-soaring-dragon` | Protocol: Soaring Dragon | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-ring-of-purgatory` | Ring of Purgatory | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-self-defence-shock` | Self-Defence Shock | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-tear-gas` | Tear Gas | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-visual-trap` | Visual Trap | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-weighted-particles` | Weighted Particles | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-zero-burst` | Zero Burst | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-advanced-impulse-signal` | Impulse Signal | Advanced Supporter Skills Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-light-of-hope` | Light of Hope | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-coiling-dragons` | Coiling Dragons | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-gravitic-warp` | Gravitic Warp | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-lock-on` | Lock-On | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-mystical-haze` | Mystical Haze | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-phase-lock` | Phase Lock | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-supreme-acuity` | Supreme Acuity | Elite Supporter Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-supporter-elite-touch-the-heavens` | Touch the Heavens | Elite Supporter Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-supporter-artificer` | Supporter: Artificer | Artificer |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-supporter-artificer-1st-level-tools-of-creation-and-destruction-252` | Artificer: 1st Level: Tools of Creation and Destruction | 1st Level: Tools of Creation and Destruction |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-supporter-artificer-1st-level-master-of-machines-1090` | Artificer: 1st Level: Master of Machines | 1st Level: Master of Machines |
@@ -1021,6 +1306,41 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-vanguard-basic-vanguard-talents-19242` | Basic Vanguard Talents | Basic Vanguard Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-vanguard-advanced-vanguard-talents-23900` | Advanced Vanguard Talents | Advanced Vanguard Talents |
 | 3 | `ak5e.classes` | Item (feat) | `class-feature-vanguard-advanced-vanguard-talents-continued-28764` | Advanced Vanguard Talents Continued | Advanced Vanguard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-charge-on` | Charge On | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-evasive-stance` | Evasive Stance | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-hidden-might` | Hidden Might | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-leading-lance` | Leading Lance | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-lifestealer` | Lifestealer | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-mark-prey` | Mark Prey | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-meditation` | Meditation | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-monitoring` | Monitoring | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-sap` | Sap | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-shadow-raid` | Shadow Raid | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-basic-wounding-blow` | Wounding Blow | Basic Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-devastating-blow` | Devastating Blow | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-dragonstrike` | Dragonstrike | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-drunken-blade-dance` | Drunken Blade Dance | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-far-traveller` | Far Traveller | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-fleeting-night` | Fleeting Night | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-frost-claw` | Frost Claw | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-murder-in-the-murk` | Murder in the Murk | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-search-and-destroy` | Search and Destroy | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-skullbreaker` | Skullbreaker | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-steelsquall` | Steelsquall | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-stormbolt` | Stormbolt | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-sweeping-stance` | Sweeping Stance | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-twin-fangs` | Twin Fangs | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-advanced-weaving-through-war` | Weaving Through War | Advanced Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-afterimage` | Afterimage | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-cage-fighter` | Cage Fighter | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-flicker` | Flicker | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-the-fox-s-prey` | The Fox's Prey | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-inexorable` | Inexorable | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-last-breath` | Last Breath | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-leafcutter` | Leafcutter | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-oath` | Oath | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-spirit-strikes` | Spirit Strikes | Elite Vanguard Skills |
+| 3 | `ak5e.classes` | Item (feat) | `operator-skill-vanguard-elite-thousand-cuts` | Thousand Cuts | Elite Vanguard Skills |
 | 3 | `ak5e.classes` | Item (subclass) | `subclass-vanguard-agent` | Vanguard: Agent | Agent |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-vanguard-agent-1st-level-strike-from-the-shadows-169` | Agent: 1st Level: Strike from the Shadows | 1st Level: Strike from the Shadows |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-vanguard-agent-1st-level-secret-agent-800` | Agent: 1st Level: Secret Agent | 1st Level: Secret Agent |
@@ -1203,8 +1523,8 @@ RollTable in the table inventory.
 | 4 | `ak5e.equipment` | Item (feat) | `gear-rule-gear-rule-oripathy-suppressant-poor-6926` | Gear Rule: Oripathy Suppressant (Poor) | Oripathy Suppressant (Poor) |
 | 4 | `ak5e.equipment` | Item (feat) | `gear-rule-gear-rule-oripathy-suppressant-7488` | Gear Rule: Oripathy Suppressant | Oripathy Suppressant |
 | 4 | `ak5e.equipment` | Item (feat) | `gear-rule-gear-rule-painkillers-7755` | Gear Rule: Painkillers | Painkillers |
-| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-arts-staff-1-2-3-1668` | Arts Staff +1/+2/+3 | Arts Staff +1/+2/+3 |
-| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-arts-wand-1-2-3-1804` | Arts Wand +1/+2/+3 | Arts Wand +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-arts-staff-1-2-3-1668` | Reference: Arts Staff +1/+2/+3 | Arts Staff +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-arts-wand-1-2-3-1804` | Reference: Arts Wand +1/+2/+3 | Arts Wand +1/+2/+3 |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-banshee-s-kiss-1927` | Banshee's Kiss | Banshee's Kiss |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-blacksteel-2930` | Blacksteel | Blacksteel |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-divine-oath-3820` | Divine Oath | Divine Oath |
@@ -1212,10 +1532,91 @@ RollTable in the table inventory.
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-king-s-armour-5843` | King's Armour | King's Armour |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-king-s-crown-6849` | King's Crown | King's Crown |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-king-s-lance-7772` | King's Lance | King's Lance |
-| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-launcher-1-2-3-8815` | Launcher +1/+2/+3 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-launcher-1-2-3-8815` | Reference: Launcher +1/+2/+3 | Launcher +1/+2/+3 |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-rusted-hammer-9047` | Rusted Hammer | Rusted Hammer |
 | 4 | `ak5e.equipment` | Item (equipment) | `magic-item-the-black-lock-and-the-white-key-10600` | The Black Lock and The White Key | The Black Lock and The White Key |
-| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-weapon-1-2-3-12588` | Weapon +1/+2/+3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (equipment) | `magic-item-weapon-1-2-3-12588` | Reference: Weapon +1/+2/+3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-staff-plus-1` | Arts Staff +1 | Arts Staff +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-staff-plus-2` | Arts Staff +2 | Arts Staff +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-staff-plus-3` | Arts Staff +3 | Arts Staff +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-wand-plus-1` | Arts Wand +1 | Arts Wand +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-wand-plus-2` | Arts Wand +2 | Arts Wand +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-arts-wand-plus-3` | Arts Wand +3 | Arts Wand +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-axe-plus-1` | Axe +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-axe-plus-2` | Axe +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-axe-plus-3` | Axe +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hammer-plus-1` | Hammer +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hammer-plus-2` | Hammer +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hammer-plus-3` | Hammer +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-knife-plus-1` | Knife +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-knife-plus-2` | Knife +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-knife-plus-3` | Knife +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-spear-plus-1` | Spear +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-spear-plus-2` | Spear +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-spear-plus-3` | Spear +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-sword-plus-1` | Sword +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-sword-plus-2` | Sword +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-sword-plus-3` | Sword +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-whip-plus-1` | Whip +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-whip-plus-2` | Whip +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-whip-plus-3` | Whip +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greataxe-plus-1` | Greataxe +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greataxe-plus-2` | Greataxe +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greataxe-plus-3` | Greataxe +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatsword-plus-1` | Greatsword +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatsword-plus-2` | Greatsword +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatsword-plus-3` | Greatsword +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-hammer-plus-1` | Heavy Hammer +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-hammer-plus-2` | Heavy Hammer +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-hammer-plus-3` | Heavy Hammer +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-polearm-plus-1` | Polearm +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-polearm-plus-2` | Polearm +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-polearm-plus-3` | Polearm +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-defender-shield-plus-1` | Heavy Defender Shield +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-defender-shield-plus-2` | Heavy Defender Shield +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-defender-shield-plus-3` | Heavy Defender Shield +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-bow-plus-1` | Bow +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-bow-plus-2` | Bow +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-bow-plus-3` | Bow +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-crossbow-plus-1` | Crossbow +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-crossbow-plus-2` | Crossbow +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-crossbow-plus-3` | Crossbow +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hand-crossbow-plus-1` | Hand Crossbow +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hand-crossbow-plus-2` | Hand Crossbow +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-hand-crossbow-plus-3` | Hand Crossbow +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-handgun-plus-1` | Handgun +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-handgun-plus-2` | Handgun +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-handgun-plus-3` | Handgun +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-nailgun-plus-1` | Nailgun +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-nailgun-plus-2` | Nailgun +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-nailgun-plus-3` | Nailgun +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-throwing-disc-plus-1` | Throwing Disc +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-throwing-disc-plus-2` | Throwing Disc +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-throwing-disc-plus-3` | Throwing Disc +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatbow-plus-1` | Greatbow +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatbow-plus-2` | Greatbow +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-greatbow-plus-3` | Greatbow +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-crossbow-plus-1` | Heavy Crossbow +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-crossbow-plus-2` | Heavy Crossbow +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-crossbow-plus-3` | Heavy Crossbow +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-throwing-disc-plus-1` | Heavy Throwing Disc +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-throwing-disc-plus-2` | Heavy Throwing Disc +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-heavy-throwing-disc-plus-3` | Heavy Throwing Disc +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-machine-gun-plus-1` | Machine Gun +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-machine-gun-plus-2` | Machine Gun +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-machine-gun-plus-3` | Machine Gun +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rifle-plus-1` | Rifle +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rifle-plus-2` | Rifle +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rifle-plus-3` | Rifle +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-shotgun-plus-1` | Shotgun +1 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-shotgun-plus-2` | Shotgun +2 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-shotgun-plus-3` | Shotgun +3 | Weapon +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-grenade-launcher-plus-1` | Grenade Launcher +1 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-grenade-launcher-plus-2` | Grenade Launcher +2 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-grenade-launcher-plus-3` | Grenade Launcher +3 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rocket-launcher-plus-1` | Rocket Launcher +1 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rocket-launcher-plus-2` | Rocket Launcher +2 | Launcher +1/+2/+3 |
+| 4 | `ak5e.equipment` | Item (weapon) | `magic-weapon-rocket-launcher-plus-3` | Rocket Launcher +3 | Launcher +1/+2/+3 |
 | 5 | `ak5e.rules` | JournalEntry | `arts-reference-arts-overview` | Chapter 5: Arts Overview | Arts Overview |
 | 5 | `ak5e.rules` | JournalEntry | `arts-reference-arts-points` | Chapter 5: Arts Points | Arts Points |
 | 5 | `ak5e.rules` | JournalEntry | `arts-reference-standard-arts-pools` | Chapter 5: Standard Arts Pools | Standard Arts Pools |

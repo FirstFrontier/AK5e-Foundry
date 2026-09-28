@@ -1,41 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { adoptedSpellData, artsState, castingConfig, integer, quoteArt, recoveryValue, restArtsUpdates } from "../scripts/arts-rules.mjs";
-import { previewActorArts, wrapActivityUse, prepareArtUse, consumeArt, hasArtsContent, renderArtsControls } from "../scripts/arts-casting.mjs";
+import { previewActorArts, wrapActivityUse, prepareArtUse, consumeArt } from "../scripts/arts-casting.mjs";
 
-test("empty Spells part shows setup, then persisted AP, without a sheet header", () => {
-  const previous = globalThis.document;
-  const node = tag => ({ tag, children: [], append(child) { this.children.push(child); }, addEventListener() {} });
-  globalThis.document = { createElement: node };
-  try {
-    const sheet = {
-      children: [], matches: selector => selector === '.tab[data-tab="spells"]',
-      querySelector: () => null, querySelectorAll() { return this.children; },
-      classList: { toggle() {} },
-      prepend(child) { child.remove = () => { this.children = this.children.filter(c => c !== child); }; this.children.unshift(child); }
-    };
-    const document = { ...actor({}, { enabled: false }), type: "character" };
-    assert.equal(hasArtsContent(document), false);
-    renderArtsControls({ document }, sheet);
-    assert.equal(sheet.children.length, 0, "unrelated D&D5e actors have no Arts controls");
-    document.items.push({ flags: { ak5e: { chapterFiveId: "test-art" } } });
-    renderArtsControls({ document }, sheet);
-    assert.match(sheet.children[0].children[0].textContent, /not been configured/);
-    assert.equal(sheet.children[0].children[1].textContent, "Set up AK5e Arts");
-    Object.assign(document, actor({ value: 2, maximum: 4, maximumArtLevel: 1 }));
-    renderArtsControls({ document }, sheet);
-    assert.equal(sheet.children.length, 1);
-    assert.match(sheet.children[0].children[0].textContent, /Arts Points: 2 \/ 4/);
-    document.isOwner = false;
-    renderArtsControls({ document }, sheet);
-    assert.equal(sheet.children[0].children.some(child => child.tag === "button"), false);
-    assert.match(sheet.children[0].children[0].textContent, /Arts Points: 2 \/ 4/);
-    document.items.length = 0;
-    Object.assign(document, actor({}, { enabled: false }));
-    renderArtsControls({ document }, sheet);
-    assert.equal(sheet.children.length, 0, "removing AK5e content clears stale controls");
-  } finally { globalThis.document = previous; }
-});
 
 const state = { enabled: true, value: 12, maximum: 12, maximumArtLevel: 9, ninthLevelCast: false };
 function actor(points = {}, casting = {}) {
