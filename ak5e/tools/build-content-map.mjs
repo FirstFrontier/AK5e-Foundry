@@ -6,6 +6,7 @@ import { CHAPTER_THREE_CLASSES } from "../scripts/chapter-three-content.mjs";
 import { CHAPTER_FOUR_EQUIPMENT } from "../scripts/chapter-four-content.mjs";
 import { CHAPTER_FIVE_ARTS } from "../scripts/chapter-five-content.mjs";
 import { CHAPTER_SIX_CREATURES } from "../scripts/chapter-six-content.mjs";
+import { AK5E_ROLL_TABLES } from "../scripts/roll-table-content.mjs";
 
 const sourceRoot = new URL("../../AK5e_1.3.1_Foundry_Source/", import.meta.url);
 const outputUrl = new URL("../CONTENT_MAP.md", import.meta.url);
@@ -26,6 +27,10 @@ const mappedEntries = chapters.flatMap(chapter => chapter.entries.map(entry => (
   sourceId: entry.id ?? entry.slug,
   sourceHeading: entry.sourceHeading ?? entry.name,
   name: entry.name
+}))).concat(AK5E_ROLL_TABLES.map(entry => ({
+  chapter: Number(entry.sourceFile.slice(0, 2)), sourceFile: entry.sourceFile,
+  sourceId: entry.id, sourceHeading: entry.sourceHeading, name: entry.name,
+  pack: "ak5e.tables", documentType: "RollTable"
 })));
 
 const tableInventories = await Promise.all(chapters.map(async chapter => ({
@@ -62,7 +67,7 @@ const lines = [
   `- Markdown table blocks scanned: ${tables.length}`,
   `- Current top-level generated documents: ${mappedEntries.length}`,
   `- Embedded Chapter 6 feature Items: ${npcFeatures} (part of their parent NPC Actor, not a separate pack document)`,
-  `- Planned standalone RollTables: ${tables.filter(table => table.rollTable).length}`,
+  `- Generated standalone RollTables: ${AK5E_ROLL_TABLES.length} (development installer; release packs pending)`,
   "",
   "## Planned release pack layout",
   "",
@@ -77,7 +82,6 @@ const lines = [
       const [pack, documentType] = key.split("|");
       return `| \`${pack}\` | ${documentType} | ${entries.length} | ${describePack(pack)} |`;
     }),
-  `| \`ak5e.tables\` | RollTable | ${tables.filter(table => table.rollTable).length} planned | Explicit random-result tables listed below. |`,
   "",
   "The existing class and feature records remain together in `ak5e.classes` for",
   "the first release. Their source class/branch fields, source headings, and",
@@ -88,7 +92,7 @@ const lines = [
   "",
   "Every row below becomes one top-level development-World document and is the",
   "source of a future compendium document. Rules tables embedded in a record are",
-  "preserved in its source text and description unless listed as a planned",
+  "preserved in its source text and description unless listed as a standalone",
   "RollTable in the table inventory.",
   "",
   "| Chapter | Pack | Foundry document | Source ID | Name | Source heading |",
@@ -98,12 +102,12 @@ const lines = [
   "## Source table inventory",
   "",
   "All table blocks are retained in the mapped source text. Only tables whose",
-  "rules explicitly direct a random roll are planned as separate RollTables; the",
+  "rules explicitly direct a random roll are generated as separate RollTables; the",
   "rest are reference, progression, stat-block, selection, or lookup tables.",
   "",
   "| Chapter | Source line | Heading path | Table columns | Release handling |",
   "| ---: | ---: | --- | --- | --- |",
-  ...tables.map(table => `| ${table.chapter} | ${table.line} | ${escapeCell(table.headingPath)} | ${escapeCell(table.header)} | ${table.rollTable ? `Planned \`ak5e.tables\`: ${table.rollTable}` : "Retain in mapped document"} |`),
+  ...tables.map(table => `| ${table.chapter} | ${table.line} | ${escapeCell(table.headingPath)} | ${escapeCell(table.header)} | ${table.rollTable ? `Generated \`ak5e.tables\`: ${table.rollTable} (release pack pending)` : "Retain in mapped document"} |`),
   "",
   "## Traceability rules",
   "",
@@ -186,7 +190,8 @@ function describePack(pack) {
     "ak5e.creatures": "Creatures and source-defined summons",
     "ak5e.equipment": "Equipment, properties, and rules Items",
     "ak5e.origins": "Origins, features, nationalities, and backgrounds",
-    "ak5e.rules": "Chapter and supporting reference journals"
+    "ak5e.rules": "Chapter and supporting reference journals",
+    "ak5e.tables": "Explicit random-result tables; manual effect application"
   }[pack] ?? "";
 }
 

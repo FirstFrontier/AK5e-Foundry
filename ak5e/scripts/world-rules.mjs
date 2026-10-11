@@ -156,11 +156,14 @@ export function previewDamage(actor, { amount, damageType, reduction, resistance
   if (actor?.documentName !== "Actor") throw new Error("Choose an Actor.");
   const equipment = equippedDamageReduction(actor, damageType);
   if (equipment.requiresGM && reduction === undefined) throw new Error("Multiple equipped DR sources apply. Ask the GM for the DR total and enter an override.");
-  const baseDR = reduction === undefined ? equipment.total : Number(reduction);
+  // Active effects may carry a signed DR adjustment (Subtle Spark Bolster/Shred Defences); it applies to equipped DR only, never below 0.
+  const adjustment = reduction === undefined ? [...(actor.effects ?? [])].filter(effect => !effect.disabled)
+    .reduce((sum, effect) => sum + (Number(effect.getFlag?.("ak5e", "drAdjustment") ?? effect.flags?.ak5e?.drAdjustment) || 0), 0) : 0;
+  const baseDR = reduction === undefined ? Math.max(0, equipment.total + adjustment) : Number(reduction);
   const dr = actor.statuses?.has("ak5e-corroded") ? Math.floor(baseDR / 2) : baseDR;
   if (!Number.isFinite(Number(amount)) || Number(amount) < 0 || !Number.isFinite(dr) || dr < 0) throw new Error("Enter nonnegative damage and DR.");
   return { input: Number(amount), damageType, category: game.ak5e.damageCategory(damageType),
-    reduction: dr, equipment, resistance, vulnerability,
+    reduction: dr, adjustment, equipment, resistance, vulnerability,
     result: game.ak5e.damageAfterReduction(Number(amount), dr, { resistance, vulnerability }) };
 }
 
@@ -296,7 +299,7 @@ export function registerWorldRuleHooks(api) {
       options.ak5eMassiveDeath = true;
       massivePending.add(actor.uuid);
     }
-    else if (hp <= 0) options.ak5eDyingDamage = true;
+    else if (hp <= 0 && actor.getFlag("ak5e", "dying")?.active) options.ak5eDyingDamage = true;
   });
   Hooks.on("dnd5e.applyDamage", (actor, amount, options) => {
     if (!worldRulesEnabled() || !actor?.isOwner || amount <= 0) return;

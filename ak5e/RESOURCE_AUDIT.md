@@ -1,6 +1,6 @@
 # Character-sheet resource review
 
-The scan covers all six generated chapters: 1,442 top-level records and 801
+The scan covers all six generated chapters: 2,193 top-level records and 801
 embedded creature features. Keyword matches are candidates, including container
 entries and repeated references; they are not a count of distinct resources.
 Reproduce the inventory without changing World data:
@@ -12,8 +12,12 @@ node ak5e/tools/audit-feature-resources.mjs --json
 
 Chapter 2 and Chapter 1 were read for the implemented Origin rules; Chapters 4
 and 5 were subsequently read in full for the tag-profile implementation.
-Chapters 3 and 6 were scanned to identify further review work. Their class-specific
-values and special gain/spend triggers are not inferred by the runtime.
+Chapters 3 and 6 were read in full by their P0 content workers; the resource
+candidate scan remains a keyword inventory, not a rules adjudication. The four
+new random tables are counted separately in CONTENT_MAP.md (2,197 total records).
+Class-specific values and special gain/spend triggers are not inferred by the
+runtime. P0's 350 new standalone descriptive options and 68 reused options
+include printed costs and shared use context, without resource automation.
 
 ## Reviewed Origin trackers
 

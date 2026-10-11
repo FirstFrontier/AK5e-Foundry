@@ -1,6 +1,6 @@
 # AK5e v1.3.1 generated-content audit
 
-Audit completed 2026-09-12 against the chapter files in
+Initial audit completed 2026-09-12; P0 inventory refreshed 2026-10-10 against the chapter files in
 `AK5e_1.3.1_Foundry_Source/`.
 
 ## Scope and method
@@ -27,13 +27,38 @@ node ak5e/tools/verify-chapter-one-helpers.mjs
 | --- | ---: |
 | 1 | 8 rules journals |
 | 2 | 231 Items, 3 guidance journals, 3 summon Actors |
-| 3 | 1,097 Items (including 320 Operator Skills), 1 overview journal, 8 summon Actors |
+| 3 | 1,447 Items (including 320 Operator Skills and 350 new class options), 1 overview journal, 8 summon Actors |
 | 4 | 207 Items, 6 reference journals |
 | 5 | 128 Items, 4 reference journals |
 | 6 | 145 creature Actors, 2 reference journals |
+| Random tables | 4 RollTables with 37 text results (3 Chapter 3, 1 Chapter 6) |
 
 Chapter 6 contains 801 source-preserving embedded feature Items across its 145
 Actors. The complete inventory is in `CONTENT_MAP.md`.
+
+P0 totals are 2,197 top-level records: 2,013 Items, 24 Journals, 156 Actors and
+4 RollTables. The Chapter 3 fixture preserves 1,106 prior source IDs and 77 old
+descriptions. Nine feature boundaries are corrected; 350 standalone options
+are added; 68 existing options gain use context without new IDs. Talent rows
+keep both Effect and Module Effect. `AUTOMATION_AUDIT.md` separately reconciles
+source headings, tables and exact raw-source retention; no gameplay automation
+coverage is inferred from those counts. Focused P0 source, migration and table
+tests are in `class-options.test.mjs`, `content-hash.test.mjs`,
+`roll-tables.test.mjs` and `verify-installer-data.mjs`; live evidence belongs in
+`FOUNDRY_SMOKE_TEST.md`.
+P0's affected features, all option families and four tables passed rendered
+inspection on Foundry 13.351 / D&D5e 5.3.3, including native search, drag/drop,
+chat draws, GM/player access and reload/server-restart persistence. Broader
+all-chapter and locked-release-pack checks below remain separate.
+
+P0 reconciles the static audit's two false heading matches: blank `#####` lines
+at Chapter 4:712 and Chapter 6:37 were incorrectly joined to the following table
+header by a newline-matching regular expression. Both inventories now count
+2,038 named headings and 289 table blocks. Three combined Chapter 6 records
+(Statblock Supporting Notes, FrostNova Winter's Scar and Patriot) now retain
+separate exact source fragments for audit comparison; their existing IDs,
+descriptions and creature data remain unchanged. This removes the three
+noncontiguous-string retention exceptions without altering rules.
 
 ## Corrections made during the audit
 

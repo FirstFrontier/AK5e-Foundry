@@ -109,7 +109,7 @@ test("Defensive attack messages charge misses once; damage respects immunity, te
   await runtime.observeOperatorAttack(attack); assert.equal(target.flags.ak5e.operatorSkills.points, 2);
   const damageMessage = message(source, { type: "damage", originatingMessage: attack.id });
   const apply = async (id, before, after, amount = 5) => runtime.processOperatorApplication(target, { id, before, after, amount, messageUuid: damageMessage.uuid, context: { ownTurn: true } });
-  await apply("immune", { value: 20, temp: 0 }, { value: 20, temp: 0 }); assert.equal(source.flags.ak5e.operatorSkills.points, 0);
+  await apply("immune", { value: 20, temp: 0 }, { value: 20, temp: 0 }, 0); assert.equal(source.flags.ak5e.operatorSkills.points, 0);
   await apply("temp", { value: 20, temp: 10 }, { value: 20, temp: 5 }); assert.equal(source.flags.ak5e.operatorSkills.points, 1);
   await apply("part", { value: 20, temp: 0 }, { value: 15, temp: 0 }); assert.equal(source.flags.ak5e.operatorSkills.points, 1);
   assert.equal(target.flags.ak5e.operatorSkills.points, 2);
@@ -117,6 +117,27 @@ test("Defensive attack messages charge misses once; damage respects immunity, te
   const secondDamage = message(source, { type: "damage", originatingMessage: secondAttack.id });
   await runtime.processOperatorApplication(target, { id: "new", before: { value: 15, temp: 0 }, after: { value: 10, temp: 0 }, amount: 5, messageUuid: secondDamage.uuid, context: { ownTurn: true } });
   assert.equal(source.flags.ak5e.operatorSkills.points, 2); assert.equal(target.flags.ak5e.operatorSkills.points, 4);
+});
+
+test("positive post-defense damage at zero HP charges, while immunity and full-health healing do not", async () => {
+  const source = actor(), target = actor({ type: "npc" }); item(source); item(target); tokens(source, target); combat(source);
+  const damage = message(source, { type: "damage", activityType: "save" });
+  const observation = { id: "zero-hp", amount: 5, before: { value: 0, temp: 0 }, after: { value: 0, temp: 0 }, messageUuid: damage.uuid, context: { ownTurn: true } };
+  await runtime.processOperatorApplication(target, observation);
+  assert.equal(source.flags.ak5e.operatorSkills.points, 1); assert.equal(target.flags.ak5e.operatorSkills.points, 2);
+  await runtime.processOperatorApplication(target, observation); assert.equal(source.flags.ak5e.operatorSkills.points, 1);
+  await runtime.processOperatorApplication(target, { ...observation, id: "immunity", amount: 0 }); assert.equal(source.flags.ak5e.operatorSkills.points, 1);
+  const heal = message(source, { type: "damage", activityType: "heal" });
+  await runtime.processOperatorApplication(target, { ...observation, id: "full-heal", amount: -10, before: { value: 20, temp: 0 }, after: { value: 20, temp: 0 }, messageUuid: heal.uuid });
+  assert.equal(source.flags.ak5e.operatorSkills.points, 1);
+});
+
+test("failed spell prerequisites spend no SP and persist no operation", async () => {
+  const source = actor(), skill = item(source, { effect: "A Strength Saving Throw against your Spell Save DC." });
+  source.flags.ak5e.operatorSkills.points = 40;
+  const before = structuredClone(source.flags.ak5e.operatorSkills);
+  await assert.rejects(command(source, "activate", { itemId: skill.id }), /Spell Save DC/);
+  assert.deepEqual(source.flags.ak5e.operatorSkills, before);
 });
 
 test("only successful native HP applications charge; actual healing and off-turn restrictions are retained", async () => {
@@ -181,6 +202,48 @@ test("failed and prevented commits leave SP and receipts unchanged and report fa
   assert.deepEqual(source.flags.ak5e.operatorSkills, before);
 });
 
+test("partial area creation and failed SP commits recover without spending twice or leaving provisional templates", async () => {
+  const source = actor(), record = CHAPTER_THREE_CLASSES.find(entry => entry.operatorSkill && entry.name === "Grand Cross");
+  const skill = item(source, record.operatorSkill);
+  source.flags.ak5e.operatorSkills.points = record.operatorSkill.cost;
+  const scene = { id: `scene${++counter}`, documentName: "Scene", grid: { type: 1, units: "ft", size: 100, distance: 5 }, walls: [], tokens: [], templates: [],
+    async createEmbeddedDocuments(_type, data) {
+      const created = data.map(entry => ({ ...entry, id: `template${++counter}`, getFlag(namespace, key) { return this.flags[namespace]?.[key]; } }));
+      this.templates.push(...created);
+      if (this.failCreation) { this.failCreation = false; throw new Error("Partial template write"); }
+      return created;
+    }, async deleteEmbeddedDocuments(_type, ids) { this.templates = this.templates.filter(template => !ids.includes(template.id)); this.templates.get = id => this.templates.find(template => template.id === id); } };
+  scene.templates.get = id => scene.templates.find(template => template.id === id);
+  const token = { id: "source", uuid: `Scene.${scene.id}.Token.source`, documentName: "Token", actor: source, parent: scene,
+    x: 0, y: 0, width: 1, height: 1, getOccupiedGridSpaceOffsets: () => [] };
+  scene.tokens = [token]; game.scenes.set(scene.id, scene); documents.set(token.uuid, token);
+  scene.templates.push({ id: "other-caster-template", flags: { ak5e: { skillActivation: "recover-area", skillOrigin: { skillUuid: "Actor.other.Item.other" } } } });
+  const previousChatMessage = globalThis.ChatMessage;
+  globalThis.ChatMessage = { implementation: { async create() { return { uuid: `ChatMessage.private${++counter}` }; } } };
+  const data = { itemId: skill.id, sourceTokenUuid: token.uuid, confirmation: true, shapes: [{ type: "cross", x: 0, y: 0, direction: 0 }] };
+  try {
+    scene.failCreation = true;
+    await assert.rejects(command(source, "activate", data, "recover-area"), /Partial template write/);
+    assert.equal(source.flags.ak5e.operatorSkills.points, record.operatorSkill.cost);
+    assert.deepEqual(scene.templates.map(template => template.id), ["other-caster-template"]);
+    const update = source.update;
+    source.update = async function(change, options) {
+      if (change["flags.ak5e.operatorSkills"].operations?.some(operation => operation.id === "recover-area")) {
+        this.update = update; throw new Error("SP commit unavailable");
+      }
+      return update.call(this, change, options);
+    };
+    await assert.rejects(command(source, "activate", data, "recover-area"), /SP commit unavailable/);
+    assert.equal(source.flags.ak5e.operatorSkills.points, record.operatorSkill.cost);
+    assert.deepEqual(scene.templates.map(template => template.id), ["other-caster-template"]);
+    await command(source, "activate", data, "recover-area");
+    const retry = await command(source, "activate", data, "recover-area");
+    assert.equal(source.flags.ak5e.operatorSkills.points, 0);
+    assert.equal(scene.templates.length, 3);
+    assert.equal(retry.result.replayed, true);
+  } finally { globalThis.ChatMessage = previousChatMessage; }
+});
+
 test("manual endings, extensions, Start SP recovery and GM exceptions preserve unrelated state", async () => {
   const source = actor(); const skill = item(source, { cost: 10, duration: "2 Rounds" }); source.flags.ak5e.other = "keep";
   source.flags.ak5e.operatorSkills.points = 10; await command(source, "activate", { itemId: skill.id });
@@ -190,6 +253,18 @@ test("manual endings, extensions, Start SP recovery and GM exceptions preserve u
   await command(source, "end"); await command(source, "recover"); assert.equal(source.flags.ak5e.operatorSkills.points, 10);
   await command(source, "configureSkill", { itemId: skill.id, options: { methods: [], source: "Liberator" } }); assert.equal(runtime.getIntegratedOperatorState(source).rates.automatic, 0);
   assert.equal(source.flags.ak5e.other, "keep");
+});
+
+test("Blood Boil manual counter corrections require GM authority, retain SP and deduplicate retries", async () => {
+  const source = actor(), record = CHAPTER_THREE_CLASSES.find(entry => entry.name === "Blood Boil" && entry.operatorSkill), skill = item(source, record.operatorSkill);
+  source.flags.ak5e.operatorSkills = { enabled: true, points: 5, resolutions: [{ activationId: "blood-counter", itemId: skill.id, status: "completed", bloodBoilDamage: 7, phases: {} }] };
+  const options = { activationId: "blood-counter", amount: 3, reason: "Source-confirmed direct HP damage" };
+  await assert.rejects(command(source, "adjustSkillCounter", options, "counter-player", owner), /GMAdjustment/);
+  await command(source, "adjustSkillCounter", options, "counter-correction");
+  await command(source, "adjustSkillCounter", options, "counter-correction");
+  assert.equal(source.flags.ak5e.operatorSkills.points, 5);
+  assert.equal(source.flags.ak5e.operatorSkills.resolutions[0].bloodBoilDamage, 10);
+  await assert.rejects(command(source, "adjustSkillCounter", { ...options, amount: -11 }), /negative/);
 });
 
 test("tracker render is read-only, includes owner controls, and supports the NPC header", () => {

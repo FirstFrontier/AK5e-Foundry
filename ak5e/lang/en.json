@@ -1,6 +1,16 @@
 {
   "AK5E": {
     "SourceBook": "AK5e 1st Edition",
+    "SheetTheme": {
+      "Title": "Sheet Theme",
+      "Hint": "Follow nationality automatically, use the original sheet, or choose a nation theme for this character.",
+      "Automatic": "Automatic (nationality)",
+      "Default": "Default sheet",
+      "Cancel": "Cancel",
+      "Save": "Save theme",
+      "OwnerRequired": "Only the character owner or a GM can change its sheet theme.",
+      "Invalid": "Choose a valid sheet theme."
+    },
     "Operator": {
       "Title": "Operator Skills",
       "Start": "Start SP",
@@ -134,6 +144,7 @@
       "FocusMissing": "Equip your selected Casting Unit or configure this Art's source-defined exception.",
       "FocusInvalid": "The selected equipment must have the Casting Unit property.",
       "UnconfiguredAP": "The GM must set Arts Points and a maximum Art level before this creature can cast.",
+      "CasterRuling": "The GM must record a Caster ruling for these combined AP discounts, repeat costs or origin surcharges before casting.",
       "Silenced": "Silenced creatures cannot cast Arts.",
       "NinthUsed": "A 9th-level Art has already been cast since the last Long Rest.",
       "NinthAvailable": "9th-level Art available",
@@ -364,6 +375,8 @@
       "ChapterTwoInstalled": "Installed {count} AK5e Chapter 2 origin entries.",
       "ChapterTwoAlreadyInstalled": "AK5e Chapter 2 origin entries are already installed.",
       "ChapterThreeInstalled": "Installed {count} AK5e Chapter 3 class entries.",
+      "ClassContentConflicts": "Preserved {count} customized AK5e descriptions: {names}. Compare them with the current source catalogue and reconcile manually; Actor-owned copies are unchanged.",
+      "RollTablesInstalled": "Installed {count} AK5e random tables. Table results require manual application.",
       "ChapterThreeAlreadyInstalled": "AK5e Chapter 3 class entries are already installed.",
       "ChapterFourInstalled": "Installed {count} AK5e Chapter 4 equipment entries.",
       "ChapterFourAlreadyInstalled": "AK5e Chapter 4 equipment entries are already installed.",

@@ -1,5 +1,203 @@
 # Foundry VTT smoke-test checklist
 
+## Focused bug repairs (0.5.1, 2026-10-10, Asia/Manila)
+
+This increment repairs B-001/B-002/B-003/B-010/B-012/B-062/B-080/B-081/B-087;
+the older B-082/B-083/B-084/B-085 entries were reconciled with their existing fixes.
+No rules text, generated content, pack IDs, public gameplay API or flag format changed.
+The internal `waitForStandardOperations` export only drains the existing Actor queue
+for test teardown; queued refreshes no longer recreate removed support.
+
+Environment: Foundry **13.351**, D&D5e **5.3.3**, AK5e **0.5.1**. Main used the
+private copy `/tmp/ak5e-bugfix-rwu7hcsl` on localhost port **30159**. Luna used
+`/tmp/ak5e-defender-luna` on **30161**. Both reused the existing disposable
+`standard-test` World with only AK5e installed/enabled. Production data was untouched;
+servers were stopped using their recorded PIDs. All browser checks used
+`launchTestBrowser()` with the installed Playwright ESM file and snap Chromium.
+Measured renderer: **ANGLE (Mesa, AMD CEDAR, OpenGL ES 3.1)**; no particular
+acceleration mode or benchmark is claimed.
+
+Verified evidence:
+
+- [x] Luna ran the combined kernel/Standard Bearer/Defender Node suites:
+  **122/122 passed** (`/tmp/ak5e-bugfix-luna-node-focused-final.log`). Removing
+  the queued-refresh flag guard in a temporary runtime copy made its new
+  regression fail on a stale write (`/tmp/ak5e-bugfix-luna-node-mutant.log`).
+- [x] Full `npm test`: **315 cases, 314 passed, one optional installed-system
+  origin fixture skipped**, validators passed (`/tmp/ak5e-bugfix-luna-node-npm.log`).
+  `npm run test:automation` passed after targeted version/hash and runtime-line
+  metadata updates (`/tmp/ak5e-bugfix-automation-final.log`). Final syntax checks
+  and `npm run check:files` passed (manifest, translations and 122 modules).
+- [x] Two consecutive normal Standard Bearer runs exited 0 with no console/page
+  errors: `/tmp/ak5e-bugfix-standard-3.json` and `-4.json`. Each reset three
+  marked Actors and drained refreshes before deleting their combat/map fixtures.
+  An earlier repeat exposed simultaneous template deletion; the queue guard/fence
+  corrected it before these final runs.
+- [x] Real Foundry returned `undefined` from an unchanged Actor update. Two
+  unchanged kernel saves made **zero database writes**. Token movement, combat
+  advancement, repeated map synchronization and reload produced no save errors.
+- [x] GM/player panels, long-label button bounds, hidden-target privacy, observer
+  rejection, Cry/Tip/Projection dialogs and their cancellation passed. A deliberate
+  fixture-only receipt-write interruption displayed the real **Retry pending
+  operation** button; retry committed the same operation and applied each stored
+  roll exactly once. Main reviewed the panel/dialog/retry/player PNGs from runs
+  1 and 4; final screenshot prefixes are `/tmp/ak5e-bugfix-standard-{3,4}-`.
+- [x] Browser reload and actual server restart retained Actor HP, module flags,
+  effects/application receipts, all **20 committed operation receipts**, weapon
+  ID, prop token ID, and both aura template IDs/geometry. Restart-only mode
+  compares the canonically ordered snapshot against run 4 without resetting it:
+  `/tmp/ak5e-bugfix-standard-restart.json` and `-restart.png`. Main reviewed the
+  final restart screenshot with the asynchronous Skill chooser closed.
+- [x] Luna Defender live regression: **18/18 checks passed**, no Standard Bearer
+  save-error exemption, `errors: []`, `consoleErrorsFailed: false`
+  (`/tmp/ak5e-bugfix-luna-defender.json`). Main reviewed owner controls, the Eye
+  of the Storm map and observer sheet screenshots. The existing known environment
+  filters cover ActiveEffect-pack validation, ReadPixels and GPU-stall messages;
+  the empty error list excludes those patterns. Foundry still logged the system's
+  `type: ActiveEffect is not a valid choice` pack warning.
+
+These are development-World regression checks. They do not verify every Standard
+Bearer rule branch, cross-client resource consistency, locked release packs,
+manifest-URL/ZIP installation or redistribution licensing. Those tasks remain
+separate; no release was published and no rules interpretation was added.
+
+## P0 content foundation (0.3.8)
+
+Use only the existing disposable `standard-test` World at
+`/tmp/ak5e-standard-test`: Foundry 13.351, D&D5e 5.3.3, only AK5e enabled.
+Preserve the owner's installed module and Worlds. The repeatable browser script
+is `tools/test-p0-content-live.mjs`; it uses `launchTestBrowser()` and closes
+the browser in `finally`. Set `AK5E_PLAYWRIGHT`, `AK5E_CHROMIUM` and optionally
+`AK5E_NATIVE_VULKAN=1` for the available host runtime. Artifacts default to
+`/tmp/ak5e-p0-live/report.json` and adjacent PNGs; review the screenshots.
+
+- [x] Inspect all nine corrected feature sheets, including legitimate subordinate
+  rules; keep the customized migration fixture unchanged.
+- [x] Inspect Talent Effect/Module Effect, Technique, Engagement, Instruction,
+  Ritual, Therapy, Tactic, Inventor modification and Heavy Duty upgrade sheets.
+- [x] Search individual Items and drag/drop a descriptive option onto an owned
+  Actor; confirm its description and source metadata remain usable.
+- [x] Inspect all four native table sheets and click Draw to chat; verify all
+  37 exact results/ranges, formulas, minimum/maximum totals and repeat draws.
+- [x] Verify explicit GM install, overlapping/repeated calls, player rejection,
+  player table visibility and owned option visibility.
+- [x] Verify previous canonical description migration, customized-description
+  warning/preservation, authored fields, unaffected records and Actor copies.
+- [x] Inspect console errors/warnings; reload and restart the server and confirm
+  document/result IDs and authored data persist without hook-driven imports.
+- [x] Record actual renderer and environment limitations.
+
+Verified 2026-10-10 by Codex with source/content workers and an independent
+review. Only the disposable World was changed; the owner's installed 0.3.5
+module and production Worlds were preserved. Tests ran with Node 24.18.0,
+Foundry 13.351, D&D5e 5.3.3, AK5e 0.3.8 and full Chromium headless mode.
+
+Executed checks:
+
+- `npm test`: 163 passed, one optional native-sheet test skipped; manifest/file
+  checks, deterministic generation, source coverage and all seven installer
+  checks passed (2,197 records).
+- `npm run test:automation`: two tests passed; the regenerated audit is current,
+  with 2,038 named headings, 289 tables and exact fragments for all 2,197 records.
+- `node --test ak5e/test/standard-bearer.test.mjs ak5e/test/standard-bearer-sheet.test.mjs`:
+  31 focused regressions passed. This does not establish Standard Bearer gameplay
+  acceptance in Foundry.
+- `tools/test-p0-content-live.mjs`: all 418 individual options matched current
+  generated descriptions after equivalent V13 line-break normalization. The
+  previous Doublecast description migrated; its authored title, chat, uses,
+  activity and effect remained. Chosen of Asclepius with an authored note and an
+  unrelated Caster record remained unchanged. Existing Actor copies remained.
+  Repeat Chapter 3 installation returned `0 created / 0 updated / 1456 skipped`;
+  repeat tables returned `0 / 0 / 4`. Same-client overlapping calls shared one
+  result. Both installers rejected the player; all four tables and an owned
+  option were usable by that player.
+- All 37 native results matched source wording, stable IDs and ranges. Native
+  draws to chat, minimum/maximum sums and repeat draws passed. Screenshots of
+  all nine corrected features, all nine option families, four tables including
+  their last rows, Item search, owned copies and chat draws were actually reviewed.
+  The duplicate source-table presentation/clipping observed initially was fixed
+  and rechecked. Browser page-error lists were empty.
+- `tools/test-p0-restart-live.mjs --capture`, an actual server stop/start, then
+  the script without `--capture`: all 1,461 document hashes and collection totals
+  were unchanged, including embedded copies, authored fields, table results and
+  IDs. Player access remained usable; the restart screenshot was reviewed.
+  The player's native table sheet was read-only, its Draw button produced chat,
+  and the dragged option retained its exact description and AK5e provenance.
+  The player table screenshot was reviewed as well.
+
+Evidence: `/tmp/ak5e-p0-live/report.json`, `before-restart.json`, `restart.json`
+and adjacent PNGs. The live script accepts `AK5E_P0_DRAFT` only for explicit,
+exact-hash reconciliation of unpublished test drafts; that option was used
+during iteration in this World. It does not change production installer policy.
+For restart checks use the same browser environment variables as the live script.
+
+Actual renderer: `ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 21.1.8 256 bits)
+(0x00000000)), llvmpipe)`. The launcher requested `--enable-gpu`; **hardware
+acceleration is unverified**. Native Vulkan was needed for WebGL in this host;
+no GPU was disabled and SwiftShader was not forced. Software-renderer ReadPixels
+stall warnings occurred. Foundry also reports the existing D&D5e manifest warning
+`packs:22:type: ActiveEffect is not a valid choice`, observed before P0 imports.
+The custom-description and non-GM warnings were expected. These limitations are
+recorded separately from the passing P0 content and UI checks.
+
+Release packs, clean locked-pack imports, licensing and public installation are
+outside P0. This checklist does not validate P1 or Standard Bearer gameplay.
+
+## Caster / Core / Mystic / Mech-Accord implementation (0.5.0)
+
+The rules-to-helper mappings and manual boundaries are recorded in
+`ak5e/CASTER_IMPLEMENTATION.md`. Automated validation was confirmed from saved
+logs and live reports on 2026-10-10:
+
+- [x] Caster behavioral test run: 79 passed, 0 failed. Saved output:
+  `/tmp/ak5e-caster-unit-final.log`.
+- [x] `npm test`: the full repository test pipeline passed, including Caster
+  (79) and Defender (69); one optional native fixture was skipped. Saved output:
+  `/tmp/ak5e-caster-npm-final.log`.
+- [x] `npm run test:automation`: test passed and the generated automation audit
+  was current. Saved output: `/tmp/ak5e-caster-automation-final.log`.
+- [x] Final live run `/tmp/ak5e-caster-final.json` passed on the disposable
+  World. It reports no unexpected browser errors and confirms observer rejection
+  with no Caster controls, setup cancellation without mutation, native Art damage
+  rolls and AP expenditure, and reference casts blocked without spending AP.
+- [x] Core checks covered Unending's spend/refund boundary, Signature Art damage
+  handling, Doublecast repeat denial, Power from Within, borrowed-grant expiry,
+  and AP recovery. Mystic checks covered a three-cast Burst with critical damage
+  suppressed, initiative rerolls (0→1→2 charges), Feedback Loop (+2 charges),
+  end-of-Turn gain (3), and Long Rest reset (0).
+- [x] Mech checks covered two owned drones, native drone-space casting (+2 AP),
+  two commands, independent Wolfpack Reaction budget, Death from Above cost and
+  rider, Duplication cost and attack lock, passive Perception 6, Jury Rigging
+  without excess-Temp-HP inflation, AP-funded repair and 500 LMD rebuild.
+- [x] Main agent reviewed owner controls, setup preview (zero new grants),
+  drone-origin quote, the native owner drone sheet and observer read-only sheet.
+  The final observer could view the native sheet; operations were rejected and
+  Caster controls were absent.
+- [x] Actual server stop/start and restart verification passed. The report
+  `/tmp/ak5e-caster-restart.json` has no errors and confirms all three Actors'
+  AP and pool IDs, managed Item IDs, Mystic Charge reset, two drone links and
+  rebuilt drone HP, with no new grants on setup preview and no mutation on
+  cancellation. Main agent reviewed the Core, setup-preview and GM-drone restart
+  screenshots. Core's 88 managed Items are its 84 setup Items plus three
+  subsequently learned Operator Skills and the preserved expired Rabbit Art
+  (Stone Shower). The restart check identifies these four by source IDs and
+  verifies the count exactly; every Item ID matches the pre-restart snapshot.
+
+The live harness used the existing disposable `standard-test` World at
+`/tmp/ak5e-standard-test`, Foundry 13.351, D&D5e 5.3.3, AK5e 0.5.0, with only
+AK5e enabled. The actual renderer was `ANGLE (Mesa, AMD CEDAR, OpenGL ES 3.1)`;
+this records the renderer and does not by itself establish hardware acceleration.
+
+Some named Arts are absent from the installed licensed spell content. Live
+fixtures for those names are mechanics-free reference Items with no activities;
+attempted casts are blocked. They are test references, not working Arts or
+production mappings. Production setup needs GM-approved UUID mappings to
+legitimate licensed spell documents. Twelve unrelated Standard Bearer no-op-save
+errors and the installed D&D5e ActiveEffect pack-schema warning were logged as
+known baseline issues; the live report's `unexpectedBrowserErrors` list is empty.
+Public release-pack imports, licensed distribution, and public installation have
+not been performed.
+
 Use this checklist for behavior that the Node.js validation suite cannot prove.
 Record the Foundry core version, D&D5e system version, AK5e commit/version,
 browser, tester, date, and any console warnings with the test result. The target
@@ -26,9 +224,10 @@ results and do not establish hardware acceleration.
 
 ## Explicit installer behavior
 
-- [ ] As a GM, await all six `game.ak5e.installChapter...()` calls. Confirm the
-  returned totals and resulting World totals are 24 journals, 1,343 top-level
-  Items, and 156 Actors (including 11 source-defined summons).
+- [ ] As a GM, await all six `game.ak5e.installChapter...()` calls and
+  `game.ak5e.installRollTables()`. Confirm release-wide totals are 24 journals,
+  2,013 top-level Items, 156 Actors (including 11 source-defined summons) and
+  four RollTables. This broader clean-World check remains separate from P0.
 - [ ] Confirm Items, Actors, and journals open without sheet/data-model errors.
   Spot-check one document from every chapter for `flags.ak5e` source ID,
   `sourceFile`, `sourceHeading`, `rawSource`, and `contentVersion`.
@@ -473,3 +672,235 @@ Most checks used a GM client. Broader multi-client World-rule regressions, Casti
 release-pack imports remain open in `TODO.md`. The actual WebGL renderer was
 `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)`:
 software rendering; hardware acceleration was unavailable in this environment.
+
+### SP audit and Skill targeting (0.3.6, 2026-10-02)
+
+An independent clean `sp-test` World at `/tmp/ak5e-skill-foundry` used Foundry
+13.351, D&D5e 5.3.3 and only AK5e. Its system/module copies and server on port
+30133 were separate from installed World data. Browser tools used full Chromium
+143 through `launchTestBrowser()` and closed browsers in `finally`.
+
+- [x] Existing SP suite: stacked charging, native attack misses, temporary HP,
+  actual healing, deferred Skill-origin suppression, two owners, two GMs,
+  observer rejection, synthetic pool isolation, expiry/rewind, native Long Rest
+  and reload. All 320 catalogue Items remained valid; no browser errors.
+- [x] Actual Ctrl+T on a hovered unowned enemy and Ctrl+Shift+T addition from a
+  player canvas. Concurrent activation with one stable ID spent once. Escape
+  canceled a local placement without changing SP or templates.
+- [x] Grand Cross created two rectangles, excluded its source, missed diagonal
+  victims and included an occupied cell of a large token. Cluster Bombs created
+  three areas and deduplicated overlapping victims. Hidden victims were absent
+  from player results/shared Actor receipts and GM receipt messages remained
+  private.
+- [x] Native cone/line inclusion, moving Thousand Cuts aura, delayed Holding
+  Shadow after Instant expiry, Blood Boil's damage counter/ending prompt, native
+  Martial save DC, five separate Echoes of Life healing rolls, and original
+  activation/phase provenance. Resolution did not change HP automatically.
+- [x] Volcanian's subsequent placed pulse recomputed victims, offered native
+  saving throws/damage with the original phase provenance and spent no further
+  SP. Escape canceled Frost Claw's subsequent preview without changing state.
+- [x] Inactive scenes: native hex offsets (eight cells for the fixture),
+  gridless token-center inclusion, closed-wall blocking and an opened door.
+  GM scene references were independent of their selected targets/current canvas.
+- [x] Explicit managed update preview/application retained Item IDs, a user-edited
+  damage formula, custom counter and SP. Reload retained activation receipts.
+- [x] Server restart retained SP, synthetic-token state, templates, phase
+  receipts, Blood Boil counter, edited activity and custom counter. Player state
+  retained hidden-token privacy. Fresh native models validated all 320 generated
+  Skills. Actual native positive damage at zero HP charged; immunity did not.
+- [x] Node regressions cover unavailable Spell Save DC, positive-HP prerequisites,
+  healing limits, defenses, source variants, source exclusions, corner spreading,
+  sealed walls, range/count validation, cancellation/recovery, failed commits,
+  retry deduplication, cross-caster template isolation and GM counter corrections.
+
+Full `npm test` passed: 146 passing tests and one optional native-sheet test
+skipped in the Node environment. Exact source/generated-file checks and file
+validation also passed. Runtime browser checks independently validated native
+D&D5e models.
+
+Actual renderer:
+`ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)`.
+The launcher requested acceleration; this environment supplied software
+rendering. Hardware acceleration remains unverified.
+
+Manual limitations remain explicit in `SP_SKILL_AUDIT.md`: linked Arts, summons,
+movement paths, conditional effects/tethers, source omissions, source height,
+elevation, structure thickness and uncertain wall types. These checks do not
+establish locked release-pack or clean zip/manifest installation readiness.
+
+## SI-1 operation kernel (Standard Bearer re-based, unreleased)
+
+Disposable `standard-test` World only (`/tmp/ak5e-standard-test`; Foundry 13.351,
+D&D5e 5.3.3, AK5e 0.3.8 manifest version, repository code installed with
+`tools/install-for-testing.mjs`). Run 2026-10-10 with `launchTestBrowser()`;
+actual renderer: ANGLE Vulkan **llvmpipe** (software; hardware acceleration not
+verified). The focused script was a temporary scratchpad file, not committed.
+
+Observed in the live World:
+
+- [x] GM submit commits, replays the same ID as `replayed: true`, rejects the same
+  ID with different choices, and rejects an unconfirmed request.
+- [x] A Player's request travels through the whispered chat message, is committed
+  by the GM client, replays once, and a different-choices reuse is rejected.
+- [x] A non-owner Observer is rejected ("You must own the Standard Bearer.").
+- [x] An operation left `prepared` by an earlier interrupted run blocked a new
+  operation with the interrupted-operation message; GM `reconcile` cleared it.
+- [x] The Standard Bearer panel opened from the sheet and listed all 26 controls;
+  screenshot reviewed. Reload kept the committed operations and state; none prepared.
+- [x] No page errors. Console warnings were WebGL "GPU stall" notices and D&D5e 5.3
+  `senses.*` deprecations.
+
+Not verified: the full `tools/test-standard-bearer-live.mjs` script did not
+complete on this run (its fixture failed in `syncStandardMap` with a MeasuredTemplate
+`RenderFlags` error from the Operator template layer when the canvas was not yet
+drawn; the same error occurred on a refreshed copy of the pre-refactor code, so it
+is not attributable to the kernel but was not investigated further). Player
+panel rendering, the Retry-pending button, Cry/Tip/Projection dialogs and
+restart persistence were not re-inspected. Three long control labels ("Preview
+standard setup", "Hand the Standard…", "Additional Tip…") overflow their buttons
+in the panel; CSS was not changed here.
+
+## P1 kernels SI-2 / SI-3 / SI-4 / SI-12 (unreleased)
+
+Disposable `standard-bearer` fixtures in `/tmp/ak5e-standard-test` only; Foundry
+13.351, D&D5e 5.3.3; repository code installed with `tools/install-for-testing.mjs`
+after the independent-review fixes. Run 2026-10-10 with `launchTestBrowser()`
+(native-Vulkan arguments); actual renderer ANGLE Vulkan **llvmpipe** (software; hardware
+acceleration unverified). The focused script was a scratchpad file, not committed.
+
+Observed (GM and the owning Player on the real server):
+
+- [x] Module loads; `game.ak5e` exposes `resourcePools`, `triggers`, `damagePipeline`,
+  `tipOfTheSpear`; no page errors. Handler counts per hook equal one per owning module.
+- [x] Standard Bearer after the rewire: Directed Engagement, then Tip outcomes 2 (Temp HP
+  0 -> 4, additive), 3, 4 and 5 created the expected tagged effects on the ally; the
+  critical-range hook lowered the ally's threshold to 19; outcome 7 was rejected ("Tip
+  choices range from 1 to 6."); the Defiant Roar damage preview returned its ordered
+  breakdown.
+- [x] A real `actor.applyDamage` produced a `hitTaken` event (amount 3) alongside the
+  existing world-rules / Operator handlers; Temp HP absorbed it as the pipeline predicts.
+- [x] Resource pool: initial 7 (PB 6 + 1), spend 2 -> 5, overspend rejected, replayed
+  `eventKey` recovery ignored, limiter first use true / second false; the owning Player
+  spent from their own pool; values persisted across a reload.
+- [x] Reaction budget: base 1, second spend rejected (`perTrigger`, then `exhausted`),
+  state persisted across a reload.
+
+Not verified: no clean-World import from release packs; no rendered panel was
+inspected this run (only the canvas, which was paused); `combatTurnChange`, initiative,
+rest and `deleteCombat` adapters were exercised by Node tests only, not in a live
+combat; cross-client races and the installed-module upgrade path; hardware
+acceleration. The full `tools/test-standard-bearer-live.mjs` fixture still fails in
+`syncStandardMap` as recorded above.
+
+## Defender, Dreadnought and Artshield live run (0.5.0, 2026-10-10)
+
+Script: `ak5e/tools/test-defender-live.mjs` (uses `launchTestBrowser()`), run against a private
+copy of the disposable `standard-test` World (`/tmp/ak5e-defender-test`, port 30147) so other
+sessions could not shut the server down mid-run (earlier runs 5 and 6 failed that way, not in
+the module). Foundry 13.351, dnd5e 5.3.3, ak5e 0.5.0. Recorded renderer: `ANGLE (Mesa, AMD
+CEDAR, OpenGL ES 3.1)`.
+
+Observed:
+
+- [x] 18/18 checks PASS in one run (run 7): setup preview writes nothing; setup is idempotent
+  and a replayed receipt is a no-op; Legendary Might 18/20/22 -> 24/26/26; Resilience 8 at level
+  15; Shelter Bonus Action costs 1 and a real enemy attack within 5 ft is rolled at Disadvantage
+  (not outside 5 ft or after it ends); Arts Resistance and Spellshield give Advantage on a Save
+  rolled from an Art's chat card (and not on a non-Art save); Advance, its SP awards (+3 each,
+  once), end and GM reinstatement; Crownsplitter doubles the STR modifier against the Elite;
+  Expel refused with nothing stored, then Absorb and Expel; Wrecking Wall DC 20 Con card;
+  Eye of the Storm Reaction, pool spend, 20-ft template and expiry; owner panel and controls;
+  observer has no controls and commands are rejected; state persists after a browser reload.
+- [x] Server restart: the private server was stopped by PID and restarted; the restart-mode run
+  confirmed both Defender actors' setup flags, managed effects and Resilience pool persisted.
+- Screenshots reviewed (setup preview, controls, Shelter form, sheet panel, chat cards, observer
+  sheet): legible, no clipping of the dialogs themselves.
+
+Not verified or not clean:
+
+- The script exits 1: 14 console errors, all "Standard Bearer state could not be saved" (B-080),
+  not from Defender code. No Defender check failed because of it.
+- The Eye of the Storm map screenshot does not show the template (an unrelated "Choose Skills"
+  dialog covers the map, B-083); the template was confirmed by the check, not by sight.
+- The post-restart screenshot shows only the paused canvas (the sheet had not rendered within
+  800 ms); persistence was confirmed by the data check, not visually.
+- No clean-World import from locked release packs; no player-client (non-GM) rendering beyond the
+  owner and observer fixture users; the five Shelter/SP Talents and five Branches remain
+  unimplemented (see `TODO.md`).
+
+### Independent rerun with the review fixes (private server, 2026-10-10)
+
+A second, independent run of `ak5e/tools/test-defender-live.mjs` on its own copy of the World
+(`/tmp/ak5e-defender-mine`, port 30148, stopped and restarted by PID), after the fixes in
+`BUGS.md` B-F08 to B-F11 (rest ordering, manual-disable respect, leaf-level state writes):
+
+- [x] 18/18 checks PASS, twice, with no console errors other than the 14-22 recorded Standard
+  Bearer baseline messages (B-080, listed separately in `knownBaselineErrors`).
+- [x] Server restart: after stopping and restarting the server, the restart-mode run confirmed
+  both Defender actors' setup flags, managed effects and Resilience; the reopened Dreadnought
+  sheet shows STR 24 (Legendary Might re-applied), Defender 15 and 10/15 SP intact.
+- [x] Eye of the Storm: the check now asserts the barrier is still up and drawn
+  (`canvas.templates.placeables`) before the Artshield's next Turn ends, and the in-run
+  screenshot shows the 20-ft circle with its squares highlighted around the Artshield. An earlier
+  screenshot missed it because the command was issued before the previous turn-end event had
+  been processed; that was a test race, not a module defect.
+- Recorded renderer: `ANGLE (Mesa, AMD CEDAR, OpenGL ES 3.1)`, a hardware GL renderer, not
+  llvmpipe; that is the actual reported string, not proof of the specific acceleration mode.
+- Screenshots reviewed: setup preview, controls dialog, Shelter form, sheet panel, Arts save
+  card with the "Arts Resistance: Advantage" toast and a d20adv roll, Wrecking Wall card (DC 20
+  Constitution save and Damage buttons), Eye of the Storm map, observer sheet, post-restart
+  sheet. All legible; the Shelter form's fieldset legend wraps onto its border.
+- Not verified: clean-World import from locked packs, a non-GM player client beyond the owner and
+  observer fixture users, and Foundry-rendered Stunned handling (a manual procedure).
+
+## Juggernaut, Protector and Sentry live run (2026-10-11)
+
+**Environment.**
+- Script: `ak5e/tools/test-defender-jps-live.mjs`. It uses `launchTestBrowser()`, refuses any World but `standard-test`, and creates only fixtures flagged `jpsLiveFixture`.
+- It ran on a private copy of the disposable `standard-test` World, in this session's scratchpad on port 30185, never the production World.
+- Foundry 13.351, D&D5e 5.3.3; the module reports 0.5.6 because the version was not bumped.
+- Recorded renderer: `ANGLE (Mesa, AMD CEDAR, OpenGL ES 3.1)`.
+- The working tree also contained other agents' in-progress Marksman and Flinger code.
+
+**Result:** 8/8 checks PASS in run 3, with 0 console errors.
+
+- [x] **Juggernaut damage.**
+  - Native `applyDamage` from an enemy-speaker card halved 11 to 5.
+  - Three `calculateDamage` previews used no layer.
+  - One layer shattered and posted a `1d8 + 3` Shatterstorm receipt awaiting the Roll button.
+  - Damage without a card was unchanged.
+- [x] **Overwhelming Might:** a melee `rollDamage` included a Force roll while a layer held.
+- [x] **Juggernaut as the player:** the player rolled Shatterstorm, undo restored the layer to 2, and a Bullrush card was posted.
+- [x] **Protector Stone Wall:** the player's Stone Wall put Off Balance on a GM-owned enemy through the GM relay. A native attack roll against it had `advantageMode` 1.
+- [x] **Protector Shelter:**
+  - The player's Shelter with Anchor Point stored a 10-ft radius.
+  - The sheltered ally's native Dexterity save rolled with Advantage.
+  - Greater Improved Shelter was applied automatically by relay. It halved the first 10 Damage to 5, and the next 10 was taken in full.
+- [x] **Sentry Pavise:**
+  - The player planted the Pavise: a template was created by the player and the shield was unequipped by the chosen reading.
+  - An attack on the Pavise ally from beyond the shield rolled with Disadvantage; one from the ally's side did not.
+- [x] **Sentry Advance and Fire:** it spent the Reaction, and the 1-Resilience refund restored it.
+- [x] **Reload:** the template, the unequipped shield, Off Balance and the receipts survived a browser reload.
+- [x] **Server restart:** the private server was stopped and restarted. The restart-mode run matched every fixture Actor's receipts, pools, Shelter, HP, items with their equipped states, effects and the Scene templates exactly (1/1 PASS).
+
+**Harness fixes during the runs (not module defects):**
+- An activity ID was one character short.
+- The player client read a receipt before the GM's write had synced; the script now waits for it.
+- A GM token `update({x})` did not move the token. The script now uses a second attacker on the near side.
+
+**After the independent review fixes (run 5):**
+- The fixes were reinstalled into the same private copy.
+- 8/8 checks PASS with 0 console errors. The restart-mode run after a second server restart also PASSed (1/1).
+- The review findings were fixed with regression tests and mutation checks in Node:
+  - the Pavise relay deletion;
+  - the Advance and Fire prompt with Actor-UUID targets;
+  - the double halving with one layer (preApplyDamage reservation);
+  - level warnings refused by the relay;
+  - the progression chain on recorded writes;
+  - undo gaps: Retributor, Reaction refunds, and GIS and Punishment use-ups.
+- The visual review of the run-3 screenshots found the Defender panel clipped at the bottom of the viewport and an empty Shatterstorm "result" card body; both are fixed for run 5.
+
+**Not covered:**
+- A live Groundbreaker or Heads Down use.
+- The Bar the Gates and Torrent of Lead Turn expiry, which is covered by unit tests only.
+- A clean-World import from locked packs.

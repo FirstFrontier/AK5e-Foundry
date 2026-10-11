@@ -11,9 +11,9 @@ packs, as described in the release checklist.
 
 - Source headings scanned: 2038
 - Markdown table blocks scanned: 289
-- Current top-level generated documents: 1843
+- Current top-level generated documents: 2197
 - Embedded Chapter 6 feature Items: 801 (part of their parent NPC Actor, not a separate pack document)
-- Planned standalone RollTables: 4
+- Generated standalone RollTables: 4 (development installer; release packs pending)
 
 ## Planned release pack layout
 
@@ -25,7 +25,7 @@ current module still uses development-World installers.
 | `ak5e.arts` | Item (feat) | 17 | Arts and Arts Pool Items |
 | `ak5e.arts` | Item (spell) | 111 | Arts and Arts Pool Items |
 | `ak5e.classes` | Item (class) | 8 | Classes, Branches, and Features |
-| `ak5e.classes` | Item (feat) | 1035 | Classes, Branches, and Features |
+| `ak5e.classes` | Item (feat) | 1385 | Classes, Branches, and Features |
 | `ak5e.classes` | Item (subclass) | 54 | Classes, Branches, and Features |
 | `ak5e.creatures` | Actor (npc) | 156 | Creatures and source-defined summons |
 | `ak5e.equipment` | Item (equipment) | 29 | Equipment, properties, and rules Items |
@@ -37,7 +37,7 @@ current module still uses development-World installers.
 | `ak5e.origins` | Item (feat) | 162 | Origins, features, nationalities, and backgrounds |
 | `ak5e.origins` | Item (race) | 36 | Origins, features, nationalities, and backgrounds |
 | `ak5e.rules` | JournalEntry | 24 | Chapter and supporting reference journals |
-| `ak5e.tables` | RollTable | 4 planned | Explicit random-result tables listed below. |
+| `ak5e.tables` | RollTable | 4 | Explicit random-result tables; manual effect application |
 
 The existing class and feature records remain together in `ak5e.classes` for
 the first release. Their source class/branch fields, source headings, and
@@ -48,7 +48,7 @@ if clean-World pack browsing shows that one pack is unusable.
 
 Every row below becomes one top-level development-World document and is the
 source of a future compendium document. Rules tables embedded in a record are
-preserved in its source text and description unless listed as a planned
+preserved in its source text and description unless listed as a standalone
 RollTable in the table inventory.
 
 | Chapter | Pack | Foundry document | Source ID | Name | Source heading |
@@ -1404,6 +1404,356 @@ RollTable in the table inventory.
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-vanguard-tactician-finish-them-3-acumen-15394` | Tactician: Finish Them (3 Acumen) | Finish Them (3 Acumen) |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-vanguard-tactician-focus-fire-4-acumen-15985` | Tactician: Focus Fire (4 Acumen) | Focus Fire (4 Acumen) |
 | 3 | `ak5e.classes` | Item (feat) | `subclass-feature-vanguard-tactician-shield-wall-2-acumen-16434` | Tactician: Shield Wall (2 Acumen) | Shield Wall (2 Acumen) |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-alacrity` | Alacrity | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-alert` | Alert | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-armoured-caster` | Armoured Caster | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-clean-sweep` | Clean Sweep | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-enforcer` | Enforcer | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-hunter-x` | Hunter (X) | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-lucky` | Lucky | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-spellblade` | Spellblade | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-staggering-force` | Staggering Force | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-tough` | Tough | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-unconventional-tactics` | Unconventional Tactics | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-unshakeable` | Unshakeable | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-basic-unwavering-accuracy` | Unwavering Accuracy | Basic Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-all-i-know` | All I Know | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-arts-ward` | Arts Ward | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-cold-start` | Cold Start | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-divination` | Divination | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-elemental-specialist` | Elemental Specialist | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-energy-redirection` | Energy Redirection | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-extra-attack` | Extra Attack | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-finishing-touch` | Finishing Touch | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-flash-of-insight` | Flash of Insight | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-hammer-and-anvil` | Hammer and Anvil | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-jumpstart` | Jumpstart | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-knowledge-is-power` | Knowledge is Power | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-lieutenant` | Lieutenant | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-lone-journey` | Lone Journey | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-reliable-talent` | Reliable Talent | Advanced Caster Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-scattering-spark` | Scattering Spark | Advanced Caster Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-second-strike-protocol` | Second Strike Protocol | Advanced Caster Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-shelter` | Shelter | Advanced Caster Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-caster-talent-advanced-thresher` | Thresher | Advanced Caster Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-alacrity` | Alacrity | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-alert` | Alert | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-back-to-back` | Back-to-Back | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-counterstrike` | Counterstrike | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-elemental-resistance` | Elemental Resistance | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-fortitude` | Fortitude | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-gatekeeper-of-life` | Gatekeeper of Life | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-hunter-x` | Hunter (X) | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-interlocking-shields` | Interlocking Shields | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-lasting-sting` | Lasting Sting | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-lucky` | Lucky | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-martial-acumen` | Martial Acumen | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-miracle-guard` | Miracle Guard | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-overheal` | Overheal | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-parry` | Parry | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-power-plant` | Power Plant | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-refreshment` | Refreshment | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-sapping-guard` | Sapping Guard | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-sentinel` | Sentinel | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-stress-inversion` | Stress Inversion | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-basic-tough` | Tough | Basic Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-charging-up` | Charging Up | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-dig-in` | Dig In | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-dominus` | Dominus | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-feedback-armour` | Feedback Armour | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-hidden-technique` | Hidden Technique | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-immortal` | Immortal | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-jumpstart` | Jumpstart | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-kingslayer` | Kingslayer | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-lieutenant` | Lieutenant | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-mirror-move` | Mirror Move | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-opportunist` | Opportunist | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-part-time-inventor` | Part-Time Inventor | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-razor-s-edge` | Razor's Edge | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-reliable-talent` | Reliable Talent | Advanced Defender Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-revenger` | Revenger | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-running-on-fumes` | Running on Fumes | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-self-defence` | Self Defence | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-sword-and-shield` | Sword and Shield | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-tactical-defence` | Tactical Defence | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-tactical-mind` | Tactical Mind | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-defender-talent-advanced-wavebreaker` | Wavebreaker | Advanced Defender Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-alacrity` | Alacrity | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-alert` | Alert | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-back-to-back` | Back-to-Back | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-braggadocious` | Braggadocious | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-counterstrike` | Counterstrike | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-critical-edge` | Critical Edge | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-dual-weapon-master` | Dual Weapon Master | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-fortitude` | Fortitude | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-grappler` | Grappler | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-hunter-x` | Hunter (X) | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-in-war-s-shadow` | In War’s Shadow | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-lasting-sting` | Lasting Sting | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-lucky` | Lucky | Basic Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-overheal` | Overheal | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-parry` | Parry | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-savage-attacker` | Savage Attacker | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-showstopper` | Showstopper | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-staredown` | Staredown | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-tough` | Tough | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-basic-unarmoured-agility` | Unarmoured Agility | Basic Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-all-together` | All Together | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-alpha-strike` | Alpha Strike | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-backswing` | Backswing | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-bladewall` | Bladewall | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-critical-haste` | Critical Haste | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-cycle-of-life-and-death` | Cycle of Life and Death | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-danger-sense` | Danger Sense | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-dominus` | Dominus | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-indomitable` | Indomitable | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-jumpstart` | Jumpstart | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-kingslayer` | Kingslayer | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-one-moment` | One Moment | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-opportunist` | Opportunist | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-part-time-inventor` | Part-Time Inventor | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-quickburn` | Quickburn | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-reliable-talent` | Reliable Talent | Advanced Guard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-revenger` | Revenger | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-running-on-fumes` | Running on Fumes | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-snowball-effect` | Snowball Effect | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-spiritual-destruction` | Spiritual Destruction | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-tactical-mind` | Tactical Mind | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-unnatural-regeneration` | Unnatural Regeneration | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-warbreed` | Warbreed | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-talent-advanced-wavebreaker` | Wavebreaker | Advanced Guard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-body-check` | Body Check | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-cross-counter` | Cross Counter | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-feint` | Feint | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-follow-up` | Follow Up | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-footwork` | Footwork | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-guard-up` | Guard Up | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-slip-off` | Slip Off | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-basic-tag-in` | Tag In | Basic Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-chokehold` | Chokehold | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-cqc` | CQC | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-disarm` | Disarm | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-human-shield` | Human Shield | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-menace` | Menace | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-skullshaker` | Skullshaker | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-brawler-technique-advanced-weigh-in` | Weigh In | Advanced Brawling Techniques |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-analysis` | Analysis | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-balestra` | Balestra | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-derobement` | Derobement | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-displacement` | Displacement | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-en-garde` | En Garde | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-feint` | Feint | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-fleche` | Fleche | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-redoublement` | Redoublement | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-duellist-engagement-score` | Score | Engagements |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-defend-yourself` | Defend Yourself! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-focus` | Focus! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-get-out-of-there` | Get out of there! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-go` | Go! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-hang-in-there` | Hang in there! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-keep-fighting` | Keep fighting! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-now-s-your-chance` | Now's your chance! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-snap-out-of-it` | Snap out of it! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-steel-yourself` | Steel Yourself! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-guard-instructor-instruction-strike` | Strike! | Instruction Options |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-alacrity` | Alacrity | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-alert` | Alert | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-all-out-attack` | All Out Attack | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-back-to-back` | Back-to-Back | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-bird-hunter` | Bird Hunter | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-clean-sweep` | Clean Sweep | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-critical-edge` | Critical Edge | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-fragile-focus` | Fragile Focus | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-hunter-x` | Hunter (X) | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-illuminant-eyes` | Illuminant Eyes | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-lasting-sting` | Lasting Sting | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-lucky` | Lucky | Basic Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-martial-acumen` | Martial Acumen | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-maximum-muzzle-velocity` | Maximum Muzzle Velocity | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-precise-strike` | Precise Strike | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-prey-seeker` | Prey Seeker | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-priority-target` | Priority Target | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-tough` | Tough | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-basic-unarmoured-agility` | Unarmoured Agility | Basic Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-alpha-strike` | Alpha Strike | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-ambush` | Ambush | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-crossfire` | Crossfire | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-cycle-of-life-and-death` | Cycle of Life and Death | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-danger-sense` | Danger Sense | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-dig-in` | Dig In | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-eagle-eyes` | Eagle Eyes | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-graceful-shadow` | Graceful Shadow | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-hammer-and-anvil` | Hammer and Anvil | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-help-yourself` | Help Yourself | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-jumpstart` | Jumpstart | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-kingslayer` | Kingslayer | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-lieutenant` | Lieutenant | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-lone-journey` | Lone Journey | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-one-moment` | One Moment | Advanced Marksman Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-one-with-shadow` | One With Shadow | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-opportunist` | Opportunist | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-overwhelming-strike` | Overwhelming Strike | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-part-time-inventor` | Part-Time Inventor | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-reliable-talent` | Reliable Talent | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-sniper-s-intuition` | Sniper's Intuition | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-tactical-mind` | Tactical Mind | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-marksman-talent-advanced-weighted-shots` | Weighted Shots | Advanced Marksman Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-alacrity` | Alacrity | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-alert` | Alert | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-armoured-caster` | Armoured Caster | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-booster-shot` | Booster Shot | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-enforcer` | Enforcer | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-growing-strong` | Growing Strong | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-hunter-x` | Hunter (X) | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-lucky` | Lucky | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-reserved-medic` | Reserved Medic | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-timely-intervention` | Timely Intervention | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-tough` | Tough | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-basic-traditional-remedies` | Traditional Remedies | Basic Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-arts-ward` | Arts Ward | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-black-queen-s-protection` | Black Queen's Protection | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-elemental-specialist` | Elemental Specialist | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-energy-redirection` | Energy Redirection | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-escape-artist` | Escape Artist | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-extra-attack` | Extra Attack | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-hammer-and-anvil` | Hammer and Anvil | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-hidden-technique` | Hidden Technique | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-intensive-care` | Intensive Care | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-jumpstart` | Jumpstart | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-knowledge-is-power` | Knowledge is Power | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-lieutenant` | Lieutenant | Advanced Medic Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-mirror-move` | Mirror Move | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-reflected-shine` | Reflected Shine | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-reliable-talent` | Reliable Talent | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-responsive-healing` | Responsive Healing | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-tissue-necrosis` | Tissue Necrosis | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-we-continue` | We Continue | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-medic-talent-advanced-white-queen-s-protection` | White Queen's Protection | Advanced Medic Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-alacrity` | Alacrity | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-alert` | Alert | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-beneath-me` | Beneath Me | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-bird-hunter` | Bird Hunter | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-critical-edge` | Critical Edge | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-giant-killer` | Giant Killer | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-hunter-x` | Hunter (X) | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-iron-guard` | Iron Guard | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-lasting-sting` | Lasting Sting | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-lucky` | Lucky | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-parry` | Parry | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-savage-attacker` | Savage Attacker | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-tough` | Tough | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-unarmoured-agility` | Unarmoured Agility | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-basic-will-of-the-rat` | Will of the Rat | Basic Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-alpha-strike` | Alpha Strike | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-ambush` | Ambush | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-crownslayer` | Crownslayer | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-curtain-call` | Curtain Call | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-danger-sense` | Danger Sense | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-hidden-technique` | Hidden Technique | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-jumpstart` | Jumpstart | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-kingslayer` | Kingslayer | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-lone-journey` | Lone Journey | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-one-moment` | One Moment | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-one-with-shadow` | One With Shadow | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-opportunist` | Opportunist | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-reliable-talent` | Reliable Talent | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-revenger` | Revenger | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-running-on-fumes` | Running on Fumes | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-tactical-mind` | Tactical Mind | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-true-fang` | True Fang | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-specialist-talent-advanced-unbalancer` | Unbalancer | Advanced Specialist Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-alacrity` | Alacrity | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-alert` | Alert | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-back-to-back` | Back-to-Back | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-blessing-of-safety` | Blessing of Safety | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-hunter-x` | Hunter (X) | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-lucky` | Lucky | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-preserving-sanctuary` | Preserving Sanctuary | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-robot-wars` | Robot Wars | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-sky-smite` | Sky Smite | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-strength-through-numbers` | Strength Through Numbers | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-tough` | Tough | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-basic-unarmoured-agility` | Unarmoured Agility | Basic Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-accelerando` | Accelerando | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-anti-arts-training` | Anti-Arts Training | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-art-of-binding` | Art of Binding | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-decoy-blip` | Decoy Blip | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-elemental-specialist` | Elemental Specialist | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-escape-artist` | Escape Artist | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-extra-attack` | Extra Attack | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-hammer-and-anvil` | Hammer and Anvil | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-ignition` | Ignition | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-jumpstart` | Jumpstart | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-lieutenant` | Lieutenant | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-mirror-move` | Mirror Move | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-painful-lesson` | Painful Lesson | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-part-time-inventor` | Part-Time Inventor | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-reliable-talent` | Reliable Talent | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-talent-advanced-shatterer` | Shatterer | Advanced Supporter Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-burning-infusion` | Burning Infusion | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-corrosive-infusion` | Corrosive Infusion | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-lightning-infusion` | Lightning Infusion | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-necrotic-infusion` | Necrotic Infusion | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-jack-of-trades` | Jack of Trades | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-invocation-of-rebounding` | Invocation of Rebounding | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-invocation-of-blades` | Invocation of Blades | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-fundamental-ritual` | Fundamental Ritual | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-vindictive-invocation` | Vindictive Invocation | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-lightstep-ritual` | Lightstep Ritual | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-invocation-of-equity` | Invocation of Equity | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-lifeguard-invocation` | Lifeguard Invocation | Ephemeral Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-burning-ascension` | Burning Ascension | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-corrosive-ascension` | Corrosive Ascension | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-enervating-ascension` | Enervating Ascension | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-necrotic-ascension` | Necrotic Ascension | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-ephemeral-lord` | Ephemeral Lord | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-occult-charm` | Occult Charm | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-rituals-of-battle` | Rituals of Battle | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-true-warrior-s-ritual` | True Warrior's Ritual | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-allknower` | Allknower | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-circle-of-healing` | Circle of Healing | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-preternatural-cognition` | Preternatural Cognition | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-polymath` | Polymath | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-secret-keeper` | Secret-Keeper | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-to-cross-the-boundary` | To Cross the Boundary | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-supporter-ritualist-ritual-wise-beyond-years` | Wise Beyond Years | Permanent Rituals |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-alacrity` | Alacrity | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-alert` | Alert | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-clean-sweep` | Clean Sweep | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-counterstrike` | Counterstrike | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-critical-edge` | Critical Edge | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-hunter-x` | Hunter (X) | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-lucky` | Lucky | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-martial-acumen` | Martial Acumen | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-matter-of-principle` | Matter of Principle | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-parry` | Parry | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-patrolman` | Patrolman | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-savage-attacker` | Savage Attacker | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-scout-s-lead` | Scout's Lead | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-the-wheel-turns` | The Wheel Turns | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-tireless` | Tireless | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-tough` | Tough | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-basic-unarmoured-agility` | Unarmoured Agility | Basic Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-alpha-strike` | Alpha Strike | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-ambush` | Ambush | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-clear-heart-clear-head` | Clear Heart, Clear Head | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-collateral-damage` | Collateral Damage | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-danger-sense` | Danger Sense | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-elusive` | Elusive | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-first-in-last-out` | First In, Last Out | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-hidden-technique` | Hidden Technique | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-hunting-hound` | Hunting Hound | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-jumpstart` | Jumpstart | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-night-watchman` | Night Watchman | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-one-moment` | One Moment | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-opportunist` | Opportunist | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-part-time-inventor` | Part-Time Inventor | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-quickburn` | Quickburn | Advanced Vanguard Talents |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-reliable-talent` | Reliable Talent | Advanced Vanguard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-self-defence` | Self Defence | Advanced Vanguard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-tactical-mind` | Tactical Mind | Advanced Vanguard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-warbreed` | Warbreed | Advanced Vanguard Talents Continued |
+| 3 | `ak5e.classes` | Item (feat) | `class-option-vanguard-talent-advanced-wavebreaker` | Wavebreaker | Advanced Vanguard Talents Continued |
 | 4 | `ak5e.rules` | JournalEntry | `equipment-reference-currency-on-terra` | Chapter 4: Currency on Terra | Currency on Terra |
 | 4 | `ak5e.rules` | JournalEntry | `equipment-reference-weapons` | Chapter 4: Weapons | Weapons |
 | 4 | `ak5e.rules` | JournalEntry | `equipment-reference-armour` | Chapter 4: Armour | Armour |
@@ -1896,11 +2246,15 @@ RollTable in the table inventory.
 | 6 | `ak5e.creatures` | Actor (npc) | `creature-lateran-executor-machine-gun-316509` | Lateran Executor (Machine Gun) | Lateran Executor (Machine Gun) |
 | 6 | `ak5e.creatures` | Actor (npc) | `creature-lateran-executor-rifle-317989` | Lateran Executor (Rifle) | Lateran Executor (Rifle) |
 | 6 | `ak5e.creatures` | Actor (npc) | `creature-lateran-executor-shotgun-319323` | Lateran Executor (Shotgun) | Lateran Executor (Shotgun) |
+| 3 | `ak5e.tables` | RollTable | `rolltable-double-blind-trial` | Double-Blind Trial | 5th Level: Double-Blind Trial |
+| 3 | `ak5e.tables` | RollTable | `rolltable-machine-personality` | Machine Personality | Machine Personality |
+| 3 | `ak5e.tables` | RollTable | `rolltable-tip-of-the-spear` | Tip of the Spear | 1st Level: Tip of the Spear |
+| 6 | `ak5e.tables` | RollTable | `rolltable-hole-in-the-world` | Hole in the World | Hole in the World |
 
 ## Source table inventory
 
 All table blocks are retained in the mapped source text. Only tables whose
-rules explicitly direct a random roll are planned as separate RollTables; the
+rules explicitly direct a random roll are generated as separate RollTables; the
 rest are reference, progression, stat-block, selection, or lookup tables.
 
 | Chapter | Source line | Heading path | Table columns | Release handling |
@@ -1983,7 +2337,7 @@ rest are reference, progression, stat-block, selection, or lookup tables.
 | 3 | 5427 | Chapter 3: Character Classes › Specialist › Class Features › 18th Level: Weapon Mastery › Elite Specialist Skills | Name / SP Cost / Start SP / Charging / Activation / Effect / Duration | Retain in mapped document |
 | 3 | 5447 | Chapter 3: Character Classes › Specialist › Class Features › 18th Level: Weapon Mastery › Basic Specialist Talents | Name / Effect / Module Effect | Retain in mapped document |
 | 3 | 5472 | Chapter 3: Character Classes › Specialist › Class Features › 18th Level: Weapon Mastery › Advanced Specialist Talents | Name / Effect / Module Effect | Retain in mapped document |
-| 3 | 5735 | Chapter 3: Character Classes › Specialist › Infuser › 5th Level: Double-Blind Trial | Result / Toxin | Planned `ak5e.tables`: Double-Blind Trial |
+| 3 | 5735 | Chapter 3: Character Classes › Specialist › Infuser › 5th Level: Double-Blind Trial | Result / Toxin | Generated `ak5e.tables`: Double-Blind Trial (release pack pending) |
 | 3 | 5891 | Chapter 3: Character Classes › Specialist › Inventor › 5th Level: Strange Contraption › Strange Contraptions | Strange Contraption / Effect | Retain in mapped document |
 | 3 | 5921 | Chapter 3: Character Classes › Specialist › Inventor › 15th Level: Stranger Contraptions › Stranger Contraptions | Stranger Contraption / Effect | Retain in mapped document |
 | 3 | 6162 | Chapter 3: Character Classes › Specialist › Skyranger › 1st Level: Take Flight › Skyranger Features | Level / Maximum Fuel / Strafe Damage | Retain in mapped document |
@@ -1996,7 +2350,7 @@ rest are reference, progression, stat-block, selection, or lookup tables.
 | 3 | 6788 | Chapter 3: Character Classes › Supporter › Class Features › 20th Level: Will Into Being › Elite Supporter Skills | Name / SP Cost / Start SP / Charging / Activation / Effect / Duration | Retain in mapped document |
 | 3 | 6810 | Chapter 3: Character Classes › Supporter › Class Features › 20th Level: Will Into Being › Basic Supporter Talents | Name / Effect / Module Effect | Retain in mapped document |
 | 3 | 6834 | Chapter 3: Character Classes › Supporter › Class Features › 20th Level: Will Into Being › Advanced Supporter Talents | Name / Effect / Module Effect | Retain in mapped document |
-| 3 | 6914 | Chapter 3: Character Classes › Supporter › Artificer › 4th Level: Heavy Duty Upgrades › Machine Personality | Roll / Personality | Planned `ak5e.tables`: Machine Personality |
+| 3 | 6914 | Chapter 3: Character Classes › Supporter › Artificer › 4th Level: Heavy Duty Upgrades › Machine Personality | Roll / Personality | Generated `ak5e.tables`: Machine Personality (release pack pending) |
 | 3 | 7169 | Chapter 3: Character Classes › Supporter › Bard › 17th Level: Fortissimo › Performance Arts | Art / Muse Cost | Retain in mapped document |
 | 3 | 7193 | Chapter 3: Character Classes › Supporter › Bard › 17th Level: Fortissimo › Performance Arts | Art / Muse Cost | Retain in mapped document |
 | 3 | 7256 | Chapter 3: Character Classes › Supporter › Hexer › 1st Level: Hexer's Arts › Hexer Arts Casting | Level / Maximum Art Level / Arts Points | Retain in mapped document |
@@ -2011,7 +2365,7 @@ rest are reference, progression, stat-block, selection, or lookup tables.
 | 3 | 7804 | Chapter 3: Character Classes › Greater Slayer Creation | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 3 | 7847 | Chapter 3: Character Classes › Greater Slinger Creation | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 3 | 7951 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › The Vanguard | Level / Proficiency Bonus / Features /  | Retain in mapped document |
-| 3 | 8000 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › 1st Level: Tip of the Spear | Roll / Effect | Planned `ak5e.tables`: Tip of the Spear |
+| 3 | 8000 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › 1st Level: Tip of the Spear | Roll / Effect | Generated `ak5e.tables`: Tip of the Spear (release pack pending) |
 | 3 | 8086 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › 20th Level: Approaching Storm › Basic Vanguard Skills | Name / SP Cost / Start SP / Charging / Activation / Effect / Duration | Retain in mapped document |
 | 3 | 8109 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › 20th Level: Approaching Storm › Advanced Vanguard Skills | Name / SP Cost / Start SP / Charging / Activation / Effect / Duration | Retain in mapped document |
 | 3 | 8137 | Chapter 3: Character Classes › Vanguard › Leaders of the Pack › 20th Level: Approaching Storm › Elite Vanguard Skills | Name / SP Cost / Start SP / Charging / Activation / Effect / Duration | Retain in mapped document |
@@ -2056,7 +2410,7 @@ rest are reference, progression, stat-block, selection, or lookup tables.
 | 6 | 351 | Chapter 6: Dwellers of Terra › Warped Golem | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 6 | 405 | Chapter 6: Dwellers of Terra › "Eikthyrnir," the Scar of the Shattered | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 6 | 471 | Chapter 6: Dwellers of Terra › Crazelyseon, the Eternal Echo | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
-| 6 | 508 | Chapter 6: Dwellers of Terra › Crazelyseon, the Eternal Echo › Legendary Actions › Hole in the World | Dice Roll / Creature Summoned | Planned `ak5e.tables`: Hole in the World |
+| 6 | 508 | Chapter 6: Dwellers of Terra › Crazelyseon, the Eternal Echo › Legendary Actions › Hole in the World | Dice Roll / Creature Summoned | Generated `ak5e.tables`: Hole in the World (release pack pending) |
 | 6 | 564 | Chapter 6: Dwellers of Terra › Beckbeast | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 6 | 594 | Chapter 6: Dwellers of Terra › Cloudbeast | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |
 | 6 | 636 | Chapter 6: Dwellers of Terra › Originium Slug | STR / DEX / CON / INT / WIS / CHA | Retain in mapped document |

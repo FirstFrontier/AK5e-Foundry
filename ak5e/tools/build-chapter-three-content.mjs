@@ -1,17 +1,24 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { sourceToHtml } from "./source-html.mjs";
 import { extractMonsterBlocks, parseMonsterStatblock } from "./monster-statblock.mjs";
 import { sourceHeadings, splitSourceSections } from "./source-sections.mjs";
 import { operatorSkillRecords } from "./operator-skill-content.mjs";
+import { classOptionRecords, enrichExistingClassOption, stripStandaloneSkillTalentCatalogues } from "./class-option-content.mjs";
 
 const sourceUrl = new URL("../../AK5e_1.3.1_Foundry_Source/03_chapter_3_character_classes.txt", import.meta.url);
 const outputUrl = new URL("../scripts/chapter-three-content.mjs", import.meta.url);
+const baselineUrl = new URL("../test/fixtures/p0-chapter-three-baseline.json", import.meta.url);
 
 const CLASS_NAMES = ["Caster", "Defender", "Guard", "Marksman", "Medic", "Specialist", "Supporter", "Vanguard"];
 const NON_BRANCH_SECTIONS = new Set(["Class Features", "Actions", "Reactions", "Leaders of the Pack"]);
 
 const source = (await readFile(sourceUrl, "utf8")).replace(/\r\n/g, "\n");
+const baseline = JSON.parse(await readFile(baselineUrl, "utf8"));
+const baselineRecords = baseline.records ?? baseline.migrated ?? [];
+const baselineById = new Map(baselineRecords.map(record => [record.id, record]));
+const baselineIds = new Set(baseline.ids ?? baseline.records?.map(record => record.id) ?? []);
 const classBoundaries = CLASS_NAMES.map(name => {
   const match = new RegExp(`^## ${escapeRegExp(name)}\\s*$`, "m").exec(source);
   if (!match) throw new Error(`Could not find the ${name} class heading.`);
@@ -57,7 +64,7 @@ for (let index = 0; index < classBoundaries.length; index += 1) {
 
   const baseFeatureSections = h3Sections.filter(section => ["Class Features", "Leaders of the Pack"].includes(section.name));
   for (const section of baseFeatureSections) {
-    records.push(...extractFeatureRecords(section, boundary.name, null, "class-feature"));
+    records.push(...extractFeatureRecords(section, boundary.name, null, "class-feature", baselineById));
   }
 
   const branches = h3Sections.filter(section => (
@@ -77,7 +84,39 @@ for (let index = 0; index < classBoundaries.length; index += 1) {
       rawSource: branch.raw.trim()
     };
     records.push(branchRecord);
-    records.push(...extractFeatureRecords(branch, boundary.name, branch.name, "subclass-feature"));
+    records.push(...extractFeatureRecords(branch, boundary.name, branch.name, "subclass-feature", baselineById));
+  }
+}
+
+const optionRecords = classOptionRecords(source);
+const reusableOptions = optionRecords.filter(option => option.existing);
+const enrichedRecordIds = new Set();
+for (const option of reusableOptions) {
+  const candidates = records.filter(record => record.parentClass === option.parentClass
+    && record.parentBranch === option.parentBranch
+    && normalizeOptionName(record.sourceHeading ?? record.name) === normalizeOptionName(option.name));
+  const match = candidates.find(record => record.rawSource?.trim() === option.optionRawSource?.trim())
+    ?? candidates.find(record => !enrichedRecordIds.has(record.id));
+  if (!match) throw new Error(`Could not match existing ${option.classOption.category} record ${option.parentClass}/${option.parentBranch ?? ""}/${option.name}.`);
+  if (enrichedRecordIds.has(match.id)) throw new Error(`More than one source option matched existing record ${match.id}.`);
+  enrichedRecordIds.add(match.id);
+  const previous = baselineById.get(match.id);
+  if (!previous) throw new Error(`Existing record ${match.id} is missing from the P0 baseline fixture.`);
+  const enriched = enrichExistingClassOption(match, option, previous.content);
+  Object.assign(match, enriched);
+}
+records.push(...optionRecords.filter(option => !option.existing));
+
+if (records.filter(record => record.kind === "operator-skill").length !== 320) {
+  throw new Error("P0 Chapter 3 generation must preserve the 320 existing Operator Skills.");
+}
+for (const id of baselineIds) {
+  if (!records.some(record => record.id === id)) throw new Error(`P0 generation removed existing record ID ${id}.`);
+}
+if (baseline.operatorSkills) {
+  const currentSkills = new Map(records.filter(record => record.kind === "operator-skill").map(record => [record.id, hash(JSON.stringify(record.operatorSkill))]));
+  for (const previous of baseline.operatorSkills) {
+    if (currentSkills.get(previous.id) !== previous.hash) throw new Error(`P0 generation changed Operator Skill data for ${previous.id}.`);
   }
 }
 
@@ -96,15 +135,20 @@ const counts = records.reduce((grouped, record) => {
 console.log(`Read ${fileURLToPath(sourceUrl)} and wrote ${records.length} records to ${fileURLToPath(outputUrl)}.`);
 console.log(Object.entries(counts).map(([kind, entries]) => `${kind}: ${entries.length}`).join(", "));
 
-function extractFeatureRecords(section, parentClass, parentBranch, kind) {
-  const h4 = splitSections(section.raw, 4).map(featureRecord);
-  const h5 = splitSections(section.raw, 5).map(featureRecord);
+function extractFeatureRecords(section, parentClass, parentBranch, kind, baselineById) {
+  const h4 = splitSections(section.raw, 4).map(feature => featureRecord(feature, true));
+  const h5 = splitSections(section.raw, 5).map(feature => featureRecord(feature, false));
   return [...h4, ...h5, ...splitSections(section.raw, 5).flatMap(table => operatorSkillRecords(table, parentClass, parentBranch))];
 
-  function featureRecord(feature) {
+  function featureRecord(feature, stripCatalogues) {
     const prefix = parentBranch ? `${parentClass}-${parentBranch}` : parentClass;
+    const id = `${kind}-${slugify(`${prefix}-${feature.name}`)}-${feature.index}`;
+    const rawSource = stripCatalogues ? stripStandaloneSkillTalentCatalogues(feature.raw.trim()) : feature.raw.trim();
+    const content = toHtml(rawSource);
+    const previous = baselineById.get(id);
+    const changedDescription = Boolean(previous && previous.content !== content);
     return {
-      id: `${kind}-${slugify(`${prefix}-${feature.name}`)}-${feature.index}`,
+      id,
       kind,
       name: `${parentBranch ? `${parentBranch}: ` : ""}${feature.name}`,
       parentClass,
@@ -113,10 +157,19 @@ function extractFeatureRecords(section, parentClass, parentBranch, kind) {
       itemType: "feat",
       level: extractLevel(feature.name),
       systemData: {},
-      content: toHtml(feature.raw),
-      rawSource: feature.raw.trim()
+      content,
+      rawSource,
+      ...(changedDescription ? { contentVersion: "0.3.8", previousContentHash: createHash("sha256").update(previous.content, "utf8").digest("hex") } : {})
     };
   }
+}
+
+function normalizeOptionName(value) {
+  return String(value).replace(/^.*:\s*/, "").replace(/\s*\([^)]*\)$/, "").trim().toLowerCase();
+}
+
+function hash(value) {
+  return createHash("sha256").update(value ?? "", "utf8").digest("hex");
 }
 
 function splitSections(text, level) {

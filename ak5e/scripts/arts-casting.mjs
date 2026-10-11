@@ -1,6 +1,8 @@
 import { ARTS_METHOD, ArtsRuleError, adoptedSpellData, artsChoices, artsState, castingConfig, integer, quoteArt, recoveryValue, restArtsUpdates } from "./arts-rules.mjs";
 import { worldRulesEnabled } from "./world-rule-state.mjs";
 import { registerArtsSheetHooks } from "./arts-sheet.mjs";
+import { casterGrant, casterQuoteOptions, prepareCasterActivity, casterConsumption, completeCasterConsumption, completeCasterUse, markCasterCastFailure } from "./caster-casting.mjs";
+import { casterStateSerial } from "./caster-primal-splash.mjs";
 export { renderArtsControls } from "./arts-sheet.mjs";
 
 const sessions = new Map();
@@ -15,6 +17,16 @@ const notice = error => { console.error("AK5e | Arts", error); ui.notifications.
 const safely = promise => Promise.resolve(promise).catch(notice);
 export const artsText = (key, data) => data === undefined ? game.i18n.localize(`AK5E.Arts.${key}`) : game.i18n.format(`AK5E.Arts.${key}`, data);
 export const artsErrorText = error => error?.key ? artsText(error.key, error.data) : error?.message ?? String(error);
+
+/**
+ * Class modules outside the Caster add quote options (e.g. Guardian's Not Today discount) and record what a cast
+ * consumed in the same Actor update as its AP. `options(actor, item, usage)` returns quote options; `consume(activity,
+ * usage, updates, receipt)` may add `updates.actor` entries. Both must be pure apart from those updates.
+ */
+const quoteSources = [], consumers = [];
+export function registerArtQuoteOptions(source) { if (!quoteSources.includes(source)) quoteSources.push(source); }
+export function registerArtConsumption(consumer) { if (!consumers.includes(consumer)) consumers.push(consumer); }
+function extraQuoteOptions(actor, item, usage) { return Object.assign({}, ...quoteSources.map(source => source(actor, item, usage) ?? {})); }
 
 export function registerArtsConfig() {
   if (!CONFIG.DND5E) return;
@@ -53,7 +65,7 @@ function idle(actor) {
 
 export function grantFor(item, actor = item.actor) {
   const grant = flags(item);
-  return { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined };
+  return casterGrant(actor, item, { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined });
 }
 
 function checkFocus(actor, item) {
@@ -63,6 +75,12 @@ function checkFocus(actor, item) {
   }
   if (flags(item).noCastingUnit === true || actor.getFlag?.("ak5e", "oripathy")?.infected === true) return;
   const focusId = artsState(actor).castingUnit;
+  // Guardian of Life (Ch.3 L1506): shields the Guardian equips gain the Casting Unit property.
+  if (focusId === "shield") {
+    if (!list(actor.items).some(entry => entry.type === "equipment" && entry.system?.type?.value === "shield" && entry.system?.equipped === true))
+      throw new ArtsRuleError("FocusMissing", "Equip a shield: a shield you equip is your Casting Unit (Guardian of Life).");
+    return;
+  }
   const focus = actor.items.get(focusId);
   if (!focus || focus.system.equipped !== true) throw new ArtsRuleError("FocusMissing", "Equip the Casting Unit selected in Arts setup, or configure this Art's source-defined exception.");
   const properties = focus.getFlag?.("ak5e", "tableData")?.properties ?? focus.flags?.ak5e?.tableData?.properties ?? "";
@@ -74,7 +92,7 @@ function checkFocus(actor, item) {
 export function artAvailability(actor, item, selection = {}) {
   let blocker;
   try { checkFocus(actor, item); } catch (error) { blocker = error; }
-  return artsChoices(artsState(actor), item.system.level, grantFor(item, actor), { ...selection, blocker });
+  return artsChoices(artsState(actor), item.system.level, grantFor(item, actor), { ...casterQuoteOptions(actor, item, selection), ...extraQuoteOptions(actor, item, selection), ...selection, blocker });
 }
 
 /** Review data only. No World/Actor writes until configureActorArts is explicitly invoked. */
@@ -236,6 +254,8 @@ export function prepareArtUse(activity, usage, dialog, message) {
   dialog.applicationClass = artsDialogClass(dialog.applicationClass);
   message.hasConsumption = true;
   session.activity = activity;
+  try { prepareCasterActivity(activity, usage, message); }
+  catch (error) { ui.notifications.warn(artsErrorText(error)); return false; }
 }
 
 export function consumeArt(activity, usage, message, updates) {
@@ -245,7 +265,7 @@ export function consumeArt(activity, usage, message, updates) {
     if (!session || session.committed) throw new Error("This cast has already been processed or is no longer active.");
     own(activity.actor); checkFocus(activity.actor, activity.item);
     const state = artsState(activity.actor);
-    const quote = quoteArt(state, session.baseLevel, usage.ak5eLevel, grantFor(activity.item), { mode: usage.ak5eMode });
+    const quote = quoteArt(state, session.baseLevel, usage.ak5eLevel, grantFor(activity.item), { ...casterQuoteOptions(activity.actor, activity.item, usage), ...extraQuoteOptions(activity.actor, activity.item, usage), mode: usage.ak5eMode });
     const freeSpent = quote.mode === "free" && quote.freeRemaining !== null
       ? (activity.actor.getFlag("ak5e", "artFreeUses")?.[activity.item.id] ?? 0) : null;
     const receipt = {
@@ -267,6 +287,8 @@ export function consumeArt(activity, usage, message, updates) {
     if (freeSpent !== null) {
       updates.actor[`flags.ak5e.artFreeUses.${activity.item.id}`] = freeSpent + 1;
     }
+    casterConsumption(activity, usage, updates, receipt);
+    for (const consumer of consumers) consumer(activity, usage, updates, receipt, quote);
     message.data ??= {};
     message.data.flags ??= {};
     message.data.flags.ak5e = { ...message.data.flags.ak5e, artCast: receipt };
@@ -293,7 +315,7 @@ export function artsDialogClass(Base) {
     async _prepareScalingContext(context) {
       const state = artsState(this.actor);
       const grant = grantFor(this.item);
-      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
       this.config.ak5eMode = choices.mode;
       this.config.ak5eLevel = choices.level;
       const modes = choices.modes.map(m => ({ value: m.value, label: artsText(`Mode.${m.value}`) }));
@@ -303,6 +325,7 @@ export function artsDialogClass(Base) {
           modeLabel: artsText(`Mode.${choices.mode}`), levelLabel: options.find(o => Number(o.value) === choices.level)?.label,
           chooseMode: modes.length > 1, chooseLevel: options.length > 1,
           cost: choices.quote?.cost, remaining: choices.quote ? state.value - choices.quote.cost : null,
+          modifiers: choices.quote?.modifiers ?? [], origin: choices.quote?.origin ?? null,
           value: state.value, maximum: state.maximum, source: grant.source ?? "",
           ritual: choices.mode === "ritual", unavailable: !choices.quote,
           reason: choices.error ? artsErrorText(choices.error) : "" } };
@@ -311,7 +334,7 @@ export function artsDialogClass(Base) {
     async _prepareSubmitData(event, formData) {
       const data = await super._prepareSubmitData(event, formData);
       const base = sessions.get(this.config.ak5eCastId)?.baseLevel ?? this.item.system.level;
-      const selected = { mode: data.ak5eMode ?? this.config.ak5eMode, level: data.ak5eLevel ?? this.config.ak5eLevel };
+      const selected = { ak5eCaster: this.config.ak5eCaster, mode: data.ak5eMode ?? this.config.ak5eMode, level: data.ak5eLevel ?? this.config.ak5eLevel };
       // Native change events recalculate choices. Confirmation retains the requested cast:
       // consumption must reject a stale selection rather than silently cast at a lower level.
       const choices = event?.type === "click"
@@ -335,7 +358,7 @@ export function artsDialogClass(Base) {
 
     async _prepareFooterContext(context, options) {
       const result = await super._prepareFooterContext(context, options);
-      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
       for (const button of result.buttons ?? []) if (button.action === "use") {
         button.label = artsText("Cast");
         button.disabled = !choices.quote;
@@ -345,7 +368,7 @@ export function artsDialogClass(Base) {
 
     async _onRender(context, options) {
       await super._onRender(context, options);
-      const choices = artAvailability(this.actor, this.item, { mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
       const button = this.element.querySelector('[data-action="use"]');
       if (button) button.disabled = !choices.quote;
     }
@@ -373,8 +396,21 @@ export function wrapActivityUse(prototype) {
     sessions.set(id, session);
     busy.add(this.actor.uuid);
     try {
-      return await original.call(this, { ...usage, ak5eCastId: id }, dialog, message);
+      // The native activity owns the confirmation dialog and commits resources inside `use`.
+      // Serialize that boundary with external Caster receipts/links; release before AP/cast
+      // event handlers run because those handlers acquire the same queue themselves.
+      const result = await casterStateSerial(this.actor, () => original.call(this, { ...usage, ak5eCastId: id }, dialog, message));
+      if (session.receipt) {
+        await completeCasterConsumption(this.actor, session.receipt);
+        if (result) await completeCasterUse(this.actor, session.receipt);
+        else await markCasterCastFailure(this.actor, session.receipt);
+      }
+      return result;
     } catch (error) {
+      if (session.receipt) {
+        try { await completeCasterConsumption(this.actor, session.receipt); } catch { /* Retain the original failure and consumed receipt. */ }
+        await markCasterCastFailure(this.actor, session.receipt, error);
+      }
       // Native use may have completed consumption before concentration/chat fails. Keep the receipt
       // for explicit undo; automatic refunds here would risk making an already-resolved cast free.
       if (session.receipt && this.actor.getFlag("ak5e", "lastArtCast")?.id === id) {

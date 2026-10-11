@@ -7,12 +7,11 @@ const errors = [], report = {};
 const listen = page => { page.on("pageerror", error => errors.push(error.message)); page.on("console", message => { if (message.type() === "error") errors.push(message.text()); }); };
 async function join(userName) {
   const context = await browser.newContext({ viewport: { width: 1500, height: 1000 } });
-  // Secondary authority clients need no canvas; keep the primary playable slice on full Chromium WebGL.
-  if (userName !== "Gamemaster") await context.addInitScript(() => localStorage.setItem("core.noCanvas", "true"));
   const page = await context.newPage(); listen(page);
   await page.goto("http://127.0.0.1:30133/join");
   await page.selectOption('select[name="userid"]', { label: userName }); await page.click('button[name="join"]');
   await page.waitForFunction(() => globalThis.game?.ready, null, { timeout: 45000 });
+  await page.waitForFunction(() => !game.scenes.active || globalThis.canvas?.ready, null, { timeout: 45000 });
   if (await page.evaluate(() => game.world.id) !== "sp-test") throw new Error("Live SP tests require the disposable sp-test World.");
   console.log(`Joined ${userName}.`);
   return page;
@@ -84,8 +83,9 @@ try {
     await new Promise(resolve => setTimeout(resolve, 100)); assert(game.ak5e.getOperatorSkillState(pc).points === 8, "Self-healing charged");
     await game.ak5e.adjustSkillPoints(pc, 7, { reason: "Live test setup" });
     const meditation = skills.find(item => item.name === "Meditation");
-    await game.ak5e.activateOperatorSkill(pc, { itemId: meditation.id });
+    await game.ak5e.activateOperatorSkill(pc, { itemId: meditation.id, confirmation: true, roll: false });
     assert(game.ak5e.getOperatorSkillState(pc).active === null && game.ak5e.getOperatorSkillState(pc).points === 5, "Instant lifecycle");
+    assert(game.user.targets.size === 1, "A self buff cleared the selected attack target");
     const activationId = game.ak5e.getOperatorSkillState(pc).lastSkill.activationId;
     assert(game.messages.filter(message => message.getFlag("ak5e", "spActivation") === activationId && message.getFlag("ak5e", "skillOrigin")?.skillUuid === meditation.uuid).length === 1, "Activation source card/provenance");
     await runtime.submitOperatorCommand(pc, "origin", { itemId: meditation.id });
@@ -108,13 +108,14 @@ try {
   await setup.waitFor(); await setup.locator('button[data-action="save"]').click(); await setup.waitFor({ state: "detached" });
   report.setup = await gm.evaluate(pcId => game.ak5e.getOperatorSkillState(game.actors.get(pcId)).points, report.slice.pcId);
   if (report.setup !== 5) throw new Error("Setup changed existing SP");
-  const ownerOne = await join("SP Owner One"), ownerTwo = await join("SP Owner Two"), secondGM = await join("SP Second GM"), observer = await join("SP Observer");
+  const ownerOne = await join("SP Owner One"), ownerTwo = await join("SP Owner Two");
   const pcId = report.slice.pcId;
   report.twoOwners = await Promise.all([ownerOne, ownerTwo].map((page, index) => page.evaluate(async ({ pcId, index }) => {
     const actor = game.actors.get(pcId);
     return game.ak5e.recordSkillPointEvent(actor, { type: "defensiveAttack", id: `owner-confirm-${index}`, hostile: true });
   }, { pcId, index })));
   await gm.waitForFunction(pcId => game.ak5e.getOperatorSkillState(game.actors.get(pcId)).points === 9, pcId);
+  await ownerTwo.context().close();
   report.playerApplication = await ownerOne.evaluate(async pcId => {
     const actor = game.actors.get(pcId), refs = actor.getFlag("ak5e", "spLiveRefs"), ally = await fromUuid(refs.ally);
     const healingMessage = game.messages.filter(message => message.flags.dnd5e?.item?.id === refs.heal).at(-1);
@@ -123,6 +124,7 @@ try {
     if (game.ak5e.getOperatorSkillState(actor).points !== 11) throw new Error("Player HP application did not charge through the GM");
     return { points: 11, restored: 2 };
   }, pcId);
+  const secondGM = await join("SP Second GM");
   report.gmElection = await secondGM.evaluate(async pcId => {
     const { submitOperatorCommand } = await import("/modules/ak5e/scripts/operator-skills.mjs");
     await submitOperatorCommand(game.actors.get(pcId), "event", { event: { type: "defensiveAttack", id: "two-gms-repeat", hostile: true } }, "same-request");
@@ -130,16 +132,19 @@ try {
     return game.users.activeGM.id;
   }, pcId);
   await gm.waitForFunction(pcId => game.ak5e.getOperatorSkillState(game.actors.get(pcId)).points === 13, pcId);
+  await secondGM.context().close();
+  const observer = await join("SP Observer");
   report.unauthorized = await observer.evaluate(async pcId => {
     try { await game.ak5e.endOperatorSkill(game.actors.get(pcId)); return false; } catch { return true; }
   }, pcId);
   if (!report.unauthorized) throw new Error("Unauthorized observer request succeeded");
+  await observer.context().close();
   report.lifecycle = await gm.evaluate(async pcId => {
     const assert = (value, label) => { if (!value) throw new Error(label); };
     const actor = game.actors.get(pcId), refs = actor.getFlag("ak5e", "spLiveRefs"), combat = game.combats.get(refs.combat);
     const hidden = actor.items.find(item => item.name === "Hidden Might");
-    await game.ak5e.activateOperatorSkill(actor, { itemId: hidden.id }); assert(game.ak5e.getOperatorSkillState(actor).points === 3, "Activation did not serialize");
-    let locked = false; try { await game.ak5e.activateOperatorSkill(actor, { itemId: hidden.id }); } catch { locked = true; } assert(locked, "Active lock failed");
+    await game.ak5e.activateOperatorSkill(actor, { itemId: hidden.id, confirmation: true, roll: false }); assert(game.ak5e.getOperatorSkillState(actor).points === 3, "Activation did not serialize");
+    let locked = false; try { await game.ak5e.activateOperatorSkill(actor, { itemId: hidden.id, confirmation: true, roll: false }); } catch { locked = true; } assert(locked, "Active lock failed");
     await combat.nextTurn(); await combat.nextTurn();
     for (let i = 0; i < 100 && game.ak5e.getOperatorSkillState(actor).points !== 7; i++) await new Promise(resolve => setTimeout(resolve, 30));
     assert(game.ak5e.getOperatorSkillState(actor).active === null && game.ak5e.getOperatorSkillState(actor).points === 7, "Round expiration before charging");
@@ -170,7 +175,7 @@ try {
     const existing = new Set(game.items.map(item => item.getFlag("ak5e", "chapterThreeId")));
     const created = await Item.implementation.createDocuments(entries.filter(entry => !existing.has(entry.id)).map(operatorSkillItemData));
     const skills = game.items.filter(item => item.getFlag("ak5e", "operatorSkill"));
-    if (skills.length !== 320 || skills.some(item => item.invalid || item.system.activities.size !== 1)) throw new Error("Skill catalogue failed native validation");
+    if (skills.length !== 320 || skills.some(item => item.invalid || !item.system.activities.get("ak5eSkillUse0001") || item.system.activities.size < 2)) throw new Error("Skill catalogue failed native validation");
     return { created: created.length, valid: skills.length };
   });
   await gm.reload(); await gm.waitForFunction(() => game.ready && game.ak5e);
@@ -179,7 +184,7 @@ try {
   report.errors = errors;
   await writeFile("/tmp/ak5e-sp-live-report.json", JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
-  if (errors.some(error => /Operator Skill|operator-skills|operator-sheet|operator-rules|SP live/.test(error))) throw new Error("SP browser errors occurred");
+  if (errors.length) throw new Error("SP browser errors occurred");
 } catch (error) {
   report.failure = error.message; report.errors = errors;
   await writeFile("/tmp/ak5e-sp-live-report.json", JSON.stringify(report, null, 2));

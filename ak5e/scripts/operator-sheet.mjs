@@ -1,7 +1,8 @@
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { actorOperatorSkills, getIntegratedOperatorState, isOperatorActor, operatorActors, submitOperatorCommand,
   activateIntegratedSkill, endIntegratedSkill, recordSkillPointEvent, configureOperatorSkill, adjustOperatorSP,
-  recoverOperatorSkills, spText, getOperatorSkillChoices, isLiveProgressionActor } from "./operator-skills.mjs";
+  recoverOperatorSkills, spText, getOperatorSkillChoices, isLiveProgressionActor, resolveOperatorSkillPhase } from "./operator-skills.mjs";
+import { profileForSkill, updateOperatorSkills } from "./operator-targeting.mjs";
 import { CHARGING_METHODS } from "./operator-rules.mjs";
 import { operatorChoiceUser } from "./operator-progression.mjs";
 
@@ -283,6 +284,36 @@ export function renderOperatorSkills(app, element) {
   if (state.pendingOrigin) {
     const origin = document.createElement("p"); origin.textContent = `${spText("NextSkillAction")}: ${state.pendingOrigin.name}`; section.append(origin);
     if (actor.isOwner) section.append(button("Clear", () => submitOperatorCommand(actor, "clearOrigin")));
+  }
+  if (actor.isOwner && state.enabled) {
+    const receipts = state.resolutions?.filter(receipt => receipt.status === "committed") ?? [];
+    for (const receipt of receipts.slice(-10)) {
+      const item = actor.items.get(receipt.itemId), profile = profileForSkill(item);
+      if (!profile) continue;
+      for (const phase of profile.phases.filter(phase => !receipt.ended && ["activation", "optional"].includes(phase.when))) {
+        const control = button("ResolveSkill", () => resolveOperatorSkillPhase(actor, { activationId: receipt.activationId, phaseId: phase.id }));
+        control.textContent = `${item.name}: ${phase.id}`; section.append(control);
+      }
+      const finish = button("End", async () => {
+        if (await foundry.applications.api.DialogV2.confirm({ window: { title: "Finish retained Skill effects" }, rejectClose: false,
+          content: `<p>${esc(profile.sourceEffect)}</p><p>Confirm that the retained effect has ended under its source rules. This removes its templates and future prompts.</p>` })) {
+          await submitOperatorCommand(actor, "completeResolution", { activationId: receipt.activationId, confirmation: true });
+        }
+      });
+      finish.textContent = `${item.name}: finish retained effects`; section.append(finish);
+    }
+    for (const prompt of state.phasePrompts ?? []) {
+      const receipt = receipts.find(receipt => receipt.activationId === prompt.activationId), item = actor.items.get(receipt?.itemId);
+      const control = button("ReviewEvent", () => resolveOperatorSkillPhase(actor, { activationId: prompt.activationId, phaseId: prompt.phaseId, eventKey: prompt.key }));
+      control.textContent = `${item?.name ?? "Skill"}: ${prompt.phaseId}`; section.append(control);
+    }
+    if (game.user.isGM) {
+      const control = button("Setup", async () => {
+        const changes = await updateOperatorSkills(actor);
+        if (await foundry.applications.api.DialogV2.confirm({ window: { title: "Update managed Skills" }, rejectClose: false,
+          content: `<p>Add reviewed profiles and missing phase activities. Existing activities, SP, counters, choices, and IDs are preserved.</p><ul>${changes.map(change => `<li>${esc(change.name)}: ${change.activities.length} additions</li>`).join("")}</ul>` })) await updateOperatorSkills(actor, { preview: false });
+      }); control.textContent = "Preview Skill update"; section.append(control);
+    }
   }
   if (actor.isOwner) {
     section.append(button("Setup", () => openOperatorSkills(actor)));

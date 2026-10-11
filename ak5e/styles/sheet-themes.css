@@ -1,0 +1,120 @@
+/* AK5e character-only decoration. D&D5e keeps ownership of layout and rules colors. */
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] {
+  --ak5e-surface: #f7f4ed;
+  --ak5e-surface-alt: #ebe7dd;
+  --ak5e-border: color-mix(in srgb, var(--ak5e-theme-primary) 60%, #fff);
+  --ak5e-text-accent: var(--ak5e-theme-primary);
+  --dnd5e-color-gold: var(--ak5e-text-accent);
+  --dnd5e-color-scrollbar: var(--ak5e-theme-primary);
+  --dnd5e-character-header-image: none;
+  --dnd5e-character-body-image: var(--ak5e-surface);
+  --dnd5e-background-card: var(--ak5e-surface);
+  --dnd5e-background-parchment: var(--ak5e-surface);
+}
+
+body.theme-dark .dnd5e2.sheet.actor.character[data-ak5e-sheet-theme],
+.themed.theme-dark.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] {
+  --ak5e-surface: #20262b;
+  --ak5e-surface-alt: #2b3339;
+  --ak5e-border: color-mix(in srgb, var(--ak5e-theme-accent) 56%, #171b20);
+  --ak5e-text-accent: color-mix(in srgb, var(--ak5e-theme-accent) 65%, white);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-header {
+  background: var(--ak5e-motif) center / cover no-repeat,
+    linear-gradient(110deg, var(--ak5e-theme-primary), var(--ak5e-header-end, #171b23));
+  border-bottom: 3px solid var(--ak5e-theme-accent);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-header::after {
+  content: "";
+  position: absolute;
+  width: min(27%, 180px);
+  height: 100%;
+  right: 0;
+  top: 0;
+  background: url("../assets/themes/ornament.svg") center / contain no-repeat;
+  opacity: .45;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-header .document-name,
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-header .class {
+  text-shadow: 0 2px 5px #000b;
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-body {
+  border: 1px solid var(--ak5e-border);
+  border-top: 0;
+  background: var(--ak5e-surface);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-body .sidebar .card,
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .tab-body :is(.card, .items-section) {
+  border: 1px solid var(--ak5e-border);
+  box-shadow: 0 2px 8px #0002;
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-body .sidebar .card {
+  background: var(--ak5e-surface-alt);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.tab-body h2, .tab-body h3, .items-section .items-header) {
+  border-bottom-color: var(--ak5e-border);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.tabs .item.active, .tabs .item:hover, .sheet-body .main-content a:hover) {
+  color: var(--ak5e-text-accent);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .tabs .item.active {
+  border-bottom-color: var(--ak5e-theme-accent);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(input, select, textarea):hover {
+  border-color: var(--ak5e-border);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-arts-controls, .ak5e-operator-skills) {
+  background-color: color-mix(in srgb, var(--ak5e-surface-alt) 74%, transparent);
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(input, select, button, a):focus-visible {
+  outline: 2px solid var(--ak5e-text-accent);
+  outline-offset: 2px;
+}
+
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-ap-bar, .ak5e-operator-skills, .ak5e-origins-section) {
+  border-color: var(--ak5e-border);
+}
+
+/* Each nation has a distinct header drawing, built from scalable CSS geometry. */
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="aegir"] { --ak5e-theme-primary: #123849; --ak5e-theme-accent: #60c9d8; --ak5e-motif: repeating-radial-gradient(circle at 82% 110%, transparent 0 17px, #c9faff31 18px 19px, transparent 20px 33px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="bolivar"] { --ak5e-theme-primary: #8d4136; --ak5e-theme-accent: #44b6aa; --ak5e-motif: repeating-linear-gradient(45deg, transparent 0 22px, #f6d9b829 23px 25px, transparent 26px 46px), repeating-linear-gradient(-45deg, transparent 0 22px, #f6d9b829 23px 25px, transparent 26px 46px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="columbia"] { --ak5e-theme-primary: #253d5a; --ak5e-theme-accent: #87a8c5; --ak5e-motif: repeating-linear-gradient(0deg, #c5dcf022 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, #c5dcf022 0 1px, transparent 1px 24px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="durin-cities"] { --ak5e-theme-primary: #665445; --ak5e-theme-accent: #8ac7b1; --ak5e-motif: repeating-radial-gradient(ellipse at 80% 120%, transparent 0 24px, #f4dbc32e 26px 28px, transparent 30px 50px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="higashi"] { --ak5e-theme-primary: #242832; --ak5e-theme-accent: #d05c4d; --ak5e-motif: repeating-linear-gradient(90deg, transparent 0 34px, #f4e9dd2b 35px 36px, transparent 37px 68px), repeating-linear-gradient(0deg, transparent 0 34px, #f4e9dd2b 35px 36px, transparent 37px 68px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="iberia"] { --ak5e-theme-primary: #1b3551; --ak5e-theme-accent: #c8a971; --ak5e-motif: repeating-conic-gradient(from -15deg at 84% 105%, #ffefa52b 0deg 3deg, transparent 4deg 19deg); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="kazdel"] { --ak5e-theme-primary: #302d33; --ak5e-theme-accent: #b64b57; --ak5e-motif: linear-gradient(137deg, transparent 36%, #eb9b9b28 36.3% 37%, transparent 37.3%), linear-gradient(27deg, transparent 66%, #eb9b9b2b 66.3% 67%, transparent 67.3%); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="kazimierz"] { --ak5e-theme-primary: #594071; --ak5e-theme-accent: #d5b65e; --ak5e-motif: repeating-linear-gradient(125deg, transparent 0 32px, #f8e0a52b 33px 37px, transparent 38px 64px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="kjerag"] { --ak5e-theme-primary: #465767; --ak5e-theme-accent: #a9d7e4; --ak5e-motif: linear-gradient(145deg, transparent 56%, #d6f4f540 56.4% 57.4%, transparent 58%), linear-gradient(34deg, transparent 48%, #d6f4f52e 48.4% 49.4%, transparent 50%); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="laterano"] { --ak5e-theme-primary: #786442; --ak5e-theme-accent: #82bddd; --ak5e-motif: repeating-radial-gradient(circle at 81% 45%, transparent 0 26px, #fff1c347 27px 29px, transparent 30px 57px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="leithanien"] { --ak5e-theme-primary: #583b57; --ak5e-theme-accent: #c6a477; --ak5e-motif: repeating-linear-gradient(0deg, transparent 0 12px, #edd5b52e 13px 14px, transparent 15px 26px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="minos"] { --ak5e-theme-primary: #66594d; --ak5e-theme-accent: #a6a276; --ak5e-motif: repeating-linear-gradient(90deg, transparent 0 48px, #f5e4c32e 49px 54px, transparent 55px 96px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="rim-billiton"] { --ak5e-theme-primary: #4b5050; --ak5e-theme-accent: #ca9a53; --ak5e-motif: repeating-linear-gradient(164deg, transparent 0 18px, #e9bf802f 19px 21px, transparent 22px 41px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="sami"] { --ak5e-theme-primary: #2d5749; --ak5e-theme-accent: #c88876; --ak5e-motif: repeating-conic-gradient(from 45deg at 75% 100%, transparent 0deg 25deg, #d4eee237 26deg 28deg, transparent 29deg 90deg); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="sargon"] { --ak5e-theme-primary: #8a6740; --ak5e-theme-accent: #54b9b0; --ak5e-motif: repeating-linear-gradient(90deg, transparent 0 34px, #fbdfa634 35px 42px, transparent 43px 70px), repeating-linear-gradient(0deg, transparent 0 28px, #fbdfa622 29px 31px, transparent 32px 56px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="siesta"] { --ak5e-theme-primary: #267a80; --ak5e-theme-accent: #ed9375; --ak5e-motif: repeating-radial-gradient(ellipse at 76% 115%, transparent 0 20px, #ffd8a838 21px 23px, transparent 24px 42px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="siracusa"] { --ak5e-theme-primary: #313033; --ak5e-theme-accent: #ab5a69; --ak5e-motif: repeating-linear-gradient(90deg, transparent 0 22px, #f7e9db26 23px 24px, transparent 25px 46px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="ursus-empire"] { --ak5e-theme-primary: #4e535b; --ak5e-theme-accent: #be5961; --ak5e-motif: repeating-linear-gradient(90deg, transparent 0 55px, #eef0ef32 56px 61px, transparent 62px 110px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="victoria"] { --ak5e-theme-primary: #2c5549; --ak5e-theme-accent: #c6aa74; --ak5e-motif: repeating-linear-gradient(128deg, transparent 0 26px, #efe1c22c 27px 29px, transparent 30px 53px); }
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme="yan"] { --ak5e-theme-primary: #2d665f; --ak5e-theme-accent: #d96751; --ak5e-motif: repeating-radial-gradient(ellipse at 78% 105%, transparent 0 27px, #e3f1d52b 28px 29px, transparent 30px 55px); }
+
+.ak5e-theme-dialog .ak5e-theme-options { display: grid; gap: 4px; max-height: 55vh; overflow: auto; padding: 4px; }
+.ak5e-theme-dialog .ak5e-theme-option { display: flex; gap: 10px; align-items: center; padding: 4px 6px; cursor: pointer; }
+.ak5e-theme-dialog .ak5e-theme-option:focus-within { outline: 2px solid var(--color-border-highlight); }
+.ak5e-theme-dialog .ak5e-theme-option input { margin: 0; }
+.ak5e-theme-dialog .ak5e-theme-swatch { display: block; width: 38px; height: 22px; flex: none; border: 1px solid #777; border-radius: 3px; }

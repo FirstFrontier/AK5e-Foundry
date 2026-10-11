@@ -1,0 +1,41 @@
+.ak5e-caster-sheet-panel,
+.ak5e-caster-panel {
+  display: block;
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid var(--dnd5e-color-gold, #9f9275);
+  border-radius: 4px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ak5e-caster-sheet-panel { margin: 0.4rem 0; }
+.ak5e-caster-sheet-panel h3,
+.ak5e-caster-panel h3 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+.ak5e-caster-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.8rem; margin-bottom: 0.5rem; }
+.ak5e-caster-note,
+.ak5e-caster-manual { font-size: 0.82rem; }
+.ak5e-caster-panel button,
+.ak5e-caster-sheet-panel button { width: auto; max-width: 100%; min-height: 1.9rem; margin: 0.15rem; overflow-wrap: anywhere; }
+.ak5e-caster-main-button { font-weight: 700; }
+.ak5e-caster-gm-button { border-style: dashed; }
+.ak5e-caster-history,
+.ak5e-caster-learned { margin-top: 0.5rem; }
+.ak5e-caster-history summary,
+.ak5e-caster-learned summary { cursor: pointer; font-weight: 600; }
+.ak5e-caster-history ul,
+.ak5e-caster-learned ul { max-height: 14rem; overflow: auto; padding-inline-start: 1.4rem; }
+.ak5e-caster-dialog-content { max-height: 70vh; overflow-y: auto; padding: 0.5rem; line-height: 1.5; }
+.ak5e-caster-dialog-content :is(p, ul, fieldset, details) { margin: 0.65rem 0; }
+.ak5e-caster-dialog-content fieldset { padding: 0.6rem; }
+.ak5e-caster-field { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 1.1fr); align-items: center; gap: 0.5rem; margin: 0.55rem 0; }
+.ak5e-caster-field :is(input, select) { min-width: 0; width: 100%; }
+.ak5e-caster-check { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.55rem 0; }
+.ak5e-caster-check input { flex: 0 0 auto; width: auto; margin-top: 0.25rem; }
+.ak5e-caster-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.35rem 0.8rem; }
+.ak5e-caster-options label { display: flex; align-items: flex-start; gap: 0.45rem; min-width: 0; }
+.ak5e-caster-options input { flex: 0 0 auto; width: auto; }
+.ak5e-caster-choice small { display: block; margin-top: 0.35rem; }
+@media (max-width: 600px) {
+  .ak5e-caster-options { grid-template-columns: 1fr; }
+  .ak5e-caster-field { grid-template-columns: 1fr; }
+}

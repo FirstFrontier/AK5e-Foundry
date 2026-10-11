@@ -1,0 +1,31 @@
+import { CHAPTER_THREE_CLASSES } from "../scripts/chapter-three-content.mjs";
+import { skillTargetProfile } from "../scripts/operator-target-profiles.mjs";
+const entries = CHAPTER_THREE_CLASSES.filter(entry => entry.operatorSkill);
+const cell = value => String(value ?? "—").replaceAll("|", "\\|").replaceAll("\n", " ");
+const profiles = entries.map(entry => ({ entry, profile: skillTargetProfile(entry) }));
+console.log(`# SP and Operator Skill audit — 0.3.6
+
+Authority: AK5e 1st Edition v1.3.1, source README, Chapter 1 Operator Skills/Martial DC/Construct healing, Chapter 3 Skill tables and referenced class features, Chapter 4 King's Drive/Subjective Time, and Chapter 6 Automaton references. Source wording, all seven table cells and stable source IDs remain unchanged. The existing source regression verifies every row independently.
+
+Core SP: **supported** — opt-in, shared maximum/Start SP, stacked charging methods, own-turn restrictions, once-per-Attack receipts, active-Skill restrictions, Skill-origin exclusion, actual healing, increased Art temporary HP, long-rest recovery, elected GM authority and independent synthetic pools. Damage charging now uses successful positive post-defense damage, including at zero HP; immunity contributes zero. **Supported** spell-DC prerequisites require an actual casting ability, rather than D&D5e's fallback DC; explicit positive-current-HP prerequisites and stated target-size limits are checked. **Manual** narrative/equipment/event prerequisites require explicit source confirmation before spending.
+
+Targeting: **supported** Ctrl+T hovered visible enemies and selected-token fallback; Ctrl+Shift+T adds. Initiating-user target UUIDs are validated by the elected GM, with source-token disambiguation. Native rolls offer damage/healing/saves and reviewed weapon attacks; HP, effects, conditions, movement and special riders remain user confirmed. Save DCs use the source's permitted Spell/Martial choice; STR/DEX is selected explicitly. Omitted DCs/ranges are not invented.
+
+Geometry: **supported** square/hex occupied-cell centers, gridless centers, source/placed/target-centered areas, paired auras, Grand Cross's two rectangles, three deduplicated Cluster Bombs spheres, ordinary blocking walls/open doors, corner propagation, explicit GM-confirmed piercing and 2D previews. The module's marked templates use source geometry and Foundry's public MeasuredTemplate.testPoint; unrelated templates retain their existing implementation. Heights, wall thickness, non-wall structures and narrative cover require manual review. **Uncertain** directional/limited/proximity wall interpretation needs GM review.
+
+Persistence: **supported** preflight cancellation, prepared receipts before provisional geometry, SP/operation commit, retry deduplication, cleanup of uncommitted templates on restart, original activation IDs in later rolls, delayed/ending prompts and explicit retained-effect completion. GM-only details are whispered; shared Actor receipts exclude hidden victims. Explicit migration adds missing managed activities and profiles while preserving existing activities, counters, choices, SP and IDs.
+
+Limits: **manual** linked Arts, summons, damage-derived formulas, immunity/tether outcomes, movement paths and many conditional later phases still require source-confirmed native actions. The audit distinguishes these from reviewed targeting. Mandatory prompts cover reviewed turn-start/turn-end/entry/delayed/movement/ending phases; unobserved or conditional events require GM confirmation. Finish retained effects when a tether, concentration, damage budget or other source condition ends. Direct HP edits require a GM Blood Boil counter correction using adjustOperatorSkillCounter with the original activation ID and a source reason. This is not full effect automation.
+
+Manual SP exceptions: use the GM Setup menu to configure charging methods and costs, then Adjust with an exact source reason (and the explicit active-gain exception when applicable). Dreadnought/Liberator charging replacement, class/talent/equipment extra grants, refunds and changing costs remain manual. Grand Cross: track successful activations; after its third use set SP Cost 15 and Activation Bonus Action; after Long Rest restore the original table cost/action. Native long-rest recovery does not silently rewrite that choice. King's Drive and Subjective Time extra grants require source conditions and GM adjustments. Retain source text for every exception.
+
+Catalogue: ${entries.length} rows; ${profiles.filter(({ profile }) => profile.status !== "manual").length} with reviewed targeting geometry; ${profiles.filter(({ profile }) => profile.status === "manual").length} manual mappings (${profiles.filter(({ profile }) => profile.status === "manual" && !profile.phases[0].mode).length} without a map target in their activation profile). **Every** distributed row retains exact source costs/charging/duration/prerequisites/effect text. “Manual” is an explicit limitation, not a claim of automation.
+
+| Stable source ID | Skill / class | SP / Start / method | Duration | Targeting and geometry | Save / damage / healing | Phases | Status / notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |`);
+for (const { entry, profile } of profiles) {
+  const s = entry.operatorSkill;
+  const geometry = profile.phases.map(p => `${p.id}: ${p.mode ? `${p.mode}; ${p.shape ?? "tokens"}; ${p.distance ?? "—"} ft${p.width ? ` × ${p.width} ft` : ""}; range ${p.range ?? "manual"}; max ${p.maximum ?? "source confirmed"}${p.templates ? `; ${p.templates} areas` : ""}` : "manual / self"}`).join("; ");
+  const rolls = profile.phases.map(p => `${p.id}: ${p.save ?? "none"}/${p.dc ?? "none"}; ${p.manualRoll ? "manual damage" : p.damage ?? "none"}${p.damageType ? ` ${p.damageType}` : ""}${p.healing ? `; ${p.instances ?? 1} × ${p.healing} healing` : ""}`).join("; ");
+  console.log(`| ${cell(entry.id)} | ${cell(entry.name)} / ${cell(entry.parentClass)} | ${s.cost} / ${s.start} / ${s.methods.join(", ")} | ${cell(s.duration)} | ${cell(geometry)} | ${cell(rolls)} | ${profile.phases.map(p => `${p.id} (${p.when})`).join("; ")} | ${profile.status}; ${cell(profile.notes.join(" "))} |`);
+}

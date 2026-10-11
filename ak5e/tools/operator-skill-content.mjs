@@ -1,5 +1,6 @@
 import { sourceToHtml } from "./source-html.mjs";
 import { skillDefinition } from "../scripts/operator-rules.mjs";
+import { skillTargetProfile, nativePhaseActivities } from "../scripts/operator-target-profiles.mjs";
 
 const slug = value => value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const cells = line => line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(value => value.trim());
@@ -28,7 +29,8 @@ export function operatorSkillRecords(section, parentClass, parentBranch = null) 
     records.push({ id, kind: "operator-skill", name, parentClass, parentBranch, sourceHeading: section.name, itemType: "feat",
       level: { Basic: 2, Advanced: 7, Elite: 14 }[tier], operatorSkill,
       systemData: { source: { custom: "AK5e 1st Edition v1.3.1" }, activities: { ak5eSkillUse0001: { _id: "ak5eSkillUse0001", type: "utility",
-        name: "Activate Operator Skill", activation: { type: activationType, value: activationType ? 1 : null }, consumption: { targets: [], spellSlot: false } } } },
+        name: "Activate Operator Skill", activation: { type: activationType, value: activationType ? 1 : null }, consumption: { targets: [], spellSlot: false } },
+        ...nativePhaseActivities(skillTargetProfile({ name, parentClass, operatorSkill })) } },
       content: sourceToHtml(`##### ${name}\n**SP Cost:** ${cost}<br>\n**Start SP:** ${startSP}<br>\n**Charging:** ${charging}<br>\n**Activation:** ${activation}<br>\n**Duration:** ${duration}\n\n${effect}\n\n**Source:** AK5e 1st Edition v1.3.1, Chapter 3: ${operatorSkill.source}`),
       rawSource: line.trim() });
   }

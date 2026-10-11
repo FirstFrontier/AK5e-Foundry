@@ -1,0 +1,145 @@
+import { readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { sourceToHtml } from "./source-html.mjs";
+import { deterministicResultId, parseTable } from "./roll-table-content.mjs";
+
+const sources = {
+  chapter3: new URL("../../AK5e_1.3.1_Foundry_Source/03_chapter_3_character_classes.txt", import.meta.url),
+  chapter6: new URL("../../AK5e_1.3.1_Foundry_Source/06_chapter_6_dwellers_of_terra.txt", import.meta.url)
+};
+const outputUrl = new URL("../scripts/roll-table-content.mjs", import.meta.url);
+const chapter3 = normalize(await readFile(sources.chapter3, "utf8"));
+const chapter6 = normalize(await readFile(sources.chapter6, "utf8"));
+
+const specs = [
+  {
+    id: "rolltable-double-blind-trial",
+    name: "Double-Blind Trial",
+    source: "chapter3",
+    heading: "5th Level: Double-Blind Trial",
+    formula: "1d6",
+    expected: ["Neurologicial Inhibitor", "Necrotoxin", "Haemotoxin", "Cytotoxin", "Neurotoxin", "Bungarotoxin"],
+    contextHeading: "5th Level: Double-Blind Trial"
+  },
+  {
+    id: "rolltable-machine-personality",
+    name: "Machine Personality",
+    source: "chapter3",
+    heading: "Machine Personality",
+    formula: "1d6",
+    expected: ["Taciturn", "Caring", "Excitable", "Warlike", "Nervous", "Analytic"],
+    contextHeading: "Machine Personality",
+    contextTextMarker: "**Basic Personality Matrix.**"
+  },
+  {
+    id: "rolltable-tip-of-the-spear",
+    name: "Tip of the Spear",
+    source: "chapter3",
+    heading: "1st Level: Tip of the Spear",
+    formula: "1d6",
+    expected: [
+      "Additional Damage equal to your Proficiency Bonus on one Damage Roll of their choice.",
+      "They gain 1d6 Temporary Hit Points; these Hit Points are additive with any Temporary Hit Points they already have.",
+      "Speed increased by 10 feet.",
+      "+2 Bonus to Attack Rolls.",
+      "Critical Range increased by 1.",
+      "Whenever they gain a Skill Point, they gain 1 more."
+    ],
+    contextHeading: "1st Level: Tip of the Spear"
+  },
+  {
+    id: "rolltable-hole-in-the-world",
+    name: "Hole in the World",
+    source: "chapter6",
+    heading: "Hole in the World",
+    formula: "2d10",
+    expected: [
+      "Rot Eater", "Shattered Champion", "Imperial Striker", "1d4 Agents", "1d4 Witherers",
+      "1d4 Infantry", "1d6 Distorted Casters", "1d6 Tactical Crossbowmen", "1d10 Acidic Originium Slugs",
+      "1d10 Hounds", "1d10 Collapsed Constructs", "1d6 Tuskbeasts", "1d6 Tainted Carcasses",
+      "1d4 Manglerbeasts", "1d4 Assault Crossbowmen", "1d4 Infected Patrol Captain", "Ursus Raider",
+      "Hollow Snowpriest", "War Phantom"
+    ],
+    contextHeading: "Hole in the World",
+    contextFeature: "Hole in the World."
+  }
+];
+
+const tables = specs.map(spec => {
+  const text = spec.source === "chapter3" ? chapter3 : chapter6;
+  const headingMatch = findHeading(text, spec.heading);
+  const parsed = parseTable(text, headingMatch.index, spec.expected, spec.formula);
+  const contextMatch = findHeading(text, spec.contextHeading);
+  const rawSource = text.slice(contextMatch.index, parsed.end).trim();
+  const rawSources = [rawSource];
+  // Native TableResults already render the complete result catalogue. Keep the
+  // description for its shared procedure instead of duplicating that table.
+  let descriptionSource = rawSource.slice(0, rawSource.search(/^\|/m)).trim();
+  if (spec.contextTextMarker) {
+    const start = text.lastIndexOf(spec.contextTextMarker, contextMatch.index);
+    if (start < 0) throw new Error(`Missing source context: ${spec.contextTextMarker}`);
+    const context = text.slice(start, contextMatch.index).trim();
+    rawSources.unshift(context);
+    descriptionSource = `${context}\n\n${descriptionSource}`;
+  }
+  if (spec.contextFeature) {
+    const feature = findFeatureParagraph(text, spec.contextFeature, headingMatch.index);
+    rawSources.unshift(feature.raw);
+    descriptionSource = `${feature.raw}\n\n${descriptionSource}`;
+  }
+
+  const description = `<div class="ak5e-roll-table-context"><p><strong>Manual workflow:</strong> This table displays the rolled result only. The GM resolves any source-defined costs, effects, personality instructions, or creature summoning manually.</p>\n${sourceToHtml(descriptionSource)}</div>`;
+  return {
+    id: spec.id,
+    name: spec.name,
+    sourceFile: fileURLToPath(sources[spec.source]).split("/").at(-1),
+    sourceHeading: spec.heading,
+    sourceLine: lineNumber(text, headingMatch.index),
+    rawSource,
+    rawSources,
+    content: description,
+    description,
+    formula: spec.formula,
+    replacement: true,
+    displayRoll: true,
+    contentVersion: "0.3.8",
+    results: parsed.rows.map(({ roll, text: rowText }) => ({
+      _id: deterministicResultId(spec.id, roll),
+      type: "text",
+      name: rowText,
+      description: sourceToHtml(rowText),
+      range: [roll, roll],
+      weight: 1,
+      drawn: false
+    }))
+  };
+});
+
+const generated = [
+  "/** This file is generated by tools/build-roll-table-content.mjs. Do not edit by hand. */",
+  `export const AK5E_ROLL_TABLES = ${JSON.stringify(tables, null, 2)};`,
+  ""
+].join("\n");
+await writeFile(outputUrl, generated);
+console.log(`Read ${Object.values(sources).map(fileURLToPath).join(" and ")} and wrote ${tables.length} RollTables (${tables.reduce((n, t) => n + t.results.length, 0)} results) to ${fileURLToPath(outputUrl)}.`);
+
+function normalize(value) { return value.replace(/\r\n/g, "\n"); }
+
+function findHeading(text, heading) {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = new RegExp(`^(?:#{1,6})\\s+${escaped}\\s*$`, "m").exec(text);
+  if (!match) throw new Error(`Missing expected source heading: ${heading}`);
+  return match;
+}
+
+function findFeatureParagraph(text, heading, beforeIndex) {
+  const idx = text.lastIndexOf(`***${heading}***`, beforeIndex);
+  if (idx < 0) throw new Error(`Missing source feature text for ${heading}.`);
+  const end = text.indexOf("\n###", idx);
+  const nextTable = text.indexOf("\n| Dice Roll", idx);
+  const finish = [end, nextTable].filter(value => value >= 0).sort((a, b) => a - b)[0] ?? beforeIndex;
+  return { raw: text.slice(idx, finish).trim() };
+}
+
+function lineNumber(text, offset) { return text.slice(0, offset).split("\n").length; }
+

@@ -4,8 +4,11 @@ import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { CHAPTER_FOUR_EQUIPMENT } from "./chapter-four-content.mjs";
 import { CHAPTER_FIVE_ARTS } from "./chapter-five-content.mjs";
 import { CHAPTER_SIX_CREATURES } from "./chapter-six-content.mjs";
+import { AK5E_ROLL_TABLES } from "./roll-table-content.mjs";
+import { classContentFlags, classContentUpdate } from "./class-content-installation.mjs";
 import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./asset-library.mjs";
 import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
+import { registerSheetThemeHooks, openSheetTheme, resolveSheetTheme, setSheetTheme, SHEET_THEMES } from "./sheet-themes.mjs";
 import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt } from "./arts-casting.mjs";
 import { applyFeatureTag, applyTagPreset, removeFeatureTag, resolveFeatureTag, setTagCounter, featureTags, openFeatureTagSetup } from "./feature-tags.mjs";
 import { sourceTagPresets } from "./tag-presets.mjs";
@@ -13,7 +16,59 @@ import { registerWorldRuleSettings, configureWorldConditions, registerWorldRuleH
   previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
   previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup } from "./world-rules.mjs";
 import { registerOperatorSkillHooks, openOperatorSkills, openOperatorSkillChoices, getOperatorSkillChoices, configureOperatorSkill, recordSkillPointEvent, recoverOperatorSkills,
-  isOperatorActor, getIntegratedOperatorState, submitOperatorCommand, adjustOperatorSP, activateIntegratedSkill, endIntegratedSkill } from "./operator-skills.mjs";
+  isOperatorActor, getIntegratedOperatorState, submitOperatorCommand, adjustOperatorSP, grantOperatorSP, activateIntegratedSkill, endIntegratedSkill, resolveOperatorSkillPhase, getOperatorSkillProvenance, adjustOperatorSkillCounter } from "./operator-skills.mjs";
+import { registerSkillTargetBinding, registerSkillTemplateGeometry, updateOperatorSkills, previewOperatorSkillUpdate } from "./operator-targeting.mjs";
+import * as ResourcePools from "./resource-pools.mjs";
+import * as TriggerEvents from "./trigger-events.mjs";
+import * as DamagePipeline from "./damage-pipeline.mjs";
+import * as TipOfTheSpear from "./tip-of-the-spear.mjs";
+import { openStandardBearer, registerStandardBearerHooks, submitStandardCommand, getStandardView, previewStandardUpdate, standardDamagePreview } from "./standard-bearer.mjs";
+import { previewCasterSetup, applyCasterSetup, getCasterSetupChoices, configureCasterMapping } from "./caster-setup.mjs";
+import { getCasterView, casterCommand, castCasterArt, createCasterDrone, syncCasterDrones, recordCasterRuling, registerCasterFeatureHooks, requestCasterDrone } from "./caster-features.mjs";
+import { linkCasterDrone } from "./caster-drones.mjs";
+import { openCasterControls, openCasterSetup, registerCasterSheetHooks } from "./caster-sheet.mjs";
+import { getDefenderView, defenderCommand, registerDefenderHooks, shelteredAllies, shelterAppliesTo, spendResilience, refundResilience } from "./defender-features.mjs";
+import { previewDefenderSetup, applyDefenderSetup } from "./defender-setup.mjs";
+import { openDefenderControls, registerDefenderSheetHooks } from "./defender-sheet.mjs";
+import { registerDreadnoughtHooks } from "./dreadnought-features.mjs";
+import { registerArtshieldHooks } from "./artshield-features.mjs";
+import { defenderUses, recordDefenderRuling } from "./defender-uses.mjs";
+import { registerGuardianHooks, previewGuardianArts, applyGuardianArts } from "./guardian-features.mjs";
+import { registerGuardianSheetHooks } from "./guardian-sheet.mjs";
+import { registerFortressHooks } from "./fortress-features.mjs";
+import { registerFortressSheetHooks } from "./fortress-sheet.mjs";
+import { registerDefenderDamageHooks } from "./defender-damage-mods.mjs";
+import { registerJuggernautHooks } from "./juggernaut-features.mjs";
+import { registerJuggernautSheetHooks } from "./juggernaut-sheet.mjs";
+import { registerProtectorHooks } from "./protector-features.mjs";
+import { registerProtectorSheetHooks } from "./protector-sheet.mjs";
+import { registerSentryHooks } from "./sentry-features.mjs";
+import { registerSentrySheetHooks } from "./sentry-sheet.mjs";
+import { defenderChoices, previewDefenderProgression, applyDefenderProgression, registerDefenderProgressionHooks } from "./defender-progression.mjs";
+import { openDefenderSetup } from "./defender-progression-sheet.mjs";
+import { getDefenderTalentView, submitDefenderTalentGrant, interlockingShieldsFor, openDefenderTalentControls, registerDefenderTalentHooks } from "./defender-talents.mjs";
+import { registerPlayUndo } from "./play-undo.mjs";
+import { previewGuardSetup, applyGuardSetup } from "./guard-setup.mjs";
+import { inspectGuardFields, previewGuardProgression, applyGuardProgression } from "./guard-progression.mjs";
+import { getGuardView, registerGuardHooks } from "./guard-features.mjs";
+import { guardUses, recordGuardRuling } from "./guard-uses.mjs";
+import { openGuardControls, registerGuardSheetHooks } from "./guard-sheet.mjs";
+import { isCenturion, registerCenturionHooks } from "./centurion-features.mjs";
+import { isCrusher, registerCrusherHooks } from "./crusher-features.mjs";
+import { isInstructor, registerInstructorHooks } from "./instructor-features.mjs";
+import { previewMarksmanSetup, applyMarksmanSetup } from "./marksman-setup.mjs";
+import { inspectMarksmanFields, previewMarksmanProgression, applyMarksmanProgression } from "./marksman-progression.mjs";
+import { registerMarksmanHooks, targetLockPool, unerringPool, steelRainPool } from "./marksman-features.mjs";
+import { marksmanUses, recordMarksmanRuling } from "./marksman-uses.mjs";
+import { openMarksmanControls, registerMarksmanSheetHooks } from "./marksman-sheet.mjs";
+import { isArtilleryman, registerArtillerymanHooks, artillerymanSplashDC } from "./artilleryman-features.mjs";
+import { isBesieger, registerBesiegerHooks, inSiegeMode } from "./besieger-features.mjs";
+import { isAntiAir, registerAntiAirHooks } from "./anti-air-features.mjs";
+import { isDeadeye, registerDeadeyeHooks, inDeadshot } from "./deadeye-features.mjs";
+import { isFlinger, registerFlingerHooks, boundWeaponsList } from "./flinger-features.mjs";
+import { isHeavyshot, registerHeavyshotHooks } from "./heavyshot-features.mjs";
+import { isHunter, registerHunterHooks, inLetTheLightIn } from "./hunter-features.mjs";
+import { isSpreadshot, registerSpreadshotHooks, getLoadedShells, getShellInventory } from "./spreadshot-features.mjs";
 
 const MODULE_ID = "ak5e";
 const CONTENT_VERSION = "0.2.4";
@@ -38,6 +93,10 @@ Hooks.once("init", () => {
   if (game.system.id === "dnd5e") registerOriginConfig();
   if (game.system.id === "dnd5e") registerArtsConfig();
   registerWorldRuleSettings();
+  game.settings.register(MODULE_ID, "casterArtMappings", { scope: "world", config: false, type: Object, default: {} });
+  registerPlayUndo();
+  registerSkillTargetBinding();
+  registerSkillTemplateGeometry();
   game.settings.register(MODULE_ID, "chapterOneRules", {
     name: "AK5E.Settings.ChapterOneRules.Name",
     hint: "AK5E.Settings.ChapterOneRules.Hint",
@@ -78,8 +137,69 @@ Hooks.once("ready", () => {
   }
 
   game.ak5e = Object.freeze({
+    caster: Object.freeze({ preview: previewCasterSetup, apply: applyCasterSetup, choices: getCasterSetupChoices,
+      inspect: getCasterView, open: openCasterControls, openSetup: openCasterSetup, command: casterCommand,
+      cast: castCasterArt, createDrone: createCasterDrone, linkDrone: linkCasterDrone, requestDrone: requestCasterDrone, syncDrones: syncCasterDrones,
+      recordRuling: recordCasterRuling, mapArt: configureCasterMapping }),
+    defender: Object.freeze({ preview: previewDefenderSetup, apply: applyDefenderSetup, inspect: getDefenderView, open: openDefenderControls,
+      command: defenderCommand, sheltered: shelteredAllies, shelterApplies: shelterAppliesTo, spendResilience, refundResilience,
+      choices: defenderChoices, previewProgression: previewDefenderProgression, applyProgression: applyDefenderProgression, openSetup: openDefenderSetup,
+      inspectTalents: getDefenderTalentView, grantTalent: submitDefenderTalentGrant, interlockingShieldsFor, openTalents: openDefenderTalentControls,
+      // Guardian/Fortress/Juggernaut/Protector/Sentry uses (WORKFLOW.md §3.2): use(actor, command, data, operationId), undo via use(..., "undoUse", { useId }).
+      use: defenderUses.command, uses: defenderUses.uses, previewUndo: defenderUses.previewUndo, recordRuling: recordDefenderRuling,
+      previewGuardianArts, applyGuardianArts }),
+    guard: Object.freeze({
+      preview: previewGuardSetup,
+      apply: applyGuardSetup,
+      inspect: getGuardView,
+      choices: inspectGuardFields,
+      previewProgression: previewGuardProgression,
+      applyProgression: applyGuardProgression,
+      open: openGuardControls,
+      use: guardUses.command,
+      uses: guardUses.uses,
+      previewUndo: guardUses.previewUndo,
+      recordRuling: recordGuardRuling,
+      isCenturion,
+      isCrusher,
+      isInstructor
+    }),
+    marksman: Object.freeze({
+      preview: previewMarksmanSetup,
+      apply: applyMarksmanSetup,
+      choices: inspectMarksmanFields,
+      previewProgression: previewMarksmanProgression,
+      applyProgression: applyMarksmanProgression,
+      open: openMarksmanControls,
+      use: marksmanUses.command,
+      uses: marksmanUses.uses,
+      previewUndo: marksmanUses.previewUndo,
+      recordRuling: recordMarksmanRuling,
+      isArtilleryman,
+      artillerymanSplashDC,
+      isBesieger,
+      inSiegeMode,
+      isAntiAir,
+      isDeadeye,
+      inDeadshot,
+      isFlinger,
+      boundWeaponsList,
+      isHeavyshot,
+      isHunter,
+      inLetTheLightIn,
+      isSpreadshot,
+      getLoadedShells,
+      getShellInventory
+    }),
+    openStandardBearer, submitStandardCommand, getStandardView, previewStandardUpdate, standardDamagePreview,
+    // SI-2/3/4/12 kernels: calculation and event APIs for branch implementations.
+    resourcePools: ResourcePools, triggers: TriggerEvents, damagePipeline: DamagePipeline, tipOfTheSpear: TipOfTheSpear,
     openOriginSetup,
     openActorOrigins,
+    sheetThemes: SHEET_THEMES,
+    resolveSheetTheme,
+    openSheetTheme,
+    setSheetTheme,
     applyFeatureTag,
     applyTagPreset,
     sourceTagPresets,
@@ -106,6 +226,7 @@ Hooks.once("ready", () => {
     installChapterFourEquipment,
     installChapterFiveArts,
     installChapterSixCreatures,
+    installRollTables,
     applyCondition,
     removeCondition,
     getDyingState,
@@ -122,6 +243,11 @@ Hooks.once("ready", () => {
     configureOperatorSkills,
     adjustSkillPoints,
     activateOperatorSkill,
+    resolveOperatorSkillPhase,
+    adjustOperatorSkillCounter,
+    getOperatorSkillProvenance,
+    previewOperatorSkillUpdate,
+    updateOperatorSkills,
     endOperatorSkill,
     openOperatorSkills,
     openOperatorSkillChoices,
@@ -142,8 +268,49 @@ Hooks.once("ready", () => {
     damageAfterReduction
   });
   registerOriginHooks();
+  registerSheetThemeHooks();
   registerArtsHooks();
   registerOperatorSkillHooks();
+  registerStandardBearerHooks();
+  registerCasterFeatureHooks();
+  registerCasterSheetHooks();
+  registerDefenderHooks();
+  registerDefenderProgressionHooks();
+  registerDefenderTalentHooks(grantOperatorSP);
+  registerDreadnoughtHooks(grantOperatorSP);
+  registerArtshieldHooks();
+  registerGuardianHooks();
+  registerFortressHooks();
+  registerDefenderDamageHooks();
+  registerJuggernautHooks();
+  registerProtectorHooks();
+  registerSentryHooks();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(defenderUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Defender relay", error)));
+  registerDefenderSheetHooks();
+  registerGuardianSheetHooks();
+  registerFortressSheetHooks();
+  registerJuggernautSheetHooks();
+  registerProtectorSheetHooks();
+  registerSentrySheetHooks();
+  registerGuardHooks();
+  registerCenturionHooks();
+  registerCrusherHooks();
+  registerInstructorHooks();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(guardUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Guard relay", error)));
+  registerGuardSheetHooks();
+  registerMarksmanHooks();
+  registerArtillerymanHooks();
+  registerBesiegerHooks();
+  registerAntiAirHooks();
+  registerDeadeyeHooks();
+  registerFlingerHooks();
+  registerHeavyshotHooks();
+  registerHunterHooks();
+  registerSpreadshotHooks();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(marksmanUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Marksman relay", error)));
+  registerMarksmanSheetHooks();
+  ResourcePools.registerResourcePoolHooks();
+  TriggerEvents.registerTriggerEventHooks();
   registerWorldRuleHooks(game.ak5e);
 });
 
@@ -384,7 +551,7 @@ async function adjustSkillPoints(actor, amount, options = {}) {
 
 async function activateOperatorSkill(actor, options = {}) {
   actor = assertActor(actor);
-  if (options.itemId) return activateIntegratedSkill(actor, options.itemId);
+  if (options.itemId) return activateIntegratedSkill(actor, options.itemId, options);
   if (isOperatorActor(actor)) return submitOperatorCommand(actor, "activateManual", options);
   const { id, name, cost } = options;
   const state = getOperatorSkillState(actor);
@@ -750,6 +917,16 @@ async function installChapterThreeClasses() {
   })) {
     folders.set(kind, await ensureItemFolder(name, `chapterThree-${kind}`, root));
   }
+  const optionFolders = new Map();
+  for (const [category, name] of Object.entries({
+    talent: "Talents", technique: "Brawling Techniques", engagement: "Engagements",
+    instruction: "Instructions", ritual: "Rituals", therapy: "Therapies",
+    tactic: "Tactics", modification: "Inventor Modifications", upgrade: "Heavy Duty Upgrades"
+  })) {
+    optionFolders.set(category, await ensureItemFolder(name, `chapterThree-option-${category}`, root));
+  }
+  const itemFolder = entry => entry.classOption
+    ? optionFolders.get(entry.classOption.category) : folders.get(entry.kind);
 
   const existing = new Set(game.items
     .filter(item => item.getFlag(MODULE_ID, "chapterThreeId"))
@@ -760,24 +937,13 @@ async function installChapterThreeClasses() {
       name: entry.name,
       type: entry.itemType,
       img: "icons/svg/book.svg",
-      folder: folders.get(entry.kind).id,
+      folder: itemFolder(entry).id,
       system: {
         ...entry.systemData,
         description: { value: entry.content, chat: "" }
       },
       flags: {
-        [MODULE_ID]: {
-          chapterThreeId: entry.id,
-          classContentKind: entry.kind,
-          ...(entry.operatorSkill ? { operatorSkill: entry.operatorSkill } : {}),
-          parentClass: entry.parentClass,
-          parentBranch: entry.parentBranch,
-          classLevel: entry.level,
-          sourceHeading: entry.sourceHeading,
-          sourceFile: "03_chapter_3_character_classes.txt",
-          contentVersion: CONTENT_VERSION,
-          rawSource: entry.rawSource
-        },
+        [MODULE_ID]: classContentFlags(entry, CONTENT_VERSION),
         dnd5e: { sourceBook: "AK5E" }
       }
     })));
@@ -785,25 +951,64 @@ async function installChapterThreeClasses() {
 
   const stale = itemEntries.filter(entry => {
     const item = game.items.find(candidate => candidate.getFlag(MODULE_ID, "chapterThreeId") === entry.id);
-    return item && item.getFlag(MODULE_ID, "contentVersion") !== CONTENT_VERSION;
+    return item && entry.contentVersion && item.getFlag(MODULE_ID, "contentVersion") !== entry.contentVersion;
   });
+  const conflicts = [];
   for (const entry of stale) {
     const item = game.items.find(candidate => candidate.getFlag(MODULE_ID, "chapterThreeId") === entry.id);
-    await item.update({
-      name: entry.name,
-      folder: folders.get(entry.kind).id,
-      system: { ...entry.systemData, description: { value: entry.content, chat: "" } },
-      [`flags.${MODULE_ID}.contentVersion`]: CONTENT_VERSION,
-      [`flags.${MODULE_ID}.rawSource`]: entry.rawSource
-    });
+    const changes = await classContentUpdate(item, entry);
+    if (!changes) {
+      conflicts.push(item.name);
+      continue;
+    }
+    await item.update(changes);
+    updated += 1;
   }
-  updated += stale.length;
+  if (conflicts.length) ui.notifications.warn(game.i18n.format("AK5E.Notifications.ClassContentConflicts", {
+    count: conflicts.length, names: conflicts.join(", ")
+  }), { permanent: true });
 
   const created = missing.length + summonCreated + referenceCreated;
   const changed = created + updated;
   const key = changed ? "ChapterThreeInstalled" : "ChapterThreeAlreadyInstalled";
   ui.notifications.info(game.i18n.format(`AK5E.Notifications.${key}`, { count: changed }));
   return { created, updated, skipped: CHAPTER_THREE_CLASSES.length - changed };
+}
+
+let rollTableInstallation;
+
+/** Explicit GM action; repeated and overlapping calls preserve existing tables. */
+async function installRollTables() {
+  if (!game.user.isGM) {
+    ui.notifications.warn(game.i18n.localize("AK5E.Notifications.GamemasterOnly"));
+    return { created: 0, updated: 0, skipped: AK5E_ROLL_TABLES.length };
+  }
+  if (rollTableInstallation) return rollTableInstallation;
+  rollTableInstallation = createMissingRollTables();
+  try { return await rollTableInstallation; }
+  finally { rollTableInstallation = undefined; }
+}
+
+async function createMissingRollTables() {
+  let folder = game.folders.find(entry => entry.type === "RollTable" && entry.getFlag(MODULE_ID, "rollTableFolder"));
+  if (!folder) folder = await Folder.implementation.create({
+    name: "AK5e: Random Tables", type: "RollTable", sorting: "a", color: "#8f1d1d",
+    flags: { [MODULE_ID]: { rollTableFolder: true } }
+  });
+  const existing = new Set(game.tables.map(table => table.getFlag(MODULE_ID, "rollTableId")));
+  const missing = AK5E_ROLL_TABLES.filter(entry => !existing.has(entry.id));
+  if (missing.length) await RollTable.implementation.createDocuments(missing.map(entry => ({
+    name: entry.name, description: entry.content, img: "icons/svg/d20-grey.svg", folder: folder.id,
+    formula: entry.formula, replacement: entry.replacement, displayRoll: entry.displayRoll,
+    results: entry.results, ownership: { default: 2 },
+    flags: { [MODULE_ID]: {
+      rollTableId: entry.id, contentVersion: entry.contentVersion, sourceFile: entry.sourceFile,
+      sourceHeading: entry.sourceHeading, sourceLine: entry.sourceLine,
+      rawSource: entry.rawSource, ...(entry.rawSources ? { rawSources: entry.rawSources } : {})
+    } }
+  })), { keepEmbeddedIds: true });
+  ui.notifications.info(game.i18n.format("AK5E.Notifications.RollTablesInstalled", { count: missing.length }));
+  return { created: missing.length, updated: 0, skipped: AK5E_ROLL_TABLES.length - missing.length };
 }
 
 function* chunks(values, size) {

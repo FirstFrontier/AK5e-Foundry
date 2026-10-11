@@ -21,6 +21,8 @@
     <p role="status">{{localize "AK5E.Arts.AfterCast"}}: {{ak5eArts.remaining}} {{localize "AK5E.Arts.AP"}}</p>
     {{/if}}
     {{#if ak5eArts.source}}<p>{{ak5eArts.source}}</p>{{/if}}
+    {{#each ak5eArts.modifiers}}<p>{{source}}: {{amount}} AP</p>{{/each}}
+    {{#if ak5eArts.origin}}<p>Art origin: the selected Arts Master's space.</p>{{/if}}
     {{#if ak5eArts.ritual}}<p>{{localize "AK5E.Arts.RitualHint"}}</p>{{/if}}
     <p>{{localize "AK5E.Arts.ConsumptionHint"}}</p>
   </fieldset>

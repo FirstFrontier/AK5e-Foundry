@@ -7,6 +7,7 @@ const builders = [
   "ak5e/tools/build-chapter-four-content.mjs",
   "ak5e/tools/build-chapter-five-content.mjs",
   "ak5e/tools/build-chapter-six-content.mjs",
+  "ak5e/tools/build-roll-table-content.mjs",
   "ak5e/tools/build-content-map.mjs"
 ];
 const generated = [
@@ -16,6 +17,7 @@ const generated = [
   "ak5e/scripts/chapter-four-content.mjs",
   "ak5e/scripts/chapter-five-content.mjs",
   "ak5e/scripts/chapter-six-content.mjs",
+  "ak5e/scripts/roll-table-content.mjs",
   "ak5e/CONTENT_MAP.md"
 ];
 
@@ -26,4 +28,4 @@ for (const path of generated) {
   if (await readFile(new URL(`../../${path}`, import.meta.url), "utf8") !== before.get(path)) changed.push(path);
 }
 if (changed.length) throw new Error(`Regeneration changed generated content: ${changed.join(", ")}`);
-console.log("Regenerated Chapters 1–6 and verified that generated files are unchanged.");
+console.log("Regenerated Chapters 1–6, RollTables and content map; generated files are unchanged.");

@@ -3,7 +3,8 @@
 Use this guide to continue development with GPT-5.6 Sol, Terra, or another
 coding assistant without reconstructing the previous conversation. It explains
 how the origin popup was built, how to extend it, and how to test and deploy a
-change safely. It does not replace [AGENTS.md](AGENTS.md).
+change safely. It does not replace [AGENTS.md](AGENTS.md) (agent and sub-agent
+policy) or [WORKFLOW.md](WORKFLOW.md) (project rules and workflow).
 
 Player installation and usage instructions are in [ak5e/README.md](ak5e/README.md).
 The backlog is [TODO.md](TODO.md); mapping decisions are in
@@ -11,7 +12,20 @@ The backlog is [TODO.md](TODO.md); mapping decisions are in
 
 ## 1. Current state: start here
 
-The repository module is now **0.3.4**, adding level-2/7/14 Operator Skill choice
+The repository module is **0.5.1**, including the focused Standard Bearer repairs.
+P0 added 350 standalone Chapter 3 options,
+enriches 68 existing options, corrects nine feature boundaries and adds four
+explicitly installed development-World RollTables. Existing source IDs and
+authored World/Actor data are preserved. Source issues remain unresolved in
+`ak5e/DECISIONS.md`; release packs and P1 gameplay automation are separate.
+Usage and validation evidence are in `ak5e/README.md` and
+`ak5e/FOUNDRY_SMOKE_TEST.md`. Check the owner's installed version separately;
+tests use private copies of the disposable `standard-test` World under `/tmp`.
+P0 content and rendered acceptance are complete, including GM/player checks and
+reload/server-restart persistence. Hardware acceleration remains unverified;
+the smoke-test evidence records llvmpipe and the existing D&D5e pack warning.
+
+The earlier **0.3.4** snapshot added level-2/7/14 Operator Skill choice
 popups, catch-up, branch eligibility, persistent choices and Choose Later.
 It includes 320 individual Operator Skills and
 opt-in stacked SP charging, GM-verified owner controls, Skill lifecycle and rest
@@ -86,8 +100,8 @@ error. Screenshots help identify the screen, but are not proof of the cause.
 Copy this prompt into the next session and fill in the brackets:
 
 ```text
-Work in /home/patch/AK5e-Foundry. Read the root README.md handoff guide and
-AGENTS.md, then the required source/integration references for this task.
+Work in /home/patch/AK5e-Foundry. Read the root README.md handoff guide,
+AGENTS.md and WORKFLOW.md, then the required source/integration references for this task.
 
 Task: [one specific bug or feature].
 Reproduction: [World, character, origin, exact actions, actual result].
@@ -96,7 +110,7 @@ Expected result: [player-visible behavior and source rule/heading].
 Preserve all existing changes. Use the existing origin-setup architecture;
 do not rebuild the module or change D&D5e system files. Work locally without
 spawning other agents. Inspect only relevant implementation files, but read
-the complete required source chapter as AGENTS.md requires. Keep output from
+the complete required source chapter as WORKFLOW.md requires. Keep output from
 large generated files and source maps out of the conversation.
 
 Add regression tests, run the targeted suite, then npm test. Keep TODO.md and

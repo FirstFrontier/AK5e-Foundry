@@ -1,16 +1,252 @@
 # AK5e Foundry VTT Module
 
-This is the AK5e Foundry VTT v13 module. Version `0.3.4` contains development
+This is the AK5e Foundry VTT v13 module. Version `0.5.1` contains development
 World installers and generated content for Chapters 1–6 of AK5e v1.3.1.
 See `DECISIONS.md` for native-field boundaries and release-pack limitations.
 
+### P0 content and random tables
+
+After enabling AK5e in a D&D5e development World, a GM can explicitly run:
+
+```js
+await game.ak5e.installChapterThreeClasses();
+await game.ak5e.installRollTables();
+```
+
+Chapter 3 now contains 1,456 records, including 350 new standalone options:
+289 Talents (129 Basic / 160 Advanced), 15 Brawling Techniques (8 / 7),
+9 Engagements, 10 Instructions and 27 Rituals (12 Ephemeral / 15 Permanent).
+Labelled folders group these options and the existing 9 Therapies, 10 Tactics,
+28 Inventor modifications and 21 Heavy Duty upgrades. Search the World Item
+directory and drag the chosen Item onto an Actor. Descriptions include the
+source rule and shared use context; provenance is under `flags.ak5e`.
+Talents retain **Effect** and **Module Effect** together. Selection, upgrades,
+costs, effects and choices remain manual; these Items add no activities/effects.
+The destination for later release packaging is `ak5e.classes`.
+
+The Chapter 3 installer retains its `{ created, updated, skipped }` result.
+Only 77 affected existing records have a P0 revision; unrelated entries are not
+refreshed. A previous generated description migrates in place. A customized
+description is preserved and named in a warning: compare it with the generated
+catalogue and merge manually. Returning its description to the previous/current
+canonical text allows a repeat run to refresh provenance. Authored names,
+images, chat text, activities, effects and Actor-owned copies are preserved.
+Description hashes work on local/HTTPS and ordinary remote HTTP sessions.
+Canonical comparisons allow V13's equivalent line-break serialization; added
+text and other authored changes still require manual reconciliation.
+
+The RollTable installer creates **AK5e: Random Tables** and four native tables:
+Double-Blind Trial, Machine Personality, Tip of the Spear (`1d6`) and Hole in
+the World (`2d10` sum, 2–20). Open a table and draw to chat. Replacement allows
+repeat results. Apply its printed effects, toxins, personality or summons
+manually; no outcome is applied automatically. The installer is GM-only,
+returns `{ created, updated, skipped }`, preserves existing tables and never
+runs from a lifecycle hook. Overlapping calls on one client share an operation;
+use one GM for installation across clients. Tables are visible to players;
+give players Actor-owned option copies through the normal ownership workflow.
+`ak5e.tables` is a future pack, with no release pack created in P0.
+
+The source-issues section of `DECISIONS.md` records unresolved rules and corrected
+audit assumptions. P0 does not settle gameplay rulings or imply release readiness.
+P0 content, rendered GM/player inspection and reload/server-restart persistence
+passed on Foundry 13.351 / D&D5e 5.3.3; see `FOUNDRY_SMOKE_TEST.md` for evidence
+and the software-renderer / existing system-warning limitations.
+
+### Nation sheet themes
+
+The native D&D5e 5.3.3 character sheet has 20 optional Terra nation themes. By
+default, the sheet follows its one attached AK5e nationality Item. Open the
+sheet's top-right menu and choose **Sheet Theme** to select a nation manually
+or return to **Automatic (nationality)**. **Default sheet** displays the native
+D&D5e appearance. A missing, unrecognized, or conflicting nationality also
+uses the native appearance. Themes affect presentation only; character rules,
+items, rolls, and saved nationality remain as they were.
+
+Choices are stored per character in `flags.ak5e.sheetTheme`. Character owners
+and GMs can change them. Viewers see the same nation theme in their own
+light or dark appearance setting. Themes target the installed native D&D5e
+ActorSheetV2 character layout; alternative sheet modules are not styled.
+
 ## Foundry VTT installation and integration
+
+### Caster controls (0.4.0 development increment)
+
+Attach the AK5e Caster class to a character, then use **Caster setup** on the
+sheet or `game.ak5e.caster.openSetup(actor)`. Review branch, pools, ability,
+proficiencies, equipment, HP/ASI and talent choices before applying the preview.
+Setup never imports on rendering or class drop. Missing named D&D Arts require
+GM-reviewed installed spell UUIDs; no spell mechanics are invented.
+
+**Caster controls** exposes normal casting plus Core, Mystic and Mech-Accord
+workflows. Quotes show AP modifiers and projected AP. Branch AP expenditures
+and refunds keep receipts on the same AP balance as normal casting. Mystic
+Charge starts at zero and clears at Long Rest. Rest buttons confirm completed
+activities; they do not perform a rest. Drones are player-owned native NPCs. The
+owner requests one with **Create or link Arts Master**, and the GM's client
+creates or links it (a GM must be connected). Mech-Accord uses follow WORKFLOW.md
+§3.2 like Primal, Splash and Chain: range, visibility, timing and cap problems are
+warnings, Jury Rigging has a **Roll** button, and uses are undoable from their cards. Use their
+native sheets for Originium Spark and track action economy/movement at the table.
+Jury Rigging undo accounts for an Unending refund. An overridden Duplication attack
+warning resumes the held attack roll without starting another activity use. Creation
+and linking have encounter-scoped undo receipts: undo restores prior links and managed
+fields, and removes newly created Actors/tokens only while unchanged and exclusively
+attributable to that operation. The preview explains which edited documents it preserves.
+Legacy prepared operations recover from established receipts; missing evidence requires
+explicit reconciliation instead of guessing whether a cost or target change happened.
+After changing the creator's casting ability, spell attack, proficiency or reviewed
+Technology value, use **Refresh Arts Master links** to update managed drone statistics.
+The refresh preserves customized HP and Spark fields for manual review.
+
+**Primal** adds Residual Suffering (2×PB uses, Long Rest), Debilitate and Destroy
+and Elemental Burst to Caster controls. Choose the cast receipt, the target, a
+damage type the Art dealt and the qualifying hit or save result. The helper then
+applies the table condition until the end of the Caster's next Turn. Enduring
+Affliction overlays are instructions on that effect; only Charmed's Speed 0 is
+native. Debilitate and Destroy posts a card with a **Roll** button; nothing is
+rolled until you click it.
+
+**Splash** adds +2 to the save DC of area Arts (Sphere, Cone, Cube, Cylinder,
+Line) and Economics of Violence AP quotes. The cast form offers Overwhelming
+Detonation AP, which grows the placed template, and Safe Zone creatures chosen
+from your targets. It also offers All-Consuming, which gives Disadvantage to
+saves rolled from that card on the same Turn. Apply area Damage with **Apply
+reviewed area Damage**, which enforces Safe Zone and Maximum Burst. Native Apply
+Damage does not enforce them. Implements of Destruction needs a GM review of the
+two chosen area Arts during setup.
+
+**Chain** adds Chain Art (Proficiency Bonus uses per Long Rest, one back on a
+Short Rest from level 15) and Ouroboros to the cast form. Target the original and
+chained Creatures on the map first, then pick the original target and the
+Creatures to chain to. The chained Creatures are listed on the Art's card as
+targets. Ouroboros gives the original target Disadvantage on saves rolled from
+that card this Turn. **Subtle Spark** applies one of six additional effects to the
+Creatures a recorded cast affected, until the start of your next Turn. Decelerate,
+Enervate and Shred Defences post a Constitution save button; apply them with
+**Subtle Spark: apply to a failed save**. Bolster and Shred Defences change DR:
+the World-rules DR preview reads them, and you enter the adjusted DR when you
+apply Damage with another helper.
+
+At level 15, the helper permits three additional chained Creatures (four targets
+including the original). This retained reading is recorded in `DECISIONS.md`.
+
+Primal, Splash and Chain follow the table-play rules in WORKFLOW.md §3.2:
+
+- **No GM approval.** The Caster's owner uses every feature without GM approval.
+- **Warnings.** Level, timing, repeat and use-count problems are listed with
+  **Use anyway**, and the public card shows what was overridden.
+- **Missing ruling.** For Debilitate's Hit Point loss, Safe Zone with Maximum
+  Burst, the Spark cost with several Creatures, upgraded Accelerate or
+  Decelerate, the Arts Master's Technology Modifier, Jury Rigging's excess
+  Temporary HP, Cantrip Duplication and Death from Above costs, and Army of One
+  with several levelled Arts, the player picks a reading for that use. A recorded GM ruling
+  always applies instead.
+- **Unowned Creatures.** Changes to Creatures you do not own are applied
+  automatically by the GM's client. If no GM is connected, the use says
+  "Not applied yet" and can be retried from the panel.
+- **Undo.** Undo a use from its card or **Undo a recent use** until the combat
+  starts or ends, which locks it.
+
+The GM records unresolved cost, Signature, damage, drone HP/reaction and temp-HP
+procedures before their automated application. Prepared/failed operations need
+identical retry choices or reviewed GM reconciliation. Inspect AP, charge, uses,
+target receipts and map state before marking a failure reconciled. Use one
+operating client for a caster/drone group; receipts are not cross-client locks.
+See [the feature map](CASTER_IMPLEMENTATION.md) and [rulings](DECISIONS.md).
+
+The public `game.ak5e.caster` API includes `preview`, `apply`, `choices`, `inspect`,
+`open`, `openSetup`, `command`, `cast`, `createDrone`, `linkDrone`, `syncDrones`,
+`recordRuling`, and `mapArt`. Setup/migration is conservative: preserve IDs,
+authored activities/effects and current HP/resources; review level/branch changes.
+Talent/Skill automation boundaries and broader Art-effect implementation remain
+unchanged. Public release packs and publishing are separate work.
 
 This package is an add-on **module**, not a World or a game system. Foundry
 discovers it from `<User Data>/Data/modules/ak5e/module.json`; the directory
 name and manifest `id` must both remain `ak5e`. The manifest restricts the
 module to D&D5e Worlds and declares D&D5e 5.x as a system relationship. Foundry
 VTT 13 is the minimum and verified core generation.
+
+### Defender, Dreadnought and Artshield helpers (0.5.0 development increment)
+
+Open **Defender** from the character sheet header (or `game.ak5e.defender.open(actor)`).
+The first run shows a previewed setup: it enables Defender support, sets the Reaction
+maximum (Reactive, 13th), and creates the managed effects and the Wrecking Wall /
+Expel activities **only when missing**; edited effects and activities are kept and
+reported. Nothing is imported when a sheet renders or a class is dropped. Each command
+spends the real resource (Resilience, Reaction, per-rest uses), keeps a durable receipt
+that can be retried with the same operation ID, and prints the table procedure.
+`DEFENDER_IMPLEMENTATION.md` lists what is automatic, what is guided and what is manual
+for every feature; `DECISIONS.md` records each default. Rendered checks are recorded in
+`FOUNDRY_SMOKE_TEST.md`, including the 0.5.1 repair regression. Dreadnought's Advance Skill Points are awarded by the active GM's client and
+need Operator SP integration enabled on the Actor.
+
+**Guardian** (0.5.5) adds **Guardian Arts setup** (casting ability, Arts Points from the
+Guardian table, shields as Casting Units, the Healing Arts pool up to 5th level; re-run it
+after a level-up), **Not Today**, **Anaesthesia**, **Aura of Mercy** and **The Best
+Medicine**. Aura of Mercy and The Best Medicine also post whispered prompts when nearby
+healing is applied or a melee attack is rolled. These uses follow WORKFLOW.md §3.2:
+warnings with **Use anyway**, the player's reading where the GM has not ruled (GMs record
+rulings from the panel), Roll buttons on the card, the GM relay for other players'
+Creatures, and undo from the card or **Undo a recent use**. Healing Arts without an AK5e
+record need a GM-approved spell mapping; a GM can open it from the setup dialog.
+
+Not Today is consumed by the next committed Art, including Cantrips and free or
+ritual casts. Cancelling leaves it available. Undoing Not Today restores its
+Resilience but does not change the cost of an Art already completed. Construct
+healing restrictions appear as public, overridable warnings.
+
+**Fortress** (0.5.6) adds Entrench, Munition loading and volleys, Fortification,
+Stop Their Advance, and Creeping Barrage. Equipment setup offers the source
+Grenade Launcher exchange and both launcher proficiencies. Load one of six
+Munitions as an Action, or spend one Resilience for a Bonus Action. A volley
+posts owner-click damage and target-owner save controls; apply riders after
+confirming failed saves. Stop Their Advance also spends a Reaction, with timing
+and resource warnings that can be overridden publicly. Undo restores the exact
+recorded resources and loaded Munitions.
+
+Place the 15-foot blast template manually and confirm the point, range, sight
+and roof restrictions. Danger Close outside this volley workflow, Corrosive
+removal and Flare Advantage remain guided table procedures. Entrench sets all
+movement speeds to zero below level 9; at level 9 or higher it adjusts walking
+speed by −20 feet. Reduce other movement speeds by 20 feet manually. Edited or
+higher-priority movement effects require table review.
+
+**Juggernaut, Protector and Sentry** complete the Defender Branches. All three use
+the same WORKFLOW.md §3.2 engine as Guardian and Fortress.
+
+- **Juggernaut.**
+  - The Superheavy Barrier layers are 1, 2 from 7th level and 3 from 14th.
+    They protect only while Heavy Armour is worn.
+  - When Damage from another Creature is applied from a chat card, the
+    native damage application halves it automatically and a layer shatters.
+  - Undo restores the layer. The shatter card has a Shatterstorm Roll button.
+  - Reform a layer from the panel.
+  - Bullrush and Groundbreaker post save buttons and Roll buttons. Movement
+    and Difficult Terrain stay manual.
+  - Overwhelming Might adds a Force die to Melee Attacks while a layer holds.
+- **Protector.**
+  - The Protector DC is shown in the panel.
+  - **Centre of Attention**, **Taunt**, **Stone Wall** (with a prompt when a
+    Melee Attack hits you), **Impenetrable** and **Punishment** apply Taunted,
+    Off Balance and Punishment as tracked effects. Off Balance and Punishment
+    adjust attack rolls natively.
+  - Shelter offers the **Anchor Point** box. It is pre-checked with a Bastion
+    shield, because the source's "Bulwark Property" is undefined. Checking it
+    gives a 10-foot radius and preselects Advantage on Strength and Dexterity
+    saves.
+  - Unending Defence runs automatically.
+  - Improved Taunt and Greater Improved Shelter apply Resistance natively.
+- **Sentry.**
+  - Progression adds the ranged-weapon proficiencies, the Equipment Exchange
+    and a Marksman Fighting Style at 4th level.
+  - **Plant Pavise** places a 10-foot marker. You can also link any token you
+    or the GM placed, so a prop creature can be moved, targeted and re-imaged.
+  - Attacks from beyond the planted shield against listed allies have
+    Disadvantage. Apply Half Cover by hand.
+  - **Advance and Fire** has a prompt, a refund and Retributor. **Bar the
+    Gates**, **Heads Down** and **Torrent of Lead, Wall of Steel** are in the
+    panel.
 
 ### Install and activate
 
@@ -620,8 +856,10 @@ Defensive gains 2 per matching Skill for hostile attacks, including misses, or
 hostile non-Attack damage. The methods share one pool whose maximum is the
 highest learned Skill cost. An active Skill stops ordinary charging.
 
-Activate spends the owned Skill cost once and displays a source card for manual
-resolution; tracker activation also opens the Item sheet. Instant Skills end immediately after activation. Numbered rounds
+Activate validates prerequisites and targets before spending the owned Skill cost
+once. Reviewed profiles offer native rolls; damage, healing, effects, movement,
+and special riders require user application. Tracker activation also opens the
+Item sheet. Instant Skills end immediately after activation. Numbered rounds
 expire at the activation initiative point; outside combat the configured round
 length and world time apply. Ending combat alone does not cancel a Skill.
 One-Attack durations and special early endings use End Skill. Duration extensions
@@ -652,7 +890,7 @@ Actor, and persists SP and receipts together under `flags.ak5e.operatorSkills`.
 The cards retain their acknowledged result in `flags.ak5e.spResponse`; failed
 requests report an error. No active GM means no commit. PCs, NPCs, and synthetic
 token Actors use the same engine, with independent SP stored for unlinked tokens.
-Individual Skill effects and class/talent/equipment exceptions remain manual;
+Individual Skill riders and class/talent/equipment exceptions remain manual;
 configure costs, Start SP, or charging methods on the owned Skill, and use a
 source-backed GM adjustment for exceptional grants/refunds/corrections.
 
@@ -661,6 +899,84 @@ with an independent D&D5e system copy, and run `tools/test-operator-live.mjs`.
 Set `AK5E_PLAYWRIGHT` to the installed Playwright module if needed. The test
 refuses other Worlds, uses the repository Chromium launcher, records its actual
 renderer, and closes browsers in `finally`.
+
+### Skill targets, areas, and later phases (0.3.6)
+
+Hover a visible token and press **Ctrl+T** before activating a Skill. This works
+on unowned enemies. **Ctrl+Shift+T** adds a target; controlled tokens are the
+fallback when nothing is hovered. Change the binding in Foundry's Configure
+Controls menu. Activation uses the initiating user's targets. If the Actor has
+several tokens, choose the source token explicitly.
+Self buffs preserve selected attack targets. Mapped target and area phases
+populate targets with their affected visible creatures.
+
+Place areas using the local map preview: move the pointer, wheel to rotate,
+left-click to confirm each area, or Escape/right-click to cancel. Canceling
+spends nothing. Self areas remain anchored to the caster. Grand Cross creates
+two intersecting rectangles; Cluster Bombs places three circles and counts each
+victim once. Choose creatures explicitly where the source permits a choice.
+Unknown relationships, willingness, hearing, and other narrative restrictions
+require confirmation. Unknown ranges and DCs remain manual.
+
+The elected GM checks supplied scene references, range, restrictions, and
+occupied grid-cell centers independently. Gridless maps use token centers.
+Ordinary walls block areas; corner-spreading areas can pass through open
+passages inside the area. Piercing, wall thickness, non-wall structures,
+elevation, and source heights require GM review. Only visible victims appear in
+shared receipts and player results; hidden victims remain in whispered GM
+resolution details. Preview highlighting represents visible map eligibility.
+
+The tracker offers reviewed subsequent actions and deduplicated prompts for
+turn, entry, delayed, movement, and ending phases. Resolve these when the source
+event occurs; later phases retain the activation ID and do not spend SP again.
+Areas and victims are recomputed at resolution. Optional actions remain user
+initiated. Finish retained effects explicitly when their source condition ends.
+Linked Arts, summons, movement paths, conditional events, and unreviewed phases
+use **Resolve as part of Skill** and the exact source rules. The complete
+[SP/Skill audit](SP_SKILL_AUDIT.md) identifies these limitations for every row.
+
+Native rolls carry `flags.ak5e.skillOrigin`, and linked native applications record
+that provenance. For manually created effects, use
+`game.ak5e.getOperatorSkillProvenance(actor, activationId, phaseId)` as their
+`flags.ak5e.skillOrigin`. Direct HP edits cannot establish damage provenance;
+the GM must correct source-dependent counters explicitly. Blood Boil corrections
+use `game.ak5e.adjustOperatorSkillCounter(actor, {activationId, amount, reason})`;
+`amount` is a signed whole-number change to tracked damage. The GM-only command
+records the source reason and preserves SP and other activation state.
+
+Existing managed Skills are updated only by the GM's **Preview Skill Update**
+menu. Review additions, then apply. This adds missing managed activities and
+profile metadata, preserving existing activities, IDs, choices, counters, and
+SP. It does not enable integration or refill the pool. Preview API:
+`game.ak5e.previewOperatorSkillUpdate(actor)`; apply with
+`game.ak5e.updateOperatorSkills(actor, {preview: false})`.
+
+`game.ak5e.activateOperatorSkill(actor, options)` retains existing callers and
+accepts `itemId`, `sourceTokenUuid`, `targetTokenUuids`, and an optional stable
+`activationId` for retries. Placement and prerequisite confirmation precede the
+GM commit. `game.ak5e.resolveOperatorSkillPhase(actor, {activationId, phaseId})`
+resolves optional phases; mandatory prompts also supply their `eventKey`.
+Applications remain user confirmed. Reusing a committed operation ID returns
+its receipt without another charge or automatic roll.
+
+For class, talent, equipment, refund, or changing-cost exceptions, configure the
+owned Skill in **Setup**, then use a GM **Adjust** with the exact source reason.
+Grand Cross requires tracking successful activations: after its third use set
+Cost 15 and Activation Bonus Action; restore the original table cost/action
+after Long Rest. King's Drive, Subjective Time and Liberator
+exceptions remain source-confirmed manual adjustments. (Dreadnought's Advance Skill
+Point awards are automated; see the Defender helpers section.)
+
+Additional disposable browser regression: `tools/test-operator-targeting-live.mjs`
+on the same independent `sp-test` World. It exercises player/GM targeting,
+cancellation, composite areas, native rolls, delayed/ending/moving phases,
+grid types, walls, migration, and reload. See `FOUNDRY_SMOKE_TEST.md` for actual
+verification and renderer limitations.
+
+For server restart checks, run `tools/test-operator-restart-live.mjs --capture`
+after the two suites, restart only the independent test server, then run the
+same script without `--capture`. It checks saved state from both suites and
+tests fresh native Skill models, zero-HP damage charging and immunity.
 
 ## Chapter 4 content
 
@@ -773,6 +1089,185 @@ sheet. See `DECISIONS.md` for unresolved source-to-D&D5e mappings.
   Brace, Conductive, Crush, or Splash. Implement and test those properties one
   at a time before adding effects or activities to the equipment Items.
 
+## Standard Bearer helpers (0.5.1 development repairs)
+
+The Standard Bearer branch has source-scoped, player-confirmed helpers registered
+through `game.ak5e.openStandardBearer(actor)` and matching feature-Item controls.
+They have focused unit coverage and rendered workflow evidence recorded in
+`FOUNDRY_SMOKE_TEST.md`. The repair pass targets Foundry 13.351 / D&D5e 5.3.3;
+installation state on the owner's machine must be checked separately. See the
+smoke-test record for completed workflows and outstanding validation; these
+development helpers do not establish locked-pack or public-release readiness.
+
+Use **Preview update** on a live Vanguard to inspect missing Standard Bearer
+weapon/activity additions before applying them. The update is idempotent, adds
+only missing managed activities and the Battle Standard weapon, and preserves
+existing Item IDs, authored activities, inventory, and counters. Setup/update
+requires confirmation. The flag is a persistent, noncombat prop with no HP,
+initiative, movement blocking, or creature-target eligibility. A linked circle
+shows 10 feet while wielded and 25 feet while planted; Power Projection moves it
+and keeps both source-defined circles until the end of the bearer's next turn.
+Token movement/elevation updates synchronize the preview. An aura shows geometry,
+not allegiance, vision, hearing, willingness, or eligibility.
+
+### Disposable browser checks
+
+Use a private copy of the existing disposable `standard-test` User Data directory
+(copy it while its server is stopped), an unused localhost port, and only AK5e
+enabled. Install this development module into that copy before launching its
+server. Record the server PID and stop only that PID; do not share a server or
+use `pkill -f`.
+
+The browser scripts use `launchTestBrowser()` from `tools/test-browser.mjs`.
+Playwright is supplied by the contributor's environment rather than a package
+dependency. `AK5E_PLAYWRIGHT` must resolve to an ESM **file**, such as an installed
+`playwright/index.mjs`, not the package directory. A custom `.mjs` wrapper may
+instead re-export `chromium` from the installed package. `AK5E_CHROMIUM` selects
+the browser executable; omit it when Playwright manages Chromium.
+
+```bash
+AK5E_PLAYWRIGHT=/absolute/path/node_modules/playwright/index.mjs \
+AK5E_CHROMIUM=/absolute/path/to/chromium \
+AK5E_STANDARD_PORT=30159 AK5E_STANDARD_OUTPUT=/tmp/standard-check \
+node ak5e/tools/test-standard-bearer-live.mjs
+```
+
+A normal run resets only marked Standard Bearer fixtures and their map/combat
+artifacts, then runs the gameplay checks again. Successful fixtures remain for
+inspection and persistence checks. Restart the private server, then set
+`AK5E_STANDARD_RESTART_REPORT=/tmp/standard-check.json` and a different output
+prefix to compare persisted state without resetting fixtures. The script closes
+all contexts and the browser even when report writing fails, and fails on
+unexpected console/page errors. The actual WebGL renderer is reported; GPU
+launch flags alone do not prove hardware acceleration.
+
+### Shared kernels for branch work (SI-2, SI-3, SI-4, SI-12)
+
+These are APIs for later class increments, not automation of any class feature.
+They are exposed on `game.ak5e` and registered once at `ready`.
+
+- `game.ak5e.resourcePools` (`scripts/resource-pools.mjs`): `definePool`, `getPool`,
+  `spendPool`/`refundPool`/`setPool`, `recoverPool`, `once` (per Turn/Round/creature
+  limiter) and a safe formula evaluator over prof/level/class level/ability mods.
+  State lives in `flags.ak5e.resourcePools`; existing feature trackers are separate.
+- `game.ak5e.triggers` (`scripts/trigger-events.mjs`): `onAk5eEvent(kind, fn)` for
+  attack, hit, crit, hitTaken, save, initiative, turnStart, turnEnd, kill, combatEnd;
+  one-shot riders; `spendReaction`/`refundReaction`/`grantExtraReaction`. Handlers never
+  cancel a Foundry hook. Read the gaps in `DECISIONS.md` before relying on an event.
+- `game.ak5e.damagePipeline` (`scripts/damage-pipeline.mjs`): `resolveDamage` (ordered
+  audit trail, DR before Resistance), `applyTempHP` (mode required), `applyHealing`,
+  dice-rule helpers. HP loss requires an explicit bypass policy; unresolved rulings
+  throw or return `requiresGM`.
+- `game.ak5e.tipOfTheSpear` (`scripts/tip-of-the-spear.mjs`): the six-outcome Tip used
+  by Standard Bearer, with named variant entries that are not wired to any other branch.
+
+### Adding an operation-based branch (SI-1 kernel)
+
+Multi-actor effects should reuse `scripts/operation-kernel.mjs` rather than copy
+Standard Bearer. Call `createOperationKernel({ label, stateFlag, requestFlag,
+responseFlag, receiptFlag, benefitFlag, rollFlag, tagPreset, getState, isMember,
+ownerExempt, gate, beforeRun, perform, afterPerform })`. It provides
+`submit` (player or GM), `execute` (elected GM only), `handle` (the chat-message
+hook), receipt-guarded `targetUpdate`, `tagged` benefits, persisted `rollOnce`
+dice, a per-Actor serial queue and a GM-only `reconcile` command. Operations
+require `data.confirmation === true`, a stable ID, and an unchanged author and
+choices on retry. Use `operation-panel.mjs` for the retry/open-once behaviour of a
+sheet window. Use new flag names for a new branch. `test/operation-kernel.test.mjs`
+shows a minimal consumer.
+
+Each operation asks for its affected Actors, outcomes, costs, and applicable
+source facts before the elected GM commits it. Cancel before confirmation to
+leave gameplay state unchanged. The UI uses map previews for Cry Havoc and Power
+Projection, but the user/GM must still confirm sight, height, wall/elevation
+eligibility and narrative facts. Hidden targets are omitted from shared receipts;
+the prop itself is excluded. With no active GM, requests do not commit.
+
+The controls cover wield, stow, Bonus Action plant/pickup, and a willing handoff;
+Fervour gain/clear; Tip of the Spear and its Directed Engagement choices; all six
+Battlecries and separate Chorus responses; King of the Hill and Voice of the
+Herald; Power Projection; Duty Not Yet Done; Proclaimer expertise; and The Last
+Stand, its extra-turn marker, SP redirection, and extra Tip use. The helpers
+record costs, cooldowns, duration/recovery, rolls, and target receipts where the
+source is explicit. They do not enforce granted actions at the recipient's
+table: for example, Belligerant's Dash/weapon attack, King of the Hill movement,
+Heroic's attack bonus, and an extra turn are followed as visible instructions
+and confirmed manually. Rallying Cry spends each selected Hit Die; Strident
+Boast grants SP only when reviewed Operator SP integration is enabled, otherwise
+resolve the source grant manually.
+
+Tip's source describes its ordinary recipient as a visible ally within 60 feet,
+while the planted entry/turn-start sentence says “Creature.” The current helper
+uses the ordinary ally/visibility/range eligibility for planted triggers and
+enforces one grant per recipient until the bearer's next turn. Ask the GM to
+adjudicate an enemy, neutral, unseen, or out-of-range entrant; do not broaden
+eligibility from the trigger wording alone. Another creature can use Bonus
+Action pickup when within 5 feet, and a holder can hand the standard to a willing
+creature within 5 feet. The book does not define whether that creature becomes
+the Vanguard bearer or gains this branch's features. The helper records the
+holder but leaves branch powers tied to the original Vanguard; use a GM ruling
+for any other use and return/hand off the standard before resuming those powers.
+
+Fervour is uncapped, with four separately confirmed, once-per-cycle gains; clear
+it after hostile combat ends. Confirm each gain for an allied critical hit, an
+allied hostile defeat, a hostile defeated by the bearer, or an allied Skill
+activation, as applicable to the source trigger; no trigger can be gained twice
+before the bearer's next turn. Battlecries spend their listed cost on confirmed
+use: Belligerant Exultation (3), Cry Havoc (5), Defiant Roar (10), Heroic
+Proclamation (5), Rallying Cry (3), and Strident Boast (10) Fervour. Chorus
+responders are selected separately and confirm their Reaction. Belligerant's
+Chorus action cannot also use its granted Bonus Action next turn; Defiant's
+Chorus grants resistance to the next damage instance within one minute; Heroic
+grants additive 1d8 temporary HP; Rallying spends a second Hit Die after its
+healing; and Strident grants the same Vanguard-level SP again after its first
+grant. The helper records those receipts, but the recipients still resolve
+their action/reaction timing and restrictions at the table.
+
+When Directed Engagement is active, select one of Tip's six outcomes rather
+than rolling: add the bearer's Proficiency Bonus to one Damage Roll; gain
+additive 1d6 temporary HP; increase Speed by 10 feet; gain +2 to Attack Rolls;
+increase critical range by 1; or gain 1 additional SP whenever a Skill Point is
+gained. Without Directed Engagement, the helper rolls 1d6. The selected outcome
+lasts until the start of the bearer's next turn; temporary HP from Tip stacks
+additively. Cry Havoc's cone preview uses configured flat-cone geometry and
+occupied grid-cell centers; confirm its Wisdom save and source damage outcome
+for each hostile. Repeat saves and special morale movement when a victim reaches
+0 HP remain manual, as do granted actions or any action Foundry cannot
+faithfully enforce.
+Voice of the Herald selects at most two other qualifying creatures and tracks
+one use of its 1d8 damage benefit. The bearer must manually ensure a King of the
+Hill recipient ends the turn in the aura.
+
+Power Projection requires a visible grounded point within 60 feet and previews
+its 15-foot impact circle. Friendly/neutral targets receive ordinary temporary
+HP (`max(existing, rolled)`); Tip of the Spear and Heroic Proclamation use the
+source's additive temporary-HP handling. Each hostile target's Dexterity save
+and disposition are confirmed. For damage, either enter the reviewed final
+post-defense amount or use native D&D5e damage calculation after explicitly
+reviewing whether AK5e DR or unusual defenses also apply. AK5e DR precedes
+resistance/vulnerability and damage cannot fall below 1; multiple or ambiguous
+DR sources require GM resolution. The helper does not replace global damage
+handling. Projection recovers on Short Rest. Duty Not Yet Done tracks a
+per-recipient Long Rest limit; Proclaimer grants Persuasion/Intimidation
+proficiency or expertise idempotently while preserving prior values.
+
+The Last Stand requires the bearer on their turn beside a planted Standard,
+sets Speed to zero for up to one minute, prevents flag movement, and recovers on
+Long Rest. Its extra-turn choice pauses and resumes the current turn through a
+guided manual procedure; it does not rewrite initiative. SP redirection applies
+only to a recorded pending grant before it has been applied. Already-applied or
+unobserved SP changes need manual GM reconciliation. A Last Stand extra Tip is
+recorded as a second roll/use. The source does not say whether Directed
+Engagement permits a different second choice; the helper reuses the confirmed
+choice, so request a GM ruling if separate choices are intended.
+
+Operations use persistent `flags.ak5e` state and receipts. If a request times
+out or an operation is interrupted, retry with the same operation ID and same
+choices; do not submit a new operation. A prepared operation blocks later
+commands until it completes or a GM uses **Reconcile interrupted operation**
+with a reason after manually checking target effects, resources, and map state.
+These controls support recovery but do not replace the GM's inspection of a
+partially completed operation.
+
 ## Chapter 5 content
 
 `tools/build-chapter-five-content.mjs` reads the complete Chapter 5 source and
@@ -820,12 +1315,14 @@ npm test
 ```
 
 The suite validates both JSON files and syntax-checks every `.mjs` file;
-regenerates Chapters 1–6 and the content map, failing if regeneration changes a
-tracked output; verifies all 1,843 top-level records and 801 embedded Chapter 6
+regenerates Chapters 1–6, the four RollTables and the content map, failing if regeneration changes a
+tracked output; verifies 2,193 chapter records, four RollTables and 801 embedded Chapter 6
 features against the v1.3.1 source; runs source-section, table, HTML, and monster
 parser fixtures; exercises rule-helper edge cases with a mocked Foundry
 lifecycle; and verifies the supported types and traceability flags produced by
-all six development installers. Individual commands are listed in the root
+all seven development installers, including conservative description migrations,
+customized data, prior IDs and Actor copies. `npm run test:automation` validates
+the source-backed audit and its generated output. Individual commands are listed in the root
 `package.json` when a narrower check is useful.
 
 The optional installed D&D5e bundle exercises native data models in Node, but

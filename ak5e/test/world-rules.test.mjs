@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { combinedSkillValue, lmdFromCurrency, worldRulesEnabled } from "../scripts/world-rule-state.mjs";
 import { patchCantripDamage } from "../scripts/cantrip-damage.mjs";
 import { applySkillReconciliation, equippedDamageReduction, isRestrictedHealingSource,
-  previewDamage, previewSkillReconciliation, previewAlternateClass, recordNativeDeathSave } from "../scripts/world-rules.mjs";
+  previewDamage, previewSkillReconciliation, previewAlternateClass, recordNativeDeathSave, registerWorldRuleHooks } from "../scripts/world-rules.mjs";
 
 function world(enabled = true) {
   globalThis.game = { system: { id: "dnd5e" }, settings: { get: (_ns, key) => key === "chapterOneRules" ? enabled : false },
@@ -25,6 +25,21 @@ test("World setting controls the replacement rules without modifying the system"
   world(false); assert.equal(worldRulesEnabled(), false);
   assert.equal(lmdFromCurrency({ cp: 2, sp: 3, gp: 4 }), 432);
   assert.equal(lmdFromCurrency({ ep: 2, pp: 3 }), 0);
+});
+
+test("zero-HP damage requests a Dying save only for an active Dying state", () => {
+  world(); globalThis.CONFIG = {};
+  const hooks = new Map(); globalThis.Hooks = { on(name, callback) { hooks.set(name, callback); } };
+  registerWorldRuleHooks({});
+  const subject = actor(), beforeDamage = hooks.get("dnd5e.preApplyDamage");
+  subject.system.attributes.hp.max = 30;
+  const ordinary = {}; beforeDamage(subject, 5, {}, ordinary);
+  assert.equal(ordinary.ak5eDyingDamage, undefined);
+  subject._flags.dying = { active: true };
+  const dying = {}; beforeDamage(subject, 5, {}, dying);
+  assert.equal(dying.ak5eDyingDamage, true);
+  const immune = {}; beforeDamage(subject, 0, {}, immune);
+  assert.equal(immune.ak5eDyingDamage, undefined);
 });
 
 test("native death save writes AK5e Mettle and failures without 5e success or critical side effects", () => {

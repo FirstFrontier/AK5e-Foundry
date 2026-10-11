@@ -16,6 +16,8 @@ for (const block of monsterBlocks) {
   if (!name) {
     const previous = creatures.at(-1);
     if (!previous) throw new Error("Found a statblock continuation without a preceding creature.");
+    previous.rawSources ??= [previous.rawSource];
+    previous.rawSources.push(block.raw.trim());
     previous.rawSource = `${previous.rawSource}\n\n${block.raw.trim()}`;
     previous.content = toHtml(previous.rawSource);
     previous.features = parseNpcFeatures(previous.rawSource);
@@ -32,10 +34,12 @@ const supportingNotes = source
   .slice(firstStatBlock, characterSheetIndex)
   .replace(/^\{\{monster[^\n]*\n[\s\S]*?^}}\s*$/gm, "")
   .trim();
+const supportingNoteFragments = source.slice(firstStatBlock, characterSheetIndex)
+  .split(/^\{\{monster[^\n]*\n[\s\S]*?^}}\s*$/gm).map(fragment => fragment.trim()).filter(Boolean);
 
 const records = [
   referenceRecord("GM Guidance", source.slice(0, firstStatBlock)),
-  referenceRecord("Statblock Supporting Notes", supportingNotes),
+  { ...referenceRecord("Statblock Supporting Notes", supportingNotes), rawSources: supportingNoteFragments },
   ...creatures
 ];
 

@@ -11,14 +11,19 @@
   "scripts": {
     "install:foundry": "node ak5e/tools/install-for-testing.mjs",
     "test:deployment": "node --test ak5e/test/install-for-testing.test.mjs",
-    "regenerate": "node ak5e/tools/build-chapter-one-content.mjs && node ak5e/tools/build-chapter-two-content.mjs && node ak5e/tools/build-chapter-three-content.mjs && node ak5e/tools/build-chapter-four-content.mjs && node ak5e/tools/build-chapter-five-content.mjs && node ak5e/tools/build-chapter-six-content.mjs && node ak5e/tools/build-content-map.mjs",
+    "regenerate": "node ak5e/tools/build-chapter-one-content.mjs && node ak5e/tools/build-chapter-two-content.mjs && node ak5e/tools/build-chapter-three-content.mjs && node ak5e/tools/build-chapter-four-content.mjs && node ak5e/tools/build-chapter-five-content.mjs && node ak5e/tools/build-chapter-six-content.mjs && node ak5e/tools/build-roll-table-content.mjs && node ak5e/tools/build-content-map.mjs",
     "check:generated": "node ak5e/tools/check-generated-content.mjs",
     "check:files": "node ak5e/tools/validate-files.mjs",
     "test:content": "node ak5e/tools/verify-generated-content.mjs && node --test ak5e/test/enhanced-weapons.test.mjs",
-    "test:parsers": "node --test ak5e/test/parser-fixtures.test.mjs",
+    "test:parsers": "node --test ak5e/test/parser-fixtures.test.mjs ak5e/test/class-options.test.mjs ak5e/test/roll-tables.test.mjs ak5e/test/content-hash.test.mjs",
+    "test:automation": "node --test ak5e/test/automation-audit.test.mjs && node ak5e/tools/audit-automation.mjs --check",
+    "test:caster": "node --test ak5e/test/caster-*.test.mjs",
+    "test:defender": "node --test ak5e/test/defender-*.test.mjs ak5e/test/dreadnought.test.mjs ak5e/test/artshield.test.mjs ak5e/test/guardian.test.mjs ak5e/test/fortress.test.mjs ak5e/test/juggernaut.test.mjs ak5e/test/protector.test.mjs ak5e/test/sentry.test.mjs",
+    "test:guard": "node --test ak5e/test/guard-*.test.mjs ak5e/test/centurion.test.mjs ak5e/test/crusher.test.mjs ak5e/test/instructor.test.mjs",
+    "test:marksman": "node --test ak5e/test/marksman-*.test.mjs ak5e/test/artilleryman.test.mjs ak5e/test/besieger.test.mjs ak5e/test/anti-air.test.mjs ak5e/test/deadeye.test.mjs ak5e/test/flinger.test.mjs ak5e/test/heavyshot.test.mjs ak5e/test/hunter.test.mjs ak5e/test/spreadshot.test.mjs",
     "test:rules": "node ak5e/tools/verify-chapter-one-helpers.mjs && node --test ak5e/test/arts-rules.test.mjs ak5e/test/arts-sheet.test.mjs ak5e/test/world-rules.test.mjs ak5e/test/operator-*.test.mjs",
     "test:installers": "node ak5e/tools/verify-installer-data.mjs",
-    "test:origins": "node --test ak5e/test/origin-setup.test.mjs ak5e/test/origin-sheet.test.mjs ak5e/test/feature-trackers.test.mjs ak5e/test/feature-tags.test.mjs",
-    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment"
+    "test:origins": "node --test ak5e/test/origin-setup.test.mjs ak5e/test/origin-sheet.test.mjs ak5e/test/sheet-themes.test.mjs ak5e/test/feature-trackers.test.mjs ak5e/test/feature-tags.test.mjs",
+    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment && npm run test:caster && npm run test:defender && npm run test:guard && npm run test:marksman"
   }
 }

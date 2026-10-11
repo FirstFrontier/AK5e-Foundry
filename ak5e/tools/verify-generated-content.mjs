@@ -30,7 +30,8 @@ assertKinds(CHAPTER_TWO_ORIGINS, {
 });
 assertKinds(CHAPTER_THREE_CLASSES, {
   reference: 1, class: 8, "class-summon": 8, "class-feature": 232,
-  subclass: 54, "subclass-feature": 483, "operator-skill": 320
+  subclass: 54, "subclass-feature": 483, "operator-skill": 320,
+  "class-option": 350
 });
 assertKinds(CHAPTER_FOUR_EQUIPMENT, {
   reference: 6, weapon: 27, equipment: 16, tool: 13, loot: 15,
@@ -202,7 +203,7 @@ function expectedItemType(chapterNumber, kind) {
     },
     3: {
       reference: null, class: "class", "class-summon": null, "class-feature": "feat",
-      subclass: "subclass", "subclass-feature": "feat", "operator-skill": "feat"
+      subclass: "subclass", "subclass-feature": "feat", "operator-skill": "feat", "class-option": "feat"
     },
     4: {
       reference: null, weapon: "weapon", equipment: "equipment", tool: "tool", loot: "loot",
