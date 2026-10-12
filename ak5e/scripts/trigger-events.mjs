@@ -105,6 +105,22 @@ function currentTargets() {
   return [...targets.values()];
 }
 
+/** The targets (and the AC each had) when the attack was rolled, not when the hook runs (B-032).
+ * 1. dnd5e's own snapshot: the activity stores getTargetDescriptors() at the start of rollAttack in the
+ *    message flags (dnd5e.mjs:16785, `messageFlags`), and buildPost sets `roll.parent` to that message
+ *    (dnd5e.mjs:68489). This covers any number of targets.
+ * 2. Otherwise, with exactly one current target, the AC dnd5e put in `roll.options.target`
+ *    (dnd5e.mjs:28466, 68346) is the AC it used, so it overrides the live AC.
+ * 3. Otherwise (no message, several targets) fall back to the current targets. */
+export function attackTargets(roll) {
+  const stored = roll?.parent?.flags?.dnd5e?.targets;
+  if (Array.isArray(stored)) return stored.filter(t => t?.uuid).map(t => ({ ...t, ac: t.ac ?? null }));
+  const current = currentTargets(), rolledAc = roll?.options?.target;
+  if (current.length === 1 && rolledAc !== null && rolledAc !== undefined && rolledAc !== "" && Number.isFinite(Number(rolledAc)))
+    return [{ ...current[0], ac: Number(rolledAc) }];
+  return current;
+}
+
 /** Mirrors dnd5e's chat-card evaluation (dnd5e.mjs:69480):
  * miss = !critical && (total < ac || fumble). An unknown AC (null; dnd5e uses null for
  * total cover) is reported as `null` (undetermined) rather than as a hit. */
@@ -166,7 +182,7 @@ export async function handlePostRollAttack(rolls, data = {}) {
   seenRolls.add(roll);
   const subject = data.subject ?? null, actor = subject?.actor ?? null;
   const attackId = randomId();
-  const targets = currentTargets().map(t => ({ uuid: t.uuid, name: t.name ?? "", ac: t.ac ?? null, hit: attackHits(roll, t.ac) }));
+  const targets = attackTargets(roll).map(t => ({ uuid: t.uuid, name: t.name ?? "", ac: t.ac ?? null, hit: attackHits(roll, t.ac) }));
   const base = { attackId, actorUuid: actor?.uuid ?? null, tokenUuid: tokenUuidOf(actor), itemUuid: subject?.item?.uuid ?? null,
     activityUuid: subject?.uuid ?? null, total: roll.total ?? null, critical: Boolean(roll.isCritical), fumble: Boolean(roll.isFumble),
     targets, targetUuids: targets.map(t => t.uuid), userId: game.user?.id ?? null, ...combatContext(),

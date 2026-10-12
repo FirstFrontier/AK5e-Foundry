@@ -5,7 +5,8 @@
  */
 import { createPlayUses, warn, spendResource, resourceValue } from "./play-uses.mjs";
 import {
-  marksmanEnabled, marksmanLevel, marksmanState, checkLevel, targetLockBonus
+  marksmanEnabled, marksmanLevel, marksmanState, checkLevel, targetLockBonus,
+  isTargetLockActive, marksmanWorldTime
 } from "./marksman-rules.mjs";
 import { need } from "./operation-kernel.mjs";
 import { spendReaction, getReactions } from "./trigger-events.mjs";
@@ -37,6 +38,16 @@ const levelWarning = (warnings, actor, requiredLevel, featureName) => {
   }
 };
 
+export const MARKSMAN_READINGS = Object.freeze({
+  enhancedTargetLockLevel: Object.freeze({
+    label: "Enhanced Target Lock unlock level (C3 class table: 11; feature heading: 12)",
+    options: Object.freeze([
+      Object.freeze({ value: "11", label: "11th level (class table)" }),
+      Object.freeze({ value: "12", label: "12th level (feature heading)" })
+    ])
+  })
+});
+
 /* ---------------------------------------------------------------- Core Marksman Plans */
 
 export const CORE_PLANS = {
@@ -48,30 +59,58 @@ export const CORE_PLANS = {
     if (!targetUuid) {
       warn(warnings, "target", "No target selected for Target Lock.");
     }
+    if (data.targetHostile === false) warn(warnings, "targetHostile", "Target Lock selects a hostile Creature.");
+    if (data.targetVisible === false) warn(warnings, "targetVisible", "Target Lock selects a Creature you can see.");
+    const combat = globalThis.game?.combat;
+    if (combat?.started && combat.combatant?.actor?.uuid !== actor.uuid) {
+      warn(warnings, "timing", "Target Lock is selected during your Turn; this is not your Turn.");
+    }
+    const currentLock = marksmanState(actor).targetLock;
+    if (isTargetLockActive(actor) && currentLock.targetUuid !== targetUuid) {
+      warn(warnings, "replaceLock", `This replaces the active Target Lock on ${currentLock.targetName || "another target"} before its minute expires.`);
+    }
     const available = resourceValue(actor, { pool: "targetLock" });
     if (available < 1) {
       warn(warnings, "targetLock", `Target Lock has already been used; uses clamp at 0.`);
     }
 
-    const bonus = targetLockBonus(actor);
-    const combat = globalThis.game?.combat;
     const currentTurnKey = combat?.started ? `${combat.id}:${combat.round}:${combat.turn}` : null;
 
     return {
       warnings,
       title: "Target Lock",
-      apply(next, receipt) {
+      reading: marksmanLevel(actor) === 11 ? "enhancedTargetLockLevel" : null,
+      apply(next, receipt, reading) {
         const updates = spendResource(actor, receipt, { pool: "targetLock", amount: 1, label: "Target Lock" });
+        const bonus = targetLockBonus(actor, reading?.value ?? reading);
+        const startedAt = marksmanWorldTime();
         updates["flags.ak5e.marksman.targetLock"] = {
           targetUuid,
           targetName,
           active: true,
           bonus,
-          turnKey: currentTurnKey
+          turnKey: currentTurnKey,
+          startedAt,
+          expiresAt: startedAt + 60
         };
         receipt.summary = `${actor.name} locks onto ${targetName} (+${bonus} to Attack Rolls for 1 minute).`;
         receipt.result = { targetUuid, targetName, bonus };
         return updates;
+      }
+    };
+  },
+
+  chooseMartialDC(actor, _state, data) {
+    need(marksmanEnabled(actor), "Martial DC is a Marksman feature.");
+    const ability = data.martialDcAbility;
+    need(ability === "str" || ability === "dex", "Choose Strength or Dexterity for your Martial DC.");
+    return {
+      warnings: [],
+      title: "Choose Martial DC Ability",
+      apply(_next, receipt) {
+        receipt.summary = `${actor.name} uses ${ability === "str" ? "Strength" : "Dexterity"} for Martial DC.`;
+        receipt.result = { martialDcAbility: ability };
+        return { "flags.ak5e.marksman.martialDcAbility": ability };
       }
     };
   },
@@ -133,4 +172,4 @@ export const CORE_PLANS = {
   }
 };
 
-marksmanUses.register({ plans: CORE_PLANS });
+marksmanUses.register({ plans: CORE_PLANS, readings: MARKSMAN_READINGS });

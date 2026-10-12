@@ -153,6 +153,9 @@ test("Arts Master source statblock and Originium Spark fields use reviewed creat
   assert.equal(data.system.attributes.hp.max, 32);
   assert.equal(data.system.attributes.movement.fly, 30);
   assert.equal(data.system.attributes.movement.hover, true);
+  // B-005: dnd5e 5.3 moved senses.darkvision to senses.ranges.darkvision; the old shape logs deprecation warnings.
+  assert.deepEqual(data.system.attributes.senses, { ranges: { darkvision: 60 } });
+  for (const old of ["darkvision", "blindsight", "tremorsense", "truesight"]) assert.equal(old in data.system.attributes.senses, false);
   assert.equal(data.system.details.type.value, "construct");
   assert.equal(10 + Math.floor((data.system.abilities.wis.value - 10)/2) + Number(data.system.skills.prc.bonuses.passive), 6);
   assert.deepEqual(data.system.traits.di.value, ["poison", "necrotic"]);

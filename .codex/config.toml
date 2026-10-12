@@ -1,0 +1,7 @@
+# Project-local Codex defaults. Does not set or switch the parent session's model.
+# Select gpt-6.1-sol for the parent through your Codex model picker/CLI.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "high"

@@ -48,7 +48,7 @@ test("marksmanProfile detects class, level, branch, and PB", () => {
   assert.equal(profile.pb, 3);
 });
 
-test("martialDC evaluates to 8 + PB + max(STR mod, DEX mod)", () => {
+test("martialDC uses the chosen STR or DEX modifier and requires a choice", () => {
   const actor = {
     system: {
       attributes: { prof: 3 },
@@ -58,7 +58,11 @@ test("martialDC evaluates to 8 + PB + max(STR mod, DEX mod)", () => {
       }
     }
   };
-  assert.equal(martialDC(actor), 8 + 3 + 4); // 15
+  assert.equal(martialDC(actor, "dex"), 8 + 3 + 4); // 15
+  assert.equal(martialDC(actor, "str"), 8 + 3 + 2); // 13
+  assert.equal(martialDC(actor), null); // No ability is silently selected.
+  actor.flags = { ak5e: { marksman: { martialDcAbility: "str" } } };
+  assert.equal(martialDC(actor), 8 + 3 + 2); // Stored table choice.
 
   const strActor = {
     system: {
@@ -69,10 +73,10 @@ test("martialDC evaluates to 8 + PB + max(STR mod, DEX mod)", () => {
       }
     }
   };
-  assert.equal(martialDC(strActor), 8 + 2 + 3); // 13
+  assert.equal(martialDC(strActor, "str"), 8 + 2 + 3); // 13
 });
 
-test("targetLockBonus scales at levels 1 and 11", () => {
+test("Target Lock bonus preserves the unresolved 11/12 unlock choice", () => {
   const makeActor = level => ({
     items: [
       {
@@ -86,7 +90,13 @@ test("targetLockBonus scales at levels 1 and 11", () => {
   assert.equal(targetLockBonus(makeActor(1)), 1);
   assert.equal(targetLockBonus(makeActor(5)), 1);
   assert.equal(targetLockBonus(makeActor(10)), 1);
-  assert.equal(targetLockBonus(makeActor(11)), 2);
+  const level11 = makeActor(11);
+  assert.equal(targetLockBonus(level11), 1);
+  assert.equal(targetLockBonus(level11, 11), 2);
+  assert.equal(targetLockBonus(level11, 12), 1);
+  level11.flags = { ak5e: { marksman: { rulings: { enhancedTargetLockLevel: { value: 11 } } } } };
+  assert.equal(targetLockBonus(level11), 2);
+  assert.equal(targetLockBonus(makeActor(12)), 2);
   assert.equal(targetLockBonus(makeActor(20)), 2);
 });
 
@@ -109,21 +119,25 @@ test("explosiveExpertiseDice scales at levels 1, 7, and 14", () => {
   assert.equal(explosiveExpertiseDice(makeActor(20)), 3);
 });
 
-test("isTargetLocked verifies active lock on target UUID", () => {
+test("Target Lock expires after one minute and legacy locks grant no bonus", async () => {
+  const { isTargetLockActive } = await import("../scripts/marksman-rules.mjs");
   const actor = {
     flags: {
       ak5e: {
         marksman: {
           targetLock: {
             active: true,
-            targetUuid: "Scene.1.Token.target1"
+            targetUuid: "Scene.1.Token.target1",
+            expiresAt: 160
           }
         }
       }
     }
   };
-  assert.equal(isTargetLocked(actor, "Scene.1.Token.target1"), true);
-  assert.equal(isTargetLocked(actor, "Scene.1.Token.other"), false);
+  assert.equal(isTargetLockActive(actor, 159), true);
+  assert.equal(isTargetLocked(actor, "Scene.1.Token.target1", 159), true);
+  assert.equal(isTargetLocked(actor, "Scene.1.Token.target1", 160), false);
+  assert.equal(isTargetLocked(actor, "Scene.1.Token.other", 159), false);
 
   const inactiveActor = {
     flags: {
@@ -138,6 +152,9 @@ test("isTargetLocked verifies active lock on target UUID", () => {
     }
   };
   assert.equal(isTargetLocked(inactiveActor, "Scene.1.Token.target1"), false);
+
+  const legacyActor = { flags: { ak5e: { marksman: { targetLock: { active: true, targetUuid: "Scene.1.Token.target1" } } } } };
+  assert.equal(isTargetLocked(legacyActor, "Scene.1.Token.target1", 159), false);
 });
 
 test("hasFightingStyle detects style from flags or items", () => {

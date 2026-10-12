@@ -81,3 +81,37 @@ test("previewGuardSetup and applyGuardSetup grant level-appropriate features wit
   assert.equal(rePreview.creates.length, 0);
   assert.ok(rePreview.kept.length > 0);
 });
+
+test("Musha and Weaponmaster subclass proficiencies granted in progression", async () => {
+  world();
+  // 1. Musha gains Wisdom saving throw proficiency
+  const mushaActor = guardFixture({ level: 3 });
+  const mushaPlan = await previewGuardProgression(mushaActor, {
+    branch: "subclass-guard-musha",
+    fightingStyle: "brawler",
+    saves: ["con"],
+    skills: ["ath", "ins", "ak5ewilderness"],
+    tool: "Maintenance Kit",
+    startingEquipment: { mode: "cash" }
+  });
+  assert.ok(mushaPlan.writes["system.traits.saves.value"].includes("wis"));
+  assert.ok(mushaPlan.writes["system.traits.saves.value"].includes("str"));
+  assert.ok(mushaPlan.writes["system.traits.saves.value"].includes("con"));
+
+  // 2. Weaponmaster gains Light & Heavy Ranged weapon proficiencies and additional style
+  const wmActor = guardFixture({ level: 3 });
+  const wmPlan = await previewGuardProgression(wmActor, {
+    branch: "subclass-guard-weaponmaster",
+    fightingStyle: "twoWeaponFighting",
+    weaponmasterAdditionalFightingStyle: "closeAndPersonal",
+    saves: ["dex"],
+    skills: ["ath", "acr", "ak5elore"],
+    tool: "Maintenance Kit",
+    startingEquipment: { mode: "cash" }
+  });
+  const customWeapons = wmPlan.writes["system.traits.weaponProf.custom"];
+  assert.ok(customWeapons.includes("All Light Ranged Weapons"));
+  assert.ok(customWeapons.includes("All Heavy Ranged Weapons"));
+  assert.equal(wmPlan.writes["flags.ak5e.weaponmaster.additionalFightingStyle"], "closeAndPersonal");
+});
+

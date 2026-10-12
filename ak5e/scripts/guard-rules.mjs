@@ -18,7 +18,7 @@ export const GUARD_BRANCH_IDS = Object.freeze({
   "subclass-guard-weaponmaster": "weaponmaster"
 });
 
-export const IMPLEMENTED_GUARD_BRANCHES = Object.freeze(["centurion", "crusher", "instructor"]);
+export const IMPLEMENTED_GUARD_BRANCHES = Object.freeze(["artsblade", "brawler", "centurion", "crusher", "duellist", "instructor", "liberator", "lord", "musha", "reaper", "weaponmaster"]);
 
 /** Aggression column: 4 at 1st level, 6 at 7th, 8 at 14th (L1877-1879). */
 export const AGGRESSION_STEPS = Object.freeze({ 1: 4, 7: 6, 14: 8 });

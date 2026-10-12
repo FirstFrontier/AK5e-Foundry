@@ -6,7 +6,7 @@ import { definePool, clearPoolRegistry, getPool, spendPool, refundPool, setPool,
 
 // ---------------------------------------------------------------- mocks
 const gm = { id: "gm", isGM: true }, player = { id: "player", isGM: false };
-let sequence = 0, hooks, errors, consoleErrors, originalConsoleError = console.error;
+let sequence = 0, hooks, errors, consoleErrors, consoleWarnings, originalConsoleError = console.error, originalConsoleWarn = console.warn;
 
 /** Foundry's update merges nested objects by dotted path and replaces arrays. */
 const plain = v => v && typeof v === "object" && !Array.isArray(v);
@@ -14,7 +14,7 @@ function merge(object, path, value) {
   const keys = path.split("."), last = keys.pop();
   let target = object;
   for (const key of keys) target = target[key] ??= {};
-  if (plain(value) && plain(target[last])) for (const [k, v] of Object.entries(value)) merge(target[last], k, v);
+  if (plain(value) && Object.hasOwn(target, last) && plain(target[last])) for (const [k, v] of Object.entries(value)) merge(target[last], k, v);
   else target[last] = structuredClone(value);
 }
 
@@ -55,14 +55,17 @@ function combatOf(actors) {
 function setup({ user = gm, activeGM = gm } = {}) {
   clearPoolRegistry(); hooks = new Map(); errors = []; consoleErrors = [];
   console.error = (...args) => consoleErrors.push(args);
+  consoleWarnings = []; console.warn = (...args) => consoleWarnings.push(args);
   globalThis.game = { user, users: { activeGM }, combats: [], time: { worldTime: 100 } };
   globalThis.CONFIG = { DND5E: { restTypes: { short: { recoverPeriods: ["sr"] }, long: { recoverPeriods: ["lr", "sr"] } } } };
   globalThis.ui = { notifications: { error: message => errors.push(message) } };
   globalThis.Hooks = { on(name, cb) { hooks.set(name, [...(hooks.get(name) ?? []), cb]); return cb; } };
 }
-test.afterEach(() => { console.error = originalConsoleError; });
-const settle = () => new Promise(r => setTimeout(r, 15));
-const fire = async (name, ...args) => { const results = (hooks.get(name) ?? []).map(cb => cb(...args)); await Promise.all(results); await settle(); return results; };
+test.afterEach(() => { console.error = originalConsoleError; console.warn = originalConsoleWarn; });
+/** Deterministic flush: lets every already-queued promise continuation and I/O callback run. No timers. */
+const flush = () => new Promise(resolve => setImmediate(resolve));
+/** Handlers return the promise of their (serialised) work, so awaiting what they return is the synchronisation; a handler that returns nothing has no pending work. */
+const fire = async (name, ...args) => { const results = (hooks.get(name) ?? []).map(cb => cb(...args)); await Promise.all(results); return results; };
 
 // Real class shapes from the source (TODO line cites are to /home/patch/AK5e-Foundry/TODO.md).
 const LIFE_SUPPORT = { 1: 20, 2: 35, 4: 50, 6: 65, 8: 80, 10: 95, 12: 110, 14: 125, 16: 140, 18: 155, 20: 170 };
@@ -178,7 +181,7 @@ test("definitions reject bad maxima, unknown variables, bad ids, duplicates and 
 test("reading is pure: getPool never writes and a stale value above a reduced max is clamped on read", () => {
   setup(); defineAll();
   const a = actor({ classLevels: { "class-vanguard": 20 } });
-  assert.deepEqual(getPool(a, "resilience"), { id: "resilience", label: "Resilience", value: 10, max: 10, over: 0, overMax: false });
+  assert.deepEqual(getPool(a, "resilience"), { id: "resilience", label: "Resilience", value: 10, max: 10, over: 0, overMax: false, corrupt: false });
   a.flags.ak5e.resourcePools = { resilience: { value: 10 } };
   a.items[0].system.levels = 1;
   assert.equal(getPool(a, "resilience").value, 4, "level dropped: raw 10 reads as max 4");
@@ -217,7 +220,7 @@ test("overMax pools exceed max on refund, and spending consumes the excess first
   setup(); defineAll();
   const a = actor({ classLevels: { "class-medic": 2 } });                          // Life Support 35
   assert.deepEqual(await refundPool(a, "lifeSupport", 10), { id: "lifeSupport", op: "refund", before: 35, after: 45, applied: 10, max: 35, over: 10 });
-  assert.deepEqual(getPool(a, "lifeSupport"), { id: "lifeSupport", label: "Life Support", value: 45, max: 35, over: 10, overMax: true });
+  assert.deepEqual(getPool(a, "lifeSupport"), { id: "lifeSupport", label: "Life Support", value: 45, max: 35, over: 10, overMax: true, corrupt: false });
   const spent = await spendPool(a, "lifeSupport", 15);
   assert.equal(spent.after, 30); assert.equal(spent.over, 0);
   await refundPool(a, "lifeSupport", 100);
@@ -308,8 +311,17 @@ test("Doublecast L205: one use, recovered on a Short Rest; Aggression L331 on SR
   const a = actor({ classLevels: { "class-vanguard": 14 } }); a.flags.ak5e.caster = true;
   assert.equal(getPool(a, "doublecast").value, 1);
   await spendPool(a, "doublecast", 1); await assert.rejects(spendPool(a, "doublecast", 1), /Not enough/);
-  await recoverPool(a, "lr"); assert.equal(getPool(a, "doublecast").value, 0, "Doublecast is defined with Short Rest recovery only, so a bare LR trigger does not refill it");
+  await recoverPool(a, "lr"); assert.equal(getPool(a, "doublecast").value, 0, "a bare 'lr' trigger does not refill a pool that is defined with Short Rest recovery only (the rest split is the caller's job)");
   await recoverPool(a, "sr"); assert.equal(getPool(a, "doublecast").value, 1);
+});
+test("Doublecast L205: a real long rest (['lr','sr'] via dnd5e.restCompleted) refills the SR-only pool", async () => {
+  setup(); defineAll(); registerResourcePoolHooks();
+  const a = actor({ classLevels: { "class-vanguard": 14 } }); a.flags.ak5e.caster = true;
+  await spendPool(a, "doublecast", 1); assert.equal(getPool(a, "doublecast").value, 0);
+  await fire("dnd5e.restCompleted", a, { type: "long" }, { type: "long" });
+  assert.equal(getPool(a, "doublecast").value, 1, "a long rest is lr + sr, so the sr entry applies");
+  assert.deepEqual(restTriggers({ type: "long" }), ["lr", "sr"]);
+  assert.equal(stateOf(a, "doublecast").last.trigger, "sr");
 });
 test("'when' predicates gate a recovery entry (Liberty L378 end-of-turn generation condition)", async () => {
   setup(); defineAll();
@@ -342,7 +354,10 @@ test("a repeated eventKey never recovers twice, even after a spend in between", 
   assert.equal(getPool(a, "momentum").value, 0); assert.equal(again[0].skipped, "receipt");
   await recoverPool(a, "initiative", { eventKey: "init:2" }); assert.equal(getPool(a, "momentum").value, 1);
   for (let i = 0; i < 40; i++) await recoverPool(a, "initiative", { eventKey: `many:${i}` });
-  assert.ok(stateOf(a, "momentum").receipts.length <= 24, "receipts are bounded");
+  const kept = stateOf(a, "momentum").receipts;
+  assert.equal(kept.filter(r => r.startsWith("many:")).length, 24, "receipts are bounded per event kind (24 newest of 'many')");
+  assert.deepEqual(kept.filter(r => r.startsWith("init:")), ["init:1", "init:2"], "a different kind is not evicted by the busy one");
+  assert.equal(kept.length, 26);
 });
 test("a double-fired updateCombat (same combat state) applies turn recovery once", async () => {
   setup(); defineAll(); registerResourcePoolHooks();
@@ -473,7 +488,7 @@ test("handlers are additive and contained: never return false, never throw, log 
   const combat = combatOf([a]);
   const outcomes = await Promise.all([onUpdateCombatant(combat.turns[0], { initiative: 5 }), onDeleteCombat(combat),
     onUpdateCombat(combat, combat.go(1, 0), {}), onRestCompleted(a, { type: "long" }, { type: "long" })]);
-  await settle();
+  await flush();
   assert.ok(outcomes.every(o => o !== false));
   assert.ok(consoleErrors.length >= 1 && errors.some(m => /blocked write/.test(m)), "failure is logged and surfaced");
   assert.doesNotThrow(() => onUpdateCombat(null, null)); assert.doesNotThrow(() => onUpdateCombatant(null, null));
@@ -481,7 +496,7 @@ test("handlers are additive and contained: never return false, never throw, log 
   assert.equal(onUpdateCombat({ started: true, get previous() { throw new Error("boom"); } }, { turn: 1 }, {}), undefined);
   assert.ok(consoleErrors.some(args => /boom/.test(String(args[1]?.message ?? args[0]))), "synchronous handler errors are caught and logged");
   const sameRest = { type: "long" };
-  await onRestCompleted(a, sameRest, sameRest); await settle();
+  await onRestCompleted(a, sameRest, sameRest); await flush();
   assert.equal(onRestCompleted(a, sameRest, sameRest), undefined, "same rest result object is ignored");
 });
 test("registration is idempotent: exactly one handler per hook, never at import time", () => {
@@ -575,4 +590,186 @@ test("limiter marks use {diff:false} for token actors and never disturb pool val
   await once({ scope: "turn", key: "k" }).mark(a);
   assert.deepEqual(a.writes.at(-1).options, { diff: false });
   assert.equal(getPool(a, "resilience").value, 3);
+});
+
+// ---------------------------------------------------------------- B-025 prototype-name ids
+test("B-025: pool ids and limiter keys named like Object.prototype members read as fresh, own-property state", async () => {
+  setup();
+  for (const id of ["constructor", "toString", "hasOwnProperty", "valueOf"]) definePool({ id, max: 3, recovery: [{ on: "lr" }] });
+  definePool({ id: "other", max: 2 });
+  const a = actor();
+  await spendPool(a, "other", 1);                                                  // resourcePools now exists as a plain object
+  for (const id of ["constructor", "toString", "hasOwnProperty", "valueOf"]) {
+    assert.equal(getPool(a, id).value, 3, `${id} starts fresh at max`);
+    assert.equal((await spendPool(a, id, 1)).after, 2, id);
+    assert.equal(Object.hasOwn(a.flags.ak5e.resourcePools, id), true, `${id} is stored as an own property`);
+    assert.equal((await recoverPool(a, "lr", { poolIds: [id] }))[0].after, 3, id);
+  }
+  // Simulated inherited members (a polluted or exotic prototype chain) must never be mistaken for stored pool records.
+  const inherited = actor();
+  inherited.flags.ak5e.resourcePools = Object.create({ constructor: { value: 1 }, toString: { value: 0, receipts: ["lr:1"] } });
+  assert.equal(getPool(inherited, "constructor").value, 3, "inherited { value: 1 } is not a stored record");
+  assert.equal(getPool(inherited, "toString").value, 3);
+  assert.equal((await recoverPool(inherited, "lr", { poolIds: ["toString"], eventKey: "lr:1" }))[0].skipped, undefined, "an inherited receipt list is ignored");
+});
+test("B-025: a limiter key named 'constructor' / 'toString' is not blocked by inherited members and stores its own mark", async () => {
+  setup();
+  const a = actor();
+  const cycle = limiterCycle(null, a, "turn", { worldTime: 100 });
+  a.flags.ak5e.resourcePools = { _limits: Object.create({ constructor: { cycle, who: [] }, toString: { cycle, who: [] } }) };
+  for (const key of ["constructor", "toString"]) {
+    const limiter = once({ scope: "turn", key });
+    assert.equal(limiter.check(a), true, `${key}: an inherited mark does not block`);
+    assert.equal(await limiter.use(a), true);
+    assert.equal(limiter.check(a), false, `${key}: the real mark now blocks`);
+    assert.equal(await limiter.use(a), false);
+    assert.equal(Object.hasOwn(a.flags.ak5e.resourcePools._limits, key), true);
+  }
+  const creature = once({ scope: "creaturePerTurn", key: "valueOf" });
+  a.flags.ak5e.resourcePools._limits = Object.create({ valueOf: { cycle, who: ["goblin"] } });
+  assert.equal(creature.check(a, { creature: "goblin" }), true);
+  assert.equal(await creature.use(a, { creature: "orc" }), true);
+  assert.deepEqual(a.flags.ak5e.resourcePools._limits.valueOf.who, ["orc"], "the inherited creature list is not carried into the new mark");
+});
+
+// ---------------------------------------------------------------- B-024 corrupt stored values
+test("B-024: a corrupt stored value keeps the initial/max fallback but is flagged and warned about once per pool per call", async () => {
+  for (const [label, bad] of [["float", 1.5], ["negative", -2], ["string", "3"], ["NaN", NaN], ["null", null], ["boolean", true]]) {
+    setup(); defineAll();
+    const a = actor({ classLevels: { "class-vanguard": 7 } });                     // Resilience max 6
+    a.flags.ak5e.resourcePools = { resilience: { value: bad } };
+    assert.deepEqual(getPool(a, "resilience"), { id: "resilience", label: "Resilience", value: 6, max: 6, over: 0, overMax: false, corrupt: true }, label);
+    assert.equal(consoleWarnings.length, 0, `${label}: reading never warns or writes`); assert.equal(a.writes.length, 0);
+    const spent = await spendPool(a, "resilience", 2);
+    assert.equal(spent.before, 6, `${label}: the fallback is still the pre-spend value`); assert.equal(spent.after, 4);
+    assert.equal(consoleWarnings.length, 1, `${label}: exactly one warning for the call`);
+    assert.equal(consoleWarnings[0][0], "AK5e | Resource pools"); assert.match(consoleWarnings[0][1], /resilience/);
+    assert.equal(stateOf(a, "resilience").value, 4, `${label}: the write repaired the stored value`);
+    assert.equal(getPool(a, "resilience").corrupt, false);
+    await refundPool(a, "resilience", 1); assert.equal(consoleWarnings.length, 1, `${label}: a repaired pool no longer warns`);
+  }
+});
+test("B-024: setPool, refundPool and recoverPool also warn once per corrupt pool per call; other pools do not warn", async () => {
+  setup(); defineAll();
+  const a = actor({ classLevels: { "class-vanguard": 7 } }); a.flags.ak5e.caster = true;
+  a.flags.ak5e.resourcePools = { resilience: { value: -1 }, aggression: { value: 2.5 }, doublecast: { value: 0 } };
+  await setPool(a, "resilience", 3);
+  assert.equal(consoleWarnings.length, 1);
+  a.flags.ak5e.resourcePools.resilience = { value: "x" };
+  await refundPool(a, "resilience", 1); assert.equal(consoleWarnings.length, 2);
+  a.flags.ak5e.resourcePools.resilience = { value: "x" };
+  const results = await recoverPool(a, "lr");                                      // resilience + aggression corrupt, doublecast fine
+  assert.equal(consoleWarnings.length, 2 + 2, "one warning each for resilience and aggression");
+  assert.deepEqual(consoleWarnings.slice(2).map(w => /resilience|aggression/.exec(w[1])?.[0]).sort(), ["aggression", "resilience"]);
+  assert.equal(results.find(r => r.id === "resilience").after, 6);
+  assert.equal(stateOf(a, "resilience").value, 6); assert.equal(stateOf(a, "aggression").value, 6);
+});
+test("B-024: a never-stored (undefined) value and valid values are not corrupt and never warn", async () => {
+  setup(); defineAll();
+  const a = actor({ classLevels: { "class-vanguard": 7 } });
+  assert.equal(getPool(a, "resilience").corrupt, false);
+  a.flags.ak5e.resourcePools = { aggression: { last: { op: "x" } } };                // record exists, value never stored
+  assert.equal(getPool(a, "aggression").corrupt, false);
+  await spendPool(a, "resilience", 1); await recoverPool(a, "lr"); await spendPool(a, "aggression", 1);
+  a.flags.ak5e.resourcePools.resilience.value = 0;                                   // zero is valid
+  assert.equal(getPool(a, "resilience").corrupt, false); assert.equal(getPool(a, "resilience").value, 0);
+  assert.equal(consoleWarnings.length, 0);
+});
+
+// ---------------------------------------------------------------- B-022 recovery precedence
+test("B-022: the caller's trigger order picks the recovery entry, not the pool's definition order", async () => {
+  setup();
+  definePool({ id: "srFirst", max: 6, appliesTo: () => true, recovery: [{ on: "sr", amount: 2 }, { on: "lr", amount: "full" }] });
+  definePool({ id: "lrFirst", max: 6, appliesTo: () => true, recovery: [{ on: "lr", amount: "full" }, { on: "sr", amount: 2 }] });
+  const a = actor();
+  await setPool(a, "srFirst", 0); await setPool(a, "lrFirst", 0);
+  const longRest = await recoverPool(a, ["lr", "sr"]);
+  assert.deepEqual(longRest.map(r => [r.id, r.trigger, r.after]).sort(), [["lrFirst", "lr", 6], ["srFirst", "lr", 6]], "a long rest uses the lr entry whichever is listed first");
+  assert.equal(stateOf(a, "srFirst").last.trigger, "lr");
+  await setPool(a, "srFirst", 0); await setPool(a, "lrFirst", 0);
+  await recoverPool(a, "sr");
+  assert.deepEqual([getPool(a, "srFirst").value, getPool(a, "lrFirst").value], [2, 2], "a short rest still uses the sr entry");
+  await setPool(a, "srFirst", 0);
+  await recoverPool(a, ["sr", "lr"]);
+  assert.equal(getPool(a, "srFirst").value, 2, "trigger order is the caller's: sr listed first wins");
+});
+test("B-022: a failing 'when' on the preferred trigger falls through to the next trigger's entry", async () => {
+  setup();
+  definePool({ id: "gated", max: 6, appliesTo: () => true, recovery: [{ on: "sr", amount: 2 }, { on: "lr", amount: "full", when: (a, ctx) => ctx.allowed === true }] });
+  const a = actor(); await setPool(a, "gated", 0);
+  assert.equal((await recoverPool(a, ["lr", "sr"], { context: { allowed: false } }))[0].after, 2, "lr gate closed: sr entry applies");
+  assert.equal((await recoverPool(a, ["lr", "sr"], { context: { allowed: true } }))[0].after, 6);
+});
+test("B-022: a real long rest through the restCompleted hook uses the lr entry of an [sr, lr] pool", async () => {
+  setup();
+  definePool({ id: "ordered", max: 6, appliesTo: () => true, recovery: [{ on: "sr", amount: 2 }, { on: "lr", amount: "full" }] });
+  registerResourcePoolHooks();
+  const a = actor(); await setPool(a, "ordered", 0);
+  await fire("dnd5e.restCompleted", a, { type: "long" }, { type: "long" });
+  assert.equal(getPool(a, "ordered").value, 6);
+});
+
+// ---------------------------------------------------------------- B-021 per-kind receipt history
+test("B-021: receipts are trimmed per event kind, so turnStart and turnEnd each keep 24 and order is preserved", async () => {
+  setup();
+  definePool({ id: "busy", max: 99, initial: 0, appliesTo: () => true, recovery: [{ on: "turnStart", amount: 1 }, { on: "turnEnd", amount: 1 }] });
+  const a = actor();
+  for (let i = 0; i < 30; i++) { await recoverPool(a, "turnStart", { eventKey: `turnStart:cmb:${i}` }); await recoverPool(a, "turnEnd", { eventKey: `turnEnd:cmb:${i}` }); }
+  const receipts = stateOf(a, "busy").receipts;
+  assert.ok(Array.isArray(receipts) && receipts.every(r => typeof r === "string"), "stored shape stays a string array");
+  const starts = receipts.filter(r => r.startsWith("turnStart:")), ends = receipts.filter(r => r.startsWith("turnEnd:"));
+  assert.equal(starts.length, 24); assert.equal(ends.length, 24);
+  assert.deepEqual(starts, Array.from({ length: 24 }, (_, i) => `turnStart:cmb:${i + 6}`), "the newest 24 of each kind, in order");
+  assert.deepEqual(ends, Array.from({ length: 24 }, (_, i) => `turnEnd:cmb:${i + 6}`));
+  assert.equal(getPool(a, "busy").value, 60);
+  const writes = a.writes.length;
+  const replay = await recoverPool(a, "turnStart", { eventKey: "turnStart:cmb:29" });          // recent: still remembered
+  assert.equal(replay[0].skipped, "receipt"); assert.equal(a.writes.length, writes);
+  assert.equal((await recoverPool(a, "turnEnd", { eventKey: "turnEnd:cmb:6" }))[0].skipped, "receipt", "oldest kept key of its kind");
+  const evicted = await recoverPool(a, "turnStart", { eventKey: "turnStart:cmb:0" });           // evicted: regrants
+  assert.equal(evicted[0].skipped, undefined); assert.equal(evicted[0].applied, 1); assert.equal(getPool(a, "busy").value, 61);
+  assert.equal(stateOf(a, "busy").receipts.filter(r => r.startsWith("turnStart:")).length, 24);
+  assert.equal(stateOf(a, "busy").receipts.filter(r => r.startsWith("turnEnd:")).length, 24, "the other kind is untouched");
+});
+test("B-021: one busy kind cannot evict another kind's history, and keys without ':' form their own kind", async () => {
+  setup();
+  definePool({ id: "mix", max: 99, initial: 0, appliesTo: () => true, recovery: [{ on: "initiative", amount: 1 }, { on: "turnStart", amount: 1 }, { on: "combatEnd", amount: 1 }] });
+  const a = actor();
+  await recoverPool(a, "initiative", { eventKey: "initiative:cmb:c0" });
+  await recoverPool(a, "combatEnd", { eventKey: "plainkey" });
+  for (let i = 0; i < 60; i++) await recoverPool(a, "turnStart", { eventKey: `turnStart:cmb:${i}` });
+  assert.ok(stateOf(a, "mix").receipts.includes("initiative:cmb:c0"), "initiative receipt survives 60 turnStart events");
+  assert.ok(stateOf(a, "mix").receipts.includes("plainkey"));
+  assert.equal((await recoverPool(a, "initiative", { eventKey: "initiative:cmb:c0" }))[0].skipped, "receipt");
+  assert.equal(stateOf(a, "mix").receipts.filter(r => r.startsWith("turnStart:")).length, 24);
+});
+
+// ---------------------------------------------------------------- B-023 rest dedupe on result only
+test("B-023: rest dedupe keys on the result object only: a reused config with fresh results recovers each time", async () => {
+  setup();
+  definePool({ id: "rest", max: 3, recovery: [{ on: "lr" }] }); registerResourcePoolHooks();
+  const a = actor(), config = { type: "long" };
+  await setPool(a, "rest", 0);
+  await fire("dnd5e.restCompleted", a, { type: "long" }, config);
+  assert.equal(getPool(a, "rest").value, 3);
+  await spendPool(a, "rest", 3);
+  await fire("dnd5e.restCompleted", a, { type: "long" }, config);                  // same config object, a new rest
+  assert.equal(getPool(a, "rest").value, 3, "a second rest with a reused config recovers again");
+  await spendPool(a, "rest", 2);
+  const result = { type: "long" };
+  await fire("dnd5e.restCompleted", a, result, config);
+  assert.equal(getPool(a, "rest").value, 3);
+  await spendPool(a, "rest", 3);
+  await fire("dnd5e.restCompleted", a, result, config);                              // same result object: a replay
+  assert.equal(getPool(a, "rest").value, 0, "the same result object recovers once");
+});
+test("B-023: a non-object result is processed without dedupe (config identity is never used)", async () => {
+  setup();
+  definePool({ id: "rest", max: 3, recovery: [{ on: "lr" }] }); registerResourcePoolHooks();
+  const a = actor(), config = { type: "long" };
+  for (const result of [undefined, null, "done", 7]) {
+    await setPool(a, "rest", 0);
+    await fire("dnd5e.restCompleted", a, result, config);
+    assert.equal(getPool(a, "rest").value, 3, `result ${String(result)} with a reused config still recovers`);
+  }
 });

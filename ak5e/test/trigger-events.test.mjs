@@ -110,6 +110,51 @@ test("attack emits attack, per-target hit and crit; duplicate hook delivery is d
   await settle(); assert.equal(hits.length, 3);                       // fumble hits nothing
 });
 
+test("B-032: a single-target attack is judged against the AC dnd5e rolled against, not the AC at hook time", async () => {
+  setup(); const a = actor();
+  const attacks = listen("attack"), hits = listen("hit");
+  // Rolled against AC 12 (roll.options.target); by the time the hook runs the target's AC is 30.
+  targets = [{ uuid: "Actor.t1", name: "Low", ac: 30 }];
+  call("dnd5e.postRollAttack", [{ ...attackRoll(18), options: { target: 12 } }], { subject: activity(a) });
+  // Rolled against AC 20; the live AC has since dropped to 10.
+  targets = [{ uuid: "Actor.t2", name: "High", ac: 10 }];
+  call("dnd5e.postRollAttack", [{ ...attackRoll(18), options: { target: 20 } }], { subject: activity(a) });
+  // No stored AC (cover or a rider that rewrote it): behaviour is unchanged and uses the live value.
+  targets = [{ uuid: "Actor.t3", name: "Live", ac: 15 }];
+  call("dnd5e.postRollAttack", [attackRoll(18)], { subject: activity(a) });
+  await settle();
+  assert.deepEqual(attacks.map(e => e.targets.map(t => [t.uuid, t.ac, t.hit])),
+    [[["Actor.t1", 12, true]], [["Actor.t2", 20, false]], [["Actor.t3", 15, true]]]);
+  assert.deepEqual(hits.map(h => [h.targetUuid, h.ac]), [["Actor.t1", 12], ["Actor.t3", 15]]);
+});
+
+test("B-032: retargeting after the roll does not change who was hit when dnd5e stored the targets on the message", async () => {
+  setup(); const a = actor();
+  const attacks = listen("attack"), hits = listen("hit");
+  const stored = [{ uuid: "Actor.t1", name: "Low", ac: 12 }, { uuid: "Actor.t2", name: "High", ac: 30 }, { uuid: "Actor.t3", name: "Cover", ac: null }];
+  const roll = { ...attackRoll(18), parent: { flags: { dnd5e: { targets: stored } } } };
+  targets = [{ uuid: "Actor.t9", name: "Later", ac: 5 }];            // the user retargeted before the hook ran
+  call("dnd5e.postRollAttack", [roll], { subject: activity(a) });
+  await settle();
+  assert.deepEqual(attacks[0].targets.map(t => [t.uuid, t.ac, t.hit]), [["Actor.t1", 12, true], ["Actor.t2", 30, false], ["Actor.t3", null, null]]);
+  assert.deepEqual(hits.map(h => h.targetUuid), ["Actor.t1"]);
+  // The attack was made with nothing targeted: later targets must not be credited with hits.
+  const none = { ...attackRoll(18), parent: { flags: { dnd5e: { targets: [] } } } };
+  call("dnd5e.postRollAttack", [none], { subject: activity(a) });
+  await settle();
+  assert.deepEqual(attacks[1].targets, []); assert.equal(hits.length, 1);
+});
+
+test("B-032: with several current targets and no stored message the current targets are still used", async () => {
+  setup(); const a = actor();
+  const attacks = listen("attack");
+  targets = [{ uuid: "Actor.t1", name: "Low", ac: 12 }, { uuid: "Actor.t2", name: "High", ac: 30 }];
+  // options.target is only dnd5e's single-target AC; it must not be applied to a multi-target set.
+  call("dnd5e.postRollAttack", [{ ...attackRoll(18), options: { target: 5 } }], { subject: activity(a) });
+  await settle();
+  assert.deepEqual(attacks[0].targets.map(t => [t.uuid, t.ac, t.hit]), [["Actor.t1", 12, true], ["Actor.t2", 30, false]]);
+});
+
 test("a throwing or rejecting handler is isolated from the emitter and later handlers", async () => {
   setup(); const a = actor(); const errors = console.error; console.error = () => {};
   try {

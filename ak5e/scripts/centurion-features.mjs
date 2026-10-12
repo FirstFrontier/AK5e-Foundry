@@ -253,7 +253,7 @@ guardUses.register({ plans: CENTURION_PLANS });
 
 export function centurionPreRollAttack(config, _dialog, _message) {
   const activity = config?.subject, actor = activity?.actor;
-  if (!actor || !isCenturion(actor)) return;
+  if (!actor) return;
   const roll = config.rolls?.[0];
   if (!roll) return;
 
@@ -269,6 +269,17 @@ export function centurionPreRollAttack(config, _dialog, _message) {
     if (anyFrightened) {
       roll.options ??= {};
       roll.options.advantage = true;
+    }
+  }
+
+  // Fearmonger (Level 4): Frightened creatures have Disadvantage on Attack Rolls against you
+  const isAttackerFrightened = actor.statuses?.has?.("frightened") || Boolean(flag(actor, "frightened"));
+  if (isAttackerFrightened) {
+    const targets = Array.from(globalThis.game?.user?.targets ?? []);
+    const centurionTarget = targets.find(t => isCenturion(t.actor) && (guardLevel(t.actor) ?? 1) >= 4);
+    if (centurionTarget) {
+      roll.options ??= {};
+      roll.options.disadvantage = true;
     }
   }
 }

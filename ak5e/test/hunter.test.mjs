@@ -73,7 +73,8 @@ test("Empowered Shot plan with Target Lock discount and Double Up", () => {
       ak5e: {
         marksman: {
           enabled: true,
-          targetLock: { active: true, targetUuid: "Actor.boss1" }
+          targetLock: { active: true, targetUuid: "Actor.boss1", expiresAt: Date.now() / 1000 + 60 },
+          martialDcAbility: "dex"
         }
       }
     }
@@ -123,7 +124,7 @@ test("Railgun plan calculates DC and damage based on charges spent", () => {
         flags: { ak5e: { chapterThreeId: "subclass-marksman-hunter" } }
       }
     ],
-    flags: { ak5e: { marksman: { enabled: true } } }
+    flags: { ak5e: { marksman: { enabled: true, martialDcAbility: "dex" } } }
   };
 
   defineHunterPools();

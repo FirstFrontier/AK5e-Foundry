@@ -107,7 +107,7 @@ test("Siege Bolt plan calculates DC and notes DR bypass", () => {
     ],
     flags: {
       ak5e: {
-        marksman: { enabled: true }
+        marksman: { enabled: true, martialDcAbility: "dex" }
       }
     }
   };
@@ -143,7 +143,7 @@ test("Goliath's Bane plan forces Con save and applies Stunned condition", () => 
     ],
     flags: {
       ak5e: {
-        marksman: { enabled: true, siegeMode: true }
+        marksman: { enabled: true, siegeMode: true, martialDcAbility: "dex" }
       }
     }
   };

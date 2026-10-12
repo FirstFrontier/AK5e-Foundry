@@ -9,6 +9,7 @@ import {
   GUARD_CLASS_ID, GUARD_BRANCH_IDS, FIGHTING_STYLES, checkLevel, guardProfile,
   guardState, flag as guardFlag
 } from "./guard-rules.mjs";
+import { WEAPONMASTER_FIGHTING_STYLES } from "./weaponmaster-features.mjs";
 import { need } from "./operation-kernel.mjs";
 
 export const GUARD_PROGRESS_FLAG = "guardProgression";
@@ -175,6 +176,7 @@ export function guardChoices(actor, supplied = {}) {
   result.startingEquipment = { ...(saved.startingEquipment ?? {}), ...(supplied.startingEquipment ?? {}) };
   result.talents = { ...(saved.talents ?? {}), ...(supplied.talents ?? {}) };
   result.fightingStyle = supplied.fightingStyle ?? saved.fightingStyle ?? null;
+  result.weaponmasterAdditionalFightingStyle = supplied.weaponmasterAdditionalFightingStyle ?? saved.weaponmasterAdditionalFightingStyle ?? null;
   const level = levelOf(guardClass(actor));
   if (level) {
     result.asi ??= {};
@@ -242,6 +244,7 @@ export function inspectGuardFields(actor, choices = {}) {
   const attached = branchItem(actor);
   const currentChoices = guardChoices(actor, choices);
   const isCrusher = currentChoices.branch === "subclass-guard-crusher" || attached?.name?.toLowerCase().includes("crusher");
+  const isWeaponmaster = currentChoices.branch === "subclass-guard-weaponmaster" || attached?.name?.toLowerCase().includes("weaponmaster");
   const fields = [];
 
   if (!attached) {
@@ -250,6 +253,9 @@ export function inspectGuardFields(actor, choices = {}) {
   }
 
   fields.push(field("fightingStyle", "Choose your Fighting Style", Object.entries(FIGHTING_STYLES).map(([key, style]) => option(key, `${style.name}: ${style.description}`)), 1, currentChoices.fightingStyle ?? null));
+  if (isWeaponmaster) {
+    fields.push(field("weaponmasterAdditionalFightingStyle", "Art of War: Additional Fighting Style (Guard or Marksman, swappable on Long Rest)", Object.entries(WEAPONMASTER_FIGHTING_STYLES).map(([key, style]) => option(key, `${style.name}: ${style.description}`)), 1, currentChoices.weaponmasterAdditionalFightingStyle ?? null));
+  }
   fields.push(field("saves", "Choose one additional Saving Throw proficiency (Strength is automatic)", SAVES.map(([name, key]) => option(key, name)), 1, currentChoices.saves?.[0] ?? null));
   fields.push(field("skills", "Choose three Guard skills", SKILLS.map(([name, key]) => option(key, name)), 3, currentChoices.skills ?? []));
   fields.push(field("tool", "Choose a Kit proficiency (Maintenance Kit is standard)", TOOLS.map(name => option(name, name)), 1, currentChoices.tool ?? "Maintenance Kit"));
@@ -385,6 +391,10 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   const currentSaves = new Set(system.traits?.saves?.value ?? []);
   currentSaves.add("str");
   if (choices.saves?.[0]) currentSaves.add(choices.saves[0]);
+  // Musha Enduring Resolve: Wisdom Saving Throw proficiency (Ch. 3 L3271)
+  if (selectedBranchId === "subclass-guard-musha") {
+    currentSaves.add("wis");
+  }
   writes["system.traits.saves.value"] = Array.from(currentSaves);
 
   // Armour: light, medium, shield
@@ -395,10 +405,24 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   writes["system.traits.armorProf.value"] = Array.from(currentArmour);
 
   // Weapons: custom note "All Melee Weapons"
-  const currentCustomWeapons = String(system.traits?.weaponProf?.custom ?? "").trim();
+  let currentCustomWeapons = String(system.traits?.weaponProf?.custom ?? "").trim();
   if (!currentCustomWeapons.includes("All Melee Weapons")) {
-    writes["system.traits.weaponProf.custom"] = currentCustomWeapons ? `${currentCustomWeapons}; All Melee Weapons` : "All Melee Weapons";
+    currentCustomWeapons = currentCustomWeapons ? `${currentCustomWeapons}; All Melee Weapons` : "All Melee Weapons";
   }
+
+  // Weaponmaster Art of War: All Light Ranged and Heavy Ranged weapons proficiency (Ch. 3 L3440)
+  if (selectedBranchId === "subclass-guard-weaponmaster") {
+    if (!currentCustomWeapons.includes("All Light Ranged Weapons")) {
+      currentCustomWeapons += "; All Light Ranged Weapons";
+    }
+    if (!currentCustomWeapons.includes("All Heavy Ranged Weapons")) {
+      currentCustomWeapons += "; All Heavy Ranged Weapons";
+    }
+    if (choices.weaponmasterAdditionalFightingStyle) {
+      writes["flags.ak5e.weaponmaster.additionalFightingStyle"] = choices.weaponmasterAdditionalFightingStyle;
+    }
+  }
+  writes["system.traits.weaponProf.custom"] = currentCustomWeapons;
 
   // Skills
   for (const skillKey of (choices.skills ?? [])) {

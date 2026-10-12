@@ -56,6 +56,14 @@ import { openGuardControls, registerGuardSheetHooks } from "./guard-sheet.mjs";
 import { isCenturion, registerCenturionHooks } from "./centurion-features.mjs";
 import { isCrusher, registerCrusherHooks } from "./crusher-features.mjs";
 import { isInstructor, registerInstructorHooks } from "./instructor-features.mjs";
+import { isArtsblade, registerArtsbladeHooks, maxArtLevel, bladeArtFormula, ARTS_POOLS } from "./artsblade-features.mjs";
+import { isBrawler, registerBrawlerHooks, bobAndWeaveAC, artOfTheFistDie } from "./brawler-features.mjs";
+import { isDuellist, registerDuellistHooks } from "./duellist-features.mjs";
+import { isLiberator, registerLiberatorHooks } from "./liberator-features.mjs";
+import { isLord, registerLordHooks } from "./lord-features.mjs";
+import { isMusha, registerMushaHooks, solobladeFormula, getNotYetDC, getNothingToLoseAttacks, livingOnTheEdgeBonus, mushaPreApplyDamageHook } from "./musha-features.mjs";
+import { isReaper, registerReaperHooks, getRuin, getReaperTableEntry, getReapCritThreshold, getCurtainfallCritThreshold, calculateSwarmKills, reaperPreApplyDamageHook } from "./reaper-features.mjs";
+import { isWeaponmaster, registerWeaponmasterHooks, MARTIAL_MASTERY_TABLE, getWeaponMasteryProperty, WEAPONMASTER_FIGHTING_STYLES, isWeaponmasterProficient, getWeaponmasterView } from "./weaponmaster-features.mjs";
 import { previewMarksmanSetup, applyMarksmanSetup } from "./marksman-setup.mjs";
 import { inspectMarksmanFields, previewMarksmanProgression, applyMarksmanProgression } from "./marksman-progression.mjs";
 import { registerMarksmanHooks, targetLockPool, unerringPool, steelRainPool } from "./marksman-features.mjs";
@@ -162,7 +170,51 @@ Hooks.once("ready", () => {
       recordRuling: recordGuardRuling,
       isCenturion,
       isCrusher,
-      isInstructor
+      isInstructor,
+      isArtsblade,
+      isBrawler,
+      isDuellist,
+      isLiberator,
+      isLord,
+      isMusha,
+      isReaper,
+      isWeaponmaster,
+      artsblade: Object.freeze({
+        isArtsblade,
+        maxArtLevel,
+        bladeArtFormula,
+        pools: ARTS_POOLS
+      }),
+      brawler: Object.freeze({
+        isBrawler,
+        bobAndWeaveAC,
+        artOfTheFistDie
+      }),
+      musha: Object.freeze({
+        isMusha,
+        solobladeFormula,
+        getNotYetDC,
+        getNothingToLoseAttacks,
+        livingOnTheEdgeBonus,
+        mushaPreApplyDamageHook
+      }),
+      reaper: Object.freeze({
+        isReaper,
+        getRuin,
+        getReaperTableEntry,
+        getReapCritThreshold,
+        getCurtainfallCritThreshold,
+        calculateSwarmKills,
+        reaperPreApplyDamageHook
+      }),
+      weaponmaster: Object.freeze({
+        isWeaponmaster,
+        MARTIAL_MASTERY_TABLE,
+        getWeaponMasteryProperty,
+        WEAPONMASTER_FIGHTING_STYLES,
+        isWeaponmasterProficient,
+        getWeaponmasterView
+      })
     }),
     marksman: Object.freeze({
       preview: previewMarksmanSetup,
@@ -296,6 +348,14 @@ Hooks.once("ready", () => {
   registerCenturionHooks();
   registerCrusherHooks();
   registerInstructorHooks();
+  registerArtsbladeHooks();
+  registerBrawlerHooks();
+  registerDuellistHooks();
+  registerLiberatorHooks();
+  registerLordHooks();
+  registerMushaHooks();
+  registerReaperHooks();
+  registerWeaponmasterHooks();
   Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(guardUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Guard relay", error)));
   registerGuardSheetHooks();
   registerMarksmanHooks();

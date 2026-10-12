@@ -16,9 +16,36 @@ import { createOperationKernel, flag, values, need, opaqueKey, esc, keyedSerial 
 import { getPool, getPoolDefinition } from "./resource-pools.mjs";
 import { requireOverrides, resolveReading, currentEpoch, isLocked } from "./play-undo.mjs";
 import { applyHealing, applyTempHP } from "./damage-pipeline.mjs";
-import { getReactions, refundReaction } from "./trigger-events.mjs";
+import { getReactions, refundReaction, spendReaction } from "./trigger-events.mjs";
 
 const getPath = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
+const clone = value => value === undefined ? undefined : structuredClone(value);
+const deletePath = path => { const parts = path.split("."), leaf = parts.pop(); return `${parts.join(".")}.-=${leaf}`; };
+function mergeUpdate(before, update) {
+  if (!update || typeof update !== "object" || Array.isArray(update)) return clone(update);
+  const merged = before && typeof before === "object" && !Array.isArray(before) ? clone(before) : {};
+  for (const [key, value] of Object.entries(update)) {
+    if (key.startsWith("-=")) delete merged[key.slice(2)];
+    else merged[key] = value && typeof value === "object" && !Array.isArray(value)
+      ? mergeUpdate(merged[key], value) : clone(value);
+  }
+  return merged;
+}
+function restoreUpdate(path, before, after, updates) {
+  if (before && after && typeof before === "object" && typeof after === "object" && !Array.isArray(before) && !Array.isArray(after)) {
+    for (const key of Object.keys(after)) if (!Object.hasOwn(before, key)) updates[`${path}.-=${key}`] = null;
+    for (const [key, value] of Object.entries(before)) {
+      if (!Object.hasOwn(after, key)) updates[`${path}.${key}`] = clone(value);
+      else restoreUpdate(`${path}.${key}`, value, after[key], updates);
+    }
+  } else updates[path] = clone(before);
+}
+function sameValue(a, b) {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object" || Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && sameValue(a[key], b[key]));
+}
 const isConstruct = actor => String(actor?.system?.details?.type?.value ?? "").toLowerCase() === "construct";
 export const warn = (list, id, text) => list.push({ id, text });
 class NoGM extends Error {}
@@ -53,6 +80,17 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     return { ...state, undo: Array.isArray(state.undo) ? state.undo : [], data: state.data && typeof state.data === "object" ? state.data : {} };
   }
   async function save(actor, state, updates = {}) { await actor.update({ ...updates, [`flags.ak5e.${ns}`]: state }); }
+
+  function prepareFlagChanges(actor, receipt, updates) {
+    const resourcePaths = new Set((receipt.resources ?? []).map(resource => resource.path));
+    receipt.flagChanges = Object.entries(updates)
+      .filter(([path]) => path.startsWith("flags.ak5e.") && !resourcePaths.has(path))
+      .map(([path, after]) => {
+        const before = getPath(actor, path);
+        return { path, before: clone(before), beforePresent: before !== undefined, after: mergeUpdate(before, after) };
+      });
+    receipt.preparedUpdates = clone(updates);
+  }
 
   /* ---------------------------------------------------------------- built-in target kinds */
 
@@ -217,6 +255,39 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
   }
   async function finish(actor, useId) {
     const state = readState(actor), receipt = state.undo.find(entry => entry.id === useId);
+    if (!receipt) throw new Error(`No recorded ${label} use matches this operation.`);
+    // The confirmed plan is persisted before any returned resource/flag updates are
+    // committed. Reapplying these absolute values after an interrupted write is safe.
+    if (receipt.preparedUpdates && !receipt.updatesApplied) {
+      receipt.status = "applying";
+      receipt.updatesApplied = true;
+      try { await save(actor, state, receipt.preparedUpdates); }
+      catch (error) {
+        receipt.updatesApplied = readState(actor).undo.find(entry => entry.id === useId)?.updatesApplied === true;
+        receipt.status = "pending";
+        receipt.lastError = String(error.message).replace(/\.$/, "");
+        await save(actor, state);
+        await useCard(actor, receipt);
+        throw new Error(`Not applied yet: ${receipt.lastError}. The use is recorded; retry it from the panel.`);
+      }
+    }
+    if (receipt.reaction?.requested && !receipt.reaction.spent) {
+      try {
+        const reaction = receipt.reaction;
+        reaction.receiptId ??= `playuse_${ns}_${receipt.id}`;
+        const spent = await spendReaction(actor, { triggerId: reaction.triggerId, receipt: reaction.receiptId,
+          tags: reaction.tags ?? [], perTrigger: reaction.perTrigger ?? true, pool: reaction.pool ?? "auto" });
+        reaction.spent = spent.ok === true;
+        reaction.reason = spent.ok ? null : spent.reason;
+        await save(actor, state);
+      } catch (error) {
+        receipt.status = "pending";
+        receipt.lastError = String(error.message).replace(/\.$/, "");
+        await save(actor, state);
+        await useCard(actor, receipt);
+        throw new Error(`Not applied yet: ${receipt.lastError}. The use is recorded; retry it from the panel.`);
+      }
+    }
     for (const entry of receipt.targets ?? []) {
       if (!entry.ready || entry.applied) continue;
       try { entry.applied = (await changeTarget(actor, receipt, entry, "apply")) ?? true; }
@@ -226,7 +297,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
         throw new Error(`Not applied yet: ${receipt.lastError}. The use is recorded; retry it from the panel${error instanceof NoGM ? " when a GM is connected" : ""}.`);
       }
     }
-    receipt.status = receipt.targets?.some(entry => !entry.ready) || (receipt.damageParts?.length && receipt.roll === undefined) ? "awaitingRoll" : "complete"; receipt.lastError = null;
+    receipt.status = receipt.targets?.some(entry => !entry.ready) || (receipt.damageParts?.length && receipt.roll === undefined) || (receipt.formula && receipt.roll === undefined) ? "awaitingRoll" : "complete"; receipt.lastError = null;
     await save(actor, state);
     await useCard(actor, receipt);
     return receipt.result;
@@ -263,9 +334,11 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
         data: structuredClone(data), overridden: overridden.map(warning => warning.text), targets: [],
         reading: reading?.source === "player" ? READINGS[plan.reading].options.find(option => option.value === reading.value)?.label ?? String(reading.value) : null };
       const updates = await plan.apply(state, receipt, reading?.value) ?? {};
+      prepareFlagChanges(actor, receipt, updates);
       // Encounter receipts stay available for the whole current window, even when a table records more than 60 uses.
       state.undo = [...state.undo, receipt];
-      await save(actor, state, updates);
+      // Persist a recoverable plan before spending resources or applying its flags.
+      await save(actor, state);
       return finish(actor, receipt.id);
     });
   }
@@ -305,8 +378,12 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     if (receipt.status === "undone") return { lines: ["This use was already undone."], blocked: true };
     const lines = [], locked = isLocked(receipt);
     if (locked) lines.push(game.user.isGM ? "This use is from an earlier encounter window; as GM you may still undo it." : "Locked: this use's encounter window has ended.");
-    for (const resource of receipt.resources ?? []) if (resource.before !== resource.after)
+    for (const resource of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.resources ?? [] : [])) if (resource.before !== resource.after)
       lines.push(resource.before > resource.after ? `Restores ${resource.before - resource.after} ${resource.label}.` : `Removes the ${resource.after - resource.before} ${resource.label} it gave.`);
+    for (const change of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.flagChanges ?? [] : [])) {
+      if (sameValue(getPath(actor, change.path), change.after)) lines.push(`Restores ${change.path.replace(/^flags\.ak5e\./, "")} to its prior value.`);
+      else lines.push(`Won't restore ${change.path.replace(/^flags\.ak5e\./, "")}: its value changed after this use.`);
+    }
     if (receipt.reaction?.spent) {
       const current = getReactions(actor), active = current.receipts?.[receipt.reaction.receiptId];
       lines.push(active ? "Restores the Reaction spent by this use." : "The Reaction has already refreshed at a Turn start; undo leaves it available.");
@@ -341,7 +418,14 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
       } else if (result?.reason !== "nothingSpent") throw new Error("The Reaction could not be restored yet; retry this undo.");
     }
     const updates = {};
-    for (const resource of receipt.resources ?? []) {
+    for (const change of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.flagChanges ?? [] : [])) {
+      if (sameValue(getPath(actor, change.path), change.after)) {
+        if (change.beforePresent) restoreUpdate(change.path, change.before, change.after, updates);
+        else updates[deletePath(change.path)] = null;
+      }
+      else receipt.undoNotes.push(`Won't restore ${change.path.replace(/^flags\.ak5e\./, "")}: its value changed after this use.`);
+    }
+    for (const resource of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.resources ?? [] : [])) {
       const pool = resource.pool && getPoolDefinition(resource.pool) ? getPool(actor, resource.pool) : null;
       const current = pool ? pool.value : Number(getPath(actor, resource.path)) || 0;
       // The exact prior value is restored, even above the maximum.

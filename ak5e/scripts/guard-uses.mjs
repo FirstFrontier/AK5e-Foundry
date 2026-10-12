@@ -4,9 +4,11 @@
  * Receipts live in `flags.ak5e.guardUses`; rulings are read from `flags.ak5e.guard.rulings`.
  */
 import { createPlayUses, warn, spendResource, resourceValue } from "./play-uses.mjs";
-import { guardEnabled, guardLevel, guardState, checkLevel } from "./guard-rules.mjs";
+import { guardEnabled, guardLevel, guardBranch, guardState, checkLevel } from "./guard-rules.mjs";
 import { need } from "./operation-kernel.mjs";
 import { spendReaction, getReactions } from "./trigger-events.mjs";
+
+const isDuellist = actor => Boolean(guardEnabled(actor) && guardBranch(actor) === "duellist");
 
 export const guardUses = createPlayUses({
   ns: "guardUses",
@@ -38,31 +40,71 @@ const levelWarning = (warnings, actor, requiredLevel, featureName) => {
 /* ---------------------------------------------------------------- Core Guard Plans */
 
 const CORE_PLANS = {
-  forestall(actor, _state, data) {
+  forestall(actor, state, data) {
     need(guardEnabled(actor), "Forestall is a Guard feature.");
     const amount = Number(data.amount ?? 1);
     need(Number.isInteger(amount) && amount >= 1 && amount <= 3, "Choose how much Aggression to expend (1 to 3).");
     const warnings = [];
     const pb = Number(actor.system?.attributes?.prof ?? 2);
-    const available = resourceValue(actor, { pool: "aggression" });
-    if (available < amount) {
-      warn(warnings, "aggression", `${amount} Aggression needed and ${available} remain; Aggression clamps at 0.`);
+
+    // Parry (Duellist 1st Level, Ch. 3 L2764):
+    // First Forestall each Round costs 0 reaction and 1 fewer Aggression (min 0).
+    const duellist = isDuellist(actor);
+    const combat = globalThis.game?.combat;
+    const roundKey = combat?.started
+      ? `${combat.id}:${combat.round}`
+      : (data.round !== undefined ? `round:${data.round}` : null);
+
+    let isFirstThisRound = false;
+    if (duellist) {
+      if (data.firstThisRound !== undefined) {
+        isFirstThisRound = Boolean(data.firstThisRound);
+      } else if (roundKey) {
+        const usedThisRound = (state.undo ?? []).some(
+          r => r.command === "forestall" && r.status !== "undone" && r.roundKey === roundKey
+        );
+        isFirstThisRound = !usedThisRound;
+      } else {
+        const usedParry = (state.undo ?? []).some(
+          r => r.command === "forestall" && r.status !== "undone" && r.isParry && !r.newRound
+        );
+        isFirstThisRound = data.newRound === true || !usedParry;
+      }
     }
-    const reactions = getReactions(actor);
-    if (reactions?.available < 1) {
-      warn(warnings, "reaction", `${actor.name} has no Reaction remaining.`);
+
+    const isParry = duellist && isFirstThisRound;
+    const aggressionCost = isParry ? Math.max(0, amount - 1) : amount;
+
+    const available = resourceValue(actor, { pool: "aggression" });
+    if (available < aggressionCost) {
+      warn(warnings, "aggression", `${aggressionCost} Aggression needed and ${available} remain; Aggression clamps at 0.`);
+    }
+
+    if (!isParry) {
+      const reactions = getReactions(actor);
+      if (reactions?.available < 1) {
+        warn(warnings, "reaction", `${actor.name} has no Reaction remaining.`);
+      }
     }
 
     return {
       warnings,
-      title: "Press the Attack: Forestall",
+      title: isParry ? "Press the Attack: Forestall (Parry)" : "Press the Attack: Forestall",
       async apply(next, receipt) {
-        const updates = spendResource(actor, receipt, { pool: "aggression", amount, label: "Aggression" });
-        const rx = await spendReaction(actor, { triggerId: `${receipt.id}-forestall`, receipt: receipt.id });
-        receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+        receipt.roundKey = roundKey;
+        receipt.isParry = isParry;
+        receipt.newRound = data.newRound === true;
+
+        const updates = spendResource(actor, receipt, { pool: "aggression", amount: aggressionCost, label: "Aggression" });
+        if (!isParry) {
+          const rx = await spendReaction(actor, { triggerId: `${receipt.id}-forestall`, receipt: receipt.id });
+          receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+        } else {
+          receipt.reaction = { requested: false, spent: false, receiptId: receipt.id, parry: true };
+        }
         const bonus = amount * pb;
-        receipt.summary = `${actor.name}'s AC is increased by ${bonus} against the triggering Attack.`;
-        receipt.result = { acBonus: bonus, aggressionSpent: amount };
+        receipt.summary = `${actor.name}'s AC is increased by ${bonus} against the triggering Attack.${isParry ? " (Parry: 0 reaction, -1 Aggression)" : ""}`;
+        receipt.result = { acBonus: bonus, aggressionSpent: aggressionCost, isParry };
         return updates;
       }
     };

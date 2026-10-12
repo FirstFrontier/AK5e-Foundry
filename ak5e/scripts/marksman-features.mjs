@@ -8,7 +8,7 @@ import {
   targetLockBonus, isTargetLocked, hasFightingStyle, FIGHTING_STYLES
 } from "./marksman-rules.mjs";
 import { marksmanUses } from "./marksman-uses.mjs";
-import { definePool, getPool, getPoolDefinition, spendPool, refundPool } from "./resource-pools.mjs";
+import { definePool, getPool, getPoolDefinition, recoverPool } from "./resource-pools.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
 import { flag, values, need, keyedSerial } from "./operation-kernel.mjs";
 
@@ -27,7 +27,8 @@ export function defineMarksmanPools() {
       appliesTo: actor => marksmanEnabled(actor),
       recovery: [
         { on: "sr", amount: "toMax" },
-        { on: "lr", amount: "toMax" }
+        { on: "lr", amount: "toMax" },
+        { on: "initiative", amount: 1, when: (actor, context) => enhancedTargetLockUnlocked(actor) && context.marksmanEvent === true }
       ]
     });
   }
@@ -65,6 +66,56 @@ export function defineMarksmanPools() {
 export const targetLockPool = actor => getPool(actor, "targetLock");
 export const unerringPool = actor => getPool(actor, "unerring");
 export const steelRainPool = actor => getPool(actor, "steelRain");
+
+const enhancedTargetLockUnlocked = actor => {
+  const level = marksmanLevel(actor);
+  if (level >= 12) return true;
+  return level >= 11 && Number(marksmanState(actor).rulings?.enhancedTargetLockLevel?.value) === 11;
+};
+
+const deadlyFighterTurn = new Map();
+const deadlyFighterPending = new Map();
+const deadlyAdjustedRolls = new WeakSet();
+function deadlyFighterCycle(actor) {
+  const combat = globalThis.game?.combat;
+  if (!combat?.started || combat.round == null || combat.turn == null) return false;
+  return `${combat.uuid ?? combat.id ?? "combat"}:${combat.round}:${combat.turn}`;
+}
+function deadlyItemKey(item) {
+  return item?.uuid ?? item?.id ?? item?.name ?? null;
+}
+export function marksmanPostRollAttack(_rolls, { subject } = {}) {
+  const actor = subject?.actor, cycle = actor && deadlyFighterCycle(actor);
+  if (!actor || !cycle) return;
+  const actorKey = actor.uuid ?? actor.id ?? actor.name, pending = deadlyFighterPending.get(actorKey);
+  if (pending?.cycle !== cycle || pending.itemKey !== deadlyItemKey(subject?.item)) return;
+  deadlyFighterTurn.set(actorKey, cycle);
+  deadlyFighterPending.delete(actorKey);
+}
+
+function tellManualTargetLockRecovery(actor) {
+  const owners = Array.from(globalThis.game?.users ?? []).filter(user => actor.testUserPermission?.(user, "OWNER")).map(user => user.id);
+  const message = "Enhanced Target Lock's initiative recovery is unresolved at Marksman level 11 (class table says 11; feature heading says 12). No use was restored. Ask the GM to record the ruling; otherwise recover Target Lock manually if the table uses the 11th-level reading.";
+  if (!globalThis.ChatMessage?.implementation?.create || owners.length === 0) return;
+  return globalThis.ChatMessage.implementation.create({ content: `<p>${message}</p>`, whisper: owners });
+}
+
+/** Initiative adapter. Event documents are in `raw`; use the canonical receipt-aware pool recovery path. */
+export async function recoverTargetLockOnInitiative(event) {
+  const actor = event?.raw?.actor;
+  if (!actor || !marksmanEnabled(actor) || marksmanLevel(actor) < 11) return [];
+  if (!enhancedTargetLockUnlocked(actor)) {
+    if (marksmanState(actor).rulings?.enhancedTargetLockLevel?.value === undefined) {
+      await tellManualTargetLockRecovery(actor);
+    }
+    return [];
+  }
+  return recoverPool(actor, "initiative", {
+    poolIds: ["targetLock"],
+    eventKey: event.eventId ?? `enhancedTargetLock:${event.combatantId ?? actor.uuid}:${event.combatUuid ?? "combat"}`,
+    context: { marksmanEvent: true, actorUuid: actor.uuid, combatUuid: event.combatUuid ?? null, combatantId: event.combatantId ?? null }
+  });
+}
 
 export const ownTurn = actor => Boolean(globalThis.game?.combat?.started && globalThis.game.combat.combatant?.actor?.uuid === actor.uuid);
 
@@ -109,8 +160,9 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
 
   // 1. Target Lock: +1 (or +2) attack bonus if attacking the locked target
   const state = marksmanState(actor);
-  if (state.targetLock?.active && targetUuid && state.targetLock.targetUuid === targetUuid) {
-    const bonus = targetLockBonus(actor);
+  if (targetUuid && isTargetLocked(actor, targetUuid)) {
+    const storedBonus = Number(state.targetLock?.bonus);
+    const bonus = Number.isFinite(storedBonus) && storedBonus > 0 ? storedBonus : targetLockBonus(actor);
     roll.parts ??= [];
     roll.parts.push(String(bonus));
   }
@@ -134,19 +186,22 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
   if (activity.actionType === "rwak" && hasFightingStyle(actor, "closeAndPersonal")) {
     if (attackerToken && hasAdjacentHostile(attackerToken)) {
       roll.options ??= {};
-      // Suppress disadvantage from adjacent hostile
-      if (roll.options.disadvantage && !roll.options.advantage) {
-        roll.options.disadvantage = false;
-      }
+      // The feature says the attack does not have Disadvantage, even when Advantage also applies.
+      roll.options.disadvantage = false;
     }
   }
 
   // 5. Deadly Fighter: +1 critical range on first attack roll each turn with Deadly weapon
   if (hasFightingStyle(actor, "deadlyFighter")) {
     const isDeadly = Boolean(activity.item?.system?.properties?.has?.("deadly") || flag(activity.item, "deadly"));
-    if (isDeadly) {
+    const cycle = isDeadly && deadlyFighterCycle(actor);
+    const actorKey = actor.uuid ?? actor.id ?? actor.name;
+    if (cycle && deadlyFighterTurn.get(actorKey) !== cycle && !deadlyAdjustedRolls.has(roll)) {
       roll.options ??= {};
       roll.options.criticalSuccess = Math.min(Number(roll.options.criticalSuccess ?? 20) - 1, 19);
+      // Pre-roll can still be cancelled; only postRollAttack spends the once-per-Turn benefit.
+      deadlyFighterPending.set(actorKey, { cycle, itemKey: deadlyItemKey(activity.item) });
+      deadlyAdjustedRolls.add(roll);
     }
   }
 }
@@ -176,20 +231,11 @@ export function registerMarksmanFeatureHooks() {
 
   defineMarksmanPools();
 
-  // Enhanced Target Lock (Marksman 11th level): regain 1 use of Target Lock on Initiative
-  onAk5eEvent("initiative", async actor => {
-    if (!marksmanEnabled(actor)) return;
-    const level = marksmanLevel(actor);
-    if (level >= 11) {
-      const lock = targetLockPool(actor);
-      if (lock && lock.value === 0) {
-        await refundPool(actor, "targetLock", 1, { reason: "Enhanced Target Lock" });
-      }
-    }
-  });
+  onAk5eEvent("initiative", recoverTargetLockOnInitiative);
 
   if (globalThis.Hooks?.on) {
     Hooks.on("dnd5e.preRollAttackV2", marksmanPreRollAttack);
+    Hooks.on("dnd5e.postRollAttack", marksmanPostRollAttack);
     Hooks.on("dnd5e.preRollDamageV2", marksmanPreRollDamage);
   }
 }

@@ -304,6 +304,9 @@ Chromium headless mode and requests hardware acceleration with `--enable-gpu`.
 - Keep **`TODO.md` current throughout the work**: mark completed segments,
   add newly discovered tasks, split work when that improves tracking, and
   remove items no longer relevant.
+- Track defects as one file each in `bugs/pending/` and, once fixed, `bugs/fixed/`;
+  follow `bugs/README.md`. Read only the bug files your task needs: `ls bugs/pending`,
+  never `bugs/fixed/` wholesale. Cite bugs by ID in assignments and other docs.
 - Do not mass-import the book before a vertical slice has been tested.
 - Do not invent missing mechanics, falsely claim automation, or silently resolve
   ambiguous source text.

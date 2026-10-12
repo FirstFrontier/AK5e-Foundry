@@ -34,12 +34,12 @@ export const MARKSMAN_CORE_FEATURES = Object.freeze([
 ]);
 
 export const ARTILLERYMAN_BRANCH_FEATURES = Object.freeze([
-  { id: "class-feature-marksman-artilleryman-1st-level-tools-of-the-trade-313", level: 1, name: "1st Level: Tools of the Trade" },
-  { id: "class-feature-marksman-artilleryman-1st-level-delayed-detonation-1025", level: 1, name: "1st Level: Delayed Detonation" },
-  { id: "class-feature-marksman-artilleryman-4th-level-secondary-detonation-1692", level: 4, name: "4th Level: Secondary Detonation" },
-  { id: "class-feature-marksman-artilleryman-10th-level-bigger-booms-2381", level: 10, name: "10th Level: Bigger Booms" },
-  { id: "class-feature-marksman-artilleryman-15th-level-force-of-nature-2913", level: 15, name: "15th Level: Force of Nature" },
-  { id: "class-feature-marksman-artilleryman-18th-level-explosive-dawn-3520", level: 18, name: "18th Level: Explosive Dawn" }
+  { id: "subclass-feature-marksman-artilleryman-1st-level-tools-of-the-trade-313", level: 1, name: "1st Level: Tools of the Trade" },
+  { id: "subclass-feature-marksman-artilleryman-1st-level-delayed-detonation-1025", level: 1, name: "1st Level: Delayed Detonation" },
+  { id: "subclass-feature-marksman-artilleryman-4th-level-secondary-detonation-1692", level: 4, name: "4th Level: Secondary Detonation" },
+  { id: "subclass-feature-marksman-artilleryman-10th-level-bigger-booms-2381", level: 10, name: "10th Level: Bigger Booms" },
+  { id: "subclass-feature-marksman-artilleryman-15th-level-force-of-nature-2913", level: 15, name: "15th Level: Force of Nature" },
+  { id: "subclass-feature-marksman-artilleryman-18th-level-explosive-dawn-3520", level: 18, name: "18th Level: Explosive Dawn" }
 ]);
 
 export const BESIEGER_BRANCH_FEATURES = Object.freeze([
@@ -143,13 +143,22 @@ function featureItemData(entry) {
   };
 }
 
+function legacyArtillerymanId(sourceId) {
+  return sourceId.replace("subclass-feature-marksman-artilleryman-", "class-feature-marksman-artilleryman-");
+}
+
+function isLegacyPlaceholder(item, entry) {
+  const description = item?.system?.description?.value ?? item?._source?.system?.description?.value;
+  return description === `<p>AK5e Marksman Feature: ${entry.name}</p>`;
+}
+
 export async function previewMarksmanSetup(actor) {
   const profile = marksmanProfile(actor);
   need(actor?.isOwner && profile.applicable, "Choose an owned character with the Marksman class.");
   const level = profile.level ?? 1;
   const branch = profile.branch;
   const existing = list(actor.items);
-  const creates = [], kept = [];
+  const creates = [], updates = [], kept = [], warnings = [];
 
   // Core class features
   for (const feat of MARKSMAN_CORE_FEATURES) {
@@ -180,17 +189,39 @@ export async function previewMarksmanSetup(actor) {
 
   for (const feat of branchFeatures) {
     if (feat.level > level) continue;
-    const owned = existing.find(i => flag(i, "chapterThreeId") === feat.id || i.name === feat.name);
-    if (owned) kept.push(feat.name);
-    else creates.push(featureItemData(feat));
+    const legacy = feat.id.startsWith("subclass-feature-marksman-artilleryman-")
+      ? existing.find(i => flag(i, "chapterThreeId") === legacyArtillerymanId(feat.id))
+      : null;
+    if (legacy && isLegacyPlaceholder(legacy, feat)) {
+      const source = CHAPTER_THREE_CLASSES.find(e => e.id === feat.id);
+      const sourceData = source ? sourceEntryData(source) : featureItemData(feat);
+      updates.push({
+        _id: legacy.id ?? legacy._id,
+        "flags.ak5e.chapterThreeId": feat.id,
+        "flags.ak5e.marksmanFeature": true,
+        "system.description.value": sourceData.system.description.value
+      });
+      kept.push(feat.name);
+    } else if (legacy) {
+      // The prior bad source key is retained when its text has been edited.
+      // Do not overwrite a player's authored copy or create a duplicate.
+      kept.push(feat.name);
+      warnings.push(`${feat.name} has an edited legacy Item; its source ID and text were preserved.`);
+    } else {
+      const owned = existing.find(i => flag(i, "chapterThreeId") === feat.id || i.name === feat.name);
+      if (owned) kept.push(feat.name);
+      else creates.push(featureItemData(feat));
+    }
   }
 
-  const contextKey = JSON.stringify([actor.uuid, level, branch, creates.map(c => c.name), kept]);
+  const contextKey = JSON.stringify([actor.uuid, level, branch, creates, updates, kept, warnings]);
   return {
     level,
     branch,
     creates,
+    updates,
     kept,
+    warnings,
     contextKey,
     actorUpdates: {
       "flags.ak5e.marksman.enabled": true
@@ -220,10 +251,15 @@ export async function applyMarksmanSetup(actor, { confirmed, contextKey } = {}) 
       actor.items = [...list(actor.items), ...plan.creates];
     }
   }
+  if (plan.updates.length && actor.updateEmbeddedDocuments) {
+    await actor.updateEmbeddedDocuments("Item", plan.updates);
+  }
 
   return {
     createdCount: plan.creates.length,
     keptCount: plan.kept.length,
+    repairedCount: plan.updates.length,
+    warnings: plan.warnings,
     level: plan.level,
     branch: plan.branch
   };

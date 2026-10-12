@@ -11,7 +11,7 @@ Applies across content, classes/branches, engines and UI.
 **Understand → implement → test → inspect → review → revise.**
 
 - Verify model/tools, permissions and routing; prompts cannot switch models.
-- Read the authorized task, `git status`, [TODO.md](TODO.md), [BUGS.md](BUGS.md),
+- Read the authorized task, `git status`, [TODO.md](TODO.md), [bugs/README.md](bugs/README.md) (then `ls bugs/pending`; open only the bugs your task touches),
   [VERIFY.md](VERIFY.md) and [DECISIONS.md](ak5e/DECISIONS.md). Preserve edits.
 - Batch by capability/class/branch; build prerequisites and validate a vertical slice.
 - Record batch/revision, acceptance, ownership and baseline commit/patch/hashes.
@@ -244,7 +244,7 @@ state/checks/defects and **PASS / FAIL / UNCERTAIN** for content, clipping,
 readability, links and controls. Fix, recapture and resume the inspector.
 Unviewed images stay pending; screenshots alone do not prove gameplay.
 
-Update TODO/BUGS/DECISIONS/VERIFY and live evidence logs. Report scope/manual
+Update TODO/`bugs/`/DECISIONS/VERIFY and live evidence logs. Report scope/manual
 limits, tests, environment/renderer, inspector, reviews and gaps. Separate
 locked-pack clean-World imports, UUIDs, persistence and licensing/release readiness.
 Generation, mocks, unviewed images and stale reviews do not establish completion.

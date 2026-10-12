@@ -1,5 +1,59 @@
 # AK5e Foundry implementation decisions
 
+## Marksman audit repairs (2026-10-12)
+
+This supersedes contradictory automation claims in the historical Marksman
+blocks only for the repaired paths. Evidence and remaining manual boundaries:
+[MARKSMAN_FIXES.md](MARKSMAN_FIXES.md). No owner/GM ruling is created by this patch.
+
+- **Enhanced Target Lock (source conflict / per-use representation):** C3 table
+  says 11 and heading says 12. At 11 the confirm flow offers both string-valued
+  readings; a recorded GM ruling takes precedence. Store the chosen attack
+  bonus on that one expiring lock, and retain it on Shifting Focus. Initiative
+  recovery at 11 is manual without a recorded ruling, with an owner notice;
+  12+ recovery uses the canonical pool/event receipt. Setup retains the original
+  source feature text and existing grant level; adding a descriptive Item at 11
+  does not silently decide when its mechanical benefits unlock.
+- **Martial DC (explicit source / representation):** C1:211 permits STR or DEX,
+  the player's choice. The panel's confirmed choice is reversible. An unchosen
+  ability yields no invented DC; Anti-Air accepts a per-use choice or publicly
+  warns that the table must calculate it manually.
+- **Close and Personal (representation / manual discretion):** the hook follows
+  C3:3622's literal no-Disadvantage wording when an adjacent hostile is present,
+  including when Advantage is also set. Native roll dialogs remain editable so
+  the player can retain unrelated Disadvantage for the table's reading. This
+  does not add an invented disadvantage-cause classification.
+- **Expiry and Turn facts (representation / manual):** new Target Lock and Last
+  Option durations use Foundry world-time seconds. Legacy durationless locks
+  grant no permanent bonus; old millisecond expiry timestamps, when present,
+  retain their wall-clock expiry. Air Tracking uses explicit off-ground facts
+  or flying/hovering status and prior-Turn movement facts, never mere fly speed
+  or absolute elevation. Turn allowances outside combat are tracked manually.
+- **Area/munition resolution (manual):** guided notes and printed public-card
+  instructions cover Area Denial's actual selected height, immunity nominations,
+  delayed/lingering saves, cumulative reductions, Secondary no-chaining, Splash,
+  ten-minute detonation, five-foot disarm and collision. The owner clicks native
+  weapon/save/damage controls; the helpers do not claim automatic target effects.
+  A missing point/damage stays unspecified rather than becoming `(0,0)` or 0.
+- **Artilleryman typed benefits (representation / manual):** only definite
+  Thunder components gain Explosive Expertise dice. Alternative/unknown types
+  remain untouched. Siege Attacker doubling is manual per Vehicle/Structure
+  recipient; D&D5e 5.3.3 ignores the old `options.multiply` field. Trap DC retains
+  its original reviewed base; Sharpened Shrapnel's +2 applies only to Splash.
+  X doubling, Loading removal and Thunder/self-damage defenses are explicitly
+  manual, including delayed and secondary damage provenance.
+- **Progression migration (representation):** existing authored HP/abilities are
+  retained; select only new gains. Saved version-1 ASIs are known to have been
+  added by the old apply path and migrate as already included. Style/Talent/module
+  and equipment grants have visible source-derived manual procedures where
+  native automatic grants are incomplete. No class/subclass is newly certified.
+- **Undo/retry (implementation):** persist prepared changes first, then commit
+  benefits/costs and their applied marker atomically. Deferred Reactions use a
+  stable ledger receipt. Undo of uncommitted changes refunds nothing; retry of
+  committed changes preserves later spends. Returned flag changes restore only
+  when still matching the receipt, with conflict notes before undo. Whole-state
+  cross-client receipt races remain separate tracked work (B-020/B-091).
+
 ## Caster / Core / Mystic / Mech-Accord (0.4.0)
 
 The implementation map is [CASTER_IMPLEMENTATION.md](CASTER_IMPLEMENTATION.md).
@@ -1329,14 +1383,14 @@ L2846–2936 (Instructor); referenced Chapter 1 (Martial DC L211, conditions, DR
 Chapter 4 (equipment, Heavy and Crush properties), Chapter 6 (Elites and Leaders).
 
 - **Guard Progression & Setup (E/F):**
-  - Chassis saves (STR, CON), skills (choose 2 of Athletics, Arts, Deception, Insight,
-    Intimidation, Perception, Wilderness), starting equipment (Scale Mail or Leather,
-    Martial Weapon + Shield or two Martial Weapons, Crossbow + 20 Bolts or two Handaxes,
-    Dungeoneer's or Explorer's pack, or 1300 LMD as CP).
-  - Fighting Styles (Lightly Armed, Ranger, Spearwall, Great Weapon Fighting, Deadly Fighter,
-    Defense, Protection, Two-Weapon Fighting).
-  - ASIs at 4/6/8/12/14/16/19; Hit Dice d10 (fixed 6 or entered roll).
-  - Basic/Advanced Talents slots at levels 2/7/13/17.
+  - Chassis saves: Strength + choose 1 of Constitution or Dexterity (L1773).
+  - Skills: choose 3 of Acrobatics, Athletics, Lore, Insight, Intimidation, Wilderness (L1774).
+  - Starting equipment: Heavy Melee Weapon OR Light Melee Weapon; Light Melee Weapon OR Light Shield;
+    Reinforced Outfit OR Combat Gear; one kit proficient with (or 1300 LMD as CP) (L1776–1786).
+  - Fighting Styles: Lightly Armed, Ranger, Spearwall, Great Weapon Fighting, Deadly Fighter,
+    Defensive, Duelling, Two-Weapon Fighting, Brawler (L1837–1865).
+  - ASIs at 4/6/8/10/12/16/19; Hit Dice d10 (fixed 6 or entered roll).
+  - Basic/Advanced Talents slots at levels 3/8/9/13.
   - Setup is idempotent and opt-in: `previewGuardSetup` / `applyGuardSetup` grant level-appropriate
     features without duplicates and never auto-import on drop or sheet render.
 
@@ -1391,6 +1445,53 @@ Chapter 4 (equipment, Heavy and Crush properties), Chapter 6 (Elites and Leaders
   - Renowned Instructor recovers instruction dice up to half (ceil) on initiative if below half.
   - Once More Unto The Breach (17th) grants mass Help and Instructions to all allies within 60 ft without
     consuming instruction dice.
+
+## Guard Subclasses: Artsblade and Brawler (0.6.0, 2026-10-11)
+
+Authority: Chapter 3 L2202–2417 (Artsblade), L2423–2546 (Brawler); referenced Chapter 1 (Martial DC L211,
+Conditions, DR), Chapter 4 (Equipment, Light Shields, Weapons), Chapter 5 (Arts Pools, Resonance).
+
+- **Artsblade Subclass (E/F):**
+  - Sword and Sorcery (L2221–2257): Spellsword Points (1 at 1st, 2 at 7th, 3 at 14th; Short/Long Rest recovery),
+    Max Art Level table (1st: 1, 5th: 2, 9th: 3, 13th: 4, 17th: 5), Infused Melee Attacks (Martial DC save on hit
+    with infused weapon), Augmented Assault (spends 2 Aggression to allow two Blade Arts on the turn; at 13th level
+    High Fantasy allows Unleash as normal AoE).
+  - Resonance (L2259–2327): Arts-Touched, Blade Art cantrip (1d6 scaling to 2d6 at 5th, 3d6 at 11th, 4d6 at 17th),
+    11 Standard Arts pools and damage types (Corrosion/acid, Crude/force, Earth/bludgeoning, Electric/lightning,
+    Flame/fire, Fluid/piercing, Frost/cold, Light/radiant, Psychic/psychic, Spatial/thunder, Wind/slashing), and associated riders.
+  - Cut Through Chaos (4th level, L2338–2353): PB/Long Rest uses, reaction spend. Modes: Spell Attack (impose
+    disadvantage on incoming spell attack), Saving Throw (gain advantage and Clear Path), Reaction Art (trigger free
+    Blade Art reaction against attacker/spellcaster).
+  - Sharpened Mind, Sharpened Weapon (10th level, L2355–2366): 2 extra pools, Improved Resonance (+1/+3 Crude hit bonus,
+    +1d10 Flame damage, etc.).
+  - High Fantasy (13th level, L2368–2380): Clear Path, Unleash normal AoE.
+  - Power Overwhelming (17th level, L2382–2417): Ceaseless (+1 SP on Initiative if below max), True Spellsword,
+    Ultimate Blade Art (1/Long Rest, mass elemental burst).
+
+- **Brawler Subclass (E/F):**
+  - Guns Out (L2434–2451): Art of the Fist (Unarmed Strikes deal 1d4 scaling to 1d6 at 7th, 1d8 at 14th; Dexterous
+    attacks; Unarmed Bonus Action), Bob and Weave (AC = 10 + STR + DEX when unarmored or in Light Armour; Light Shields permitted).
+  - Basic Brawling Techniques (1st level, L2453–2508): 8 techniques costing 1–2 Aggression:
+    - Body Check (1 Aggression, push 10 ft on unarmed hit)
+    - Cross Counter (1 Aggression, Reaction on melee attack miss vs Brawler, counter-attack)
+    - Feint (1 Aggression, Bonus Action, Advantage on next melee attack)
+    - Follow Up (1 Aggression, on unarmed hit, free Shove or Disarm attempt)
+    - Footwork (1 Aggression, Disengage as Bonus Action or ignore difficult terrain)
+    - Guard Up (1 Aggression, Bonus Action, Dodge until start of next turn)
+    - Slip Off (2 Aggression, Reaction on melee hit, reduce damage by 1d10 + STR + level)
+    - Tag In (2 Aggression, swap positions with willing ally within 5 ft)
+  - Advanced Brawling Techniques (10th level, L2510–2535): 7 techniques costing 2–3 Aggression:
+    - Chokehold (2 Aggression, grapple/restrain contested check vs STR or CON)
+    - CQC (2 Aggression, Close Quarters Combat, advantage on attacks vs grappled target)
+    - Disarm (3 Aggression, forced drop of held weapon or object)
+    - Human Shield (2 Aggression, Reaction when targeted while grappling a creature, redirect attack to grappled creature)
+    - Menace (2 Aggression, Bonus Action, Frighten target with Intimidation check vs WIS save)
+    - Skullshaker (2 Aggression, on unarmed hit, CON save or Stunned until end of next turn)
+    - Weigh In (2 Aggression, on unarmed hit vs creature smaller/equal size, knock Prone and deal extra damage)
+  - Kick Them While They're Down (13th level, L2537–2539): +PB damage on unarmed strikes against targets suffering
+    detrimental conditions (Prone, Stunned, Restrained, Grappled, Incapacitated, Paralyzed, Unconscious).
+  - Mountainbreaker (17th level, L2541–2546): 1/Long Rest pool. Modes: Flurry of Blows (Action, make 4 unarmed attacks)
+    vs Knockout Blow (Action, single strike + CON save or Stunned for 1 minute).
 
 ## Marksman Subclasses: Anti-Air, Artilleryman, Besieger, Deadeye, and Flinger (0.6.0)
 
@@ -1585,7 +1686,7 @@ Superheavy, Improved Taunt and Greater Improved Shelter are mandatory rules. `de
 Audit-only record; no gameplay code, schema, pack or World change and **no new
 source interpretation selected**. Full evidence, the 117-entry inventory and
 pending rendered acceptance are in [MARKSMAN_AUDIT.md](MARKSMAN_AUDIT.md).
-Confirmed code/mapping defects B-110–128 are tracked in `../BUGS.md`; outstanding
+Confirmed code/mapping defects B-110–128 are tracked in `../bugs/fixed/`; outstanding
 work and class/subclass cross-verification checkpoints are in `../TODO.md`.
 
 | Question or mapping | Explicit source | Current representation and audit disposition |
@@ -1700,3 +1801,203 @@ owner roll/save controls. Manifest-declared release packs remain absent.
   - *Slug:* Target within 60 ft, CON Save vs Martial DC, 5× weapon attack damage ignoring DR.
   - *Beanbag:* 50-ft Cone, DEX Save vs Martial DC, 8d8 Bludgeoning damage & Dazed (non-lethal).
 
+## Guard Subclasses Batch 1: Duellist, Liberator, and Lord (0.6.0, 2026-10-12)
+
+Authority: Chapter 3 L2739–2845 (Duellist), L2938–3039 (Liberator), L3013–3248 (Lord); referenced Chapter 1 (Martial DC L211, conditions, DR, Elites and Leaders), Chapter 4 (Equipment, Greatswords, Polearms), Chapter 5 (Arts Pools, Operator Skills).
+
+- **Duellist Subclass (E/F):**
+  - Identification & Weapons (L2739–2745): `isDuellist(actor)` validates Guard class and `duellist` branch. Duelling Blades grants the Finesse property to Greatswords and Polearms via `dnd5e.preRollAttack` hook, enabling Dexterity-based attack and damage rolls with two-handed heavy/reach weapons.
+  - Rules of Engagement & Points Ledger (L2748–2769): Bonus Action Opponent declaration against a seen creature within 30 ft. Tracks `duellistPoints` pool (0–10 max). Points gain: +1 on declaration (+2 at 10th level), +1 at combat turn start if the opponent was damaged since the Duellist's last turn (+2 at 10th level), +1 at combat turn start if the Duellist was not damaged by the opponent since last turn (+2 at 10th level), and +1 when hitting the opponent with a non-heavy weapon (once per turn). Points reset to 0 if 1 minute passes without either combatant damaging the other or if the opponent drops to 0 HP / surrenders (prior to 17th level).
+  - Parry & Riposte (L2770–2782): Parry reduces the reaction cost of the first Forestall used in each combat round to 0 and reduces its Aggression cost by 1 (minimum 0). Riposte (Press the Attack rider): when a hostile creature misses the Duellist with a melee attack, spend 1 Aggression as a Reaction to make an Opportunity Attack against the attacker.
+  - Principles of Defence (4th level, L2783–2795): Every Victory grants +1 Aggression when the opponent dies or surrenders. Lightning Reflexes: spend 1 Aggression as a Reaction when subjected to an effect seen by the Duellist that allows a Dexterity saving throw to make the save. Punish Every Opening: if that Dexterity save succeeds, the Duellist can immediately make an Opportunity Attack without expending their reaction.
+  - Engagements (9 options, L2796–2829): Tactical combat options consuming Duellist Points, usable once per turn:
+    - *Analysis* (0 pts): Learn opponent AC, remaining HP percentage, and damage vulnerabilities/resistances.
+    - *Balestra* (2 pts): Leap 10 ft toward opponent without provoking AoO, gaining Advantage on next melee attack.
+    - *Derobement* (1 pt): Reaction when opponent declares melee attack; attacker suffers Disadvantage.
+    - *Displacement* (1 pt): On melee hit, swap positions with opponent or push opponent 5 ft if size Large or smaller.
+    - *En Garde* (1 pt): Bonus Action to enter defensive stance; +2 AC against opponent until start of next turn.
+    - *Feint* (1 pt): Bonus Action; opponent makes Wisdom save vs Martial DC or Duellist gains Advantage on attacks this turn.
+    - *Fleche* (2 pts): Move up to full Speed in a straight line toward opponent; melee hit deals +2d8 Slashing/Piercing damage.
+    - *Redoublement* (1 pt): When missing opponent with a melee attack, immediately reroll the attack roll.
+    - *Score* (1 pt): On melee hit against opponent, add +PB Slashing/Piercing damage to the damage roll.
+  - Grand Challenge (13th level, L2830–2841): 1/Long Rest Action declaring Grand Challenge on Opponent for 1 minute:
+    - Corps à Corps: when Opponent makes an attack against anyone other than the Duellist, the Duellist can make an Opportunity Attack against the Opponent.
+    - Displacement: Duellist gains Resistance to all damage originating from creatures other than the Opponent.
+    - Coup de Grâce: on a melee hit against Opponent while holding 10 Duellist Points, expend all 10 points to deal 8d8 Slashing or Piercing damage that cannot be reduced by Damage Reduction or Resistance.
+  - Master Duellist (17th level, L2842–2845): Declaring an Opponent requires no action (free on own turn or upon rolling Initiative). When the Opponent drops to 0 HP or surrenders, the Duellist retains all accumulated Duellist Points and can immediately declare a new Opponent.
+
+- **Liberator Subclass (E/F):**
+  - Identification & Liberty Pool (L2938–2944): `isLiberator(actor)` validates Guard class and `liberator` branch. Manages `liberty` pool (0–6 max). In-combat generation: if the Liberator takes no Attack action, casts no Arts/spells, and activates no Operator Skills on their turn, they gain 1 Liberty (2 at 17th level via Time to Act) at turn end.
+  - Guide the Masses (L2945–2963): Action (Bonus Action at 7th level, free action at 17th level via Champion of the Worthy) targeting a visible ally within 20 ft (40 ft at 10th level); generates 1 Liberty (2 with Time to Act):
+    - *Advocate:* Ally regains Hit Points equal to max(2×PB, 2×Liberty) or receives that amount as bonus healing on their next heal.
+    - *Empower:* Ally gains Damage Reduction equal to max(PB, Liberty) against all damage until start of Liberator's next turn.
+    - *Uplift:* Ally adds max(PB, Liberty) bonus damage to their next successful weapon or Art attack.
+  - Righteous Outburst (L2964–2984):
+    - Flash of Anger: On a melee hit, expend 1 to current Liberty. Adds +1d6 (+1d10 at 10th level) bonus damage per Liberty spent. Damage does not multiply on critical hits. If the attack reduces the target to 0 HP, refund 1 spent Liberty. At 13th level (Caught in the Crossfire), damage type becomes Force (or active Operator Skill damage type) and splashes the full bonus damage to all hostile creatures within 10 ft of the target.
+    - The Right Moment: When activating an Operator Skill, expend all available Liberty to add +1d8 damage per Liberty consumed to the skill's damage effects.
+  - Rising Tide (4th level, L2985–2994): Operator Skills are treated as simultaneously possessing Automatic, Offensive, and Defensive charging methods, gaining SP charge from all three triggers.
+  - Praxis (10th level, L2995–3002): Press the Attack: Face Me. Spends 2 Aggression as a Bonus Action to cast Compelled Duel without spell slots, using Martial DC as the save DC.
+  - Révolution (17th level, L3003–3039): 1/Long Rest Action unleashes a 20-ft radius revolutionary burst. All hostile creatures must make a Dexterity save vs Martial DC, taking 1d12 Force damage per point of Liberty consumed (half on success). Triggers 10-minute benefits:
+    - Champion of the Worthy: Guide the Masses requires no action (free once per turn).
+    - Shield of Belief: Liberator gains Temporary HP equal to their Guard level at the start of each of their turns.
+    - Time to Act: Whenever Liberty is gained or refunded, gain +1 additional Liberty (subject to 6 max).
+
+- **Lord Subclass (E/F):**
+  - Identification & Authority State (L3013–3139): `isLord(actor)` validates Guard class and `lord` branch. Tracks Authority state flag (`flags.ak5e.lord.hasAuthority`). While holding Authority, the Lord gains 1d8 Temporary HP at the start of each of their turns, and gains Overruled: can make Intelligence, Wisdom, and Charisma saving throws against ongoing afflictions at both the start and end of their turn.
+  - Authority Acquisition & Loss Triggers (L3122–3139):
+    - Gain Authority when: reducing an Elite or Leader creature to 0 HP that the Lord damaged since their last turn; reducing 2 or more hostile creatures to 0 HP in a single turn; or killing a hostile creature from full HP in a single strike.
+    - Lose Authority when: reduced to 0 HP; failing a saving throw at the end of their turn; knocked Prone at the end of their turn; or rolling Initiative (start of combat reset).
+    - Press the Attack: Manifest Destiny: When a loss trigger occurs, spend 3 Aggression as a Reaction to retain Authority.
+  - Manifest Will (L3140–3164): `manifestation` pool (`@prof` uses, Long Rest recovery). Bonus Action to activate for 1 minute:
+    - Melee weapons gain Range 30/- (can be thrown or project force up to 30 ft).
+    - Uses Strength modifier for attack and damage rolls of ranged attacks made with Manifested weapons.
+    - Attacks deal additional Force damage equal to the Lord's Charisma modifier.
+    - Will Attunement: 10-minute ritual allows changing the Manifestation and Force of Will damage type to any damage type associated with the Lord's active Operator Skills.
+    - Authority Marks: When holding Authority, hitting a creature marks them with a Melee or Ranged Mark. An attack of the opposite type against a marked creature deals +1d6 bonus damage and consumes the mark. At 17th level (Divine Right), this bonus damage splashes to all hostile creatures within 10 ft.
+  - King's Domain (4th level, L3165–3189): Selected when activating Manifest Will:
+    - *Castle Doctrine:* Creates a 15-ft radius domain around the Lord. Reaction when an enemy moves within or enters the zone: move up to half Speed toward the creature and make a melee attack. Hitting a non-elite creature refunds the Reaction. With Authority active, the enemy's Speed is halved (reduced to 0 on failed Wisdom save vs Martial DC at 17th level).
+    - *Pursuit of Power:* Hitting an enemy allows the Lord to move their full Speed without provoking Opportunity Attacks and doubles their jump distance. With Authority active, this movement benefit can trigger multiple times per turn. At 17th level, moving adjacent to enemies deals passive Charisma modifier damage to each.
+  - By Lordly Decree (10th level, L3190–3211):
+    - Make It So: Spend 1 Manifestation use when making any d20 roll (attack roll, ability check, or saving throw) to add Charisma modifier + Proficiency Bonus (or Charisma modifier + 2×PB Expertise bonus while holding Authority) to the roll. At 17th level, if the roll still fails, reroll once.
+    - Press the Attack: A Leader Leads: Spend 1 or more Aggression to grant Special Inspiration (bonus d6/d8 on d20 roll) to allies within 30 ft.
+  - Force of Will (13th level, L3212–3234): PB uses per Long Rest, usable once per turn when taking the Attack action, categorized into 3 elemental groups:
+    - *Group 1 (Fire, Psychic, Force, Thunder):* 10-ft radius burst centered on Lord, 3d6 damage (Dexterity save vs Martial DC for half).
+    - *Group 2 (Bludgeoning, Piercing, Slashing, Radiant):* 50-ft line (5 ft wide), 8d6 damage (Dexterity save vs Martial DC for half).
+    - *Group 3 (Acid, Cold, Lightning, Necrotic, Poison):* Melee weapon attack rider, 6d6 damage on hit (Constitution save vs Martial DC or afflicted with condition/half damage).
+  - Divine Right (17th level, L3235–3248): Capstone augmenting Authority Marks (10-ft splash damage), Castle Doctrine (WIS save vs Martial DC to reduce Speed to 0), Pursuit of Power (passive CHA aura damage on adjacent move), and Make It So (reroll on failure).
+
+- **Table Play & Philosophy Compliance (WORKFLOW §3.2):**
+  - All uses register in `guardUses` in `ak5e/scripts/guard-uses.mjs` via `createPlayUses`.
+  - Confirm dialogs precede all expenditures; cancelling leaves actor state completely unchanged.
+  - Ability checks and saving throws (Overruled saves, Make It So) require no confirmation prompt.
+  - No dice are auto-rolled: roll buttons are rendered on chat cards for user execution.
+  - Resource shortfalls warn but do not hard-block; "Use anyway" clamps resource spend at 0 and reports shortfall publicly on the chat card.
+  - Modifications to unowned targets (Marks, Advocate healing, Empower DR, Uplift bonus) relay automatically through the GM client.
+  - Every action writes an undo receipt under `flags.ak5e.guardUses.undo`, supporting full encounter-window undo and restoration.
+
+## Guard Subclasses Batch 2: Musha, Reaper, and Weaponmaster (0.6.0, 2026-10-12)
+
+Authority: Chapter 3 L3252–3325 (Musha), L3326–3450 (Reaper), L3451–3515 (Weaponmaster); referenced Chapter 1 (Martial DC L211, conditions, damage reduction, resistances), Chapter 4 (Weapons, Versatile, Heavy, Two-Handed), Chapter 5 (Operator Skills, Skill Points).
+
+- **Musha Subclass (E/F):**
+  - Identification & Tenacity (L3252–3270): `isMusha(actor)` validates Guard class and `musha` branch.
+    - Nothing to Lose: When at or below 50% HP, the Musha can make 1 additional melee weapon attack when taking the Attack action; at or below 10% HP, this increases to 2 additional melee weapon attacks.
+    - Soloblade: On a successful melee weapon hit, the Musha regains HP by rolling 2d6 (scaling to 2d8 at 7th level, and 2d10 at 14th level). Per L3287, Soloblade healing is explicitly forbidden on attacks made as part of a Blood Price action. Chat cards render interactive roll buttons; dice are never auto-rolled.
+    - Stand Alone: Healing received from sources other than the Musha's own features (such as ally spells or potions) does not restore HP directly, but instead grants Temporary HP equal to the healing rolled.
+  - Enduring Resolve (L3271–3278): Musha gains proficiency in Wisdom saving throws.
+    - Not Yet: When reduced to 0 HP, the Musha makes a Wisdom saving throw (DC starts at 10). On a success, the Musha does not fall unconscious and instead remains standing with Hit Points equal to 2×PB. Each successive use in combat increases the DC by 5 (10 -> 15 -> 20 -> 25...).
+    - Reset: DC resets to 10 on a Long Rest, or immediately upon reaching maximum HP at 17th level via To Laugh at Death (`mushaResetNotYet`).
+  - Blood Price (4th level, L3279–3300): Bonus Action causing the Musha to take 2d8 unreducible self-damage (cannot be prevented, resisted, or absorbed by Temporary HP). Supports 4 tactical options:
+    - *Center Oneself:* Immediately ends or suppresses one condition currently afflicting the Musha.
+    - *Dig Deep:* The Musha gains Skill Points (SP) equal to the exact HP lost.
+    - *Iai:* The Musha moves up to their Speed in a straight line without provoking Opportunity Attacks and makes a melee weapon attack; on hit, deals bonus damage equal to half the HP lost.
+    - *Ichimonji:* The Musha makes a single devastating melee attack; on hit, deals bonus damage equal to the full HP lost and imposes the Off Balance condition on the target.
+    - Greater Blood Price (13th level, L3310): Self-damage escalates to 4d8 unpreventable HP, scaling bonus damage and SP gains accordingly.
+  - Warrior Spirit (10th level, L3301–3309):
+    - Go Forth: Reaction when a hostile creature ends its turn within 30 ft: move up to half Speed toward the creature without provoking Opportunity Attacks.
+    - Retaliator: Press the Attack rider: spend 2 Aggression to make an immediate melee attack or execute an Iai strike.
+  - Found Alongside Death (13th level, L3310–3319):
+    - Living on the Edge: When at or below 50% HP, gain a bonus to AC and saving throws equal to ceil(PB / 2); when at or below 10% HP, this bonus increases to full PB.
+  - To Laugh at Death (17th level, L3320–3325): The Musha cannot be killed outright by massive damage; surviving any drop to 0 HP resets Not Yet DC to 10 once at full HP.
+
+- **Reaper Subclass (E/F):**
+  - Identification & Ruin Pool (L3326–3360): `isReaper(actor)` validates Guard class and `reaper` branch. Tracks `reaperRuin` resource pool (0–10 max).
+    - Ruin Gain & Decay: Gain +1 Ruin on a melee critical hit or when reducing a hostile creature to 0 HP (+2 for Elite/Leader). At the end of each turn in combat, if the Reaper dealt no damage to a hostile creature, 1 Ruin decays.
+    - Press the Attack: Lingering Violence: Spend 1 Aggression at turn end to prevent 1 Ruin decay.
+  - Reaper Table Inverse Scaling (L3361–3387):
+    - Low Ruin favors Reap: +10 crit range at Ruin 0 (crit threshold 10+), scaling down by 1 per Ruin to +0 at Ruin 10 (crit threshold 20).
+    - High Ruin favors Curtainfall: +0 crit range at Ruin 0 (crit 20), scaling up by 1 per Ruin to +10 at Ruin 10 (crit threshold 10+).
+    - Healing Penalty: Healing received is penalized by −2 per Ruin (0 penalty at Ruin 0, down to −20 at Ruin 10).
+    - Unlocked Passives: Advantage on Intimidation at Ruin 3+; +10 ft Speed at Ruin 6+; Resistance to Necrotic and Cold damage at Ruin 9+.
+  - Death's Design (L3388–3410):
+    - *Reap:* Replaces the Attack action. 15-ft cone (cleaving cone; upgrades to 10-ft sphere centered on self at 13th level with Master of the Scythe). Targets make a Dexterity save vs Martial DC. On a failed save, targets take half weapon damage (full damage at 13th level via Reaper Prime); 0 damage on a success. Crits apply Vulnerability to the damage to non-elites.
+    - *Curtainfall:* Replaces the Attack action. Single-target melee attack dealing +1d6 bonus damage per Ruin currently held. Upon dealing damage, all Ruin is expended. Critical hits ignore Physical Damage Resistance.
+  - Death's Due (4th level, L3411–3418): Reap and Curtainfall crits unlock additional riders (Vulnerability and DR bypass).
+  - Fear the Reaper (10th level, L3419–3429): 1/Long Rest Action marking a hostile creature within 60 ft for 1 hour. The Reaper senses the target's exact direction, sees through its invisibility, and deals 1d6 Psychic damage to it whenever gaining Ruin.
+  - Master of the Scythe (13th level, L3430–3439): Reap can be unleashed as a 10-ft sphere, and failed saves take full damage.
+  - Memento Mori (17th level, L3440–3450): When Curtainfall or Reap crits, choose between inflicting Vulnerability + DR bypass, or dealing a 10-ft splash of 1d6 Psychic damage to secondary hostile creatures.
+
+- **Weaponmaster Subclass (E/F):**
+  - Identification & Martial Mastery (L3451–3485): `isWeaponmaster(actor)` validates Guard class and `weaponmaster` branch.
+    - Martial Mastery Table: Resolves 6 weapon properties based on weapon baseItem and category:
+      - *Can Opener:* +1d6 damage against creatures with Physical Damage Reduction.
+      - *Cornering:* Hitting reduces target Speed by 5 ft until end of its next turn.
+      - *Drive:* Hitting pushes target 10 ft straight away; Weaponmaster can advance 10 ft without provoking AoO.
+      - *Executioner:* +2d6 damage against Prone, Stunned, or Incapacitated targets.
+      - *Flourish:* Once per turn on a missed melee attack, make a secondary flourish dealing 1d6 damage.
+      - *Lethality:* +1d6 damage against creatures with no Physical Damage Reduction.
+  - Judgement Cut (4th level, L3486–3490): 1/Short Rest Bonus Action on melee hit: mark target for 2 turns or until weapon is stowed. Tracks accumulated weapon damage dealt to that creature. When detonated or mark ends, deals Slashing damage equal to half the accumulated damage.
+  - A Master's Weapon (10th level, L3491–3495):
+    - Designate Signature Weapon: Long Rest training designates one weapon in possession as the Signature Weapon, granting +1 bonus to attack and damage rolls made with it.
+    - Every Part of the Weapon: Bonus Action to shift grip on Signature Weapon, replacing its Martial Mastery property with any of the 6 table properties until the end of the turn.
+  - Untouchable (13th level, L3496–3502): 2/Long Rest Reaction when an enemy in reach makes an attack against the Weaponmaster: make an immediate melee attack. If the attack deals damage, the enemy's attack automatically misses.
+  - Song of Steel (17th level, L3503–3515): 1/Long Rest Bonus Action activating a 1-minute battle stance: +1 Critical Range on weapon attacks, critical hits ignore Physical Damage Resistance, and attack rolls made with the Signature Weapon have Advantage.
+
+- **Table Play & Philosophy Compliance (WORKFLOW §3.2):**
+  - All uses register in `guardUses` in `ak5e/scripts/guard-uses.mjs`.
+  - Confirmation precedes all actions; cancelling changes nothing.
+  - No dice are auto-rolled: Soloblade healing, Curtainfall Ruin dice, Judgement Cut detonation, and Blood Price self-damage render manual roll buttons on chat cards.
+  - Resource shortfalls warn and allow "Use anyway", clamping at 0 and posting shortfalls publicly.
+  - All modifications record undo receipts in `flags.ak5e.guardUses.undo`, supporting full encounter-window undo and state recovery.
+
+## Guard Base Class and Subclasses Leftover Rulings (0.6.0, 2026-10-12)
+
+The following 15 rulings resolve ambiguities and align mechanics across Chapter 3 and `TODO.md` (lines 644–759):
+
+### 1. Guard Base Class
+- **"Push the Advantage" vs "Press the Attack" vs "Push the Attack" (L1793, L1874, L3342):**
+  - Source text uses "Push the Advantage" in the class table (L1793), "Press the Attack" in the feature header (L1874), and "Push the Attack" in Reaper (L3342).
+  - *Ruling:* All are verified stylistic variations for the same core mechanic. Implemented canonically under "Press the Attack" powered by the Aggression pool.
+- **Pursuit Unrelenting Off-Turn Action Timing (L1933):**
+  - Source text: "When you would use your Unrelenting Feature, you may expend an additional use of it to take an Action or Bonus Action in place of the Attack you would normally make."
+  - *Ruling:* Since Unrelenting triggers as a Reaction when another creature ends its turn, Pursuit Unrelenting permits taking an Action or Bonus Action off-turn during that reaction window.
+- **Spearwall Bonus Damage Die Size (L1862):**
+  - Source text: "When you make a Melee Attack while it is not your Turn, that Attack deals an additional dice of Damage."
+  - *Ruling:* The additional damage die matches the weapon's base damage die formula (e.g. 1d8 for a longsword, 1d10 for a pike/halberd).
+- **Fighting Style "Brawler" vs Subclass "Brawler" Name Collision (L1840 vs L2423):**
+  - *Ruling:* Guard Fighting Style "Brawler" grants a Bonus Action Unarmed Strike. Subclass "Brawler" provides unarmored AC, unarmed damage die scaling (d4 -> d8), and Brawler Techniques. Both are distinct, valid, and fully stack.
+- **"Grit" Definition Scope (L1177, L4832, L5479, L8199):**
+  - Source text mentions "Grit" only in the cross-class talent "Hidden Technique" (Defender, Specialist, Supporter, Vanguard), granting 2 Grit Points to learn Brawler techniques.
+  - *Ruling:* In the Guard class, Brawler Techniques natively consume Aggression (1 Aggression per technique). Non-Guard classes taking Hidden Technique track their own Grit Points; Guard Brawlers use their class Aggression pool.
+- **Fortitude Ally Healing Roll Bonus (L2114):**
+  - Source text: "When another Creature rolls to cause you to regain Hit Points, they roll 1 additional dice; you recover additional Hit Points equal to the result of this dice."
+  - *Ruling:* Allies rolling healing for the Guard add 1 extra die to their roll (2 extra dice with the Module upgrade). Self-healing is unaffected.
+
+### 2. Musha Subclass
+- **Greater Blood Price Scaling (L3308):**
+  - Source text: "When you use your Blood Price Feature, you may choose to lose twice as many Hit Points instead."
+  - *Ruling:* Since Dig Deep, Iai, and Ichimonji scale directly with "the Hit Points you lost/expended to use this Action", taking 4d8 self-damage doubles the SP gained from Dig Deep and doubles the bonus damage from Iai and Ichimonji.
+- **Not Yet vs Outright Kill & Dying (L3271, L3316):**
+  - *Ruling:* At 1st level, Not Yet triggers only when reduced to 0 HP but not killed outright by massive damage. At 17th level (To Laugh at Death), Not Yet explicitly functions against outright kill effects as long as the body is not destroyed.
+- **Stand Alone External Healing Redirection (L3262):**
+  - *Ruling:* Any healing originating from outside the Musha (e.g. ally spells, potions administered by others) is intercepted in `dnd5e.preApplyDamage` and converted into Temporary Hit Points (`system.attributes.hp.temp`). Musha self-healing (such as Soloblade) heals real HP as normal.
+
+### 3. Reaper Subclass
+- **Crit-Range Column Semantics ("+10 Critical Range", L3350):**
+  - *Ruling:* In the Reaper Table, the critical range columns represent the bonus that expands the critical hit range downwards from 20 (threshold = `20 - bonus`). At Ruin 0, Reap gets +10 Critical Range (crit threshold 10+), while Curtainfall gets +0 (crit threshold 20). At Ruin 10, Curtainfall gets +10 Critical Range (crit threshold 10+), while Reap gets +0 (crit threshold 20).
+- **Healing-Penalty Floor (L3340, L3361):**
+  - *Ruling:* The Reaper Table healing penalty (-2 per Ruin, up to -20 at Ruin 10) reduces external healing received down to a minimum of 0 net healing. It never inverts healing into damage.
+- **"Deathmark" vs "Reaper's Mark" (L3417):**
+  - *Ruling:* In Fear the Reaper (10th level), source text refers to "Reaper's Mark" in the first two sentences and "Deathmark" in the last. These are confirmed source synonyms for the same 1/Long Rest feature.
+- **Reap Save vs Critical Hit Check (L3388, L3396):**
+  - *Ruling:* Reap is an area cleave requiring a DEX save against Martial DC. At level 4+, a separate d20 attack check is rolled to determine whether the strike critically hits (inflicting Vulnerability to non-elites).
+- **Reaper and Swarms / Hordes (L3405–3408):**
+  - *Ruling:* The maximum HP of a single unit composing the Swarm is the threshold for earning 1 kill/Ruin. Single damage instances dealing multiples of that threshold earn multiple kills (`Math.floor(damage / unitMaxHp)`).
+
+### 4. Weaponmaster Subclass
+- **Art of War Proficiencies & Extra Fighting Style (L3440–3444):**
+  - *Ruling:* Weaponmaster gains proficiency in all Light Ranged and Heavy Ranged weapons on subclass selection. Additionally, the extra Fighting Style can be selected from either Guard or Marksman styles, and can be exchanged on any Long Rest via `weaponmasterSwapFightingStyle`.
+- **Martial Mastery "Additional Effect" Pool (L3493):**
+  - *Ruling:* Every Part of the Weapon allows switching the Signature Weapon's Martial Mastery property to any of the 6 table properties (Can Opener, Cornering, Drive, Executioner, Flourish, Lethality) until end of turn.
+- **Judgement Cut Duration & Timing (L3487):**
+  - *Ruling:* The mark lasts for 2 turns or until ended early during the Weaponmaster's turn by stowing a weapon. Detonation inflicts Slashing damage equal to half of all accumulated weapon damage dealt during that window.
+- **Untouchable "Automatically Misses" (L3496):**
+  - *Ruling:* As a Reaction when attacked in reach, the Weaponmaster attacks first. If this reaction attack deals at least 1 damage, the attacking creature's attack automatically misses, overriding any hit roll.
+
+
+
+
+## SI-2 resource-pool kernel
+
+- **Recovery precedence across triggers (B-022):**
+  - *Ruling:* When a call carries several triggers (a long rest is `['lr','sr']`), the pool applies one recovery entry, chosen by the caller's trigger order and not by the order the pool lists them: an `lr` entry beats an `sr` entry on a long rest. Within one trigger the first entry whose `when` passes applies; if none passes, the next trigger is tried. This is a code-level convention, not a source-book rule.

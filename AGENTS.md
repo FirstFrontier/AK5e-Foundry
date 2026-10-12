@@ -11,7 +11,7 @@ Before any content, code, test or release work:
 
 1. Read **[WORKFLOW.md](WORKFLOW.md)** in full. It is mandatory; this file does not repeat it.
 2. Read the task-specific references it requires: `AK5e_1.3.1_Foundry_Source/README.txt` and the **entire** relevant source chapter (plus any referenced sections); the "Foundry VTT installation and integration" section of `ak5e/README.md` before touching the manifest, hooks, importers or packs.
-3. Check the current state: `git status`, `TODO.md`, and the decision log `ak5e/DECISIONS.md`.
+3. Check the current state: `git status`, `TODO.md`, and the decision log `ak5e/DECISIONS.md`. For defects read `bugs/README.md`, then `ls bugs/pending`; never read `bugs/fixed/` wholesale.
 4. **Gemini bulk implementers:** also read [GEMINI.md](GEMINI.md) separately and in full. It supplements this policy with batch implementation, Codex/Claude review, and Foundry test-session instructions; it does not replace `WORKFLOW.md`.
 
 ## 2. Non-negotiables (summary)

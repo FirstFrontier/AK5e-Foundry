@@ -36,7 +36,7 @@ export function droneData(actor, operationId, technologyModifier) {
   return { name: `${actor.name} — Arts Master`, type: "npc", img: "icons/svg/wing.svg", ownership: { ...actor.ownership },
     prototypeToken: { actorLink: true, name: "Arts Master", width: 1, height: 1 },
     system: { abilities: Object.fromEntries([ ["str",10], ["dex",14], ["con",14], ["int",1], ["wis",4], ["cha",1] ].map(([k,value]) => [k,{value}])),
-      attributes: { ac: { flat: 17, calc: "flat" }, hp: { value: stats.hp, max: stats.hp }, movement: { fly: 30, hover: true }, senses: { darkvision: 60 } },
+      attributes: { ac: { flat: 17, calc: "flat" }, hp: { value: stats.hp, max: stats.hp }, movement: { fly: 30, hover: true }, senses: { ranges: { darkvision: 60 } } },
       details: { type: { value: "construct", subtype: "Drone" }, alignment: "Neutral", cr: 0, biography: { value: entry.content, public: entry.content } },
       // The source explicitly prints passive Perception 6. Its Wisdom score 4
       // derives -3 natively, while the printed modifier is -4 (see decisions).
