@@ -11,3 +11,10 @@ Area: Artsblade and Brawler / prompts and historical summaries
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Prompts/cards/docs match melee-roll comparisons, STR/DEX score HP loss, and Mountainbreaker's ten-attack cumulative -2 chain or fivefold hit/push/Prone. Preserve source uncertainties as decisions, not invented mechanics.
+
+**Resolution (fixed 2026-10-18, unreleased, sheet prompts only):** `ak5e/scripts/guard-sheet.mjs`: Cut Through Chaos now quotes the three
+source uses (melee Attack Roll compared with the Spell Attack Roll or the Saving Throw DC; Reaction Art without a Spellsword Point;
+Clear Path from 13th level), with no advantage/disadvantage. Chokehold offers Strength or Dexterity Score (values shown, no CON; an
+unsupported value is sent as `str`). Mountainbreaker quotes the ten-attack cumulative -2 chain and the fivefold hit with 20-ft push
+and Prone. Tests: `ak5e/test/guard-sheet.test.mjs` ("B-149" cases). Not done here: the historical wording in `ak5e/DECISIONS.md` (L1449)
+is the head's to correct.

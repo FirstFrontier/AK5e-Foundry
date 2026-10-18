@@ -11,3 +11,6 @@ Area: Artsblade / sheet-to-plan interface
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Sheet and plan share the same field; every supported selection yields the correct public name and typed damage. Unknown values do not silently substitute Flame.
+
+**Progress (2026-10-18, unit 04):** the sheet half is done in `ak5e/scripts/guard-sheet.mjs`: Blade Art sends the chosen pool as `data.artPool` (and
+the legacy `data.pool`, same value). Still open: the plan in `artsblade-features.mjs` must read `artPool ?? pool`. Test: `ak5e/test/guard-sheet.test.mjs` ("B-136").

@@ -11,3 +11,6 @@ Area: Artsblade / maximum casting level
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Normal casting uses the source-required maximum for the chosen Art; unsupported levels are validated, any deliberate override is public, and the prompt/card agree on the actual level.
+
+**Progress (2026-10-18, unit 04):** the sheet half is done in `ak5e/scripts/guard-sheet.mjs`: the Spellsword prompt shows `maxArtLevel(level)` read-only (no lower options) and sends
+`level` and `castingLevel` equal to that maximum. Still open: `artsblade-features.mjs` still uses `Math.min(castingLevel, max)` and must reject lower levels. Test: `ak5e/test/guard-sheet.test.mjs` ("B-138").
