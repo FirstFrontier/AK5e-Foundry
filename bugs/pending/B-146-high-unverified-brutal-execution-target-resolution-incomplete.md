@@ -11,3 +11,7 @@ Area: Centurion / targets, saves, conditions and GM relay
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Collect affected targets, provide owner-clicked WIS saves, resolve only the reviewed outcome, and validate automatic unowned-target relay/undo. Show kill/timing/range warnings; do not silently add GM approval.
+
+**Progress (2026-10-18, unit 04):** the sheet half is done in `ak5e/scripts/guard-sheet.mjs`: Brutal Execution, Ferocious Fling, Guillotine, Shredder, Storm of Blood and Cyclone Strike send
+`data.targets = [{ uuid, name }]` from `game.user.targets`, list them in the confirm dialog and only warn when none are selected. Ferocious Fling also sends `targetUuid` (one selected token),
+`targetConMod` (typed in) and `brutalExecution`. Still open: plan-side collection, owner-clicked WIS saves and relay/undo in `centurion-features.mjs`. Test: `ak5e/test/guard-sheet.test.mjs` ("B-146").

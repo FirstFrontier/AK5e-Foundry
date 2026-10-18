@@ -11,3 +11,7 @@ Area: Artsblade / Guard sheet
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Cancel/close exits before spending or recording a use; an unchecked Unleash option remains distinguishable from cancellation.
+
+**Resolution (fixed 2026-10-18, unreleased):** `ak5e/scripts/guard-sheet.mjs`: the Augmented Assault dialog returns `null` on
+Cancel/close (the sheet returns before the engine is called) and `false` for an unchecked Unleash box, which continues to the
+confirmed use. Test: `ak5e/test/guard-sheet.test.mjs` ("B-130" cases, 13th level and below).
