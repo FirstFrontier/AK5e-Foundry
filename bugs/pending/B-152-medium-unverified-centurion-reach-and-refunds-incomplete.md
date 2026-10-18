@@ -11,3 +11,5 @@ Area: Centurion / Long-Arm and Storm of Blood
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Apply source-defined reach/refunds or supply complete visible manual instructions and remove automatic-completion claims. Any automated benefits use reversible receipts, correct duration and no module-started attack rolls.
+
+**Progress (2026-10-18, unit 07):** Storm of Blood now records a reversible Long-Arm effect on the Centurion (until the end of their next Turn, shown on the Actor; weapon Reach is still applied by hand) and a new command `stormOfBloodRefund` ({ `hit:true` }) regains the Reaction (base or extra pool) through a reversible receipt; undo spends it again. The card no longer claims the benefits are automatic. Open: the Guard sheet needs a button for `stormOfBloodRefund`; passive Long-Arm reach is B-223.

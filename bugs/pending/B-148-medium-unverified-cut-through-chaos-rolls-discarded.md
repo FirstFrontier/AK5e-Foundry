@@ -11,3 +11,5 @@ Area: Artsblade / shared use engine roll interface
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Expose the required player-clicked native melee attack and comparison in the appropriate modes, preserving weapon bonuses/ability choice. Reaction-Art mode does not invent an attack; no dice auto-roll.
+
+**Progress (2026-10-18, unit 07):** Ferocious Fling part addressed in `ak5e/scripts/centurion-features.mjs`: the discarded `rolls` are gone; the use posts typed Bludgeoning (`damageParts`, the launched Creature's CON modifier) for the owner's Roll button, and the Ranged Weapon Attack (Strength) is described as the player's own native roll, never started by the module. The Cut Through Chaos (Artsblade) part and the shared-engine `plan.rolls` interface are untouched; keep this bug open for the Artsblade side.

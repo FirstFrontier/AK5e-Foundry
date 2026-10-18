@@ -11,3 +11,5 @@ Area: Guard use receipts / Artsblade, Brawler and Centurion
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Undo restores all use-created internal benefits and counters within the encounter window; later conflicts are explained before undo, and encounter locks remain enforced.
+
+**Progress (2026-10-18, unit 07, Centurion only):** Centurion plans no longer mutate `state.data`: Cyclone Strike's tracker is its own receipt (`receipt.cyclone`), so undo restores it, and Brutal Execution, Storm of Blood and the Long-Arm effect are receipts or reversible effects. Test: "B-145 / B-133: undoing Cyclone Strike restores the use tracker". Artsblade and Brawler remain open.
