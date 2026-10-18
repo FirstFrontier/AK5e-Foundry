@@ -11,3 +11,5 @@ Area: Centurion / Cyclone Strike
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Track both source-defined intervals; warn on repeat use and allow a public override, rather than imposing a turn gate. Undo restores the use tracker.
+
+**Resolution (fixed 2026-10-18, unreleased):** Cyclone Strike's frequency is read from the Centurion's recorded, non-undone receipts (`receipt.cyclone`, in `ak5e/scripts/centurion-features.mjs`), so undo restores the tracker and nothing is kept in `state.data`. Below 14th Level a repeat warns until the Centurion's next Turn begins (including on other Creatures' Turns, and with several initiative entries); from 14th Level it warns on a second use in the same Turn. The public override is allowed. The tracker works only in a started combat where the Centurion is a combatant. Tests: "B-145: ..." in `ak5e/test/centurion.test.mjs`. Live check: first use ok, same-turn and other-turn repeats warned, the Centurion's next turn was free.

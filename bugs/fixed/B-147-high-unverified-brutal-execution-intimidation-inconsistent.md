@@ -11,3 +11,5 @@ Area: Centurion / DC and Psychic damage
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Use a consistent source/reviewed modifier for DC and damage, with proficiency/expertise fixtures. Any genuinely unresolved reading follows DECISIONS/per-use procedures rather than an implicit substitution.
+
+**Resolution (fixed 2026-10-18, unreleased):** Brutal Execution damage and the Centurion DC now come from the same value, `intimidationModifier(actor)` in `ak5e/scripts/centurion-features.mjs` (`skills.itm.total`, then `.mod`, then the CHA modifier, the chain `centurionDC` uses). Tests in `ak5e/test/centurion.test.mjs` ("B-147: ..."): untrained, proficient and expertise fixtures (total 1, 4, 7 against mod 1). Live: an Expertise Centurion (mod 1, total 7) showed DC 15 and 7 Psychic Damage. A shared helper in guard-rules.mjs is left to B-224.
