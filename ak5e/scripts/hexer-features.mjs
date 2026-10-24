@@ -16,7 +16,7 @@ import { definePool, getPoolDefinition, getPool } from "./resource-pools.mjs";
 import { need, values, esc } from "./operation-kernel.mjs";
 import { warn, spendResource } from "./play-uses.mjs";
 import { supporterUses } from "./supporter-uses.mjs";
-import { actorFromUuid, rollAidDieButton } from "./supporter-features.mjs";
+import { actorFromUuid } from "./supporter-features.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
 
@@ -287,8 +287,8 @@ function planHex(actor, data, { title, poolId = "hexerPotentHex", spend = true, 
       if (roll) {
         receipt.formula = roll;
         receipt.rollLabel = `${label} (${roll})`;
-        const card = rollAidDieButton({ actor, label: `Roll ${label} (${roll})`, formula: roll, rollType: "hex" });
-        receipt.summary = `${esc(actor.name)} applied the ${esc(label)}${who} for 1 minute.${card}`;
+        // The play-uses card renders the one roll button from receipt.formula (no second button here).
+        receipt.summary = `${esc(actor.name)} applied the ${esc(label)}${who} for 1 minute.`;
       } else {
         const detail = chosen.map(hexKind => hexChanges(hexKind, { sides: sidesUsed }).reminder).filter(Boolean).join(" ");
         receipt.summary = `${esc(actor.name)} applied ${esc(names)}${who} for 1 minute. ${esc(detail)}`;

@@ -155,7 +155,8 @@ test("Binding: nothing is applied or rolled until the owner clicks; the click wr
   const receipt = supporterUses.receipt(h, opId);
   assert.equal(receipt.status, "awaitingRoll");
   assert.equal(receipt.formula, "2d8", "level 3 uses the d8 Aid Die");
-  assert.ok(receipt.summary.includes("data-ak5e-aid-roll"), "the card carries the roll button");
+  assert.ok(receipt.formula, "the engine card carries the single roll button (receipt.formula)");
+  assert.ok(!receipt.summary.includes("data-ak5e-aid-roll"), "no duplicate roll button in the summary");
   assert.equal(getPool(h, "hexerPotentHex").value, before - 1, "one Potent Hex use is spent");
   assert.equal(hexEffects(goblin).length, 0);
 

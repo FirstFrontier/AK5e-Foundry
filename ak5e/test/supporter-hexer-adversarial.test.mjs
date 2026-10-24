@@ -629,7 +629,11 @@ test("FR-4: a creature hexed only by another Hexer does not trigger this Hexer's
   await run(theirs, "potentHex", potentData(foe, "looping"), "fr4-theirs");
   const before = messageCount();
   await emitAk5eEvent("hit", { actorUuid: foeActor("Attacker").uuid, targetUuid: foe.uuid, ac: 10, eventId: "hit:fr4" });
-  assert.equal(messageCount() - before, 0, `no card for ${mine.name}`);
+  // Head ruling: the other Hexer's own card is correct (it owns that Hex); only a card for `mine` is wrong.
+  const fromMine = game.messages.slice(before).filter(m => m.speaker?.actor === mine.id);
+  assert.ok(mine.id && mine.id !== theirs.id, "the two Hexers are distinct Actors");
+  assert.equal(fromMine.length, 0, `no card for ${mine.name}`);
+  assert.equal(game.messages.slice(before).filter(m => m.speaker?.actor === theirs.id).length, 1, "the owning Hexer gets its card");
 });
 
 test("FR-5: the Force rider is a button, not automatic: no roll, and the card carries a button and the Aid Die formula", async () => {
@@ -714,7 +718,9 @@ test("CM-4: the Cursemark Aid Die is a d6 (formula 1d6) at level 4 and level 10 
     const s = makeHexer({ level });
     const opId = `cm4-${level}`;
     await run(s, "cursemark", { point: { x: 0, y: 0 }, kind: "abjuring", distance: 30 }, opId);
-    assert.equal(receiptOf(s, opId).formula, "1d6", `level ${level} cursemark die`);
+    // Abjuring rolls on the hexed creature's Damage Roll (C3:7290), so the die is recorded in the result, not as a pending roll.
+    const receipt = receiptOf(s, opId);
+    assert.equal(receipt.result?.formula ?? receipt.formula, "1d6", `level ${level} cursemark die`);
   }
 });
 
