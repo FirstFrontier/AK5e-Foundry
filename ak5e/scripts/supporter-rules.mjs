@@ -132,16 +132,37 @@ export function martialDC(actor) {
   return 8 + pb + Math.max(strMod, dexMod);
 }
 
-export function supporterDC(actor) {
-  const system = actor?.system ?? {};
-  const pb = Number(system.attributes?.prof ?? 2);
-  const intMod = Number(system.abilities?.int?.mod ?? 0);
-  const wisMod = Number(system.abilities?.wis?.mod ?? 0);
-  const chaMod = Number(system.abilities?.cha?.mod ?? 0);
-  const chosen = flag(actor, "supporter")?.aidAbility;
-  const mod = chosen === "int" ? intMod : (chosen === "wis" ? wisMod : (chosen === "cha" ? chaMod : Math.max(intMod, Math.max(wisMod, chaMod))));
-  return 8 + pb + mod;
+/** The Aid Ability chosen at 1st Level: "int", "wis" or "cha" (default "cha"). */
+export function aidAbilityKey(actor) {
+  const key = flag(actor, "supporter")?.aidAbility;
+  return key === "int" || key === "wis" ? key : "cha";
 }
+
+/** Aid Die maximum (C3:6637): the chosen ability modifier, never below 0 (R1). Warn at 0; the GM resolves. */
+export function aidDieMax(actor) {
+  const mod = Number(actor?.system?.abilities?.[aidAbilityKey(actor)]?.mod ?? 0);
+  return Number.isFinite(mod) ? Math.max(0, Math.trunc(mod)) : 0;
+}
+
+const BRANCH_SUBCLASS_IDS = Object.freeze({
+  artificer: "subclass-supporter-artificer",
+  bard: "subclass-supporter-bard",
+  hexer: "subclass-supporter-hexer"
+});
+
+/** Mirrors isTrapmaster(): the stored branch flag first, then the subclass item (ID, identifier, name). */
+function hasBranch(actor, key) {
+  if (flag(actor, "supporter")?.branch === key) return true;
+  return list(actor?.items).some(i => i.type === "subclass" && (
+    flag(i, "chapterThreeId") === BRANCH_SUBCLASS_IDS[key] ||
+    i.identifier === key ||
+    i.system?.identifier === key ||
+    i.name?.toLowerCase().includes(key)
+  ));
+}
+export const isArtificer = actor => hasBranch(actor, "artificer");
+export const isBard = actor => hasBranch(actor, "bard");
+export const isHexer = actor => hasBranch(actor, "hexer");
 
 export function supporterState(actor) {
   const stored = flag(actor, "supporter") ?? {};
@@ -244,12 +265,13 @@ export function calculateSupporterProfile(actor) {
     resources: {
       aidDie: {
         size: aidDieSize(level),
-        maxFormula: "max(1, max(@abilities.int.mod, max(@abilities.wis.mod, @abilities.cha.mod)))"
+        maxFormula: `max(0, @abilities.${aidAbilityKey(actor)}.mod)`,
+        max: aidDieMax(actor),
+        warnings: aidDieMax(actor) === 0 ? ["0 Aid Dice — GM resolves"] : []
       }
     },
     features,
     dc: {
-      supporter: supporterDC(actor),
       martial: martialDC(actor)
     },
     branch: profile.branch,

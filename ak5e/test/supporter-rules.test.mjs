@@ -4,7 +4,7 @@ import {
   SUPPORTER_CLASS_ID, SUPPORTER_BRANCH_IDS, IMPLEMENTED_SUPPORTER_BRANCHES,
   SUPPORTER_SKILLS, SUPPORTER_SAVES, SUPPORTER_ARMOR_PROFS, SUPPORTER_WEAPON_PROFS,
   SUPPORTER_TOOL_CHOICES, ASI_LEVELS, SUPPORTER_LEVEL_STEPS, STARTING_EQUIPMENT_OPTIONS,
-  checkLevel, pbForLevel, hitPointsAtLevel, aidDieSize, martialDC, supporterDC,
+  checkLevel, pbForLevel, hitPointsAtLevel, aidDieSize, martialDC,
   supporterProfile, supporterEnabled, supporterLevel, supporterBranch,
   calculateSupporterProfile
 } from "../scripts/supporter-rules.mjs";
@@ -84,7 +84,7 @@ test("aidDieSize: d8 (1–6), d10 (7–13), d12 (14–20)", () => {
   }
 });
 
-test("DC calculations: supporterDC and martialDC", () => {
+test("DC calculations: martialDC only (R2: the base Supporter prints no DC)", () => {
   const actor1 = createTestActor({
     system: {
       attributes: { prof: 2 },
@@ -103,7 +103,6 @@ test("DC calculations: supporterDC and martialDC", () => {
     }
   });
   assert.equal(martialDC(actor1), 8 + 2 + 2); // 12
-  assert.equal(supporterDC(actor1), 8 + 2 + 4); // 14 (CHA mod 4)
 
   const actor2 = createTestActor({
     system: {
@@ -122,7 +121,6 @@ test("DC calculations: supporterDC and martialDC", () => {
       }
     }
   });
-  assert.equal(supporterDC(actor2), 8 + 4 + 4); // 16 (INT mod 4)
 });
 
 test("progression table: step definitions for levels 1–20", () => {
@@ -210,21 +208,6 @@ test("supporterProfile: actor inspection and edge cases", () => {
   assert.ok(invalidProfile.blocked.includes("InvalidClassLevel"));
 });
 
-test("supporterDC: fallback to highest mental ability when aidAbility unset", () => {
-  const actor = createTestActor({
-    system: {
-      attributes: { prof: 2 },
-      abilities: {
-        int: { mod: 1 },
-        wis: { mod: 4 }, // Highest mental mod
-        cha: { mod: 2 }
-      }
-    }
-  });
-  // 8 + 2 + 4 = 14
-  assert.equal(supporterDC(actor), 14);
-});
-
 test("calculateSupporterProfile: returns full interface contract object", () => {
   const sClass = createTestItem({
     name: "Supporter",
@@ -260,6 +243,6 @@ test("calculateSupporterProfile: returns full interface contract object", () => 
   assert.deepEqual(profile.proficiencies.armor, ["lgt", "shl"]);
   assert.deepEqual(profile.proficiencies.weapons, ["Light Melee"]);
   assert.equal(profile.resources.aidDie.size, "d8");
-  assert.equal(profile.dc.supporter, 8 + 3 + 3); // 14
+  assert.equal(profile.dc.supporter, undefined, "no Supporter DC (R2)");
   assert.ok(profile.features.length >= 6);
 });
