@@ -238,6 +238,13 @@ export async function handleSupporterCommand(actor, cmd) {
     return applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices: preview.choices });
   }
 
+  // Branch controls: the registered branch module's command() returns undefined for a control it does not own.
+  const branchCommand = SUPPORTER_BRANCH_MODULES.get(panelBranch(actor))?.command;
+  if (branchCommand) {
+    const handled = await branchCommand(actor, cmd);
+    if (handled !== undefined) return handled;
+  }
+
   throw new Error(`Unknown Supporter control ${cmd}.`);
 }
 
@@ -270,6 +277,11 @@ function flagData(cmd, value) {
   return key ? { [key]: value } : {};
 }
 
+/** The branch subclass Item is authoritative; the stored branch (set by setup before a subclass exists) is the fallback. */
+function panelBranch(actor, profile = supporterProfile(actor)) {
+  return profile.branch ?? (flag(actor, "supporter")?.branch || null);
+}
+
 /**
  * The Features-tab panel as HTML: the single source for the panel, so the DOM hook and any other caller cannot drift.
  * Returns "" for a non-character or a non-Supporter. Action and talent buttons appear only for the Actor's owner.
@@ -279,8 +291,7 @@ export function supporterPanelHtml(actor) {
   if (!eligible(actor)) return "";
   const profile = supporterProfile(actor);
   const view = supporterAidDieView(actor);
-  // The branch subclass Item is authoritative; the stored branch (set by setup before a subclass exists) is the fallback.
-  const branch = profile.branch ?? (flag(actor, "supporter")?.branch || null);
+  const branch = panelBranch(actor, profile);
   const aid = view.max === null ? "Aid Dice: not set up"
     : `Aid Dice: ${view.value} / ${view.max}${view.over > 0 ? ` (+${view.over})` : ""} · ${view.size}`;
   const cmdButton = (cmd, label) => `<button type="button" data-supporter-cmd="${esc(cmd)}">${esc(label)}</button>`;

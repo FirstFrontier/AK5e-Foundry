@@ -3,3 +3,4 @@
  * registerSupporterBranchModule(). ak5e.mjs imports this file once. Later units append one line per branch,
  * for example: import "./hexer-features.mjs";
  */
+import "./hexer-branch.mjs";
