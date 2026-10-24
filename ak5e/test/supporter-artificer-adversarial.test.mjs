@@ -679,8 +679,10 @@ test("AO-3: As One with a repeat is overridable with 'Use anyway'", async () => 
    ========================================================================== */
 
 test("RB-1: an Automaton reduced to 0 HP is marked destroyed: true", async () => {
-  const A = await ready();
-  // The destroyed check is an updateActor hook installed by registerArtificerHooks().
+  await ready();
+  // A fresh module instance: registerArtificerHooks() has a module-level guard, and setupFoundryGlobals gives each
+  // test a fresh Hooks mock. Only a fresh instance installs the updateActor hook on this test's mock.
+  const A = await import(`../scripts/artificer-features.mjs?rb1=${Date.now()}`);
   A.registerArtificerHooks();
   const auto = makeAutomaton({ creator: "x" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
