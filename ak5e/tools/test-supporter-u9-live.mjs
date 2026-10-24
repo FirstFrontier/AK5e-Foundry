@@ -4,7 +4,7 @@
  * page. Joins as Gamemaster in the disposable `standard-test` World only, asserts game.ak5e.supporter.branches.artificer,
  * creates a level-17 Artificer (INT 16), opens its sheet and screenshots the Supporter panel (Artificer and Heavy Duty
  * Upgrade buttons). Clicks Build Automaton, screenshots its confirm dialog and cancels (no Automaton is written). Then
- * probes Fort Builder: whether a confirm dialog appears before the use runs. Console errors are collected.
+ * then clicks Fort Builder, screenshots its confirm summary and cancels, checking that no cover is written. Console errors are collected.
  * Env: AK5E_PLAYWRIGHT (path to playwright index.mjs), AK5E_PORT (default 30185), AK5E_TEST_OUTPUT (screenshot dir),
  * AK5E_CHROMIUM (optional executable). Uses launchTestBrowser() from test-browser.mjs.
  */
@@ -16,7 +16,7 @@ const { chromium } = await import(process.env.AK5E_PLAYWRIGHT ?? "playwright");
 const browser = await launchTestBrowser(chromium, process.env.AK5E_CHROMIUM ? { executablePath: process.env.AK5E_CHROMIUM } : {});
 const port = process.env.AK5E_PORT ?? "30185";
 const outputDir = process.env.AK5E_TEST_OUTPUT ?? "/tmp/ak5e-supporter-u9-live";
-const report = { world: "standard-test", port, errors: [], screenshots: [], checks: [], probes: {} };
+const report = { world: "standard-test", port, errors: [], screenshots: [], checks: [], };
 await mkdir(outputDir, { recursive: true });
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -111,19 +111,20 @@ try {
     return { automatons: 0 };
   });
 
-  // Probe (informational, not a pass/fail gate): does Fort Builder show a confirm dialog before it runs?
-  await page.locator('.ak5e-supporter-sheet-panel [data-supporter-cmd="fortBuilder"]').click();
-  await sleep(4000);
-  const probe = await page.evaluate(id => ({
-    dialogOpen: Boolean(document.querySelector('dialog[open] button[data-action="cancel"], .application.dialog-v2 button[data-action="cancel"]')),
-    covers: (game.actors.get(id).flags?.ak5e?.artificer?.covers ?? []).length
-  }), fixtures.id);
-  report.probes.fortBuilder = probe;
-  if (probe.dialogOpen) {
+  await check("Fort Builder shows its confirm summary; Cancel writes no cover and spends no use", async () => {
+    await page.locator('.ak5e-supporter-sheet-panel [data-supporter-cmd="fortBuilder"]').click();
+    const confirm = page.locator(".ak5e-supporter-confirm").first();
+    await confirm.waitFor({ state: "visible", timeout: 20000 });
+    await sleep(600);
     await shot(page, "u9-03-fort-builder-confirm");
     await page.locator('button[data-action="cancel"]').first().click();
-    await sleep(800);
-  }
+    await sleep(1500);
+    const after = await page.evaluate(id => ({
+      covers: (game.actors.get(id).flags?.ak5e?.artificer?.covers ?? []).length
+    }), fixtures.id);
+    if (after.covers !== 0) throw new Error(`Cancel still wrote ${after.covers} cover(s)`);
+    return after;
+  });
   await shot(page, "u9-04-after-fort-builder");
 
   report.consoleErrors = report.errors.length;
@@ -132,7 +133,7 @@ try {
   console.log(`FAIL run: ${error.message}`);
 } finally {
   await writeFile(joinPath(outputDir, "u9-live-report.json"), JSON.stringify(report, null, 2));
-  console.log(JSON.stringify({ checks: report.checks, probes: report.probes, screenshots: report.screenshots, consoleErrors: report.errors }, null, 2));
+  console.log(JSON.stringify({ checks: report.checks, screenshots: report.screenshots, consoleErrors: report.errors }, null, 2));
   await browser.close();
   process.exitCode = report.checks.length && report.checks.every(c => c.ok) ? 0 : 1;
 }

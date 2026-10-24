@@ -5,7 +5,12 @@ import { setupFoundryGlobals, createTestActor } from "./base-classes-fixture.mjs
 setupFoundryGlobals();
 // Dialogs are stubbed: a cancelled dialog returns null, so every routed control resolves without writing.
 const dialogs = [];
-globalThis.foundry.applications = { api: { DialogV2: { wait: async options => { dialogs.push(options); return null; } } } };
+// Foundry's DialogV2 resolves a Cancel as `(await callback()) ?? action`: a callback returning null resolves to "cancel".
+const cancelLikeFoundry = async options => {
+  const button = options.buttons.find(candidate => candidate.action === "cancel");
+  return (await button.callback?.(null, {}, null)) ?? button.action;
+};
+globalThis.foundry.applications = { api: { DialogV2: { wait: async options => { dialogs.push(options); return cancelLikeFoundry(options); } } } };
 const { SUPPORTER_BRANCH_MODULES, initSupporterBranches, supporterBranchApis } = await import("../scripts/supporter-branches.mjs");
 await import("../scripts/supporter-branch-index.mjs");
 const { supporterUses } = await import("../scripts/supporter-uses.mjs");
@@ -16,9 +21,9 @@ const { artificerUpgradePlans, artificerUpgradePanel, upgradeCapFor: upgradeCapF
 const U5_PLANS = Object.keys(artificerPlans);
 const U6_PLANS = Object.keys(artificerUpgradePlans);
 
-function artificer(level = 17, { automatons = [] } = {}) {
+function artificer(level = 17, { automatons = [], owner = true } = {}) {
   return createTestActor({
-    name: `Artificer L${level}`, type: "character", level,
+    name: `Artificer L${level}`, type: "character", level, owner,
     items: [
       { name: "Supporter", type: "class", system: { levels: level }, flags: { ak5e: { chapterThreeId: "class-supporter" } } },
       { name: "Artificer", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-supporter-artificer" } } }
@@ -125,4 +130,37 @@ test("upgradeCapFor is the same function in both modules: 2 at level 16, 3 at le
   assert.equal(upgradeCapFor(artificer(17)), 3);
   assert.equal(upgradeCapForU6(artificer(16)), upgradeCapFor(artificer(16)));
   assert.equal(upgradeCapForU6(artificer(17)), upgradeCapFor(artificer(17)));
+});
+
+test("a non-owner's sheet shows no branch slot (the branch buttons are owner-only, as the core buttons are)", () => {
+  initSupporterBranches();
+  const nonOwner = artificer(17, { owner: false });
+  assert.equal(nonOwner.isOwner, false, "the fixture actor is not owned by this user");
+  const html = supporterPanelHtml(nonOwner);
+  assert.ok(!html.includes("ak5e-supporter-branch-slot"), "no branch slot");
+  assert.ok(!html.includes('data-supporter-cmd="fortBuilder"'), "no Artificer control");
+  assert.ok(!html.includes('data-supporter-cmd="artificerInstallUpgrade"'), "no upgrade control");
+});
+
+test("Fort Builder asks first: Cancel changes nothing and no cover is written", async () => {
+  initSupporterBranches();
+  const actor = artificer(17);
+  dialogs.length = 0;
+  const result = await SUPPORTER_BRANCH_MODULES.get("artificer").command(actor, "fortBuilder");
+  assert.equal(result, null, "Cancel resolves null");
+  assert.equal(dialogs.length, 1, "one confirm step was shown");
+  assert.match(dialogs[0].window.title, /Fort Builder/);
+  assert.deepEqual(actor.flags.ak5e.artificer.covers, [], "no cover written");
+  assert.equal(supporterUses.uses(actor).length, 0, "no use recorded");
+});
+
+test("Artificer setup asks first: Cancel changes nothing", async () => {
+  initSupporterBranches();
+  const actor = artificer(17);
+  dialogs.length = 0;
+  const result = await SUPPORTER_BRANCH_MODULES.get("artificer").command(actor, "artificerSetup");
+  assert.equal(result, null, "Cancel resolves null");
+  assert.equal(dialogs.length, 1, "one confirm step was shown");
+  assert.equal(actor.flags.ak5e.artificer.setup, undefined, "no setup written");
+  assert.equal(supporterUses.uses(actor).length, 0, "no use recorded");
 });

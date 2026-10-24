@@ -560,7 +560,7 @@ async function formDialog(title, content, read) {
     content: `<div class="ak5e-upgrade-form">${content}</div>`,
     buttons: [
       { action: "ok", label: "Continue", default: true, callback: (_event, button) => read(button.form.elements) },
-      { action: "cancel", label: "Cancel", callback: () => null }
+      { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
 }
