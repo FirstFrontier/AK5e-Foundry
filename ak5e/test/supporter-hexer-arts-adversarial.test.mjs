@@ -193,7 +193,9 @@ test("boundary 18/19: AP rises from 16 to 17 at the 19th level, max Art level st
 
 test("level 20: max Art level 5 and 17 Arts Points (C3:7279)", async () => {
   const { supporterArtsRow } = await supporterArts();
-  assert.deepEqual(supporterArtsRow("hexer", 20), { maxArtLevel: 5, artsPoints: 17 });
+  const row20 = supporterArtsRow("hexer", 20);
+  assert.equal(row20.maxArtLevel, 5);
+  assert.equal(row20.artsPoints, 17);
 });
 
 test("pool count: one Standard Pool below level 11, two from level 11 (C3:7281)", async () => {
@@ -234,7 +236,7 @@ test("ability 'str' is rejected or warned, and nothing is written", async () => 
   const before = snapshot(actor);
   const preview = await settle(() => previewSupporterArts(actor, { branch: "hexer", ability: "str", poolIds: [POOL_CORROSION] }));
   assert.ok(preview.threw || hasWarnings(preview.value), "str must be rejected or produce a warning");
-  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "str", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "str-1" }));
+  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "str", poolIds: [POOL_CORROSION], confirmed: true }));
   assert.notEqual(flagOf(actor, "casting")?.ability, "str", "str is never stored as the casting ability");
   assert.equal(snapshot(actor), before, "a str attempt writes nothing");
 });
@@ -243,7 +245,7 @@ test("only int, wis or cha can be the ability: each is accepted and stored under
   const { applySupporterArts } = await supporterArts();
   for (const ability of ["int", "wis", "cha"]) {
     const actor = supporter({ level: 1 });
-    await applySupporterArts(actor, { branch: "hexer", ability, poolIds: [POOL_CORROSION], confirmed: true, contextKey: `ab-${ability}` });
+    await applySupporterArts(actor, { branch: "hexer", ability, poolIds: [POOL_CORROSION], confirmed: true });
     assert.equal(flagOf(actor, "casting")?.ability, ability, `${ability} is accepted`);
   }
 });
@@ -255,7 +257,7 @@ test("a missing ability is handled without a write: no casting ability, no Arts 
   const preview = await settle(() => previewSupporterArts(actor, { branch: "hexer", poolIds: [POOL_CORROSION] }));
   assert.ok(preview.threw || hasWarnings(preview.value) || (preview.value?.pending ?? []).includes("ability"),
     "a missing ability is reported as pending, a warning, or an error");
-  await settle(() => applySupporterArts(actor, { branch: "hexer", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "no-ability" }));
+  await settle(() => applySupporterArts(actor, { branch: "hexer", poolIds: [POOL_CORROSION], confirmed: true }));
   assert.equal(flagOf(actor, "casting")?.ability, undefined, "no ability is invented");
   assert.equal(taggedSpells(actor).length, 0, "no Arts are granted without an ability");
   assert.equal(snapshot(actor), before, "a missing ability writes nothing");
@@ -265,7 +267,7 @@ test("unknown pool id is rejected with a clear error, and nothing is written", a
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 1 });
   const before = snapshot(actor);
-  await assert.rejects(applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: ["standard-art-pool-does-not-exist"], confirmed: true, contextKey: "bad-pool" }),
+  await assert.rejects(applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: ["standard-art-pool-does-not-exist"], confirmed: true }),
     error => /pool/i.test(String(error?.message ?? error)), "error names the pool");
   assert.equal(snapshot(actor), before, "an unknown pool writes nothing");
 });
@@ -274,14 +276,14 @@ test("invalid pool id mixed with a valid one is rejected as a whole", async () =
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 1 });
   const before = snapshot(actor);
-  await assert.rejects(applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, "not-a-pool"], confirmed: true, contextKey: "mixed" }));
+  await assert.rejects(applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, "not-a-pool"], confirmed: true }));
   assert.equal(snapshot(actor), before, "the valid pool is not applied when the other id is invalid");
 });
 
 test("choosing no pool grants no Arts", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 1 });
-  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [], confirmed: true, contextKey: "no-pool" }));
+  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [], confirmed: true }));
   assert.equal(taggedSpells(actor).length, 0, "an empty pool choice grants nothing");
 });
 
@@ -289,14 +291,14 @@ test("without confirmed, applying changes nothing", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 5 });
   const before = snapshot(actor);
-  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], contextKey: "unconfirmed" }));
+  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION] }));
   assert.equal(snapshot(actor), before, "no confirmed flag, no change");
 });
 
 test("apply writes the AP maximum and max Art level from the table (level 9: 10 AP, max Art level 3)", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 9 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "wis", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "ap-9" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "wis", poolIds: [POOL_CORROSION], confirmed: true });
   assert.equal(flagOf(actor, "artsPoints").maximum, 10);
   assert.equal(flagOf(actor, "artsPoints").maximumArtLevel, 3);
 });
@@ -304,7 +306,7 @@ test("apply writes the AP maximum and max Art level from the table (level 9: 10 
 test("apply at level 20 writes 17 AP and max Art level 5", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 20 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "cha", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "ap-20" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "cha", poolIds: [POOL_CORROSION], confirmed: true });
   assert.equal(flagOf(actor, "artsPoints").maximum, 17);
   assert.equal(flagOf(actor, "artsPoints").maximumArtLevel, 5);
 });
@@ -313,7 +315,7 @@ test("apply grants every Art of 5th level or less and the cantrips of the chosen
   const { previewSupporterArts, applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 5 });
   const preview = await previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FLAME] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FLAME], confirmed: true, contextKey: "flame-5" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FLAME], confirmed: true });
   const expected = expectedFromPools([POOL_FLAME]);
   const created = taggedSpells(actor);
   const createdNames = new Set(created.map(item => item.name));
@@ -338,7 +340,7 @@ test("cantrips of the chosen pool are included: each is created or reported, nev
   const { previewSupporterArts, applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 1 });
   const preview = await previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true, contextKey: "crude-cantrips" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true });
   const reported = JSON.stringify(preview ?? {});
   const createdNames = new Set(taggedSpells(actor).map(item => item.name));
   const cantrips = cantripsOf([POOL_CRUDE]);
@@ -351,7 +353,7 @@ test("cantrips of the chosen pool are included: each is created or reported, nev
 test("every granted Art is tagged flags.ak5e.supporterArts = {branch: 'hexer', pool} and is Prepared", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 3 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FROST], confirmed: true, contextKey: "tags" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FROST], confirmed: true });
   const created = taggedSpells(actor);
   assert.ok(created.length > 0, "at least one Art is granted from Frost Arts");
   for (const item of created) {
@@ -360,10 +362,12 @@ test("every granted Art is tagged flags.ak5e.supporterArts = {branch: 'hexer', p
   }
 });
 
-test("apply twice with the same contextKey creates no duplicates", async () => {
+// contextKey is the staleness token returned by previewSupporterArts (supporter-setup convention): apply checks it only when given.
+// Idempotence comes from the flags.ak5e.supporterArts tags, so these tests pass no contextKey.
+test("apply twice creates no duplicates (idempotence comes from the supporterArts tags)", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 5 });
-  const data = { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "same-key" };
+  const data = { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true };
   await applySupporterArts(actor, data);
   const first = spellNames(actor).slice().sort();
   assert.ok(first.length > 0, "the first apply grants Arts (precondition, so the duplicate check is not vacuous)");
@@ -372,24 +376,40 @@ test("apply twice with the same contextKey creates no duplicates", async () => {
   assert.equal(new Set(first).size, first.length, "no name appears twice");
 });
 
-test("apply with a stale or different contextKey does not double the Arts already granted", async () => {
-  const { applySupporterArts } = await supporterArts();
+test("a fresh preview's contextKey is accepted, and re-applying with it does not double the Arts", async () => {
+  const { previewSupporterArts, applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 5 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "ctx-a" });
+  const data = { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true };
+  const first = await previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION] });
+  assert.equal(typeof first.contextKey, "string", "preview returns a contextKey");
+  await applySupporterArts(actor, { ...data, contextKey: first.contextKey });
   const names = spellNames(actor).slice().sort();
   assert.ok(names.length > 0, "the first apply grants Arts (precondition)");
-  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "ctx-b" }));
-  assert.deepEqual(spellNames(actor).slice().sort(), names, "a known Art is never duplicated, whatever the contextKey");
+  const again = await previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION] });
+  await applySupporterArts(actor, { ...data, contextKey: again.contextKey });
+  assert.deepEqual(spellNames(actor).slice().sort(), names, "a known Art is never duplicated");
+});
+
+test("a contextKey taken from a preview before an actor change is rejected, with no writes", async () => {
+  const { previewSupporterArts, applySupporterArts } = await supporterArts();
+  const actor = supporter({ level: 5 });
+  const stale = await previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION] });
+  setLevel(actor, 9);
+  const before = snapshot(actor);
+  await assert.rejects(applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: stale.contextKey }),
+    error => /changed since the preview/i.test(String(error?.message ?? error)), "the stale preview is refused");
+  assert.equal(snapshot(actor), before, "a stale apply writes nothing");
+  assert.equal(taggedSpells(actor).length, 0, "no Arts are granted from a stale preview");
 });
 
 test("pool A then pool B: A's tagged Arts are removed, B's are present, and a hand-added untagged Art survives", async () => {
   const { applySupporterArts } = await supporterArts();
   const hand = handAdded("Hand-Added Art", 1);
   const actor = supporter({ level: 5, extraItems: [hand] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "switch-a" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
   const aTagged = taggedSpells(actor).map(item => item.id);
   assert.ok(aTagged.length > 0, "pool A granted something to remove later");
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true, contextKey: "switch-b" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true });
   const remaining = taggedSpells(actor);
   assert.ok(remaining.every(item => item.flags.ak5e.supporterArts.pool === POOL_CRUDE), "only pool B tags remain");
   for (const id of aTagged) {
@@ -404,8 +424,8 @@ test("switching pools keeps a hand-added Art that has the same name as a pool A 
   const sameName = poolMembers(POOL_CORROSION).find(m => m.level === 0);
   const hand = handAdded(sameName.name, 0);
   const actor = supporter({ level: 5, extraItems: [hand] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "same-name-a" });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true, contextKey: "same-name-b" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true });
   assert.ok(allItems(actor).some(item => item.id === hand.id && !item.flags?.ak5e?.supporterArts), "the player's own Art survives the pool switch");
 });
 
@@ -413,8 +433,8 @@ test("changing the pool never removes a hand-added Art of any level", async () =
   const { applySupporterArts } = await supporterArts();
   const hand5 = handAdded("Hand-Added Level 5 Art", 5);
   const actor = supporter({ level: 9, extraItems: [hand5] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "keep-a" });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FROST], confirmed: true, contextKey: "keep-b" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_FROST], confirmed: true });
   assert.ok(allItems(actor).some(item => item.id === hand5.id), "a hand-added level 5 Art is never removed");
 });
 
@@ -424,7 +444,7 @@ test("at level 11+ with one pool only: apply succeeds and a warning is shown (no
   const preview = await settle(() => previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION] }));
   assert.equal(preview.threw, false, "the preview does not block");
   assert.ok(hasWarnings(preview.value), "a second pool is suggested with a warning");
-  const applied = await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "one-of-two" }));
+  const applied = await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true }));
   assert.equal(applied.threw, false, "the apply is not blocked");
   assert.equal(flagOf(actor, "artsPoints").maximum, 11);
   assert.ok(taggedSpells(actor).length > 0, "the first pool still grants its Arts");
@@ -436,7 +456,7 @@ test("at level 11+ choosing the same pool twice produces a warning and no duplic
   const preview = await settle(() => previewSupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, POOL_CORROSION] }));
   assert.equal(preview.threw, false, "the duplicate choice is warned, not thrown");
   assert.ok(hasWarnings(preview.value), "the same pool twice produces a warning");
-  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, POOL_CORROSION], confirmed: true, contextKey: "twice" }));
+  await settle(() => applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, POOL_CORROSION], confirmed: true }));
   const names = spellNames(actor);
   assert.equal(new Set(names).size, names.length, "no Art is granted twice");
 });
@@ -444,7 +464,7 @@ test("at level 11+ choosing the same pool twice produces a warning and no duplic
 test("at level 11+ two distinct pools grant both pools' Arts and cantrips, each tagged with its own pool", async () => {
   const { applySupporterArts } = await supporterArts();
   const actor = supporter({ level: 11 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, POOL_CRUDE], confirmed: true, contextKey: "two-pools" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION, POOL_CRUDE], confirmed: true });
   assert.equal(flagOf(actor, "artsPoints").maximum, 11);
   assert.equal(flagOf(actor, "artsPoints").maximumArtLevel, 3);
   const pools = new Set(taggedSpells(actor).map(item => item.flags.ak5e.supporterArts.pool));
@@ -458,7 +478,7 @@ test("the Arts are granted against a configured Arts state and never touch exist
   const { applySupporterArts } = await supporterArts();
   const hand = handAdded("Player Cure", 1);
   const actor = supporter({ level: 3, extraItems: [hand] });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "coexist" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
   const handStill = allItems(actor).find(item => item.id === hand.id);
   assert.ok(handStill, "the hand-added spell remains");
   assert.equal(handStill.name, "Player Cure");
@@ -469,9 +489,11 @@ test("the Arts are granted against a configured Arts state and never touch exist
    Tests: sync, plans, panel and API
    ========================================================================== */
 
+// syncSupporterArts only syncs an actor this setup configured (flags.ak5e.supporterArtsSetup). Configure first at the starting level.
 test("syncSupporterArts follows the class level for the AP maximum and max Art level", async () => {
-  const { syncSupporterArts } = await supporterArts();
-  const actor = supporter({ level: 5, flags: { casting: { ability: "int" }, artsPoints: { maximum: 6, value: 3, maximumArtLevel: 2 } } });
+  const { applySupporterArts, syncSupporterArts } = await supporterArts();
+  const actor = supporter({ level: 5 });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
   setLevel(actor, 9);
   await syncSupporterArts(actor, "hexer");
   assert.equal(flagOf(actor, "artsPoints").maximum, 10);
@@ -479,18 +501,30 @@ test("syncSupporterArts follows the class level for the AP maximum and max Art l
 });
 
 test("lowering the level via sync lowers the AP maximum and max Art level", async () => {
-  const { syncSupporterArts } = await supporterArts();
-  const actor = supporter({ level: 13, flags: { casting: { ability: "int" }, artsPoints: { maximum: 12, value: 2, maximumArtLevel: 4 } } });
+  const { applySupporterArts, syncSupporterArts } = await supporterArts();
+  const actor = supporter({ level: 13 });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
+  assert.equal(flagOf(actor, "artsPoints").maximum, 12, "precondition: level 13 is 12 AP");
   setLevel(actor, 4);
   await syncSupporterArts(actor, "hexer");
   assert.equal(flagOf(actor, "artsPoints").maximum, 4, "level 4 has 4 AP");
   assert.equal(flagOf(actor, "artsPoints").maximumArtLevel, 1, "level 4 has max Art level 1");
 });
 
+test("sync on an actor with no supporterArtsSetup flag changes nothing", async () => {
+  const { syncSupporterArts } = await supporterArts();
+  const actor = supporter({ level: 9, flags: { casting: { ability: "int" }, artsPoints: { maximum: 6, value: 3, maximumArtLevel: 2 } } });
+  const before = snapshot(actor);
+  assert.equal(flagOf(actor, "supporterArtsSetup"), undefined, "precondition: no setup flag");
+  await settle(() => syncSupporterArts(actor, "hexer"));
+  assert.equal(snapshot(actor), before, "an unconfigured actor is not synced");
+});
+
 test("syncSupporterArts never auto-grants a second pool at level 11", async () => {
   const { applySupporterArts, syncSupporterArts } = await supporterArts();
   const actor = supporter({ level: 10 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "pre-11" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
+  assert.ok(flagOf(actor, "supporterArtsSetup"), "precondition: the setup flag exists");
   const pools = () => new Set(taggedSpells(actor).map(item => item.flags.ak5e.supporterArts.pool));
   const before = pools();
   setLevel(actor, 11);
@@ -545,17 +579,23 @@ test("hexerArtsApi exposes preview, apply, sync, row and spellSaveDC", async () 
   for (const name of ["preview", "apply", "sync", "row", "spellSaveDC"]) {
     assert.equal(typeof hexerArtsApi[name], "function", `hexerArtsApi.${name}`);
   }
-  assert.deepEqual(hexerArtsApi.row(20), { maxArtLevel: 5, artsPoints: 17 });
+  const row20 = hexerArtsApi.row(20);
+  assert.equal(row20.maxArtLevel, 5);
+  assert.equal(row20.artsPoints, 17);
 });
 
 test("undo of configureHexerArts restores the prior flags and removes the Arts it created", async () => {
-  const { supporterUses: uses } = await supporterUses();
-  const { registerHexerArtsHooks } = await hexerArts();
+  const { supporterUses: uses, registerSupporterPlans } = await supporterUses();
+  const { hexerArtsPlans, registerHexerArtsHooks } = await hexerArts();
+  // The head composes hexerArtsPlans into the branch after merge; register them here. A duplicate in the same process is tolerated.
+  try { registerSupporterPlans({ plans: hexerArtsPlans }); } catch (error) {
+    if (!/already registered/i.test(String(error?.message ?? error))) throw error;
+  }
   registerHexerArtsHooks();
   const prior = { casting: { ability: "cha" }, artsPoints: { maximum: 4, value: 2, maximumArtLevel: 1 } };
   const actor = supporter({ level: 5, flags: structuredClone(prior) });
   const opId = "u3-undo-hexer";
-  await uses.execute(actor, "configureHexerArts", { ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "undo-1" }, opId);
+  await uses.execute(actor, "configureHexerArts", { ability: "int", poolIds: [POOL_CORROSION], confirmed: true }, opId);
   assert.ok(taggedSpells(actor).length > 0, "the configure created Arts");
   await uses.undo(actor, opId);
   assert.deepEqual(flagOf(actor, "casting"), prior.casting, "casting is restored");
@@ -566,9 +606,9 @@ test("undo of configureHexerArts restores the prior flags and removes the Arts i
 test("Roll.evaluate is never called across configure, sync, re-apply, and switch", async () => {
   const { applySupporterArts, syncSupporterArts } = await supporterArts();
   const actor = supporter({ level: 9 });
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true, contextKey: "roll-1" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CORROSION], confirmed: true });
   setLevel(actor, 10);
   await syncSupporterArts(actor, "hexer");
-  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true, contextKey: "roll-2" });
+  await applySupporterArts(actor, { branch: "hexer", ability: "int", poolIds: [POOL_CRUDE], confirmed: true });
   assert.equal(rollEvaluations.count, 0, "no Roll was evaluated");
 });
