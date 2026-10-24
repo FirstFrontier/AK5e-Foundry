@@ -177,6 +177,15 @@ test("definitions reject bad maxima, unknown variables, bad ids, duplicates and 
   assert.deepEqual(Object.keys(poolVariables(bare)).sort(), ["abilities", "attributes", "prof"]);
 });
 
+test("function maxima resolve per Actor and are validated like any other max (Supporter chosen Aid ability, DECISIONS R1)", () => {
+  setup();
+  definePool({ id: "chosen", max: a => Math.max(0, a.system.abilities.cha.mod) });
+  assert.equal(getPool(actor({ cha: 3 }), "chosen").max, 3);
+  assert.equal(getPool(actor({ cha: -1 }), "chosen").max, 0, "no floor of 1");
+  definePool({ id: "badFn", max: () => 1.5 });
+  assert.throws(() => getPool(actor(), "badFn"), /not a whole number/);
+});
+
 // ---------------------------------------------------------------- spend / refund / set
 test("reading is pure: getPool never writes and a stale value above a reduced max is clamped on read", () => {
   setup(); defineAll();

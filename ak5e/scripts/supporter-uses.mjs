@@ -8,31 +8,39 @@
  *  - Interactive roll buttons on chat cards (no auto-rolled dice);
  *  - Encounter-window undo receipts in `flags.ak5e.supporterUses`.
  */
-import { createPlayUses, warn, spendResource, resourceValue } from "./play-uses.mjs";
+import { createPlayUses, warn } from "./play-uses.mjs";
 import {
-  supporterEnabled, supporterLevel, supporterState, checkLevel,
-  aidDieSize, flag, pbForLevel
+  supporterEnabled, supporterLevel, supporterState, flag, aidDieSize, aidDieMax, pbForLevel
 } from "./supporter-rules.mjs";
 import {
-  hasProvideAid, hasAdvancedAid, hasLightenTheLoad,
-  hasEverReliable, hasSelfSupportive, hasWillIntoBeing,
-  willIntoBeingBonus
+  hasWillIntoBeing, hasSelfSupportDie, spendAidDice, findAidDieEffect, actorFromUuid,
+  rollAidDieButton, advancedAidOffers, registerAidCritRider, removeAidRider
 } from "./supporter-features.mjs";
-import { need, opaqueKey, values } from "./operation-kernel.mjs";
-import { spendReaction, getReactions } from "./trigger-events.mjs";
-import { requireOverrides, isPlayWarnings } from "./play-undo.mjs";
+import { need, values, esc } from "./operation-kernel.mjs";
+import { getReactions } from "./trigger-events.mjs";
+import { requireOverrides } from "./play-undo.mjs";
 import { getPool } from "./resource-pools.mjs";
 import { applyFeatureTag } from "./feature-tags.mjs";
+import { confirmPlayUse } from "./play-uses-sheet.mjs";
+
+const ROLL_TYPES = Object.freeze(["attack", "skill", "save", "damage", "healing"]);
+const AID_USE_COMMANDS = Object.freeze(["useAidDie", "selfSupportiveDie"]);
 
 export const supporterUses = createPlayUses({
   ns: "supporterUses",
   label: "Supporter",
-  isMember: actor => supporterEnabled(actor),
+  // A holder of an Aid Die (not necessarily a Supporter) runs useAidDie on its own Actor, and may
+  // still roll or claim a use after its Aid Die effect has been expended.
+  isMember: actor => supporterEnabled(actor) || Boolean(findAidDieEffect(actor)) || hasOpenAidUse(actor),
   ruling: (actor, key) => {
     const record = supporterState(actor).rulings?.[key];
     return record?.source?.trim?.() && record.value !== undefined ? record.value : undefined;
   }
 });
+
+function hasOpenAidUse(actor) {
+  return (flag(actor, "supporterUses")?.undo ?? []).some(r => AID_USE_COMMANDS.includes(r.command) && r.status !== "undone");
+}
 
 /** GM-only: record a ruling for an unresolved reading. */
 export async function recordSupporterRuling(actor, key, value, source) {
@@ -51,6 +59,19 @@ const levelWarning = (warnings, actor, requiredLevel, featureName) => {
   }
 };
 
+/** Roll type and death-save checks shared by every use that rolls an Aid Die (warn, never block). */
+function checkAidRoll(warnings, rollType, data) {
+  if (!ROLL_TYPES.includes(rollType)) {
+    warn(warnings, "invalidRollType", `Invalid roll type: ${rollType || "(none)"}. Must be one of ${ROLL_TYPES.join(", ")}.`);
+  }
+  if (data.isDeathSave) {
+    warn(warnings, "deathSave", "Aid Die cannot be used on Death Saving Throws.");
+  }
+}
+
+/** Expended-effect and rider changes are made by the holder's own client. Only the recorded change can be relayed. */
+const relayable = (receipt, entry, target) => entry.kind === "effect" && entry.meta?.aidDie === true && target?.uuid === entry.uuid && receipt.result?.dieSize === entry.tag?.data?.dieSize;
+
 const CORE_PLANS = {
   provideAid(actor, state, data) {
     need(supporterEnabled(actor), "Provide Aid requires the Supporter class.");
@@ -61,7 +82,7 @@ const CORE_PLANS = {
 
     const targetUuid = data.targetUuid ?? data.target?.uuid ?? null;
     const targetName = data.targetName ?? data.target?.name ?? "target creature";
-    const target = data.target ?? (targetUuid ? globalThis.game?.actors?.get?.(targetUuid) : null);
+    const target = data.target ?? actorFromUuid(targetUuid);
 
     // Range warning (60 ft)
     const distance = Number(data.distance ?? 0);
@@ -69,10 +90,18 @@ const CORE_PLANS = {
       warn(warnings, "range", `${targetName} is beyond 60 feet (Provide Aid range).`);
     }
 
-    // Target cannot already have an Aid Die
-    const existingDie = target ? flag(target, "aidDie") : null;
-    if (existingDie || data.targetHasAidDie) {
+    // C3:6633 says "another Creature": targeting yourself warns (PA-3), never blocks.
+    if (targetUuid === actor.uuid || target?.uuid === actor.uuid) {
+      warn(warnings, "selfTarget", "Provide Aid is for another Creature; you cannot give an Aid Die to yourself (Self-Supportive is separate).");
+    }
+
+    // Target cannot already have an Aid Die (checked against the Active Effect it holds)
+    if (findAidDieEffect(target) || data.targetHasAidDie) {
       warn(warnings, "targetHasAidDie", `${targetName} already has an Aid Die; a creature can only have one Aid Die at a time.`);
+    }
+
+    if (aidDieMax(actor) <= 0) {
+      warn(warnings, "aidMax", "Your Aid Die maximum is 0 (chosen ability modifier 0 or lower); the GM resolves this.");
     }
 
     // Resource check: Aid Die pool
@@ -86,7 +115,7 @@ const CORE_PLANS = {
       warnings,
       apply(state, receipt) {
         // Spend 1 Aid Die with clamping
-        const spendUpdate = spendResource(actor, receipt, { pool: "aidDie", amount: 1, label: "Aid Die" });
+        const spendUpdate = spendAidDice(actor, 1, receipt);
 
         receipt.summary = `${actor.name} granted a ${die} Aid Die to ${targetName} for 10 minutes.`;
         receipt.result = { dieSize: die, targetUuid, targetName, durationSeconds: 600 };
@@ -111,6 +140,7 @@ const CORE_PLANS = {
                 willIntoBeing: level >= 20
               }
             },
+            meta: { aidDie: true, dieSize: die },
             ready: true
           }];
         }
@@ -120,35 +150,101 @@ const CORE_PLANS = {
     };
   },
 
+  /**
+   * The holder expends the Aid Die Active Effect (kept in the receipt for undo) and rolls it from the card.
+   * Advanced Aid and Will Into Being are gated on the GIVER's Supporter level (the effect, else data).
+   */
   useAidDie(actor, state, data) {
     const warnings = [];
-    const rollType = String(data.rollType ?? "check").toLowerCase();
-    const validRollTypes = ["attack", "skill", "save", "damage", "healing"];
-    if (!validRollTypes.includes(rollType)) {
-      warn(warnings, "invalidRollType", `Invalid roll type: ${rollType}. Must be one of attack, skill, save, damage, healing.`);
-    }
-    if (data.isDeathSave) {
-      warn(warnings, "deathSave", "Aid Die cannot be used on Death Saving Throws.");
-    }
+    const rollType = String(data.rollType ?? "").toLowerCase();
+    checkAidRoll(warnings, rollType, data);
 
-    const dieSize = data.dieSize ?? "d8";
-    const lvl = Number(data.supporterLevel ?? supporterLevel(actor) ?? 1);
-    const pb = Number(data.supporterPB ?? pbForLevel(lvl));
-    const hasAdv = lvl >= 5;
-    const hasWill = lvl >= 20;
+    const effect = findAidDieEffect(actor);
+    if (!effect) {
+      warn(warnings, "noAidDie", `${actor.name} holds no Aid Die; this roll uses no Aid Die.`);
+    }
+    const aid = flag(effect, "featureTag")?.data ?? {};
+    const giver = Number(aid.supporterLevel ?? data.supporterLevel ?? 1);
+    const dieSize = aid.dieSize ?? data.dieSize ?? aidDieSize(giver);
+    const pb = Number(aid.supporterPB ?? data.supporterPB ?? pbForLevel(giver));
+    const advanced = giver >= 5;
+    const willEligible = giver >= 20;
+    const willOn = willEligible && data.willIntoBeing === true;
+    // Advanced Aid crit rider (R6) is registered only when the user picks it.
+    const critRider = advanced && rollType === "attack" && data.rider === "crit";
+    const formula = `1${dieSize}${willOn ? ` + ${pb}` : ""}`;
+    const offers = advanced ? advancedAidOffers(rollType) : [];
 
     return {
       title: `Expend Aid Die (${dieSize}) for ${rollType.toUpperCase()}`,
       warnings,
       apply(next, receipt) {
-        receipt.summary = `Expended Aid Die (${dieSize}) on ${rollType}.`;
+        const riderId = `aidcrit-${receipt.id}`;
+        const targets = [];
+        if (effect) {
+          targets.push({ uuid: actor.uuid, name: actor.name, kind: "aidDieEffect", effectId: effect.id,
+            snapshot: typeof effect.toObject === "function" ? effect.toObject() : null, ready: true });
+        }
+        if (critRider) {
+          targets.push({ uuid: actor.uuid, name: actor.name, kind: "aidRider", riderId, label: "Advanced Aid: critical range +1 (this attack)", ready: true });
+        }
+        if (targets.length) receipt.targets = targets;
+        receipt.formula = formula;
+        receipt.rollLabel = `Aid Die (${dieSize})`;
+        receipt.html = true;
+        const card = rollAidDieButton({
+          actor, label: "Roll Aid Die", formula, useId: receipt.id, rollType,
+          extra: { willIntoBeingPB: willEligible ? pb : 0, riders: offers }
+        });
+        receipt.summary = `${actor.name} expended an Aid Die (${dieSize}) on ${rollType}.` + card;
         receipt.result = {
           dieSize,
           rollType,
-          willBonus: hasWill ? pb : 0,
-          advancedEffect: hasAdv ? rollType : null
+          card,
+          giverLevel: giver,
+          pb,
+          willBonus: willOn ? pb : 0,
+          advancedEffect: advanced ? rollType : null,
+          ...(critRider ? { critRider: riderId } : {})
         };
         return {};
+      }
+    };
+  },
+
+  /** Self-Supportive die (L18+): the Supporter's own per-Turn die, expended as if it were Provide Aid to self. */
+  selfSupportiveDie(actor, state, data) {
+    need(supporterEnabled(actor), "The Self-Supportive die requires the Supporter class.");
+    const warnings = [];
+    levelWarning(warnings, actor, 18, "Self-Supportive");
+    const rollType = String(data.rollType ?? "").toLowerCase();
+    checkAidRoll(warnings, rollType, data);
+    if (!hasSelfSupportDie(actor)) {
+      warn(warnings, "noSelfSupportDie", "No Self-Supportive Aid Die is held this Turn; it is granted at the start of your Turn.");
+    }
+    const lvl = supporterLevel(actor) ?? 1;
+    const dieSize = aidDieSize(lvl);
+    const pb = pbForLevel(lvl);
+    const advanced = lvl >= 5;
+    const willEligible = lvl >= 20 && hasWillIntoBeing(actor);
+    const willOn = willEligible && data.willIntoBeing === true;
+    const formula = `1${dieSize}${willOn ? ` + ${pb}` : ""}`;
+
+    return {
+      title: `Self-Supportive Aid Die (${dieSize}) for ${rollType.toUpperCase()}`,
+      warnings,
+      apply(next, receipt) {
+        receipt.formula = formula;
+        receipt.rollLabel = `Self-Supportive Aid Die (${dieSize})`;
+        receipt.html = true;
+        const card = rollAidDieButton({
+          actor, label: "Roll Aid Die", formula, useId: receipt.id, rollType,
+          extra: { willIntoBeingPB: willEligible ? pb : 0, riders: advanced ? advancedAidOffers(rollType) : [] }
+        });
+        receipt.summary = `${actor.name} expended the Self-Supportive Aid Die (${dieSize}) on ${rollType}.` + card;
+        receipt.result = { dieSize, rollType, card, giverLevel: lvl, pb, selfSupportive: true, willBonus: willOn ? pb : 0,
+          advancedEffect: advanced ? rollType : null };
+        return { "flags.ak5e.supporter.selfSupportDie": false };
       }
     };
   },
@@ -166,12 +262,17 @@ const CORE_PLANS = {
     const triggerUuid = data.triggerUuid ?? null;
     const newTargetUuid = data.targetUuid ?? data.newTargetUuid ?? data.newTarget?.uuid ?? data.target?.uuid ?? null;
     const newTargetName = data.targetName ?? data.newTargetName ?? data.newTarget?.name ?? data.target?.name ?? "second creature";
+    const newTarget = data.newTarget ?? data.target ?? actorFromUuid(newTargetUuid);
 
     if (newTargetUuid === actor.uuid) {
       warn(warnings, "selfTarget", "Lighten the Load cannot target yourself.");
     }
     if (newTargetUuid === triggerUuid) {
       warn(warnings, "sameTarget", "Lighten the Load must choose a different creature.");
+    }
+    // R3: the bonus die may go to a creature already holding one; warn and allow.
+    if (findAidDieEffect(newTarget)) {
+      warn(warnings, "targetHasAidDie", `${newTargetName} already holds an Aid Die; a creature can only have one Aid Die at a time.`);
     }
 
     const distance = Number(data.distance ?? 0);
@@ -190,6 +291,7 @@ const CORE_PLANS = {
       title: `Lighten the Load -> ${newTargetName}`,
       warnings,
       apply(state, receipt) {
+        // The bonus die is free: no pool spend. finish() spends the Reaction via spendReaction (refunded on undo).
         receipt.reaction = {
           requested: true,
           triggerId: `lighten-${receipt.id}`,
@@ -217,6 +319,7 @@ const CORE_PLANS = {
                 supplementary: true
               }
             },
+            meta: { aidDie: true, dieSize: die, supplementary: true },
             ready: true
           }];
         }
@@ -225,6 +328,36 @@ const CORE_PLANS = {
     };
   }
 };
+CORE_PLANS.provideAid.validateTarget = (source, receipt, entry, target) => relayable(receipt, entry, target);
+CORE_PLANS.lightenTheLoad.validateTarget = (source, receipt, entry, target) => relayable(receipt, entry, target);
+
+/**
+ * Rider temp HP (save, healing): a change to the clicked creature, which may be unowned, so it goes
+ * through the relay as a tempHP target. Temp HP is the amount the card computed from the stored roll.
+ */
+const AID_TEMP_HP_PLAN = {
+  aidTempHP(actor, state, data) {
+    const amount = Number(data.amount);
+    need(Number.isInteger(amount) && amount > 0, "Temporary HP must be a positive whole number.");
+    const name = data.targetName ?? "target creature";
+    return {
+      title: `Temporary HP ${amount} -> ${name}`,
+      warnings: [],
+      apply(next, receipt) {
+        receipt.targets = [{ uuid: data.targetUuid, name, kind: "tempHP", amount, mode: "replace", ready: true }];
+        receipt.summary = `${actor.name} granted ${name} ${amount} Temporary Hit Points (Advanced Aid).`;
+        receipt.result = { amount, targetUuid: data.targetUuid, targetName: name };
+        return {};
+      }
+    };
+  }
+};
+AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) =>
+  entry.kind === "tempHP" && entry.amount === receipt.result?.amount && target?.uuid === entry.uuid;
+
+/** Plans and readings registered so far. Branch modules add theirs through registerSupporterPlans(). */
+const ALL_PLANS = { ...CORE_PLANS };
+const ALL_READINGS = {};
 
 supporterUses.register({
   plans: CORE_PLANS,
@@ -272,6 +405,42 @@ supporterUses.register({
         const present = values(target?.effects).some(effect => flag(effect, supporterUses.effectFlag)?.opId === receipt.id);
         return present ? `${entry.name}: removes ${entry.tag?.label ?? "the effect"}.` : `${entry.name}: ${entry.tag?.label ?? "the effect"} is already gone; nothing to remove.`;
       }
+    },
+    // The holder's own Aid Die Active Effect, expended on use. The snapshot lets undo recreate it.
+    aidDieEffect: {
+      local: true,
+      documentName: "Actor",
+      async apply(source, useId, entry, target) {
+        if (values(target.effects).some(effect => effect.id === entry.effectId)) {
+          await target.deleteEmbeddedDocuments("ActiveEffect", [entry.effectId]);
+        }
+        return { expended: entry.effectId };
+      },
+      async revert(source, useId, entry, target) {
+        if (!values(target.effects).some(effect => effect.id === entry.effectId) && entry.snapshot) {
+          await target.createEmbeddedDocuments("ActiveEffect", [entry.snapshot]);
+        }
+        return { restored: true };
+      },
+      preview(_source, _receipt, entry) {
+        return `${entry.name}: the expended Aid Die is restored.`;
+      }
+    },
+    // One-shot attack rider (R6): registered on the holder, removed on undo.
+    aidRider: {
+      local: true,
+      documentName: "Actor",
+      async apply(source, useId, entry, target) {
+        await registerAidCritRider(target, entry.riderId, entry.label);
+        return { registered: entry.riderId };
+      },
+      async revert(source, useId, entry, target) {
+        await removeAidRider(target, entry.riderId);
+        return { removed: entry.riderId };
+      },
+      preview(_source, _receipt, entry) {
+        return `${entry.name}: the critical-range rider is removed.`;
+      }
     }
   }
 });
@@ -290,9 +459,23 @@ supporterUses.undo = async function(actor, useId) {
   return await supporterUses.command(actor, "undoUse", { useId });
 };
 
+/**
+ * Register Supporter plans and readings (branch modules: Artificer, Bard, Hexer). Duplicate plan or
+ * reading names throw. Merged into the engine, so .plan, .execute, .undo and handleRelay see them.
+ */
+export function registerSupporterPlans({ plans = {}, readings = {}, cleanup } = {}) {
+  for (const name of Object.keys(plans)) need(!Object.hasOwn(ALL_PLANS, name), `Supporter plan ${name} is already registered.`);
+  for (const name of Object.keys(readings)) need(!Object.hasOwn(ALL_READINGS, name), `Supporter reading ${name} is already registered.`);
+  Object.assign(ALL_PLANS, plans);
+  Object.assign(ALL_READINGS, readings);
+  supporterUses.register({ plans, readings, cleanup });
+}
+
+registerSupporterPlans({ plans: AID_TEMP_HP_PLAN });
+
 supporterUses.plan = function(actor, name, data = {}) {
-  const planFn = CORE_PLANS[name];
-  need(planFn, `Unknown Supporter plan ${name}.`);
+  need(Object.hasOwn(ALL_PLANS, name), `Unknown Supporter plan ${name}.`);
+  const planFn = ALL_PLANS[name];
   const state = supporterUses.state(actor);
   const plan = planFn(actor, state, data);
   if (plan.warnings?.length) {
@@ -300,3 +483,83 @@ supporterUses.plan = function(actor, name, data = {}) {
   }
   return plan;
 };
+
+/* ---------------------------------------------------------------- card buttons */
+
+const notify = error => {
+  console.error("AK5e | Supporter Aid card", error);
+  globalThis.ui?.notifications?.error?.(error?.message ?? String(error));
+};
+
+/** Roll the Aid Die on the user's click only: the engine's useRoll posts the result. */
+async function clickRoll(actor, useId) {
+  return confirmPlayUse("Roll Aid Die", () => supporterUses.command(actor, "useRoll", { useId }, foundry.utils.randomID()));
+}
+
+/** Temp HP = the stored Aid Die roll (+PB for a save), applied to the chosen creature through the relay. */
+async function clickTempHP(actor, useId) {
+  const receipt = supporterUses.receipt(actor, useId);
+  need(receipt?.roll !== undefined, "Roll the Aid Die first.");
+  const amount = Number(receipt.roll) + (receipt.result?.rollType === "save" ? Number(receipt.result?.pb ?? 0) : 0);
+  const target = globalThis.game?.user?.targets?.first?.()?.actor ?? actor;
+  const opId = foundry.utils.randomID();
+  return confirmPlayUse("Temporary HP", extra => supporterUses.execute(actor, "aidTempHP",
+    { targetUuid: target.uuid, targetName: target.name, amount, ...extra }, opId));
+}
+
+async function clickSecondRoll(actor, formula) {
+  const roll = await new Roll(formula, actor.getRollData?.() ?? {}).evaluate();
+  await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: "Advanced Aid: second Aid Die roll (choose the result to use)" });
+}
+
+async function clickForce(actor, useId) {
+  const receipt = supporterUses.receipt(actor, useId);
+  need(receipt?.roll !== undefined, "Roll the Aid Die first.");
+  const target = globalThis.game?.user?.targets?.first?.()?.actor ?? null;
+  const name = target?.name ?? "a creature within 10 ft";
+  await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    content: `<p>Advanced Aid: ${esc(receipt.roll)} Force damage to ${esc(name)} (within 10 ft of the creature damaged). Apply it with the native damage controls.</p>` });
+}
+
+async function clickCrit(actor, useId) {
+  await registerAidCritRider(actor, `aidcrit-${useId}`);
+}
+
+async function clickWill(actor, pb) {
+  await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    content: `<p>Will Into Being: +${esc(pb)} (Proficiency Bonus) noted for this Aid Die roll.</p>` });
+}
+
+async function handleAidClick(button) {
+  const actor = actorFromUuid(button.dataset.actor);
+  const useId = button.dataset.useId;
+  need(actor?.isOwner, "Only the owner of this Aid Die may use these buttons.");
+  if (button.dataset.ak5eAidRoll !== undefined) return clickRoll(actor, useId);
+  if (button.dataset.ak5eWillIntoBeing !== undefined) return clickWill(actor, button.dataset.ak5eWillIntoBeing);
+  switch (button.dataset.ak5eRider) {
+    case "crit": return clickCrit(actor, useId);
+    case "second": return clickSecondRoll(actor, button.dataset.formula);
+    case "tempHP": return clickTempHP(actor, useId);
+    case "force": return clickForce(actor, useId);
+    default: throw new Error(`Unknown Advanced Aid rider ${button.dataset.ak5eRider ?? ""}.`);
+  }
+}
+
+/** renderChatMessageHTML: wires each Aid Die card button once. Nothing rolls until a click. */
+export function renderAidCardButtons(message, html) {
+  const root = html?.querySelectorAll ? html : html?.[0];
+  if (!root?.querySelectorAll) return;
+  const useId = message?.flags?.ak5e?.[supporterUses.cardFlag]?.useId ?? null;
+  for (const button of root.querySelectorAll("[data-ak5e-aid-roll], [data-ak5e-will-into-being], [data-ak5e-rider]")) {
+    if (button.dataset.ak5eBound) continue;
+    button.dataset.ak5eBound = "1";
+    button.dataset.useId = useId ?? "";
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      button.disabled = true;
+      Promise.resolve().then(() => handleAidClick(button)).catch(notify).finally(() => { button.disabled = false; });
+    });
+  }
+}
+
