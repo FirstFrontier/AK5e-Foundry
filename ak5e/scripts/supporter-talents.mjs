@@ -14,7 +14,7 @@ import { warn, spendResource, resourceValue } from "./play-uses.mjs";
 import { need } from "./operation-kernel.mjs";
 import { getReactions } from "./trigger-events.mjs";
 import { flag, supporterLevel, aidDieSize } from "./supporter-rules.mjs";
-import * as supporterUsesModule from "./supporter-uses.mjs";
+import { registerSupporterPlans } from "./supporter-uses.mjs";
 
 export const SUPPORTER_TALENT_FLAG = "supporterTalent";
 const ADD = globalThis.CONST?.ACTIVE_EFFECT_MODES?.ADD ?? 2;
@@ -357,13 +357,12 @@ export const SUPPORTER_TALENT_PLANS = Object.freeze({
   }
 });
 
-/**
- * Registers the talent plans with the Supporter use engine through the U1 contract (registerSupporterPlans).
- * Returns false, and registers nothing, while that contract is absent from the build.
- */
+let talentPlansRegistered = false;
+/** Registers the talent plans with the Supporter use engine. Idempotent: a second call is a no-op. */
 export function registerSupporterTalentPlans() {
-  if (typeof supporterUsesModule.registerSupporterPlans !== "function") return false;
-  supporterUsesModule.registerSupporterPlans({ plans: SUPPORTER_TALENT_PLANS, readings: {} });
+  if (talentPlansRegistered) return true;
+  registerSupporterPlans({ plans: SUPPORTER_TALENT_PLANS, readings: {} });
+  talentPlansRegistered = true;
   return true;
 }
 

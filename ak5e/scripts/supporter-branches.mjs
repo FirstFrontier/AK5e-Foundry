@@ -5,22 +5,20 @@
  * Only `id` and `branch` are required. `branch` is the lowercase key (for example "bard").
  * Registering a branch twice throws. Registration writes nothing to any World document.
  */
-import * as supporterUsesModule from "./supporter-uses.mjs";
+import { registerSupporterPlans } from "./supporter-uses.mjs";
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { need } from "./operation-kernel.mjs";
 
 export const SUPPORTER_BRANCH_MODULES = new Map();
 const initializedBranches = new Set();
 
-/** Hands a branch's plans, readings and cleanup to the Supporter use engine (U1 contract, guarded). */
+/** Hands a branch's plans, readings and cleanup to the Supporter use engine. */
 function registerBranchPlans(definition) {
-  if (typeof supporterUsesModule.registerSupporterPlans !== "function") return false;
-  supporterUsesModule.registerSupporterPlans({
+  registerSupporterPlans({
     plans: definition.plans ?? {},
     readings: definition.readings ?? {},
     ...(definition.cleanup ? { cleanup: definition.cleanup } : {})
   });
-  return true;
 }
 
 function normalizeProgressionFeatures(features = {}) {

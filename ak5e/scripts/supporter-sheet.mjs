@@ -92,6 +92,17 @@ async function detailsPrompt(title, fieldsHtml, read) {
   });
 }
 
+/** The roll an Aid Die is spent on. Values match the roll types the Aid Die engine accepts. */
+async function promptRollType(title) {
+  return detailsPrompt(title, `
+    <label>Roll it is for
+      <select name="rollType">
+        <option value="skill">Skill check</option><option value="attack">Attack roll</option>
+        <option value="save">Saving throw</option><option value="damage">Damage roll</option><option value="healing">Healing roll</option>
+      </select>
+    </label>`, elements => elements.rollType?.value ?? null);
+}
+
 const targetUuidFromUser = () => Array.from(game.user?.targets ?? [])[0]?.actor?.uuid ?? null;
 const targetNameFromUser = () => Array.from(game.user?.targets ?? [])[0]?.actor?.name ?? "";
 
@@ -140,13 +151,7 @@ export async function handleSupporterCommand(actor, cmd) {
   }
 
   if (cmd === "useAidDie") {
-    const rollType = await detailsPrompt("Expend Aid Die", `
-      <label>Roll it is for
-        <select name="rollType">
-          <option value="check">Skill check</option><option value="attack">Attack roll</option>
-          <option value="save">Saving throw</option><option value="damage">Damage roll</option><option value="healing">Healing roll</option>
-        </select>
-      </label>`, elements => elements.rollType?.value ?? "check");
+    const rollType = await promptRollType("Expend Aid Die");
     if (!rollType) return null;
     const die = aidDieSize(supporterLevel(actor) ?? 1);
     return runSupporterUse(actor, "useAidDie", "Expend Aid Die", { rollType, dieSize: die }, [
@@ -165,8 +170,11 @@ export async function handleSupporterCommand(actor, cmd) {
   }
 
   if (cmd === "selfSupportiveDie") {
-    return runSupporterUse(actor, "selfSupportiveDie", "Self-Supportive Die", {}, [
-      `${actor.name} expends the Self-Supportive Die granted at the start of this Turn, as if targeted by your own Provide Aid.`
+    const rollType = await promptRollType("Self-Supportive Die");
+    if (!rollType) return null;
+    return runSupporterUse(actor, "selfSupportiveDie", "Self-Supportive Die", { rollType }, [
+      `${actor.name} expends the Self-Supportive Die granted at the start of this Turn, as if targeted by your own Provide Aid.`,
+      `The roll is a ${rollType} roll; it is made by the owner from the roll card.`
     ]);
   }
 
