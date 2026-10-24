@@ -93,6 +93,18 @@ import { previewSpecialistSetup, applySpecialistSetup } from "./specialist-setup
 import { inspectSpecialistFields, previewSpecialistProgression, applySpecialistProgression } from "./specialist-progression.mjs";
 import { specialistUses, recordSpecialistRuling, getSpecialistRuling } from "./specialist-uses.mjs";
 import { openSpecialistControls, registerSpecialistSheetHooks } from "./specialist-sheet.mjs";
+// --- Supporter (U2) imports: start ---
+import * as supporterRules from "./supporter-rules.mjs";
+import { calculateSupporterProfile, supporterProfile } from "./supporter-rules.mjs";
+import { registerSupporterHooks } from "./supporter-features.mjs";
+import { previewSupporterSetup, applySupporterSetup } from "./supporter-setup.mjs";
+import { inspectSupporterFields, previewSupporterProgression, applySupporterProgression } from "./supporter-progression.mjs";
+import { supporterUses, recordSupporterRuling } from "./supporter-uses.mjs";
+import { initSupporterBranches, supporterBranchApis } from "./supporter-branches.mjs";
+import "./supporter-branch-index.mjs";
+import { openSupporterControls, registerSupporterSheetHooks } from "./supporter-sheet.mjs";
+import { registerSupporterTalentPlans } from "./supporter-talents.mjs";
+// --- Supporter (U2) imports: end ---
 import {
   registerExecutorHooks,
   getExecutorPath,
@@ -475,6 +487,24 @@ Hooks.once("ready", () => {
       isTriage,
       rules: medicRules
     }),
+    // --- Supporter (U2) API block: start ---
+    supporter: Object.freeze({
+      preview: previewSupporterSetup,
+      apply: applySupporterSetup,
+      inspect: supporterProfile,
+      calculateProfile: calculateSupporterProfile,
+      choices: inspectSupporterFields,
+      previewProgression: previewSupporterProgression,
+      applyProgression: applySupporterProgression,
+      open: openSupporterControls,
+      use: supporterUses.command,
+      uses: supporterUses.uses,
+      previewUndo: supporterUses.previewUndo,
+      recordRuling: recordSupporterRuling,
+      rules: supporterRules,
+      branches: supporterBranchApis()
+    }),
+    // --- Supporter (U2) API block: end ---
     specialist: Object.freeze({
       preview: previewSpecialistSetup,
       apply: applySpecialistSetup,
@@ -843,6 +873,13 @@ Hooks.once("ready", () => {
   registerTrapmasterHooks();
   Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(specialistUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Specialist relay", error)));
   registerSpecialistSheetHooks();
+  // --- Supporter (U2) ready hooks: start ---
+  registerSupporterHooks();
+  registerSupporterTalentPlans();
+  initSupporterBranches();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(supporterUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Supporter relay", error)));
+  registerSupporterSheetHooks();
+  // --- Supporter (U2) ready hooks: end ---
   ResourcePools.registerResourcePoolHooks();
   TriggerEvents.registerTriggerEventHooks();
   registerWorldRuleHooks(game.ak5e);

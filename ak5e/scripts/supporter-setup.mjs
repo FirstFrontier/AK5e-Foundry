@@ -58,12 +58,15 @@ function featureItemData(entry) {
   };
 }
 
-export async function previewSupporterSetup(actor) {
+export async function previewSupporterSetup(actor, options = {}) {
   const profile = supporterProfile(actor);
   need(actor?.isOwner && profile.applicable, "Choose an owned character with the Supporter class.");
   const level = profile.level ?? 1;
   const existing = list(actor.items);
   const creates = [], kept = [];
+  const stored = flag(actor, "supporter") ?? {};
+  const aidAbility = ["int", "wis", "cha"].includes(options.aidAbility) ? options.aidAbility : (stored.aidAbility ?? "cha");
+  const branch = options.branch ?? profile.branch ?? stored.branch ?? null;
 
   for (const feat of SUPPORTER_CORE_FEATURES) {
     if (feat.level > level) continue;
@@ -75,21 +78,27 @@ export async function previewSupporterSetup(actor) {
     }
   }
 
-  const contextKey = JSON.stringify([actor.uuid, level, creates.map(c => c.name), kept]);
+  const actorUpdates = {
+    "flags.ak5e.supporter.enabled": true,
+    "flags.ak5e.supporter.aidAbility": aidAbility
+  };
+  if (branch) actorUpdates["flags.ak5e.supporter.branch"] = branch;
+
+  const contextKey = JSON.stringify([actor.uuid, level, creates.map(c => c.name), kept, aidAbility, branch]);
   return {
     level,
     creates,
     kept,
     contextKey,
-    actorUpdates: {
-      "flags.ak5e.supporter.enabled": true
-    }
+    aidAbility,
+    branch,
+    actorUpdates
   };
 }
 
-export async function applySupporterSetup(actor, { confirmed, contextKey } = {}) {
+export async function applySupporterSetup(actor, { confirmed, contextKey, aidAbility, branch } = {}) {
   need(confirmed === true, "Confirm the previewed Supporter setup first.");
-  const plan = await previewSupporterSetup(actor);
+  const plan = await previewSupporterSetup(actor, { aidAbility, branch });
   need(plan.contextKey === contextKey, "The character changed since the preview; preview the Supporter setup again.");
 
   defineSupporterPools();
