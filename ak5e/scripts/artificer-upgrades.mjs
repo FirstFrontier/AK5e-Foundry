@@ -315,8 +315,10 @@ function basicPersonalityMatrix(actor, state, data) {
   if (info.personality) warn(warnings, "replace", `${doc.name} already has a personality (${info.personality}); this replaces it.`);
 
   const hasChoice = data.choice !== undefined && data.choice !== null && data.choice !== "";
-  const choice = hasChoice ? Number(data.choice) : null;
-  if (hasChoice) need(Number.isInteger(choice) && choice >= 1 && choice <= 6, "Choose a personality from 1 to 6.");
+  // The d6 result (1 to 6) or the personality's name from the table (C3:6914-6921).
+  const named = hasChoice ? MACHINE_PERSONALITIES.findIndex(name => name.toLowerCase() === String(data.choice).trim().toLowerCase()) : -1;
+  const choice = hasChoice ? (named >= 0 ? named + 1 : Number(data.choice)) : null;
+  if (hasChoice) need(Number.isInteger(choice) && choice >= 1 && choice <= 6, "Choose a personality from 1 to 6, or by name.");
 
   return {
     title: `Basic Personality Matrix: ${doc.name}`,
@@ -502,7 +504,8 @@ const notify = error => {
 async function clickSave(button) {
   const target = actorFromUuid(button.dataset.actor);
   need(target?.isOwner, "Only the target's owner may roll this save.");
-  return target.rollAbilitySave(button.dataset.ak5eUpgradeSave, { targetValue: Number(button.dataset.dc) });
+  // dnd5e 5.x save API, as elsewhere in the module: the native save pipeline (bonuses, advantage, dialog).
+  return target.rollSavingThrow({ ability: button.dataset.ak5eUpgradeSave, target: Number(button.dataset.dc) });
 }
 
 async function clickRoll(button) {
