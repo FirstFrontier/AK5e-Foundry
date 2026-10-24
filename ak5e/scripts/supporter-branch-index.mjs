@@ -5,3 +5,4 @@
  */
 import "./hexer-branch.mjs";
 import "./artificer-branch.mjs";
+import "./bard-branch.mjs";
