@@ -14,6 +14,7 @@ import { actorFromUuid } from "./supporter-features.mjs";
 import { warn } from "./play-uses.mjs";
 import { need, esc, opaqueKey } from "./operation-kernel.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
+import { upgradeCapFor } from "./artificer-features.mjs";
 
 /* ---------------------------------------------------------------- data (transcribed from the source) */
 
@@ -103,10 +104,8 @@ const requireUpgrade = id => {
 
 /* ---------------------------------------------------------------- rules helpers */
 
-/** Upgrade cap per Automaton (A4): 2, or 3 from Supporter level 17 (Armoured Core, C3:6958 area). Mobile Cover takes the same cap. */
-export function upgradeCapFor(actor) {
-  return (supporterLevel(actor) ?? 1) >= 17 ? 3 : 2;
-}
+/* upgradeCapFor (A4: 2, or 3 from Supporter level 17; Mobile Cover takes the same cap) is defined once, in artificer-features.mjs. */
+export { upgradeCapFor };
 
 /** Upgrades applied when a custom Automaton is created or Fort Builder is used: 1, or 2 from level 17. */
 export function upgradesAtCreation(actor) {
@@ -561,7 +560,7 @@ async function formDialog(title, content, read) {
     content: `<div class="ak5e-upgrade-form">${content}</div>`,
     buttons: [
       { action: "ok", label: "Continue", default: true, callback: (_event, button) => read(button.form.elements) },
-      { action: "cancel", label: "Cancel", callback: () => null }
+      { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
 }

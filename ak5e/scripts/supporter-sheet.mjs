@@ -67,7 +67,7 @@ export function supporterTalentActions(actor) {
 }
 
 /** Confirm step for every use or setup. Resolves true only on Confirm. */
-async function confirmSupporterUse(title, lines) {
+export async function confirmSupporterUse(title, lines) {
   const content = `<div class="ak5e-supporter-confirm">${lines.map(line => `<p>${esc(line)}</p>`).join("")}</div>`;
   const result = await DialogV2().wait({
     window: { title },
@@ -307,7 +307,7 @@ export function supporterPanelHtml(actor) {
     const talents = supporterTalentActions(actor);
     if (talents.length) parts.push(`<div class="ak5e-supporter-button-row ak5e-supporter-talents">${talents.map(action => cmdButton(action.cmd, action.label)).join("")}</div>`);
   }
-  const branchHtml = branch ? SUPPORTER_BRANCH_MODULES.get(branch)?.sheetPanel?.(actor) : null;
+  const branchHtml = actor.isOwner && branch ? SUPPORTER_BRANCH_MODULES.get(branch)?.sheetPanel?.(actor) : null;
   if (typeof branchHtml === "string" && branchHtml.length) parts.push(`<div class="ak5e-supporter-branch-slot">${branchHtml}</div>`);
   if (actor.isOwner) parts.push(cmdButton(profile.configured ? "__open" : "__setup", profile.configured ? "Open Supporter Controls" : "Set up Supporter"));
   parts.push('<p class="ak5e-supporter-note">Opening this panel makes no changes (confirm before use).</p>');

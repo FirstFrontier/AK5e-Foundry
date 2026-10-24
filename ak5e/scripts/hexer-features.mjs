@@ -421,7 +421,7 @@ async function pickHex(actor, title, kinds = HEX_KINDS) {
     window: { title }, position: { width: 420 }, rejectClose: false, content,
     buttons: [
       { action: "apply", label: "Confirm", default: true, callback: (_event, button) => ({ kind: button.form.elements.kind.value, ability: button.form.elements.ability.value }) },
-      { action: "cancel", label: "Cancel", callback: () => null }
+      { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
 }

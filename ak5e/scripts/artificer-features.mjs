@@ -22,6 +22,7 @@ import { spendResource, warn, resourceValue } from "./play-uses.mjs";
 import { supporterUses } from "./supporter-uses.mjs";
 import { actorFromUuid, spendAidDice, aidDieFormula } from "./supporter-features.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
+import { confirmSupporterUse } from "./supporter-sheet.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
 
 export const ARTIFICER_BRANCH = "artificer";
@@ -615,7 +616,7 @@ async function askForm(title, content, read) {
     window: { title }, position: { width: 440 }, rejectClose: false, content,
     buttons: [
       { action: "ok", label: "Confirm", default: true, callback: (_event, button) => read(button.form.elements) },
-      { action: "cancel", label: "Cancel", callback: () => null }
+      { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
 }
@@ -637,13 +638,21 @@ function runUse(actor, title, name, data) {
   return confirmPlayUse(title, extra => supporterUses.execute(actor, name, { ...data, ...extra }, opId));
 }
 
+/** A use with no form of its own: the confirm summary comes first, and Cancel writes nothing (WORKFLOW §3.2). */
+async function confirmedRunUse(actor, title, lines, name, data) {
+  if (!await confirmSupporterUse(title, lines)) return null;
+  return runUse(actor, title, name, data);
+}
+
 /** Command an Artificer control from its panel. Returns undefined for commands this branch does not own. */
 export async function artificerCommand(actor, cmd) {
   const owned = ["artificerSetup", "buildAutomaton", "commandAutomaton", "asOne", "fortBuilder", "concussiveMaintenance", "rebuildAutomaton", "advancedPersonalityMatrix"];
   if (!owned.includes(cmd)) return undefined;
   need(isArtificer(actor), "Artificer commands need the Artificer branch.");
-  if (cmd === "artificerSetup") return runUse(actor, "Artificer setup", "artificerSetup", {});
-  if (cmd === "fortBuilder") return runUse(actor, "Fort Builder", "fortBuilder", {});
+  if (cmd === "artificerSetup") return confirmedRunUse(actor, "Artificer setup",
+    ["Records the Artificer setup on this character: Heavy Melee Weapons proficiency and the Tools of Creation and Destruction features."], "artificerSetup", {});
+  if (cmd === "fortBuilder") return confirmedRunUse(actor, "Fort Builder",
+    [`Deploys a portable cover (${FORT_COVER.dimensions}, ${FORT_COVER.cover}) to an unoccupied space within 5 feet.`, "Spends one Fort Builder use (Action); uses return on a Long Rest."], "fortBuilder", {});
   if (cmd === "buildAutomaton") {
     const choice = await askForm("Professional Engineer: build an Automaton",
       `<label>Variant <select name="variant">${selectOptions(Object.entries(AUTOMATON_VARIANTS).map(([k, v]) => [k, v.label]))}</select></label>`,
