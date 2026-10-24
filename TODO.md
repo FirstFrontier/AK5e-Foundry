@@ -1013,41 +1013,87 @@ Source L6382–6542. Evidence: complete implementation across specialist-rules.m
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6548–6692. Evidence: none beyond 37 Operator Skills.
-- [ ] Native data: d6, proficiencies (SI-11).
-- [ ] **Aid Die module** (pool = chosen ability modifier, d8 / d10 / d12, Provide Aid 10 minutes, consume via chat-card button); ~40 features depend on it. Advanced Aid riders (L6656–6662), Lighten the Load, Ever Reliable, Self-Supportive, Will Into Being.
-- [ ] Arts setup shared by Hexer / Ritualist / Summoner (identical AP table L7256, L7360, L7579) (SI-5).
-- [ ] Talents: 12 Basic + 16 Advanced (L6809–6851); Anti-Arts Training, Lieutenant, Part-Time Inventor cross-class borrows.
-- Rulings to log: Aid Die count when the modifier ≤ 0 (L6637); Advanced Aid on Constructs; "Tech" vs "Technology Skill" (L6604 / L6882).
+Source L6548–6692. Implemented on branch `feat/supporter-base` (2026-10-24, PRs #8–#32, adversarial pairs per unit). `npm run test:supporter`: 1019 pass, 0 fail. Live Foundry V13 checks were run per unit with launchTestBrowser(), and the screenshots were viewed by the implementing workers. Not yet merged to `main`.
+- [x] Native data: d6, Light Melee (custom weaponProf), saves, skills, tools, equipment; branch features granted by level (supporter-progression.mjs, supporter-setup.mjs).
+- [x] **Aid Die module.** Covers:
+  - the pool = the chosen ability modifier with no floor (resource-pools now accepts a per-actor function max), d8 / d10 / d12;
+  - Provide Aid, Expend, Advanced Aid riders as click-only buttons, with the crit rider applied through `dnd5e.preRollAttackV2`;
+  - Lighten the Load (spends a Reaction), Ever Reliable, Self-Supportive and Will Into Being (an opt-in +PB note).
+
+  Code: supporter-rules/features/uses.mjs.
+- [x] Arts setup shared by Hexer / Ritualist / Summoner (supporter-arts.mjs, AP table keyed by branch). Only Hexer is filled in: Ritualist and Summoner tables carry extra columns, so they are not added yet.
+- [x] Talents: 12 Basic + 16 Advanced (supporter-talents.mjs). 3 are Active Effects, 7 are plans with pools, and 18 are manual cards, including the R11 cross-class borrows.
+- [x] Sheet panel (supporter-sheet.mjs). Owner-gated; it includes a branch slot and routes branch commands. A branch seam (supporter-branches.mjs, supporter-branch-index.mjs) is wired in ak5e.mjs.
+- [x] Shared Cancel defect fixed for play-uses dialogs. Foundry resolves `callback() ?? action`, so Cancel must return false (play-uses-sheet.mjs). The same defect in other classes is tracked in bugs/pending/B-302.
+- [ ] Open: Will Into Being +PB is a note, not applied to an already-made roll. The Advanced Aid Force rider posts its amount for native damage application. The Supporter "Choose Skills" (operator-progression) prompt auto-opens over the sheet at higher levels.
+- [ ] Open: Ritualist and Summoner branches.
+- Rulings logged: ak5e/DECISIONS.md "Supporter Class and Artificer / Bard / Hexer Branches" (R1–R11) and "Supporter branch implementation rulings".
 
 #### Artificer — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6859–7090. Evidence: Automaton creature records exist as templates.
-- [ ] Automaton lifecycle (Platform / Air Support / Turret; HP + Tech modifier; Int + PB to hit; cap 1 → 2) (SI-8); rebuild (LR or 500 LMD); As One; Fort Builder.
-- [ ] Heavy Duty Upgrades (21: 17 Automaton, 4 Mobile Cover) with caps 2 / 3 and restriction tags; shared-rest recovery rule ("both complete a rest together"); Machine Personality RollTable; Concussive Maintenance.
-- Rulings to log: Automaton cap vs Protocol skills (L6755) and Turret Automation; "Air Supporter" typo (L6768); upgrade cap for Mobile Cover; "Page 466/467/9" references.
-- Manual-OK: HOIST, Search and Rescue, Ultralight, Personality.
+Source L6859–7090. Implemented in artificer-features.mjs (U5), artificer-upgrades.mjs (U6) and artificer-branch.mjs (U9).
+- [x] Automaton lifecycle:
+  - build from the Ch.6 template through a GM relay;
+  - HP + Technology Modifier as a reading (techTotal / intMod);
+  - INT + PB to hit;
+  - cap 1 → 2, which warns rather than blocks, with exemptions;
+  - destroyed at 0 HP;
+  - rebuild (Long Rest or 500 LMD from `currency.cp`);
+  - As One, Control, Fort Builder, Concussive Maintenance, Advanced Personality Matrix, Artificer DC.
+- [x] Heavy Duty Upgrades: 17 Automaton + 4 Mobile Cover, transcribed with restriction tags. Caps are 2 / 3 (Mobile Cover uses the same cap). Shared-rest recovery; save buttons use the Artificer DC with native `rollSavingThrow`; Machine Personality by choice or by a d6 button.
+- [ ] Open:
+  - Calculated Strikes is a flag plus a reminder (dnd5e has no global per-weapon ability override).
+  - Upgrade-use recovery for Automatons the player doesn't own needs a GM relay.
+  - Arts Detonator's "use at 0 HP even if expended" is noted but not enforced.
+- Manual-OK: HOIST, Search and Rescue, Ultralight, Personality flavour.
 
 #### Bard — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L7096–7211. Evidence: none.
-- [ ] Performance composer: Muse from expended Aid Dice, ≥3 Arts, no consecutive duplicates, ≤CHA-mod Performances; runtime that casts one Art per Turn free of AP (Concentration handling); Rising Crescendo; Speak to the Soul; Font of Inspiration; Fortissimo.
-- [ ] Performance Arts table (34 entries); several named Arts (Pyrotechnics, Crusader's Mantle, Counterspell, Find Familiar, Augury, Unseen Servant) are absent from Ch.5 text — needs a mapping decision.
-- Rulings to log: Bonus-Action Arts vs "usual Action Cost" (L7110); Aid Dice lost to Muse until LR; "Performance Modifier".
-- Manual-OK: Instrument equip check, Emergency Improv.
+Source L7096–7211. Implemented in bard-compose.mjs (U7), bard-perform.mjs (U8) and bard-branch.mjs (U11).
+- [x] Composer:
+  - Muse from expended Aid Dice, rolled by button;
+  - at least 3 Arts, no consecutive duplicates, at most max(1, CHA) Performances, all as warnings;
+  - an unknown Art is a hard error;
+  - leftover Muse becomes Temporary HP;
+  - No Encore and Long Rest cleanup;
+  - Soul of the Bard setup, Speak to the Soul, Emergency Improv (DC 17 check button, then compose or insert).
+- [x] Runtime:
+  - start and per-Art casts at 0 AP through the Arts quote registry;
+  - one Art per Turn, or two with Time Signature;
+  - turn-end auto-end;
+  - the last Art ends the Performance, and its crescendo still applies to that cast;
+  - Rising Crescendo as an Active Effect, with Fortissimo ×2;
+  - Font of Inspiration die (R4) and Font Aid;
+  - the Instrument acts as the Casting Unit for the duration;
+  - every control confirms, and Cancel changes nothing.
+- [x] Performance Arts table: 34 rows. 11 absent from Ch.5 are marked manual (Bless included); see DECISIONS.
+- [ ] Open:
+  - Native Concentration effects of other Arts are not ended automatically.
+  - The whole-array `performances` write can race between compose and perform.
+  - Shatter (5th Level) presence is unresolved.
+- Manual-OK: Emergency Improv timing reminder.
 
 #### Hexer — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L7223–7330. Evidence: Custom tag suggested; Cursemark manual.
-- [ ] Hexer AP table and pool setup (SI-5); Potent Hex (PB / LR; Abjuring, Binding, Breaking, Looping) with the Aid Die roll recorded at application; Cursemark point (SI-6); Empathic Pain; Voicethief / Wasting; Ultimate Hex; Rupturing Hex.
-- Rulings to log: rounding for Abjuring (L7290); Binding re-roll vs fixed (L7292); Ultimate Hex includes Cursemark / Wasting choice (L7326).
-- Manual-OK: Cursemark, Rupturing Hex.
+Source L7223–7330. Implemented in hexer-arts.mjs (U3), hexer-features.mjs (U4) and hexer-branch.mjs.
+- [x] Hexer AP table and pool setup (all Arts ≤5th level plus cantrips, always Prepared; a second pool at level 11; duplicate pool warns).
+- [x] Hexes:
+  - Potent Hex (PB / LR): Binding with 2 Aid Dice rounded to the nearest 5; Breaking; Looping; Abjuring with its die rolled at the hexed creature's damage roll (L7290).
+  - The Force rider is limited per hexed creature per turn cycle and checks the source.
+  - Cursemark (optional mark id, an area apply with a single confirm, Spare the Rod).
+  - Empathic Pain, Voicethief (native save), Wasting.
+  - Ultimate Hex with Rupturing; it includes the level-13 Hexes.
+- [ ] Open:
+  - Many Standard Pool members have no AK5e record and are reported as "missing", for example Light and Psychic (0 resolved).
+  - No Casting Unit is set at setup, so the first cast raises FocusMissing until one is assigned.
+  - Breaking has no DR key and uses a flag plus a reminder.
+- Manual-OK: Cursemark canvas placement (the targeted token is the point), Rupturing burst targeting.
 
 #### Ritualist — L
 
