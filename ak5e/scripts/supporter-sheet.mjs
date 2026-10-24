@@ -5,7 +5,7 @@
  * Damage, healing and feature dice are never rolled here; uses post roll buttons on their cards.
  */
 import {
-  supporterProfile, supporterLevel, aidDieSize, pbForLevel
+  supporterProfile, supporterLevel, aidDieSize, pbForLevel, flag
 } from "./supporter-rules.mjs";
 import { getPool, getPoolDefinition } from "./resource-pools.mjs";
 import { supporterUses } from "./supporter-uses.mjs";
@@ -279,7 +279,8 @@ export function supporterPanelHtml(actor) {
   if (!eligible(actor)) return "";
   const profile = supporterProfile(actor);
   const view = supporterAidDieView(actor);
-  const branch = profile.branch;
+  // The branch subclass Item is authoritative; the stored branch (set by setup before a subclass exists) is the fallback.
+  const branch = profile.branch ?? (flag(actor, "supporter")?.branch || null);
   const aid = view.max === null ? "Aid Dice: not set up"
     : `Aid Dice: ${view.value} / ${view.max}${view.over > 0 ? ` (+${view.over})` : ""} · ${view.size}`;
   const cmdButton = (cmd, label) => `<button type="button" data-supporter-cmd="${esc(cmd)}">${esc(label)}</button>`;
