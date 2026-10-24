@@ -483,11 +483,15 @@ export function bardPerformPanel(actor) {
 
 async function promptPerformance(actor) {
   const options = performancesOf(actor).map(entry => `<option value="${esc(entry.id)}">${esc(entry.id)}: ${esc(entry.arts.map(art => art.name).join(", "))}${entry.performed ? " (performed; No Encore)" : ""}</option>`).join("");
-  // Returns an object, so a closed window (null) is never mistaken for a choice.
-  const picked = await foundry.applications.api.DialogV2.prompt({
+  // Continue returns the choice; Cancel and X return false/null, which both mean no Performance is chosen.
+  const picked = await foundry.applications.api.DialogV2.wait({
     window: { title: `Put on a Performance — ${actor.name}` }, rejectClose: false,
     content: `<label>Performance <select name="performanceId">${options}</select></label>`,
-    ok: { label: "Continue", callback: (_event, button) => ({ performanceId: button.form.elements.performanceId?.value || "" }) }
+    buttons: [
+      { action: "continue", label: "Continue", default: true,
+        callback: (_event, button) => ({ performanceId: button?.form?.elements?.performanceId?.value || "" }) },
+      { action: "cancel", label: "Cancel", callback: () => false }
+    ]
   });
   return picked?.performanceId || null;
 }
