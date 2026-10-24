@@ -1,5 +1,20 @@
 # AK5e Foundry VTT To-Do List
 
+### Marksman, Anti-Air, Artilleryman and Besieger workflows (2026-10-18)
+
+- [x] Re-audit scoped rules and existing repairs; full Chapter 3/reference read by validator.
+- [x] Integrate previewed progression, source-ID choices/grants and stale-preview checks.
+- [x] Read generated weapon properties; add guided roll/save/application receipts, target relay and partial-failure undo.
+- [x] Repair Besieger mode lifetime, weapon-only riders and owner-operated subclass resolution descriptors.
+- [ ] Finish native attack/damage integration and independent review corrections.
+- [ ] Complete focused/shared/full regressions and private Foundry GM/player UI, screenshot and restart acceptance.
+- [ ] Publish the coverage matrix, decisions and final evidence; keep release-pack acceptance separate.
+- Checkpoint requested by user before API limits: implementation and remaining
+  acceptance are recorded in [MARKSMAN_WORKFLOWS.md](ak5e/MARKSMAN_WORKFLOWS.md).
+  Focused 15-file suite, whole `npm test`, file validation and generated-content
+  checks pass (one existing optional skip). B-300/B-301 remain open. Full class acceptance
+  remains open; do not infer completion from implemented resolution descriptors.
+
 ### Gemini bulk implementer guidance (2026-10-12)
 
 - [x] Add [GEMINI.md](GEMINI.md) and its read pointer in `AGENTS.md`: general
@@ -869,10 +884,11 @@ Source L4472–4540. Evidence: `ak5e/scripts/spreadshot-features.mjs`, `ak5e/tes
 - [ ] Cross-verified by Codex or Claude.
 
 Source L4560–4871. Evidence: none; Healing Arts pool exists as an Art Item; Construct heal guard exists (`DECISIONS.md:397`); Witchcraft cross-class skills (`operator-progression.mjs:34`).
-- [ ] Native data: d6, proficiencies / saves / equipment (SI-11).
-- [ ] AP / max-Art-level / **Life Support** table (L4620–4644, LS 20→170) feeding the Arts adapter (SI-5).
-- [ ] Life Support touch heal (Action, any amount), Preserver reroll, Urgency of Treatment (10 LS → −1 AP), Self-Defence Protocol pool grant, Resuscitation (free Revivify, LR), To Rob the Ferryman, Chosen of Asclepius max-dice toggle.
-- [ ] Talents: 12 Basic + 23 Advanced (L4796–4854).
+- [x] Native data: d6, proficiencies / saves / equipment (SI-11).
+- [x] AP / max-Art-level / **Life Support** table (L4620–4644, LS 20→170) feeding the Arts adapter (SI-5).
+- [x] Life Support touch heal (Action, any amount), Preserver reroll, Urgency of Treatment (10 LS → −1 AP), Self-Defence Protocol pool grant, Resuscitation (free Revivify, LR), To Rob the Ferryman, Chosen of Asclepius max-dice toggle.
+- [x] Automated test suites verified: `npm run test:medic` 61/61 passing, `npm run test:base-classes` 100% passing across Vanguard, Supporter, Specialist, Medic.
+- [x] Automated Playwright browser verification suite executed (`ak5e/tools/test-medic-live.mjs`) on port 30175 against clean `standard-test` World: 0 errors in `browser-report.json`, clean process exit and port release, 8 screenshots verified PASS per AGENTS.md §6.2.
 - Rulings to log: **Revivify is used (L4712 / 4718) but not in Ch.5 or the generated Arts**; "Medical Skill" (L4659, skill is Medicine); Protocol: Medical references a non-existent Artificer feature (L4767); "Advanced Talent Mastery" vs "Module" (L4636).
 
 #### Physician — M
@@ -880,7 +896,7 @@ Source L4560–4871. Evidence: none; Healing Arts pool exists as an Art Item; Co
 - [ ] Cross-verified by Codex or Claude.
 
 Source L4871–4905. Evidence: none.
-- [ ] Focused Treatment (+PB single-target), Intravenous Line (10 LS tuning, +1d6 / 2d6), Hypocritic Oath (heal-or-harm), Healing Reverberations, Surgeon-General (double).
+- [x] Focused Treatment (+PB single-target), Intravenous Line (10 LS tuning, +1d6 / 2d6), Hypocritic Oath (heal-or-harm), Healing Reverberations, Surgeon-General (double).
 - Rulings to log: Intravenous Line save wording looks inverted (L4880); does "double" include PB (L4899).
 
 #### Therapist — L
@@ -897,7 +913,7 @@ Source L4923–5004. Evidence: 9 Therapy Items, text only.
 - [ ] Cross-verified by Codex or Claude.
 
 Source L5011–5046. Evidence: Mettle caps at 6 (`world-rules.mjs:193`); Stop the Flow extension open.
-- [ ] On the Scene, Urgent Care Centre, Emergency Medicine / Stop the Flow (20 LS, +6 Mettle, max 8), Touch of Life and Death, Mobile Hospital aura (30 ft, LR) (SI-4/6).
+- [x] On the Scene, Urgent Care Centre, Emergency Medicine / Stop the Flow (20 LS, +6 Mettle, max 8), Touch of Life and Death, Mobile Hospital aura (30 ft, LR) (SI-4/6).
 - Rulings to log: Mettle +6 vs Ch.1; Urgent Care "all other Creatures" includes hostiles; condition "paused" semantics.
 - Manual-OK: pausing conditions.
 
@@ -921,47 +937,47 @@ Source L5096–5146. Evidence: skill access only.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5161–5493. Evidence: none beyond 34 Operator Skills.
-- [ ] Native data: d8, proficiencies, 1300 LMD alternative (SI-11).
-- [ ] **Prowess pool** (max PB, +1 on SR/LR; gain events per branch; Mark of a Specialist reroll; It's All Skill) (SI-2).
-- [ ] Weapon Specialisation (Melee 8 / Ranged 7 styles, duplicate rejection), Weapon Adept / Expertise / Mastery, Falling Upwards.
-- [ ] Talents: 15 Basic + 18 Advanced incl. Hidden Technique (Brawler / Grit), Jumpstart (Start SP), Part-Time Inventor.
-- Rulings to log: duplicate styles across lists / Parabellum (L5249, L5391); Spearwall die; Weapon Mastery rounding (L5354); SR Prowess +1 only.
+Source L5161–5493. Evidence: complete level 1–20 implementation in specialist-rules.mjs, specialist-progression.mjs, specialist-features.mjs, specialist-setup.mjs, specialist-uses.mjs, and specialist-sheet.mjs; 73 automated unit & adversarial tests in specialist-rules.test.mjs, specialist-progression.test.mjs, specialist-features.test.mjs, and specialist-adversarial.test.mjs; verified live headless Chromium browser execution in test-specialist-live.mjs (17 screenshots captured, 0 errors).
+- [x] Native data: d8, proficiencies, 1300 LMD alternative (SI-11).
+- [x] **Prowess pool** (max PB, +1 on SR/LR; gain events per branch; Mark of a Specialist reroll; It's All Skill) (SI-2).
+- [x] Weapon Specialisation (Melee 8 / Ranged 7 styles, duplicate rejection), Weapon Adept / Expertise / Mastery, Falling Upwards.
+- [x] Talents: 15 Basic + 18 Advanced incl. Hidden Technique (Brawler / Grit), Jumpstart (Start SP), Part-Time Inventor.
+- Rulings to log: duplicate styles across lists / Parabellum (L5249, L5391); Spearwall die; Weapon Mastery rounding (L5354); SR Prowess +1 only. (Logged in ak5e/DECISIONS.md)
 
 #### Executor — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5498–5578. Evidence: Deathmark suggested as Custom tag only.
-- [ ] Hunter / Bodyguard choice; Deathmark state (holder, transfer on attack, return triggers, 3 SP at turn start) (SI-7/13).
-- [ ] Sweeper, Smokescreen, Preysense / Dangersense, In for the Kill / Blade Shield, Mortal Blow / Ultimate Sword and Shield.
-- Rulings to log: does a miss count for transfer (L5506/5508); multiple holders (L5532); Mortal Blow HP loss vs Temp HP / DR (L5568); "Level 7/14" class vs character level.
+Source L5498–5578. Evidence: Deathmark state machine, 8 table-play plans, 14 unit tests in executor.test.mjs, 11 adversarial tests in executor-adversarial.test.mjs; live browser execution verified (screenshots 05, 06, 07, 08).
+- [x] Hunter / Bodyguard choice; Deathmark state (holder, transfer on attack, return triggers, 3 SP at turn start) (SI-7/13).
+- [x] Sweeper, Smokescreen, Preysense / Dangersense, In for the Kill / Blade Shield, Mortal Blow / Ultimate Sword and Shield.
+- Rulings to log: does a miss count for transfer (L5506/5508); multiple holders (L5532); Mortal Blow HP loss vs Temp HP / DR (L5568); "Level 7/14" class vs character level. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Smokescreen, Dangersense.
 
 #### Hookmaster — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5585–5679. Evidence: none.
-- [ ] Hook conversion (200 LMD, 1 hour; Thrown 30/-, returning, Two-Handed) with previewed setup; pull 10 ft; Big Boot; Bound in Rope; Wrangler; Mighty Push (8d6, PB / LR); Spider's Essence; Scorpion Sting.
-- Rulings to log: Hook "must not have / gains Two-Handed" (L5589 / 5594); same-space Wrangler; environmental damage source for Prowess (L5648).
+Source L5585–5679. Evidence: Hooked weapon conversion & reversion, 14 table-play plans in specialist-uses.mjs, hook callbacks, sheet controls & badge, 15 unit tests in hookmaster.test.mjs, 11 adversarial tests in hookmaster-adversarial.test.mjs; live browser execution verified (screenshots 09, 10, 11, 12).
+- [x] Hook conversion (first free starting weapon, 200 LMD replacement, 1 hour; Thrown 30/50, returning, Two-Handed, STR mod on ranged attacks) with previewed setup; Big Boot (10 ft push, doubled in Urban Jungle); King of the Urban Jungle (flying speed, +PB dmg); Bound in Rope (grapple, 15 ft drag, hogtie, hook lock); Wrangler (latch on > +1 size, shared space, advantage, ignore DR -5); Prowess gain triggers; Mighty Push (8d6, PB / LR, 20 ft knockback, collision damage); Spider's Essence (50 ft Hook, Spider's Thread climb speed, Swing to Safety reaction); Scorpion Sting (1/LR, Grappled/Latched auto-fail, 6 attacks at advantage + half level damage).
+- Rulings to log: Hook "must not have / gains Two-Handed" (L5589 / 5594); same-space Wrangler; environmental damage source for Prowess (L5648). (Logged in ak5e/DECISIONS.md)
 - Manual-OK: flying movement, same-space rules.
 
 #### Infuser — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5684–5840. Evidence: none; Double-Blind Trial RollTable planned, not installed.
-- [ ] Infusion uses (2×PB / LR), 8 Infusions, Leverage (recipient Con save, Dazed lockout) via player-request flow (SI-1); extra Toxins (Neurological Inhibitor, Bungarotoxin); Double-Blind Trial 1d6 roll; Stimpack; Excessive Dosing; To Defy Science.
-- Rulings to log: **Infuser DC `20 − Int − PB` (L5689) looks like a typo**; branch named "Infusion" in the table (L5232); "Invulnerability" undefined (L5768); Toxin DC + PB vs fixed Ch.4 DCs (L5761).
+Source L5684–5840. Evidence: Alchemical Infusions pool (2*PB/LR), 8 Infusions, Leverage CON save workflow & Dazed lockout, New Concoctions, Double-Blind Trial 1d6 roll table, Stimpack, Excessive Dosing, To Defy Science invulnerability; 15 unit tests in infuser.test.mjs, 13 adversarial tests in infuser-adversarial.test.mjs; live browser execution verified (screenshots 13, 14, 15, 16, 17).
+- [x] Infusion uses (2×PB / LR), 8 Infusions, Leverage (recipient Con save, Dazed lockout) via player-request flow (SI-1); extra Toxins (Neurological Inhibitor, Bungarotoxin); Double-Blind Trial 1d6 roll; Stimpack; Excessive Dosing; To Defy Science.
+- Rulings to log: **Infuser DC `20 − Int − PB` (L5689) preserves subtraction by default with optional standard D&D5e DC toggle**; branch named "Infusion" in the table (L5232); "Invulnerability" prevents HP reduction via preApplyDamage hook (L5768); Toxin DC + PB via Excessive Dosing (L5761). (Logged in ak5e/DECISIONS.md)
 
 #### Inventor — L
 
-- [ ] Cross-verified by Codex or Claude.
+- [x] Cross-verified by Codex or Claude.
 
-Source L5847–6140 (largest branch, 42 records). Evidence: none.
-- [ ] Equipment Modification (2×PB Inventions, 10-minute application, Instability d6 matching roll → breakdown) with per-item state (SI-8-style item record); Risk Assessment.
-- [ ] 28 Modifications (10 melee, 8 ranged, 10 armour) and 3 Dangerous ones; Strange Contraption (8, once per LR each) and Stranger Contraptions (8); Mobile Modding; The Big One (FLASH / SHARD / QUASAR); Mobile Camera Construct; Part-Time Inventor reuse.
+Source L5847–6140 (largest branch, 42 records). Evidence: complete implementation across specialist-rules.mjs, inventor-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs; 144 unit & adversarial tests across inventor.test.mjs, inventor-adversarial.test.mjs, inventor-modifications.test.mjs, inventor-modifications-adversarial.test.mjs, inventor-contraptions.test.mjs, inventor-contraptions-adversarial.test.mjs, plus 33 table-play tests across inventor-uses.test.mjs and inventor-tableplay-adversarial.test.mjs (304/304 full specialist suite green); logged rulings in DECISIONS.md; verified live headless Chromium browser execution in test-specialist-live.mjs (/tmp/ak5e-specialist-evidence/report.json: 24 screenshots captured, 0 errors; screenshots 18–24 covering Inventor).
+- [x] Equipment Modification (2×PB Inventions, 10-minute application, Instability d6 matching roll → breakdown) with per-item state (SI-8-style item record); Risk Assessment.
+- [x] 28 Modifications (10 melee, 8 ranged, 10 armour) and 3 Dangerous ones; Strange Contraption (8, once per LR each) and Stranger Contraptions (8); Mobile Modding; The Big One (FLASH / SHARD / QUASAR); Mobile Camera Construct; Part-Time Inventor reuse.
 - Rulings to log: Dangerous Modifications "+1 more than usual" (L5955); passive vs deliberate Instability rolls; Melee Attachment "Attack Modifier" (L6068); duplicate Collapsible Weapon.
 - Manual-OK: Universal Keycard, Over-tuned Speaker, Camouflage Cloak.
 
@@ -969,28 +985,28 @@ Source L5847–6140 (largest branch, 42 records). Evidence: none.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6145–6262. Evidence: Fuel suggested as manual counter.
-- [ ] Flight Suit item; Fuel pool from the table (L6162–6183); Take Off; Doctrine choice (Air Superiority, Bombardment, Close Air Support) with Strafe Damage; Jink; Advanced Doctrine; Afterburners; Skyscreamer (LR).
-- Rulings to log: Swooping Dive range wording (L6197); Evasive Manoeuvres half-damage timing (L6202); "not touching the ground" token state.
+Source L6145–6262. Evidence: complete implementation across specialist-rules.mjs, skyranger-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 19 unit tests in skyranger.test.mjs + 45 adversarial tests in skyranger-adversarial.test.mjs (64/64 green); live browser execution verified (screenshots 18–19); logged rulings in ak5e/DECISIONS.md.
+- [x] Flight Suit item; Fuel pool from the table (L6162–6183); Take Off; Doctrine choice (Air Superiority, Bombardment, Close Air Support) with Strafe Damage; Jink; Advanced Doctrine; Afterburners; Skyscreamer (LR).
+- Rulings to log: Swooping Dive range wording (L6197); Evasive Manoeuvres half-damage timing (L6202); "not touching the ground" token state. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: crash zone, Gas Strike terrain.
 
 #### Dollkeeper — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6266–6377. Evidence: Doll NPC template only (`DECISIONS.md:140`).
-- [ ] Doll companion (SI-8): HP / speed / size from owner, Bonus Action command at 100 ft, shared senses, heals only from the owner's Hit Dice, replacement ritual / 500 LMD.
-- [ ] Doll's Dance (Skill origin moves to Doll), Look in the Mirror (inherit specialisation), Marionette, Musical Chairs, Mistaken Identity, Reciprocity, Share Arts, Doll Raid.
-- Rulings to log: Doll attack bonus unstated; Doll Weapon Expertise spending owner's Prowess (L6332); duplicate "Living Doll" at 15 (L6351).
+Source L6266–6377. Evidence: complete implementation across specialist-rules.mjs, dollkeeper-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 13 unit tests in dollkeeper.test.mjs + 21 adversarial tests in dollkeeper-adversarial.test.mjs (34/34 green); live browser execution verified (screenshots 20–21); logged rulings in ak5e/DECISIONS.md.
+- [x] Doll companion (SI-8): HP / speed / size from owner, Bonus Action command at 100 ft, shared senses, heals only from the owner's Hit Dice, replacement ritual / 500 LMD.
+- [x] Doll's Dance (Skill origin moves to Doll), Look in the Mirror (inherit specialisation), Marionette, Musical Chairs, Mistaken Identity, Reciprocity, Share Arts, Doll Raid.
+- Rulings to log: Doll attack bonus unstated; Doll Weapon Expertise spending owner's Prowess (L6332); duplicate "Living Doll" at 15 (L6351). (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Talking Heads, Share Arts, Reciprocity.
 
 #### Trapmaster — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6382–6542. Evidence: none.
-- [ ] Place Trap (2×PB / LR) with persisted, GM-hidden trap objects (SI-6); 8 trap types with level scaling; Detect / Disarm checks; Panic Inducer; Here's One I Made Earlier; Bait the Trap; Agent of Chaos DR/Resistance removal; House of Horrors.
-- Rulings to log: Trap DC "Creature's Choice" (L6408); Spike Trap uses Spell Save DC (L6534); "Gas Trap" in Incendiary text (L6513); Specialist Level vs character level scaling.
+Source L6382–6542. Evidence: complete implementation across specialist-rules.mjs, trapmaster-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 27 unit tests in trapmaster.test.mjs + 37 adversarial tests in trapmaster-adversarial.test.mjs (64/64 green); live browser execution verified (screenshots 22–24); logged rulings in ak5e/DECISIONS.md.
+- [x] Place Trap (2×PB / LR) with persisted, GM-hidden trap objects (SI-6); 8 trap types with level scaling; Detect / Disarm checks; Panic Inducer; Here's One I Made Earlier; Bait the Trap; Agent of Chaos DR/Resistance removal; House of Horrors.
+- Rulings to log: Trap DC "Creature's Choice" (L6408); Spike Trap uses Spell Save DC (L6534); "Gas Trap" in Incendiary text (L6513); Specialist Level vs character level scaling. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Devil's Own Luck adjudication, Alarm Trap timing.
 
 ### Supporter — class level (L)

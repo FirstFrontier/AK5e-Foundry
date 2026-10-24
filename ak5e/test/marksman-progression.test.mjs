@@ -5,7 +5,7 @@ import {
   ARTILLERYMAN_BRANCH_FEATURES, BESIEGER_BRANCH_FEATURES
 } from "../scripts/marksman-setup.mjs";
 import {
-  inspectMarksmanFields, previewMarksmanProgression, applyMarksmanProgression
+  inspectMarksmanFields, marksmanProgressionChoices, previewMarksmanProgression, applyMarksmanProgression
 } from "../scripts/marksman-progression.mjs";
 
 test("previewMarksmanSetup identifies missing core and branch features", async () => {
@@ -174,9 +174,23 @@ function actorAtLevel(level, branch = null) {
   return actor;
 }
 
+function completeChoices(level, overrides = {}) {
+  const hp = Object.fromEntries(Array.from({ length: level }, (_, index) => [index + 1, { mode: "existing" }]));
+  const asi = Object.fromEntries([4, 6, 8, 10, 12, 16, 19].filter(n => n <= level).map(n => [n, { mode: "existing" }]));
+  return {
+    skills: ["acr", "prc", "ste"], save: "wis", tool: "Maintenance Kit",
+    fightingStyle: "class-feature-marksman-braced-for-action-4536",
+    startingEquipment: { mode: "items", ranged: "weapon-bow-0", melee: "weapon-sword-6", armour: "equipment-protective-clothing-0", toolkit: "tool-maintenance-kit-5" },
+    ...(level >= 3 ? { talents: { basic: "class-option-marksman-talent-basic-alert" } } : {}),
+    ...overrides,
+    hp: { ...hp, ...(overrides.hp ?? {}) }, asi: { ...asi, ...(overrides.asi ?? {}) },
+    talents: { ...(level >= 3 ? { basic: "class-option-marksman-talent-basic-alert" } : {}), ...(overrides.talents ?? {}) }
+  };
+}
+
 test("HP and ASI progression is incremental, tracks existing choices, and is idempotent", async () => {
   const actor = actorAtLevel(4);
-  const choices = { skills: ["acr", "prc", "ste"], save: "wis", tool: "Mechanism Kit", hp: { 1: { mode: "existing" } }, asi: { 4: { str: 2 } } };
+  const choices = completeChoices(4, { tool: "Mechanism Kit", hp: { 1: { mode: "existing" } }, asi: { 4: { str: 2 } } });
   let plan = await previewMarksmanProgression(actor, choices);
   assert.equal(plan.actorUpdates["system.attributes.hp.max"], undefined);
   await applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: plan.contextKey });
@@ -195,7 +209,8 @@ test("version-1 progression choices are recognized as already applied during mig
   const actor = actorAtLevel(4);
   actor.system.abilities.str.value = 14;
   actor.flags.ak5e.marksmanProgression = { version: 1, choices: { asi: { 4: { str: 2 } } }, asiLevels: [], hpLevels: [1, 2, 3, 4] };
-  const plan = await previewMarksmanProgression(actor);
+  const choices = completeChoices(4, { asi: { 4: { str: 2 } } });
+  const plan = await previewMarksmanProgression(actor, choices);
   assert.equal(plan.actorUpdates["system.abilities.str.value"], undefined);
   assert.equal(plan.actorUpdates["system.attributes.hp.max"], undefined);
   await applyMarksmanProgression(actor, { confirmed: true, choices: plan.choices, contextKey: plan.contextKey });
@@ -205,7 +220,7 @@ test("version-1 progression choices are recognized as already applied during mig
 
 test("progression binds full choices, warns on table overrides, and rejects malformed choices", async () => {
   const actor = actorAtLevel(4);
-  const choices = { skills: ["acr", "prc", "ste"], save: "wis", tool: "Mechanism Kit", asi: { 4: { str: 3 } } };
+  const choices = completeChoices(4, { asi: { 4: { str: 3 } } });
   const plan = await previewMarksmanProgression(actor, choices);
   assert.ok(plan.warnings.some(w => w.includes("printed budget is 2")));
   await assert.rejects(applyMarksmanProgression(actor, {
@@ -214,10 +229,125 @@ test("progression binds full choices, warns on table overrides, and rejects malf
   await assert.rejects(previewMarksmanProgression(actor, { ...choices, asi: { 4: { banana: 2 } } }), /Invalid Ability Score Improvement/);
 
   const artillery = actorAtLevel(1, "artilleryman");
-  const launcherPlan = await previewMarksmanProgression(artillery, { skills: ["acr", "prc", "ste"], save: "cha", tool: "Art Kit" });
+  const launcherPlan = await previewMarksmanProgression(artillery, completeChoices(1, { save: "cha", tool: "Art Kit" }));
   assert.match(launcherPlan.actorUpdates["system.traits.weaponProf.custom"], /Grenade Launcher/);
   assert.match(launcherPlan.actorUpdates["system.traits.weaponProf.custom"], /Rocket Launcher/);
   assert.match(launcherPlan.actorUpdates["system.traits.weaponProf.custom"], /Authored Weapon Note/);
   assert.ok(launcherPlan.manualInstructions.some(line => line.includes("does not grant both launchers as inventory")));
+});
+
+test("Marksman choice schema exposes source grants and all eight styles", () => {
+  const actor = actorAtLevel(13);
+  const view = marksmanProgressionChoices(actor, { talents: { basic: "class-option-marksman-talent-basic-alert", advanced: "class-option-marksman-talent-advanced-alpha-strike" } });
+  assert.equal(view.applicable, true);
+  assert.equal(view.fields.find(field => field.key === "fightingStyle").options.length, 8);
+  assert.equal(view.fields.find(field => field.key === "fightingStyle").options.every(option => !String(option.effect).includes("<")), true);
+  assert.ok(view.fields.some(field => field.key === "talents.basicAt8"));
+  assert.ok(view.fields.some(field => field.key === "talents.advancedAt13"));
+  assert.equal(view.fields.find(field => field.key === "startingEquipment.mode").options.some(option => option.value === "cash"), true);
+});
+
+test("progression grants source-ID style, talent/module and equipment Items idempotently", async () => {
+  const actor = actorAtLevel(8);
+  actor.system.currency = { cp: 17 };
+  actor.createEmbeddedDocuments = async (_type, data) => {
+    const created = data.map((item, index) => ({ ...structuredClone(item), id: `created-${actor.items.length + index}` }));
+    actor.items.push(...created); return created;
+  };
+  actor.updateEmbeddedDocuments = async (_type, updates) => {
+    for (const update of updates) {
+      const item = actor.items.find(row => row.id === update._id);
+      if (item) item.flags.ak5e.marksmanTalent = structuredClone(update["flags.ak5e.marksmanTalent"]);
+    }
+  };
+  const talent = "class-option-marksman-talent-basic-alert";
+  const choices = completeChoices(8, { talents: { basic: talent, basicAt8: { mode: "upgrade", sourceId: talent } } });
+  const plan = await previewMarksmanProgression(actor, choices);
+  assert.deepEqual(plan.pending, []);
+  const retryPlan = await previewMarksmanProgression(actor, choices);
+  await applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: retryPlan.contextKey });
+  const granted = actor.items.filter(item => item.flags?.ak5e?.marksmanProgressionGrant);
+  assert.equal(granted.length, 6); // Style, Basic Talent, four starting equipment Items.
+  const talentItem = granted.find(item => item.flags.ak5e.chapterThreeId === talent);
+  assert.equal(talentItem.flags.ak5e.marksmanTalent.moduleActive, true);
+  const bow = granted.find(item => item.flags.ak5e.chapterFourId === "weapon-bow-0");
+  assert.ok(bow);
+  assert.equal(bow.flags.ak5e.chapterThreeId, undefined);
+  const count = actor.items.length;
+  const repeat = await previewMarksmanProgression(actor, choices);
+  await applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: repeat.contextKey });
+  assert.equal(actor.items.length, count);
+  assert.equal(actor.items.filter(item => item.flags?.ak5e?.chapterThreeId === talent).length, 1);
+});
+
+test("cash choice is a one-time owner award and failed item creation can be retried", async () => {
+  const actor = actorAtLevel(1);
+  actor.system.currency = { cp: 9 };
+  const choices = completeChoices(1, { startingEquipment: { mode: "cash" } });
+  actor.itemsCreationFails = true;
+  actor.createEmbeddedDocuments = async (_type, data) => {
+    if (actor.itemsCreationFails) { actor.itemsCreationFails = false; return []; }
+    const created = data.map(item => ({ ...structuredClone(item), id: `created-${actor.items.length}` })); actor.items.push(...created); return created;
+  };
+  const plan = await previewMarksmanProgression(actor, choices);
+  await assert.rejects(applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: plan.contextKey }), /Could not add/);
+  assert.equal(actor.system.currency.cp, 1309);
+  const retry = await previewMarksmanProgression(actor, choices);
+  await applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: retry.contextKey });
+  assert.equal(actor.system.currency.cp, 1309);
+  assert.equal(actor.items.filter(item => item.flags?.ak5e?.chapterThreeId === "class-feature-marksman-braced-for-action-4536").length, 1);
+});
+
+test("preview becomes stale when inventory changes and fixed HP must use the printed average", async () => {
+  const actor = actorAtLevel(1);
+  const choices = completeChoices(1, { hp: { 1: { mode: "fixed", roll: 8 } } });
+  const plan = await previewMarksmanProgression(actor, choices);
+  actor.items.push({ id: "new-item", name: "An authored item", type: "feat", system: { description: { value: "custom" } } });
+  await assert.rejects(applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: plan.contextKey }), /changed since the preview/);
+  const invalid = completeChoices(2, { hp: { 2: { mode: "fixed", roll: 6 } } });
+  await assert.rejects(previewMarksmanProgression(actorAtLevel(2), invalid), /Invalid Marksman Hit Point gain/);
+});
+
+test("partial Item creation resumes from a fresh preview without duplicating completed grants", async () => {
+  const actor = actorAtLevel(1);
+  let calls = 0;
+  actor.createEmbeddedDocuments = async (_type, data) => {
+    calls++;
+    if (calls === 2) return [];
+    const created = data.map(item => ({ ...structuredClone(item), id: `grant-${actor.items.length}` }));
+    actor.items.push(...created);
+    return created;
+  };
+  const choices = completeChoices(1);
+  const first = await previewMarksmanProgression(actor, choices);
+  await assert.rejects(applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: first.contextKey }), /Could not add/);
+  const alreadyCreated = actor.items.filter(item => item.flags?.ak5e?.marksmanProgressionGrant).length;
+  assert.equal(alreadyCreated, 1);
+  const retry = await previewMarksmanProgression(actor, choices);
+  await applyMarksmanProgression(actor, { confirmed: true, choices, contextKey: retry.contextKey });
+  const sourceIds = actor.items.map(item => item.flags?.ak5e?.chapterThreeId ?? item.flags?.ak5e?.chapterFourId).filter(Boolean);
+  assert.equal(sourceIds.filter(id => id === "class-feature-marksman-braced-for-action-4536").length, 1);
+  assert.equal(sourceIds.filter(id => id === "weapon-bow-0").length, 1);
+  assert.equal(actor.items.filter(item => item.flags?.ak5e?.marksmanProgressionGrant).length, 5);
+});
+
+test("legacy style keys normalize to source IDs before selection and recorded-choice validation", async () => {
+  const actor = actorAtLevel(1);
+  actor.flags.ak5e.marksmanProgression = { version: 2, choices: { fightingStyle: "ranger" }, hpLevels: [1], asiLevels: [] };
+  const view = marksmanProgressionChoices(actor);
+  assert.equal(view.choices.fightingStyle, "class-feature-marksman-ranger-5331");
+  const choices = completeChoices(1, { fightingStyle: "class-feature-marksman-ranger-5331" });
+  const plan = await previewMarksmanProgression(actor, choices);
+  assert.equal(plan.choices.fightingStyle, "class-feature-marksman-ranger-5331");
+  assert.equal(plan.styleKey, "ranger");
+});
+
+test("an unrecorded starting Tool Kit proficiency is warned and can be reviewed", async () => {
+  const actor = actorAtLevel(1);
+  const choices = completeChoices(1, { tool: "Maintenance Kit", startingEquipment: {
+    mode: "items", ranged: "weapon-bow-0", melee: "weapon-sword-6", armour: "equipment-protective-clothing-0", toolkit: "tool-art-kit-0"
+  } });
+  const plan = await previewMarksmanProgression(actor, choices);
+  assert.ok(plan.warnings.some(message => message.includes("Art Kit") && message.includes("not recorded as proficient")));
 });
 

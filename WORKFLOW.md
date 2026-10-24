@@ -318,7 +318,7 @@ Chromium headless mode and requests hardware acceleration with `--enable-gpu`.
 
 1. **Understand:** read the requested source and relevant code/docs, inspect `git status`, and check existing tests.
 2. **Plan proportionately:** define observed behavior, rules authority, Foundry representation, affected files/packs, risks, and acceptance criteria. Avoid long plans for trivial edits.
-3. **Delegate selectively:** follow [AGENTS.md](AGENTS.md) when outsourcing bounded discovery, implementation or test tasks; keep ambiguous AK5e rules interpretation with the main agent and log decisions.
+3. **Delegate selectively:** follow [AGENTS.md](AGENTS.md) when outsourcing bounded discovery, implementation or test tasks; keep ambiguous AK5e rules interpretation with the main agent and log decisions. Claude Code instead works as a parallel team by default (one head, at most 4 Sonnet/Haiku workers) per [CLAUDE.md](CLAUDE.md).
 4. **Implement a small coherent patch:** follow existing architecture, avoid unrelated refactors, preserve stable IDs and module compatibility, and update `TODO.md`.
 5. **Test:** run appropriate lint/static tests, unit checks, pack/manifest validation and Foundry integration tests; do not stop at compilation.
 6. **Observe:** render in the real Foundry V13 + D&D5e application when any visible behavior/content may have changed. Use the required `launchTestBrowser()` helper for all Playwright Chromium tests.

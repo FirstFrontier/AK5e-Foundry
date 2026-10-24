@@ -1,5 +1,22 @@
 # AK5e Foundry implementation decisions
 
+## Marksman workflow checkpoint (2026-10-18)
+
+The current implementation adds guided, owner-operated rolls/saves/application
+and managed effects to the scoped Marksman branches. This supersedes older
+manual-only descriptions only for implemented paths. See
+[MARKSMAN_WORKFLOWS.md](MARKSMAN_WORKFLOWS.md) for the coverage and unfinished
+acceptance; the user requested a checkpoint before API limits.
+
+Enhanced Target Lock's level-11/12 conflict and branch-level conflict remain
+explicit choices. Secondary Detonation offers fresh-roll/original-total readings;
+the latter requires recorded or reviewed original damage. Godpiercer requires an
+explicit mitigation policy. These are per-use choices unless a sourced GM ruling
+is recorded; this checkpoint does not settle the underlying source ambiguity.
+CON retroactive HP changes remain manual under the existing decision. Geometry,
+collision and unsupported Skill/Talent effects remain manual. No complete class
+automation, full rendered acceptance, or release-pack acceptance is claimed.
+
 ## Marksman audit repairs (2026-10-12)
 
 This supersedes contradictory automation claims in the historical Marksman
@@ -2001,3 +2018,317 @@ The following 15 rulings resolve ambiguities and align mechanics across Chapter 
 
 - **Recovery precedence across triggers (B-022):**
   - *Ruling:* When a call carries several triggers (a long rest is `['lr','sr']`), the pool applies one recovery entry, chosen by the caller's trigger order and not by the order the pool lists them: an `lr` entry beats an `sr` entry on a long rest. Within one trigger the first entry whose `when` passes applies; if none passes, the next trigger is tried. This is a code-level convention, not a source-book rule.
+
+## Medic Class and Subclasses (Physician, Triage)
+
+### 1. Medic Chassis & Rules Calculations
+- **Armor Proficiencies (Ch. 3 L4588):**
+  - Source text: "Armor: Light Shields". Medics have NO light, medium, or heavy armor proficiencies. Armor proficiency is strictly Light Shields only (`["shl"]`).
+  - *Ruling:* In `medic-rules.mjs` and progression, `MEDIC_ARMOR_PROFS = ["shl"]`. Any attempt to equip light, medium, or heavy armor is treated as non-proficient.
+- **Life Support Formula & Pool (Ch. 3 L4620–4648):**
+  - Source table progression matches exact closed formula: `20 + 15 * floor(Level / 2)`.
+  - Registered under `lifeSupport` with `overMax: true`, `initial: "max"`, `recovery: [{ on: "lr", amount: "toMax" }]` (replenishes to maximum on Long Rest, dropping any excess overMax; Short Rest has 0 recovery).
+- **Construct Healing Restriction (Ch. 1 L138):**
+  - Source rule: Constructs cannot regain HP from class features or Healing Arts.
+  - *Ruling:* In `medic-uses.mjs`, targeting a Construct emits a non-blocking warning citing Ch. 1 L138, which can be overridden with "Use anyway" per WORKFLOW §3.2 table trust.
+- **Medical Expertise (Ch. 3 L4658):**
+  - Source text: "Your proficiency bonus is doubled for any ability check you make using the Medical Skill."
+  - *Ruling:* Implemented canonically as Expertise in Medicine (`system.skills.med.value = 2`).
+
+### 2. Physician Subclass
+- **Intravenous Line Unwilling Save Target (Ch. 3 L4878–4890):**
+  - Source text: Unwilling target makes CON save vs Spell DC.
+  - *Ruling:* On a successful save, target resists tuning but takes 2d8 Necrotic damage. On a failed save, target becomes Tuned to the Medic for 10 minutes.
+- **Hypocritic Oath Heal-to-Harm Toggle (Ch. 3 L4891–4898):**
+  - Source text: "Whenever you roll to cause a Creature to regain Hit Points, you can instead force that Creature to make a Constitution saving throw... on a failed save, it takes Necrotic damage equal to the total... On a successful save, it takes half as much damage."
+  - *Ruling:* Target takes full damage on fail, half on pass. Explicitly counts as restoring HP for feature triggers.
+- **Inpatient Care / Healing Reverberations (Ch. 3 L4899–4905):**
+  - *Ruling:* Reaction, 15 LS. At the start of the Medic's next turn, target regains `max(floor(healed / 2), 15)` HP.
+- **Surgeon-General (Ch. 3 L4906–4910):**
+  - *Ruling:* Doubles the total HP restored to a single creature via Life Support, Art, or Operator Skill.
+
+### 3. Triage Subclass
+- **Stop the Flow Mettle Extension (Ch. 3 L5031–5040):**
+  - Source rule: Target must be Dying (0 HP). Immediately grants 6 Mettle, bypassing the normal 6-mettle cap up to a hard cap of 8. Target cannot receive Stop the Flow again until no longer Dying.
+  - *Ruling:* Validated against `flags.ak5e.dying.mettle` and `stopTheFlowReceived`. Clamped at 8 Mettle.
+- **Touch of Life and Death (Ch. 3 L5041–5045):**
+  - *Ruling:* 10 LS rider on On the Scene. Healed targets end one condition with duration <= 1 hr (pauses if > 1 hr); harmed targets gain the Poisoned condition until start of Medic's next turn.
+- **Mobile Hospital Aura (Ch. 3 L5046–5050):**
+  - *Ruling:* 1/Long Rest Bonus Action establishing a 30-ft aura for 1 minute. Entering the aura heals `3d6 + mod` HP (once/round per creature, resetting at Medic's turn start).
+
+### 4. Table Play, GM Relay, UI Badges & Undo Integrity
+- **Focused Treatment Multi-Target / Flat Roll Evaluation (Ch. 3 L4875):**
+  - *Ruling:* Focused Treatment applies exclusively to rolls affecting a single creature. When invoked on multi-target rolls or non-rolled flat amounts, it yields a bonus of 0 without raising an unoverridden warning error, allowing seamless macro/formula resolution.
+- **Surgeon-General Touch Heal Ratio (Ch. 3 L4898–4899):**
+  - *Ruling:* For a 15th-level Physician, single-target Touch Heal restores 2 Hit Points per 1 Life Support expended (1:2 ratio). 20 LS restores 40 HP (clamped at patient max HP). On undo, the exact prior HP value is restored.
+- **GM Relay Validation on All Target Plans (WORKFLOW §3.2):**
+  - *Ruling:* All 9 target-mutating plans (`touchHeal`, `resuscitation`, `stopTheFlow`, `intravenousLine`, `hypocriticOath`, `inpatientCare`, `onTheScene`, `urgentCareCentre`, `mobileHospital`) attach `validateTarget(source, receipt, entry, targetDoc)` directly to the plan functions on `MEDIC_PLANS`. This satisfies `play-uses.mjs:207` which checks `PLANS[receipt.command]?.validateTarget`, ensuring unowned ally mutations are relayed through the GM client without throwing validation errors. Non-target plans return `false`.
+- **AOE and Rider Target Resolution:**
+  - *Ruling:* `onTheScene`, `urgentCareCentre`, and `mobileHospital` resolve targeted actor documents from `data.targetUuids`, `data.targets`, or `data.targetUuid` and populate `receipt.targets` so that targeted creatures receive heal/damage mutations and changes relay automatically when unowned.
+- **Intravenous Line World Time Expiry:**
+  - *Ruling:* Intravenous Line tuning records `worldTimeExpires: game.time.worldTime + 600` in addition to real-time `expiresAt`, allowing `ActorSheetV2` badges to reflect tuning expiration when game world time is advanced.
+- **Features Tab UI Badges:**
+  - *Ruling:* The Features tab panel injects `.ak5e-medic-badges` containing distinct `.ak5e-medic-badge` pill elements displaying current Life Support (`value / max`), Spell Save DC, active Subclass name, and Intravenous Line tuning status (with fallback if pool is not yet initialized).
+
+## Executor Specialist Subclass (Hunter, Bodyguard)
+
+### 1. Deathmark Mechanics & State Machine (Ch. 3 L5498–5525)
+- **State Storage:**
+  - Deathmark is tracked under `flags.ak5e.executor.deathmark`:
+    - `held`: boolean (true when held by self, false when on target).
+    - `holder`: `"self"` | `"target"`.
+    - `targetUuid`: UUID of marked target (or null when held).
+    - `targetName`: Name of marked target (or null when held).
+    - `transferredTurn`: Combat turn key when transferred.
+    - `attackedOrDamagedThisTurn`: boolean tracking attack activity.
+- **Transfer Timing Ruling (`deathmarkTransferTiming`):**
+  - Source rule: "Whenever you make an attack roll against a creature or hit a creature with an attack, you can transfer your Deathmark to that creature."
+  - *Ruling:* Default reading is `onAttackRoll` (transfers upon initiating the attack roll, allowing immediate application of crit threshold reductions and bonus damage). Supported GM ruling or player choice includes `onHit` (transfers only upon confirmed hit).
+- **Recall & SP Economy:**
+  - Recalling Deathmark (Bonus Action or automatic feature recall) awards +3 Operator Skill Points (SP) and grants a reaction Disengage opportunity.
+  - At the start of the Specialist's turn in combat while Deathmark is held, awards +3 SP.
+- **Damage Scaling:**
+  - Melee/ranged attacks against marked target gain +1d4 damage, scaling to +2d4 at level 7 and +3d4 at level 14.
+
+### 2. Hunter vs Bodyguard Paths (Ch. 3 L5515–5530)
+- **Level 1 Path Benefits:**
+  - Hunter: Attacks against marked target have critical hit threshold reduced by 1 (e.g. 20 -> 19).
+  - Bodyguard: When an ally within 10 ft is targeted by an attack from the marked creature, the Specialist can redirect the attack to themselves without action cost.
+- **Level 5 Features:**
+  - Shared: In Every Shadow grants climb and swim speeds equal to walk speed, plus Stealth proficiency (upgrades to Expertise if already proficient).
+  - Hunter: Sweeper (1 Prowess) increases Reach by 5 ft until end of turn, allows a melee attack against each chosen creature within Reach, transfers Deathmark on hit, and returns mark (+3 SP) at action end.
+  - Bodyguard: Smokescreen (1 Prowess, 1 Reaction) creates a 10-ft radius magical darkness sphere at feet until next turn end; one chosen ally inside may use Reaction to move up to their Speed without opportunity attacks.
+
+### 3. Prowess Triggers (Ch. 3 L5526–5535)
+- **Trigger Implementations:**
+  - Universal: When marked creature drops to 0 HP, Specialist gains 1 Prowess (1/turn) and Deathmark returns to self.
+  - Hunter: Dealing >= 30 damage on a single attack roll awards 1 Prowess.
+  - Bodyguard: When an ally within 10 ft is attacked and takes 0 damage, Specialist gains 1 Prowess.
+
+### 4. Level 11, 15, and 20 Capstones (Ch. 3 L5536–5578)
+- **Level 11:**
+  - Hunter (Preysense): Adds one extra weapon damage die to crits against marked target and inflicts Bleeding condition on living creatures.
+  - Bodyguard (Dangersense): Reaction to move with an ally within 5 ft up to half Speed out of an AoE; takes 0 damage on save success, half on failure.
+- **Level 15:**
+  - Hunter (In for the Kill): Transferring Deathmark makes target Vulnerable to Specialist attacks until end of turn.
+  - Bodyguard (Blade Shield): Reaction to attack marked creature targeting Specialist or ally; if hit, subtracts PB from their attack roll.
+- **Level 20:**
+  - Hunter (Mortal Blow): 1/Long Rest Action teleporting within 5 ft of target; target makes DEX save vs Martial DC. Interactive 10d8 Hit Point loss (doubled if target has Bleeding, halved on save). Reading `mortalBlowReading` configures whether HP loss bypasses DR/Resistance (`bypassDRResist`, default) or all mitigations including Temporary HP (`bypassAll`).
+  - Bodyguard (Ultimate Sword and Shield): Blade Shield costs 0 Reaction (can be used any number of times per round).
+
+## Hookmaster Specialist Subclass (Ch. 3 L5585–5679)
+
+### 1. Hooked Weapon Conversion & Reversion
+- **Weapon Criteria (L5585–5600):**
+  - Eligible weapons must be Melee Weapons, deal Slashing or Piercing damage, and must not have the Two-Handed property.
+  - Converted Hook properties: Gains Two-Handed (`"two"`) and Thrown (`"thr"`, 30/- ft at level 1–14, 50/- ft at level 15+ with Longer Hook).
+  - Mechanical traits: Returns to hand immediately after thrown attacks. Uses Strength modifier instead of Dexterity modifier for ranged Hook attack rolls and damage rolls (implemented dynamically via `hookmasterPreRollAttack` and `hookmasterPreRollDamage`). Only Hookmasters have proficiency.
+- **Cost & Free Starting Hook:**
+  - The first Hook conversion is free as the starting subclass weapon (`freeConversionUsed: true`). Subsequent conversions or replacements cost 200 LMD and require 1 hour of work.
+  - Insufficient currency produces a shortfall warning that clamps currency at 0 when overridden at the table.
+- **Reversion & Undo:**
+  - Reverting restores original properties, range, and item flags. Reversibility within the encounter window is guaranteed through `hookmasterCleanup` and `revertHookedWeapon`.
+
+### 2. Level 5 Features (L5605–5655)
+- **Big Boot:**
+  - Unarmed strike hits against targets no more than one size larger allow a 10 ft push.
+  - When King of the Urban Jungle is active, forced movement distance is doubled to 20 ft.
+- **King of the Urban Jungle:**
+  - Requires moving at least 20 ft immediately beforehand during turn.
+  - Specialist grapples to a chosen surface point within Hook range (30 ft / 50 ft), gaining Flying Speed equal to 2× Hook range (60 ft / 100 ft). Must travel at least 10 ft in the air.
+  - Attack rolls with the Hook are prohibited while flying.
+  - The first melee attack immediately upon landing gains +PB bonus damage and doubles forced movement.
+- **Bound in Rope:**
+  - Action (1 Prowess) against a target within Hook range no more than one size larger. Target makes DEX save vs Martial DC or becomes Grappled.
+  - While Grappled, Hook use is locked (`hookLocked: true`).
+  - Bonus Action allows dragging target up to 15 ft towards the Specialist.
+  - Action allows hogtying target within 5 ft.
+  - Releasing grapple clears `grappledTarget` and unlocks Hook.
+- **Wrangler:**
+  - Action (1 Prowess) against a target within Hook range that is *more than one size larger*.
+  - Target makes DEX save vs Martial DC or Specialist latches on, entering its space and moving with it without spending movement.
+  - Attacks against latched target have Advantage. Specialist can take a -5 attack penalty to ignore 5 Damage Reduction.
+
+### 3. Prowess Triggers (L5648–5655)
+- Specialist gains 1 Prowess (1/turn) when a creature within 30 ft takes falling damage or environmental hazard damage.
+- Specialist gains 1 Prowess (1/turn) when moving > 45 ft via flying speed during their turn (e.g. via King of the Urban Jungle or Swing to Safety).
+
+### 4. Capstones (Level 11, 15, and 20) (L5656–5679)
+- **Level 11: Mighty Push:**
+  - Action, PB / Long Rest (tracked in `mightyPush` pool, max `@prof`).
+  - Target makes STR save vs Martial DC. Interactive 8d6 Bludgeoning damage. On fail: full damage and 20 ft knockback; on save: half damage and 10 ft knockback.
+  - If target collides with an obstacle, it takes falling damage equal to distance moved (2d6 on fail, 1d6 on save).
+- **Level 15: Spider's Essence:**
+  - Longer Hook: Hook thrown range extends from 30 ft to 50 ft.
+  - Spider's Thread: Action; Specialist gains Climbing Speed equal to Hook range towards chosen surface point until start of next turn; allies starting in the same location gain the Climbing Speed until end of their turn.
+  - Swing to Safety: Reaction while falling; triggers King of the Urban Jungle flying movement to grapple a surface point within range, avoiding all falling damage.
+- **Level 20: Scorpion Sting:**
+  - 1 / Long Rest (tracked in `scorpionSting` pool, max 1).
+  - Specialist makes 6 melee attacks with Advantage against target, dealing weapon damage + half Specialist level (+10) bonus damage per hit.
+  - If target is already Grappled (Bound in Rope) or Latched (Wrangler), target cannot make the initial save / automatically suffers attacks.
+
+## Infuser Specialist Subclass (Ch. 3 L5684–5840)
+
+### 1. Infuser DC Formula & Ruling (Ch. 3 L5688–5690)
+- **Source Formula (`20 - INT - PB`):**
+  - Source text explicitly states: `20 - Your Intelligence Modifier - Your Proficiency Bonus`.
+  - *Ruling:* In accordance with DECISIONS.md L465 ("Infuser DC ... preserve subtraction exactly; do not replace it with a conventional D&D5e DC"), the module computes Infuser DC as `20 - INT mod - PB` by default.
+  - *Table-Play Support:* An optional GM ruling toggle (`infuserDCRuling`) is supported, allowing tables to choose standard D&D5e save DC formula (`8 + INT mod + PB`, `standardDnd5e`) if preferred.
+
+### 2. Principle of Double Effect & Alchemical Infusions Pool (Ch. 3 L5692–5700)
+- **Proficiency & Restrictions:**
+  - Grants Pharmacology Kit proficiency upon taking the subclass.
+  - Alchemical Infusions pool is registered under `resourcePools.alchemicalInfusions` with maximum `2 * PB`, restoring to full on Long Rest.
+  - Infusions cannot be applied to Constructs or Undead (enforced via non-blocking warning with table-play override).
+- **Application & Targeting:**
+  - Range: 5 ft at levels 1–10; extends to 30 ft at level 11 with Stimpack.
+  - Duration: 1 minute (or until consumed / leveraged).
+  - Multi-Target Restriction: Each creature can only have one active Alchemical Infusion at a time; applying a new Infusion overwrites the previous one. Reverting an overwriting application cleanly restores the prior Infusion.
+
+### 3. All 8 Alchemical Infusions & Leverage CON Save Workflow (Ch. 3 L5782–5823)
+- **The 8 Alchemical Infusions:**
+  1. `adrenalineTrigger`: Gain Advantage on next attack roll, ability check, or saving throw before start of next turn.
+  2. `flightReflexStimulant`: Movement speed increases by 10 ft for the duration.
+  3. `focusHeightener`: Add 1d4 to next weapon attack roll or ability check.
+  4. `hesitationSuppressor`: Immune to Frightened condition; suppresses existing Frightened for duration.
+  5. `muscleStrengthener`: +2 bonus to weapon damage rolls using Strength.
+  6. `procoagulant`: Gain Temporary HP equal to Infuser level.
+  7. `respirationStimulant`: Can breathe in air and water; Advantage on saving throws against airborne toxins and suffocation.
+  8. `sensationNulling`: Resistance to non-magical Bludgeoning, Piercing, and Slashing damage until start of next turn.
+- **Leverage Workflow (Ch. 3 L5694–5700):**
+  - The Infuser may Leverage an active Infusion on a creature to trigger an enhanced effect or bonus.
+  - The recipient makes a Constitution saving throw against the Infuser DC.
+  - *Success:* Recipient gains the Leverage benefit with no adverse consequences.
+  - *Failure:* Recipient gains the Leverage benefit, but becomes Dazed until the start of the Infuser's next turn and cannot be the target of Leverage again until the end of combat (Leverage lockout).
+  - Unowned target modifications relay automatically through the GM client without blocking player agency.
+
+### 4. New Concoctions & Double-Blind Trial (Ch. 3 L5705–5743)
+- **New Concoctions (Level 5):**
+  - Adds Neurological Inhibitor (Berserk on failed save) and Bungarotoxin (Paralyzed on failed save) to the Pharmacology Kit options.
+- **Double-Blind Trial (Level 5):**
+  - Bonus Action expending 1 Prowess + 1 Alchemical Infusion use.
+  - Interactive `1d6` roll button on the chat card determines the random Toxin applied to an untoxined weapon from the Double-Blind table:
+    1 = Neurological Inhibitor, 2 = Bungarotoxin, 3 = Muscle Relaxant, 4 = Hemotoxin, 5 = Neurotoxin, 6 = Soporific.
+  - Clamps dual resource shortfalls at 0 when overridden at the table.
+
+### 5. Prowess Triggers, Stimpack, Excessive Dosing & To Defy Science (Ch. 3 L5745–5770)
+- **Infuser Prowess Gain Triggers (L5745):**
+  - Specialist gains 1 Prowess (1/turn) when a creature afflicted by their Toxin or Poison is reduced to 0 HP.
+  - Specialist gains 1 Prowess (1/round) when an active Infusion turns a failed attack, check, or save into a success.
+- **Stimpack (Level 11, L5747–5754):**
+  - Infusion application range expands from 5 ft to 30 ft.
+  - Questionable Rejuvenation: Target gains 1d10 Temporary HP upon Infusion application and upon succeeding on a Leverage CON save; this Temporary HP stacks additively with Procoagulant.
+- **Excessive Dosing (Level 15, L5758–5764):**
+  - Succumb: Adds Proficiency Bonus (`+PB`) to the DC of Toxins applied by the Infuser.
+  - Toxic Shock: When a creature fails its saving throw against the Infuser's Toxin, it also gains the Poisoned condition until the start of the Infuser's next turn.
+- **To Defy Science (Level 20, L5765–5770):**
+  - 1/Long Rest Action targeting a creature within 30 ft (tracked in `toDefyScience` pool, max 1).
+  - Grants a 1-minute Invulnerability effect: creature's Hit Points cannot be reduced below their current value for the duration (managed via `dnd5e.preApplyDamage` hook clamping incoming damage).
+
+## Inventor Specialist Subclass (Ch. 3 L5847–6140)
+
+### 1. Dangerous Modifications & Breakdown Damage Rider (Ch. 3 L5954–5956)
+- **Instability Contribution:**
+  - Dangerous modifications add +1 extra Instability to modified equipment (+2 total over standard increment: 1 base increment + 1 dangerous increment).
+- **Breakdown Equipment Rider:**
+  - Source text states: "when equipment suffers a breakdown as a result of activating a Dangerous Modification, that equipment is damaged in addition to the loss of Hit Points. If it is a weapon, it cannot be used; if it is armour, it provides no benefits. It returns to functionality when it is repaired, such as by using a Maintenance Kit."
+  - *Ruling:* Equipment damage/disabling occurs **only** when a breakdown is triggered while activating a Dangerous modification. If a piece of equipment has both Dangerous and standard modifications installed, activating a standard modification that results in a breakdown inflicts HP loss but does **not** disable the equipment.
+  - *Broken State Representation:* Broken state is stored on the item under `flags.ak5e.isBroken = true`. Usable weapons are rendered unusable and armor AC benefits are suppressed until repaired via `repairBrokenEquipment(item, actor, options)` (simulating Maintenance Kit repair).
+
+### 2. Melee Attachment Attack Modifier Reading (Ch. 3 L6068)
+- **Source Ambiguity:**
+  - Source text for Melee Attachment states: "they may make melee attacks with that Weapon using Dexterity, dealing 1d8 + their Attack Modifier in Piercing Damage until the end of the Turn."
+  - In standard 5e phrasing, "Attack Modifier" typically refers to the total attack roll bonus (`DEX mod + Proficiency Bonus`), whereas damage typically adds only the ability modifier (`DEX mod`).
+  - *Ruling:* In accordance with WORKFLOW §3.2 and table-play philosophy:
+    - Default reading: `1d8 + DEX mod` (consistent with weapon damage conventions throughout the system).
+    - Optional reading: `1d8 + DEX mod + PB` (literal text reading).
+    - The module presents both options in the confirmation dialog / chat card, defaulting to standard ability modifier while allowing the table to select the literal reading without blocking play.
+
+### 3. Instability Roll Timing (Ch. 3 L5864)
+- **Source Rule:**
+  - Source text states: "When a Creature activates a Modification, they roll a number of d6's equal to that equipment's Instability; if any of those dice show the same result as another die, that equipment suffers a breakdown..."
+  - *Ruling:* Instability rolls occur **only** on deliberate activation of an equipment modification.
+  - Making regular weapon attacks with a modified weapon without activating a modification, holding or stowing modified equipment, or passively wearing modified armor does **not** trigger an Instability roll.
+
+## Skyranger Specialist Subclass (Ch. 3 L6145–6320)
+
+### 1. Flight Suit Starting Equipment & Aerial Movement
+- **Flight Suit Integration:**
+  - Skyrangers receive a custom Flight Suit (Medium Armor, AC 14 + Dex mod (max 2), Disadvantage on Stealth, Weight 40 lb) upon gaining the Take Flight feature at 1st level.
+  - While wearing the Flight Suit, the Skyranger can spend Fuel points to gain a Flying Speed equal to their walking speed for 1 minute (or 10 minutes out of combat).
+- **Aerial State Tracking & Elevation:**
+  - Ground vs. Aerial target status is determined by token elevation (`elevation > 0`) or active flying conditions/speeds.
+  - In accordance with WORKFLOW §3.2, user confirmation dialogs include an editable "Target is Aerial" toggle so table play is never blocked by unconfigured scene elevation.
+- **Swooping Dive Range & Strafe Damage Application:**
+  - Swooping Dive allows a dive attack from elevation. When Close Air Support doctrine is active, Strafe bonus damage (`calculateStrafeDamage`) applies to the target if within flight path.
+- **Evasive Manoeuvres Damage Mitigation Timing:**
+  - Evasive Manoeuvres adds PB to AC as a reaction against an incoming attack. If the attack still hits, the incoming damage is halved. Halving applies before DR and resistances.
+- **Skyscreamer 20th-Level Transformation:**
+  - Once per Long Rest, Skyrangers can activate Skyscreamer mode (1 minute duration), gaining +30 ft Flying Speed, immunity to Grappled and Restrained, Core Cannon (3d8 Force, 100/300 ft, Rapid Fire) and Core Saber (3d8 Force, Reach 10 ft, Finesse), and free Evasive Manoeuvres reactions.
+
+## Dollkeeper Specialist Subclass (Ch. 3 L6325–6480)
+
+### 1. Living Doll Companion & Synchronization
+- **Companion Lifecycle:**
+  - The Living Doll is a Small Construct companion linked to the Dollkeeper. Its Max HP equals `10 + 5 * (Specialist Level - 1)`, AC equals `10 + PB + Dex mod`, and saving throws add the Dollkeeper's PB.
+  - Doll Strike attacks use the Dollkeeper's PB and Dexterity modifier for attack rolls and deal `1d8 + Dex mod` magical bludgeoning damage, scaling to 2 attacks at level 5.
+- **Prowess Triggers & Action Economy:**
+  - Dollkeeper commands the doll as a Bonus Action within 100 ft.
+  - When the Living Doll reduces a creature to 0 HP or when Musical Chairs is used to swap positions and an attack subsequently hits, the Dollkeeper gains 1 Prowess (1/turn limit).
+- **Self-Rejuvenation & Rebuilding:**
+  - On a Long Rest, if the Doll has more than 1 HP, it regains all missing HP. If reduced to 0 or 1 HP, it must be rebuilt via a 1-hour ritual and 500 LMD component cost (or 8 hours without gold).
+- **Feature Name Disambiguation:**
+  - Chapter 3 contains two features titled "Living Doll" (1st level companion baseline and 15th level Reciprocity/Share Arts). These are differentiated internally as `livingDoll` and `livingDoll15` / `reciprocity` without modifying source text.
+
+## Trapmaster Specialist Subclass (Ch. 3 L6485–6740)
+
+### 1. Trap DC Calculation & Scaling
+- **DC Formula:**
+  - Trap DC is calculated as `8 + PB + max(Dex, Int)`.
+  - At 20th level, House of Horrors permanently grants +5 to Trap DC (`8 + PB + max(Dex, Int) + 5`).
+- **Traps Resource Pool:**
+  - The Traps pool maximum is `2 * PB`, fully replenishing on a Long Rest.
+  - Sleight of Hand grant automatically confers proficiency, or upgrades existing proficiency to expertise.
+- **Trap Catalog & Scaling:**
+  - All 8 canonical traps (Alarm, Caltrops, Snare, Flashbang, Net, Spike, Incendiary, Timed Explosive) are supported.
+  - Level-based damage scaling triggers at levels 1, 7, and 14 for Spike and Incendiary traps.
+- **Environmental Warfare & Improvisation:**
+  - Devil's Own Luck allows the Trapmaster to suggest improvised environmental traps using natural features. Timed Explosives cannot be improvised environmentally.
+- **Jester's Grace & Safety:**
+  - The Trapmaster and designated allies cannot trigger the Trapmaster's planted traps and have advantage on saving throws against friendly trap areas.
+
+
+
+
+
+## Supporter Class and Artificer / Bard / Hexer Branches (Ch. 3 L6548–7330)
+
+Head rulings fixed before implementation (2026-10-24). Workers implement these and do
+not re-decide them. Each one rests on the cited source text.
+
+1. **Aid Die count (C3:6637).** The pool maximum is the chosen INT/WIS/CHA modifier, with no floor of 1 (consistent with the Aid Die minimum row above). At 0 or below the sheet warns and the GM resolves.
+2. **No Supporter DC.** The base class prints no DC, so the former `supporterDC` (8 + PB + mental modifier) is removed.
+   - The Artificer DC is 8 + INT + PB (C3:6958) and may replace the Martial DC.
+   - The Spell Save DC comes from the Arts casting ability.
+3. **Lighten the Load vs one die (C3:6633 / 6674).** The bonus die may go to a creature already holding one. Play warns, and the player may use it anyway.
+4. **Special dice (C3:6687, 7147).** Self-Supportive and Font of Inspiration dice are separate per-actor flags.
+   - Neither counts toward the one-die cap.
+   - Each is lost at the end of its turn.
+5. **Will Into Being (C3:6692).** It applies to any roll of the Supporter's Aid Die, expended or not, as an opt-in +PB button on the card.
+6. **Advanced Aid crit (C3:6658).** The critical range widens by 1 for that attack only (20 → 19–20), as a one-shot rider.
+7. **Bard Arts missing from Ch.5.** The ten absent Arts plus Tasha's Mind Whip carry a `manual: true` marker.
+   - They can be composed.
+   - They are cast through a manual card that points to the "Bard missing Arts / variants" row.
+   - No mechanics are invented.
+8. **Hexer Arts known (C3:7281).** The Hexer knows every Art of 5th level or below plus the cantrips of the chosen Standard Pool, always Prepared. A second pool is added at level 11.
+   - The AP table (C3:7254–7279) is keyed by branch so Ritualist and Summoner can reuse it.
+9. **Abjuring and Binding (C3:7290 / 7292).**
+   - Abjuring: the creature subtracts ⌊roll/2⌋ from its damage, and the damage stays at least 1.
+   - Binding: one roll of 2× the Aid Die per hexed creature, rounded to the nearest 5 ft.
+10. **Bard Performance limit (C3:7102).**
+    - The limit is max(1, CHA mod) Performances.
+    - Aid Dice expended into Muse stay spent until the Long Rest.
+    - Composing happens after the rest refill.
+11. **Talent borrows (C3:6837 / 6846 / 6849).** Anti-Arts Training, Lieutenant and Part-Time Inventor are manual-ruling cards.
+    - Flat-number talents use Active Effects.
+    - Talents with uses or reactions use play-uses plans.

@@ -214,7 +214,8 @@ export async function previewMarksmanSetup(actor) {
     }
   }
 
-  const contextKey = JSON.stringify([actor.uuid, level, branch, creates, updates, kept, warnings]);
+  const contextKey = JSON.stringify([actor.uuid, level, branch, creates, updates, kept, warnings,
+    existing.map(item => item.toObject ? item.toObject() : item)]);
   return {
     level,
     branch,
@@ -232,7 +233,7 @@ export async function previewMarksmanSetup(actor) {
 export async function applyMarksmanSetup(actor, { confirmed, contextKey } = {}) {
   need(confirmed === true, "Confirm the previewed Marksman setup first.");
   const plan = await previewMarksmanSetup(actor);
-  need(!contextKey || plan.contextKey === contextKey, "The character changed since the preview; preview the Marksman setup again.");
+  need(typeof contextKey === "string" && plan.contextKey === contextKey, "The character changed since the preview; preview the Marksman setup again.");
 
   defineMarksmanPools();
   if (plan.branch === "artilleryman") defineArtillerymanPools();

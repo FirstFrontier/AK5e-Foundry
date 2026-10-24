@@ -8,17 +8,73 @@ import {
   marksmanEnabled, marksmanLevel, marksmanState, checkLevel, targetLockBonus,
   isTargetLockActive, marksmanWorldTime
 } from "./marksman-rules.mjs";
-import { need } from "./operation-kernel.mjs";
+import { need, createOperationKernel, flag, opaqueKey } from "./operation-kernel.mjs";
+import { recoverPool, registerPoolRecoveryRouter, listPoolDefinitions, hasPool } from "./resource-pools.mjs";
 import { spendReaction, getReactions } from "./trigger-events.mjs";
 
 export const marksmanUses = createPlayUses({
   ns: "marksmanUses",
   label: "Marksman",
+  publicSnapshot: true,
   isMember: actor => marksmanEnabled(actor),
   ruling: (actor, key) => {
     const record = marksmanState(actor).rulings?.[key];
     return record?.source?.trim?.() && record.value !== undefined ? record.value : undefined;
   }
+});
+
+// One committing client orders play and initiative/rest recovery on the same Actor.
+// A disconnected GM never prevents an owner from playing with owned documents.
+const localCommand = marksmanUses.command;
+const marksmanPoolIds = ["targetLock", "unerring", "steelRain", "versatileApproach", "theLastOption", "delayedDetonation", "secondaryDetonation", "scatterThem", "siegeBolt", "goliathsBane"];
+const coordinator = createOperationKernel({
+  label: "Marksman", stateFlag: "marksmanCoordinator", requestFlag: "marksmanRequest",
+  responseFlag: "marksmanResponse", receiptFlag: "marksmanCommit", benefitFlag: "marksmanBenefit", rollFlag: "marksmanRoll",
+  isMember: marksmanEnabled, getState: actor => ({ operations: [], ...structuredClone(flag(actor, "marksmanCoordinator") ?? {}) }),
+  async perform(actor, command, data, operation, state, user) {
+    if (command === "use") {
+      need(marksmanUses.isCommand(data.name), "Unknown Marksman command.");
+      try { operation.result = await localCommand(actor, data.name, data.input, data.id, user); }
+      catch (error) { if (marksmanUses.receipt(actor, data.id)) coordinator.noteMutation(actor); throw error; }
+    } else {
+      need(command === "recover" && [data.period].flat().every(period => ["initiative", "sr", "lr"].includes(period)), "Unknown Marksman recovery.");
+      need(data.poolIds?.every(id => marksmanPoolIds.includes(id)), "Unknown Marksman pool.");
+      operation.result = await recoverPool(actor, data.period, { poolIds: data.poolIds, eventKey: data.eventKey, context: data.context });
+    }
+    return state;
+  }
+});
+const canCoordinate = actor => Boolean(globalThis.game?.users?.activeGM && actor?.documentName === "Actor");
+async function coordinated(actor, command, data, id) {
+  await coordinator.submit(actor, command, { ...data, confirmation: true }, id);
+  return flag(actor, "marksmanCoordinator")?.operations?.find(operation => operation.id === id)?.result;
+}
+export async function recoverMarksmanPool(actor, period, options) {
+  if (!canCoordinate(actor)) return recoverPool(actor, period, options);
+  const id = `recover_${opaqueKey(JSON.stringify([period, options.eventKey ?? foundry.utils.randomID(), options.poolIds]))}`;
+  return coordinated(actor, "recover", { period, ...options }, id);
+}
+marksmanUses.command = async (actor, name, data = {}, id = globalThis.foundry?.utils?.randomID?.()) => {
+  need(actor?.isOwner, "Choose an owned Marksman Actor.");
+  const input = { ...data };
+  if (!["undoUse", "useRoll"].includes(name)) {
+    const tokens = Array.from(globalThis.game?.user?.targets?.values?.() ?? []);
+    input.targetUuids ??= input.targetUuid ? [input.targetUuid] : tokens.map(token => token.document?.uuid ?? token.actor?.uuid).filter(Boolean);
+    input.turnKey ??= globalThis.game?.combat?.started
+      ? `${game.combat.id}:${game.combat.round}:${game.combat.turn}` : `manual:${marksmanState(actor).manualTurn ?? 0}`;
+    input.actionId ??= id;
+  }
+  marksmanUses.validate(actor, name, input, id);
+  return canCoordinate(actor) ? coordinated(actor, "use", { name, input, id }, `use_${opaqueKey(id)}`) : localCommand(actor, name, input, id);
+};
+const targetRelay = marksmanUses.handleRelay;
+marksmanUses.handleRelay = async (...args) => { await targetRelay(...args); await coordinator.handle(...args); };
+registerPoolRecoveryRouter(marksmanEnabled, async (actor, trigger, options) => {
+  const definitions = listPoolDefinitions().filter(definition => hasPool(actor, definition) && definition.recovery.some(entry => [trigger].flat().includes(entry.on)));
+  const managed = definitions.filter(definition => marksmanPoolIds.includes(definition.id)).map(definition => definition.id);
+  const remaining = definitions.filter(definition => !marksmanPoolIds.includes(definition.id)).map(definition => definition.id);
+  const result = managed.length ? await recoverMarksmanPool(actor, trigger, { ...options, poolIds: managed }) : [];
+  return [...result, ...(remaining.length ? await recoverPool(actor, trigger, { ...options, poolIds: remaining }) : [])];
 });
 
 /** GM-only: record a ruling for an unresolved reading. */
@@ -51,6 +107,18 @@ export const MARKSMAN_READINGS = Object.freeze({
 /* ---------------------------------------------------------------- Core Marksman Plans */
 
 export const CORE_PLANS = {
+  advanceManualTurn(actor) {
+    need(marksmanEnabled(actor), "Choose a Marksman.");
+    const warnings = [];
+    if (globalThis.game?.combat?.started) warn(warnings, "combat", "Combat is active; use its Turn controls instead of advancing a manual Turn.");
+    return { warnings, title: "Advance manual Turn", apply(_state, receipt) {
+      const turn = Number(marksmanState(actor).manualTurn ?? 0) + 1;
+      receipt.summary = `${actor.name} begins manual Turn ${turn}. Once-per-Turn allowances refresh; the table tracks timing outside combat.`;
+      receipt.result = { manualTurn: turn };
+      receipt.targets = [{ kind: "marksmanOutcome", uuid: actor.uuid, name: actor.name, ready: true, payload: { removeLabels: ["Siege Mode"] } }];
+      return { "flags.ak5e.marksman.manualTurn": turn, "flags.ak5e.marksman.siegeMode": false, "flags.ak5e.marksman.deliberateEfficientActive": false };
+    } };
+  },
   targetLock(actor, _state, data) {
     need(marksmanEnabled(actor), "Target Lock is a Marksman feature.");
     const warnings = [];
@@ -129,7 +197,7 @@ export const CORE_PLANS = {
     };
   },
 
-  unerring(actor, _state, _data) {
+  unerring(actor, _state, data) {
     need(marksmanEnabled(actor), "Unerring is a Marksman feature.");
     const warnings = [];
     levelWarning(warnings, actor, 17, "Unerring");
@@ -137,6 +205,11 @@ export const CORE_PLANS = {
     if (available < 1) {
       warn(warnings, "unerring", "Unerring has already been used; uses clamp at 0.");
     }
+    const message = data.originMessageUuid && globalThis.fromUuidSync?.(data.originMessageUuid);
+    if (!message) warn(warnings, "attack", "Select the originating missed Attack message.");
+    if (!data.missConfirmed) warn(warnings, "miss", "Confirm the selected Attack missed its intended Creature.");
+    const ac = data.targetAC == null ? null : Number(data.targetAC);
+    need(ac === null || Number.isFinite(ac), "Enter a valid reviewed target AC.");
 
     return {
       warnings,
@@ -144,13 +217,19 @@ export const CORE_PLANS = {
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unerring", amount: 1, label: "Unerring" });
         receipt.summary = `${actor.name} chooses to turn a missed Attack into a hit (minimum required roll).`;
-        receipt.result = { hit: true };
+        receipt.originMessageUuid = data.originMessageUuid ?? null;
+        receipt.summary += ` Original Attack: ${message?.uuid ?? "tracked manually"}; effective result ${ac ?? "the table's minimum to hit"}. The original d20 and its natural-result properties are unchanged.`;
+        receipt.result = { hit: true, effectiveTotal: ac, originMessageUuid: receipt.originMessageUuid };
+        if (data.weaponUuid) {
+          receipt.weaponUuid = data.weaponUuid;
+          receipt.resolution = { version: 1, steps: [] };
+        }
         return updates;
       }
     };
   },
 
-  steelRain(actor, _state, _data) {
+  steelRain(actor, _state, data) {
     need(marksmanEnabled(actor), "Steel Rain is a Marksman feature.");
     const warnings = [];
     levelWarning(warnings, actor, 20, "Steel Rain");
@@ -166,6 +245,11 @@ export const CORE_PLANS = {
         const updates = spendResource(actor, receipt, { pool: "steelRain", amount: 1, label: "Steel Rain" });
         receipt.summary = `${actor.name} takes the Attack Action as a Bonus Action.`;
         receipt.result = { bonusActionAttack: true };
+        receipt.weaponUuid = data.weaponUuid;
+        receipt.resolution = { version: 1, steps: Array.from({ length: marksmanLevel(actor) >= 5 ? 2 : 1 }, (_, index) => ({
+          id: `steel-rain-${index + 1}`, kind: "attack", label: `Steel Rain Attack ${index + 1}`, weaponUuid: data.weaponUuid,
+          targetUuids: data.targetUuids ?? (data.targetUuid ? [data.targetUuid] : []), activityId: data.activityId
+        })) };
         return updates;
       }
     };
@@ -173,3 +257,5 @@ export const CORE_PLANS = {
 };
 
 marksmanUses.register({ plans: CORE_PLANS, readings: MARKSMAN_READINGS });
+CORE_PLANS.advanceManualTurn.validateTarget = (source, _receipt, entry, target) => target.uuid === source.uuid &&
+  entry.uuid === source.uuid && JSON.stringify(entry.payload) === JSON.stringify({ removeLabels: ["Siege Mode"] });

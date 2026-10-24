@@ -7,7 +7,9 @@ import {
   targetLockBonus, isMarksman, marksmanEnabled, flag, isTargetLockActive
 } from "./marksman-rules.mjs";
 import { targetLockPool, unerringPool, steelRainPool } from "./marksman-features.mjs";
-import { applyMarksmanSetup } from "./marksman-setup.mjs";
+import { applyMarksmanSetup, previewMarksmanSetup } from "./marksman-setup.mjs";
+import { openMarksmanProgression } from "./marksman-progression-sheet.mjs";
+import "./marksman-styles.mjs";
 import { previewMarksmanProgression, applyMarksmanProgression, inspectMarksmanFields } from "./marksman-progression.mjs";
 import { marksmanUses } from "./marksman-uses.mjs";
 import { confirmPlayUse, openPlayUndoList, retryPlayUse, renderPlayUseCard } from "./play-uses-sheet.mjs";
@@ -68,31 +70,49 @@ export async function confirmMarksmanCommand(actor, cmd, data = {}) {
     craftShells: "Make Shells — Short Rest maintenance; creates up to PB shells", loadShells: "Load Shells — Bonus Action; move shells from inventory",
     bothBarrels: "Both Barrels — 1 Long Rest use + front chambered shell; Action"
   };
+  Object.assign(names, { advanceManualTurn: "Begin next manual Turn", splashAttack: "Splash weapon — Attack; owner Damage / target saves",
+    besiegerHit: "Resolve Besieger hit — no Action", bracedForAction: "Braced for Action — once per Turn; reroll one die",
+    coneOfFire: "Cone of Fire — Spread Damage after a miss", defensiveStyle: "Defensive — Reaction; roll 1d4 AC",
+    twoWeaponAttack: "Two-Weapon Fighting — additional Attack", recordAirTrackingFacts: "Air Tracking — record reviewed target facts" });
+  const origins = Array.from(globalThis.game?.messages?.values?.() ?? globalThis.game?.messages ?? []).filter(message =>
+    message.speaker?.actor === actor.id && message.rolls?.length).slice(-12).reverse();
+  const sourceUses = marksmanUses.uses(actor).filter(use => use.status !== "undone").slice(0, 30);
   const details = await foundry.applications.api.DialogV2.wait({
     window: { title: names[cmd] ?? `Use ${cmd}` }, position: { width: 560 }, rejectClose: false,
     content: `<div class="ak5e-play-use"><p>Target: ${esc(data.targetName ?? "none selected")}.</p>
       <p>Confirm before using. Attack, damage and save dice remain under their owner's control. Manual procedures appear on the public card.</p>
       <label>Weapon for manual resolution <select name="weaponUuid"><option value="">Choose manually from your sheet</option>${weapons.map(item => `<option value="${esc(item.uuid)}">${esc(item.name)}</option>`).join("")}</select></label>
-      ${["chooseMartialDC", "versatileApproach"].includes(cmd) ? `<label>Martial DC ability <select name="martialDcAbility"><option value="">${esc(martialDC(actor) == null ? "Choose STR or DEX" : `Current DC ${martialDC(actor)}`)}</option><option value="str">Strength</option><option value="dex">Dexterity</option></select></label>` : ""}
+      ${["chooseMartialDC", "versatileApproach", "siegeBolt", "goliathsBane", "splashAttack", "delayedDetonation", "detonateMunition", "secondaryDetonation"].includes(cmd) ? `<label>Martial DC ability <select name="martialDcAbility"><option value="">${esc(martialDC(actor) == null ? "Choose STR or DEX" : `Current DC ${martialDC(actor)}`)}</option><option value="str">Strength</option><option value="dex">Dexterity</option></select></label><label>Reviewed DC override (optional)<input name="manualDC" type="number" min="0"></label>` : ""}
       <label><input type="checkbox" name="triggerConfirmed"> I confirm the source trigger, weapon, timing and range.</label>
+      <label>Originating Attack / Damage roll <select name="originMessageUuid"><option value="">Choose a recorded roll, if relevant</option>${origins.map(message => `<option value="${esc(message.uuid)}">${esc(message.flavor ?? message.id)} — ${esc(message.rolls.map(roll => roll.total).join(", "))}</option>`).join("")}</select></label>
+      <label><input type="checkbox" name="hitConfirmed"> The originating Attack hit the selected Creature.</label>
+      <label><input type="checkbox" name="missConfirmed"> The originating Attack missed.</label>
       ${cmd === "weightOfFire" ? '<label><input type="checkbox" name="advantagedRangedAttack"> This is an advantaged ranged roll in my Attack Action.</label>' : ""}
       ${cmd === "versatileApproach" ? '<label><input type="checkbox" name="conditionsConfirmed"> No other Option was used on this Attack; this Option’s conditions are met.</label>' : ""}
       ${data.option === "shootToKill" ? '<label>Damage instances since my last Turn (exclude this Option) <input name="damageInstances" type="number" min="0" step="1" required></label>' : ""}
       ${cmd === "secondaryDetonation" ? '<label>Original damage (leave blank to resolve the repeated Attack/Trap manually) <input name="originalDamage" type="number" min="0" step="1"></label>' : ""}
       ${cmd === "detonateMunition" ? '<label><input name="automatic" type="checkbox"> Ten-minute automatic detonation (no Reaction)</label>' : ""}
+      ${["secondaryDetonation", "scatterThem", "detonateMunition", "disarmMunition"].includes(cmd) ? `<label>Originating use / munition<select name="originUseId"><option value="">Choose a recorded use</option>${sourceUses.map(use => `<option value="${esc(use.id)}">${esc(use.title)}</option>`).join("")}</select></label>` : ""}
+      ${["versatileApproach", "splashAttack", "delayedDetonation", "secondaryDetonation"].includes(cmd) ? '<details><summary>Blast geometry and targets</summary><p>Place/verify the area and choose affected Creatures on the map. Coordinates are optional scene pixels; no point is invented.</p><label>Point X<input name="pointX" type="number"></label><label>Point Y<input name="pointY" type="number"></label><label>Chosen point height (feet)<input name="height" type="number" min="0"></label><label>Immune hearing allies (Actor UUIDs, comma separated)<input name="immuneTargetUuids"></label><label><input name="enhancedPayload" type="checkbox"> Double Splash radius for this Attack Action (level 10+)</label></details>' : ""}
+      ${cmd === "recordAirTrackingFacts" ? '<label>Ground contact<select name="airborne"><option value="">Unknown</option><option value="true">Not in contact with ground</option><option value="false">In contact with ground</option></select></label><label>Feet moved during target’s last Turn<input name="feetMovedLastTurn" type="number" min="0"></label>' : ""}
+      ${cmd === "bracedForAction" ? '<label>Damage roll index (first = 0)<input name="rollIndex" type="number" min="0" value="0"></label><label>Die term index (first = 0)<input name="dieIndex" type="number" min="0" value="0"></label><label>Result index within die term (first = 0)<input name="resultIndex" type="number" min="0" value="0"></label><label>Damage type<input name="damageType" placeholder="piercing"></label>' : ""}
+      ${cmd === "unerring" ? '<label>Reviewed target AC<input name="targetAC" type="number"></label>' : ""}
       <label style="display:block"><span style="display:block">Resolution notes (point/height, immunity nominations, original blast, hit or movement facts)</span><textarea name="resolutionNotes" rows="3" style="width:100%"></textarea></label></div>`,
     buttons: [
       { action: "use", label: "Use", callback: (_event, btn) => {
         const fields = btn.form.elements, result = {};
-        for (const name of ["weaponUuid", "martialDcAbility", "resolutionNotes"]) if (fields[name]?.value) result[name] = fields[name].value;
-        for (const name of ["triggerConfirmed", "advantagedRangedAttack", "conditionsConfirmed", "automatic"]) result[name] = fields[name]?.checked === true;
-        for (const name of ["damageInstances", "originalDamage"]) if (fields[name]?.value !== undefined && fields[name].value !== "") result[name] = Number(fields[name].value);
+        for (const name of ["weaponUuid", "martialDcAbility", "resolutionNotes", "originMessageUuid", "originUseId", "damageType"]) if (fields[name]?.value) result[name] = fields[name].value;
+        for (const name of ["triggerConfirmed", "advantagedRangedAttack", "conditionsConfirmed", "automatic", "hitConfirmed", "missConfirmed", "enhancedPayload"]) result[name] = fields[name]?.checked === true;
+        for (const name of ["damageInstances", "originalDamage", "manualDC", "height", "rollIndex", "dieIndex", "resultIndex", "targetAC", "feetMovedLastTurn"]) if (fields[name]?.value !== undefined && fields[name].value !== "") result[name] = Number(fields[name].value);
+        if (fields.pointX?.value !== "" && fields.pointY?.value !== "" && fields.pointX?.value !== undefined) result.point = { x: Number(fields.pointX.value), y: Number(fields.pointY.value) };
+        if (fields.airborne?.value) result.airborne = fields.airborne.value === "true";
+        if (fields.immuneTargetUuids?.value) result.immuneTargetUuids = fields.immuneTargetUuids.value.split(",").map(value => value.trim()).filter(Boolean);
         return result;
       } }, { action: "cancel", label: "Cancel", default: true, callback: () => null }
     ]
   });
   if (!details) return null;
-  const id = foundry.utils.randomID();
+  const id = data.operationId ?? foundry.utils.randomID();
   return confirmPlayUse(names[cmd] ?? cmd, extra => marksmanUses.command(actor, cmd, { ...data, ...details, confirmed: true, ...extra }, id));
 }
 
@@ -184,6 +204,7 @@ export async function openMarksmanControls(actor) {
         ` : ""}
       </div>
     `);
+    sections.push(`<div class="ak5e-marksman-action-group"><h5>Fighting Styles</h5><div class="ak5e-button-row"><button type="button" data-marksman-cmd="bracedForAction">Braced for Action</button><button type="button" data-marksman-cmd="coneOfFire">Cone of Fire</button><button type="button" data-marksman-cmd="defensiveStyle">Defensive</button><button type="button" data-marksman-cmd="twoWeaponAttack">Two-Weapon Fighting</button></div><p>Ranger, Close and Personal, Deadly Fighter and Smooth Operator adjust qualifying owner-started rolls. Source prerequisites are checked as warnings.</p></div>`);
 
     // Subclass: Artilleryman
     if (branch === "artilleryman") {
@@ -193,6 +214,7 @@ export async function openMarksmanControls(actor) {
       sections.push(`
         <div class="ak5e-marksman-action-group">
           <h5>Artilleryman Features</h5>
+          <button type="button" data-marksman-cmd="splashAttack">Splash Weapon Attack</button>
           <p>Manual benefits: Controlled Demolition adds the active Target Lock bonus to that Target’s trap/Splash DC (retain a trap’s existing base DC). At 10+, add 2 to Splash DC and optionally double Splash(X) during your Attack Action. At 15+, double only Thunder damage against each Vehicle/Structure. At 18+, ignore Loading for wielded Grenade/Rocket Launchers; apply Thunder Resistance and immunity to your own Thunder damage, including delayed/secondary blasts. Native rolls and defenses do not apply these benefits automatically.</p>
           <div class="ak5e-marksman-pools-summary">
             ${delDet ? `<span class="ak5e-pool-badge">Delayed Munition: ${delDet.value} / ${delDet.max}</span>` : ""}
@@ -225,6 +247,7 @@ export async function openMarksmanControls(actor) {
       sections.push(`
         <div class="ak5e-marksman-action-group">
           <h5>Besieger Features</h5>
+          <button type="button" data-marksman-cmd="besiegerHit">Resolve Besieger Hit / Godpiercer</button>
           <div class="ak5e-marksman-pools-summary">
             ${bolt ? `<span class="ak5e-pool-badge">Siege Bolt: ${bolt.value} / ${bolt.max}</span>` : ""}
             ${bane ? `<span class="ak5e-pool-badge">Goliath's Bane: ${bane.value} / ${bane.max}</span>` : ""}
@@ -262,6 +285,7 @@ export async function openMarksmanControls(actor) {
       sections.push(`
         <div class="ak5e-marksman-action-group">
           <h5>Anti-Air Features</h5>
+          <button type="button" data-marksman-cmd="recordAirTrackingFacts">Record Air Tracking Facts</button>
           <div class="ak5e-marksman-pools-summary">
             ${va ? `<span class="ak5e-pool-badge">Versatile Approach: ${va.value} / ${va.max}</span>` : ""}
             ${lo ? `<span class="ak5e-pool-badge">The Last Option: ${lo.value} / ${lo.max}</span>` : ""}
@@ -481,6 +505,8 @@ export async function openMarksmanControls(actor) {
         <h5>Character Setup & Undo</h5>
         <div class="ak5e-button-row">
           <button type="button" data-marksman-act="__setup">Refresh Marksman Features</button>
+          <button type="button" data-marksman-act="__progression">Character Progression & Choices</button>
+          <button type="button" data-marksman-cmd="advanceManualTurn">Begin Next Manual Turn</button>
           <button type="button" data-marksman-act="__undo">Undo a Recent Use</button>
           <button type="button" data-marksman-cmd="chooseMartialDC">Choose Martial DC Ability</button>
         </div>
@@ -489,7 +515,7 @@ export async function openMarksmanControls(actor) {
   }
 
   const instructions = inspectMarksmanFields(actor).manualInstructions ?? [];
-  const content = `<div class="ak5e-marksman-panel" style="max-height:65vh;overflow-y:auto;scrollbar-width:auto"><p>Manual rules: attack/save owners roll their own dice; tokens, blast geometry and lingering conditions are resolved by the table. Outside combat, track each Turn for first-attack/once-per-Turn features.</p>${sections.join("")}<h5>Progression manual procedures</h5>${instructions.map(text => `<p>${esc(text)}</p>`).join("")}</div>`;
+  const content = `<div class="ak5e-marksman-panel" style="max-height:65vh;overflow-y:auto;scrollbar-width:auto"><p>Owners roll attacks, Damage and saves from the cards. Confirm reviewed outcomes before applying them. Place areas and resolve map movement at the table; use Begin Next Manual Turn outside combat.</p>${sections.join("")}<h5>Progression notes</h5>${instructions.map(text => `<p>${esc(text)}</p>`).join("")}</div>`;
 
   const d = new Dialog({
     title: `Marksman Controls — ${actor.name}`,
@@ -499,12 +525,14 @@ export async function openMarksmanControls(actor) {
     },
     render: html => {
       html.find("[data-marksman-act='__setup']").on("click", () => safe(async () => {
+        const preview = await previewMarksmanSetup(actor);
         const accepted = await foundry.applications.api.DialogV2.confirm({ window: { title: "Refresh Marksman features" }, content: "<p>Add missing source feature Items and repair generated placeholders? Authored Items are preserved.</p>" });
         if (!accepted) return;
         d.close();
-        await applyMarksmanSetup(actor, { confirmed: true });
+        await applyMarksmanSetup(actor, { confirmed: true, contextKey: preview.contextKey });
         ui.notifications.info(`Marksman features refreshed for ${actor.name}.`);
       }));
+      html.find("[data-marksman-act='__progression']").on("click", () => { d.close(); safe(() => openMarksmanProgression(actor)); });
 
       html.find("[data-marksman-act='__undo']").on("click", () => {
         d.close();
@@ -580,7 +608,7 @@ export function renderMarksmanResolution(message, html) {
   // Splash resolves with saves, never an Attack Roll (C4:197–198). Preserve its
   // weapon provenance on the receipt without offering a native attack activity.
   const splashOnly = ["detonateMunition", "secondaryDetonation"].includes(receipt.command);
-  if (actor.isOwner && receipt.weaponUuid && !splashOnly) box.append(button("Open weapon use / repeat attack", async () => {
+  if (actor.isOwner && receipt.weaponUuid && !splashOnly && !receipt.resolution?.steps?.length) box.append(button("Open weapon use / repeat attack", async () => {
     const weapon = await fromUuid(receipt.weaponUuid);
     if (weapon?.parent?.uuid !== actor.uuid || weapon.type !== "weapon") throw new Error("Choose an owned weapon from your sheet.");
     await weapon.use({}, { configure: true });

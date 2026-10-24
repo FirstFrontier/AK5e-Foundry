@@ -18,6 +18,7 @@ import { definePool, getPool, getPoolDefinition, recoverPool } from "./resource-
 import { onAk5eEvent } from "./trigger-events.mjs";
 import { getReactions } from "./trigger-events.mjs";
 import { need, flag } from "./operation-kernel.mjs";
+import { weaponDamageParts, weaponPropertyValue, hasWeaponProperty } from "./weapon-properties.mjs";
 
 export const isAntiAir = actor => marksmanEnabled(actor) && marksmanBranch(actor) === "antiAir";
 const now = () => Number(globalThis.game?.time?.worldTime ?? Date.now() / 1000);
@@ -25,7 +26,7 @@ const ownTurn = actor => Boolean(globalThis.game?.combat?.started && game.combat
 const targetKey = uuid => encodeURIComponent(uuid ?? "missing").replaceAll(".", "%2E");
 export function antiAirTurnKey(actor, own = false) {
   const combat = globalThis.game?.combat;
-  if (!combat?.started) return "outside-combat";
+  if (!combat?.started) return `manual:${Number(flag(actor, "marksman")?.manualTurn ?? 0)}`;
   const index = Array.from(combat.turns ?? []).findIndex(c => c.actor?.uuid === actor.uuid);
   const round = Number(combat.round) - (own && index > Number(combat.turn) ? 1 : 0);
   return `${combat.id}:${round}:${own ? index : combat.turn}`;
@@ -95,17 +96,20 @@ export const ANTI_AIR_PLANS = {
     const warnings = [];
     if (!ownTurn(actor)) warn(warnings, "turn", "Weight of Fire requires the Attack Action during your Turn.");
     if (!data.advantagedRangedAttack) warn(warnings, "attack", "Confirm an advantaged ranged roll in your Attack Action.");
+    if (!data.targetUuid) warn(warnings, "target", "Select the same Creature as the advantaged ranged Attack.");
+    if (!data.weaponUuid || !data.activityId) warn(warnings, "weapon", "Choose the weapon and activity used for the advantaged ranged Attack.");
     if (flag(actor, "marksman")?.weightOfFireUsedTurn === antiAirTurnKey(actor)) warn(warnings, "repeat", "Weight of Fire was already used this Turn.");
     return {
       warnings,
       title: "Weight of Fire",
       apply(next, receipt) {
-        receipt.summary = `${actor.name} uses Weight of Fire. Manual resolution: turn off Advantage for the chosen ranged roll in the native roll dialog, then repeat that ranged attack against the same Creature in the same Attack Action. No later roll is changed.`;
+        receipt.summary = `${actor.name} uses Weight of Fire. Forgo Advantage on the qualifying ranged Attack, then make this repeated Attack against the same Creature as part of the same Attack Action.`;
         receipt.weaponUuid = data.weaponUuid;
         receipt.result = { weightOfFire: true };
-        return {
-          "flags.ak5e.marksman.weightOfFireUsedTurn": antiAirTurnKey(actor)
-        };
+        (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: "weight-of-fire-repeat", kind: "attack", label: "Weight of Fire: repeat Attack",
+          targetUuids: [data.targetUuid].filter(Boolean), weaponUuid: data.weaponUuid, activityId: data.activityId,
+          originMessageUuid: data.originMessageUuid ?? null, consumeUpdates: { "flags.ak5e.marksman.weightOfFireUsedTurn": antiAirTurnKey(actor) } });
+        return {};
       }
     };
   },
@@ -156,7 +160,13 @@ export const ANTI_AIR_PLANS = {
     if (!data.conditionsConfirmed) warn(warnings, "conditions", "Confirm this Option's ranged weapon/action or hit trigger, and that no other Option was used on this Attack.");
     if (option === "shootToKill" && data.damageInstances === undefined) warn(warnings, "instances", "Enter the actual damage-instance count since your last Turn; an unspecified count grants no damage.");
 
-    const usesFreeLastOption = lastOptionActive(actor) && ownTurn(actor) && flag(actor, "marksman")?.freeOptionTurn !== antiAirTurnKey(actor, true);
+    const optionStanceActive = lastOptionActive(actor);
+    const inTrackedTurn = !globalThis.game?.combat?.started || ownTurn(actor);
+    if (optionStanceActive && !inTrackedTurn) warn(warnings, "turn", "The Last Option's free Option applies during your Turn; using this Option now spends a Versatile Approach use.");
+    const usesFreeLastOption = optionStanceActive && inTrackedTurn && flag(actor, "marksman")?.freeOptionTurn !== antiAirTurnKey(actor, true);
+    const attackId = String(data.attackId ?? "unbound");
+    const attackKey = encodeURIComponent(attackId);
+    if (flag(actor, "marksman")?.versatileAttackOptions?.[attackKey]) warn(warnings, "oneOption", "Only one Versatile Approach Option may be used on each Attack.");
 
     if (!usesFreeLastOption) {
       const available = resourceValue(actor, { pool: "versatileApproach" });
@@ -170,6 +180,11 @@ export const ANTI_AIR_PLANS = {
     const dc = martialDC(actor, data.martialDcAbility ?? flag(actor, "marksman")?.martialDcAbility);
     if (dc == null && ["areaDenial", "stopApproach"].includes(option)) warn(warnings, "martialDC", "Choose STR or DEX for Martial DC, or resolve the DC manually with the table.");
     const targetName = data.targetName ?? "Target";
+    const crowdRepeats = [...new Set((data.repeatTargetUuids ?? []).filter(Boolean))].slice(0, upgraded ? 2 : 1);
+    if (option === "crowdControl" && crowdRepeats.length !== (upgraded ? 2 : 1)) warn(warnings, "repeatTargets", `Select ${upgraded ? "two" : "one"} distinct Creature(s) within 15 feet of the prior target.`);
+    if (option === "areaDenial" && !data.targetUuids?.length) warn(warnings, "targets", "Select the Creatures in the cylinder when it activates; geometry and line of sight are reviewed at the table.");
+    if (option === "stopApproach" && !data.targetUuid) warn(warnings, "target", "Select the Creature hit by the Ranged Weapon Attack.");
+    if (option === "shootToKill" && !data.targetUuid) warn(warnings, "target", "Select the Creature hit by the Ranged Weapon Attack.");
 
     const titles = {
       areaDenial: "Area Denial",
@@ -190,6 +205,7 @@ export const ANTI_AIR_PLANS = {
           updates = spendResource(actor, receipt, { pool: "versatileApproach", amount: 1, label: "Versatile Approach" });
           receipt.summary = `${actor.name} spends 1 use of Versatile Approach to execute ${titles[option]}.`;
         }
+        updates[`flags.ak5e.marksman.versatileAttackOptions.${attackKey}`] = option;
 
         if (option === "areaDenial") {
           receipt.result = {
@@ -205,6 +221,25 @@ export const ANTI_AIR_PLANS = {
           receipt.summary += ` Manual Area Denial: choose a visible point within your wielded ranged weapon's long range. Mark a 10-foot-radius cylinder rising to that point; do not assume a fixed height. At your next Turn start, each Creature in it makes a ${dc == null ? "chosen Martial DC" : `DC ${dc}`} Dexterity save (target owner rolls), taking 3d6 Piercing, half on success. Flying Creatures save at Disadvantage; only a failed save halves Flying Speed until their next Turn ends. INT 10+ Creatures can see the pending area.${upgraded ? " Name Creatures that can hear you as immune now; it lingers an additional round, with saves on entry and Turn end." : ""} Mark timing, affected Creatures and movement changes by hand; this card schedules no automatic damage or saves.`;
           receipt.formula = "3d6";
           receipt.damageParts = [{ formula: "3d6", type: "piercing" }];
+          const immune = new Set(data.immuneTargetUuids ?? data.immuneUuids ?? []);
+          const areaTargets = [...new Set((data.targetUuids ?? []).filter(uuid => uuid && !immune.has(uuid)))];
+          const flyingTargets = new Set(data.airborneUuids ?? []);
+          for (const targetUuid of areaTargets) {
+            const firstId = `area-denial-${encodeURIComponent(targetUuid)}-activation`;
+            (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: firstId, kind: "damage", label: "Area Denial: projectiles fall", targetUuids: [targetUuid],
+              damageParts: [{ formula: "3d6", type: "piercing" }], save: { ability: "dex", dc, success: "half", ...(flyingTargets.has(targetUuid) ? { disadvantage: true } : {}) },
+              trigger: { event: "turnStart", actorUuid: actor.uuid, occurrence: 1 }, sourceActorUuid: actor.uuid,
+              effects: flyingTargets.has(targetUuid) ? [{ label: "Area Denial: halved Flying Speed", changes: [{ key: "system.attributes.movement.fly", mode: 1, value: 0.5 }], when: "failed",
+                expiry: { actorUuid: targetUuid, event: "nextTurnEnd" } }] : [], splash: { point: data.point, radiusFt: 10, heightToPoint: true, visibleTelegraph: true } });
+            if (upgraded) (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: `area-denial-${encodeURIComponent(targetUuid)}-lingering`, kind: "damage",
+              label: "Area Denial: lingering area entry/end-turn save", targetUuids: [targetUuid], damageParts: [{ formula: "3d6", type: "piercing" }],
+              save: { ability: "dex", dc, success: "half", ...(flyingTargets.has(targetUuid) ? { disadvantage: true } : {}) },
+              trigger: { event: "turnEnd", actorUuid: targetUuid, occurrence: 1 }, sourceActorUuid: actor.uuid,
+              repeatable: true, dynamicTargets: true,
+              effects: flyingTargets.has(targetUuid) ? [{ label: "Area Denial: halved Flying Speed", changes: [{ key: "system.attributes.movement.fly", mode: 1, value: 0.5 }], when: "failed",
+                expiry: { actorUuid: targetUuid, event: "nextTurnEnd" } }] : [],
+              splash: { point: data.point, radiusFt: 10, lingering: true, nominatedImmuneUuids: [...immune] } });
+          }
         } else if (option === "crowdControl") {
           receipt.result = {
             option: "crowdControl",
@@ -215,7 +250,10 @@ export const ANTI_AIR_PLANS = {
             ? ` Crowd Control: Repeat attack against up to 2 other creatures within 15 ft (half damage).`
             : ` Crowd Control: Repeat attack against 1 other creature within 15 ft of original (half damage).`;
           receipt.weaponUuid = data.weaponUuid;
-          receipt.summary += " Manual resolution: select a different Creature for each repeat, roll your weapon from the card, and halve each repeat's damage with the native controls.";
+          for (const [index, targetUuid] of crowdRepeats.entries()) (receipt.resolution ??= { version: 1, steps: [] }).steps.push({
+            id: `crowd-control-${index + 1}-${encodeURIComponent(targetUuid)}`, kind: "attack", label: `Crowd Control: repeat Attack ${index + 1}`,
+            targetUuids: [targetUuid], weaponUuid: data.weaponUuid, activityId: data.activityId, damageScale: 0.5,
+            originMessageUuid: data.originMessageUuid ?? null, priorTargetUuid: data.targetUuid ?? null, distinctRepeat: true });
         } else if (option === "stopApproach") {
           receipt.result = {
             option: "stopApproach",
@@ -230,6 +268,11 @@ export const ANTI_AIR_PLANS = {
           receipt.summary += " Manual resolution: the target owner rolls the Wisdom save; record each cumulative reduction and restore it at the end of that target's next Turn.";
           receipt.saveAbility = dc == null ? null : "wis";
           receipt.saveTargetUuid = data.targetActorUuid;
+          if (data.targetUuid) (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: `stop-approach-${encodeURIComponent(data.targetUuid)}`, kind: "effect",
+            label: "Stop their Approach", targetUuids: [data.targetUuid], ...(dc == null ? {} : { save: { ability: "wis", dc, success: "full" } }),
+            effects: [{ label: "Stop their Approach: Speed reduction", changes: ["walk", "fly", "swim", "climb", "burrow"].map(type => ({ key: `system.attributes.movement.${type}`, mode: 2, value: -20 })), when: "failed",
+              expiry: { actorUuid: data.targetUuid, event: "nextTurnEnd" } }, ...(upgraded ? [{ label: "Stop their Approach: Speed reduction", changes: ["walk", "fly", "swim", "climb", "burrow"].map(type => ({ key: `system.attributes.movement.${type}`, mode: 2, value: -10 })), when: "success",
+                expiry: { actorUuid: data.targetUuid, event: "nextTurnEnd" } }] : [])], sourceActorUuid: actor.uuid });
         } else if (option === "shootToKill") {
           const instances = Number(data.damageInstances ?? 0);
           need(Number.isSafeInteger(instances) && instances >= 0, "Enter the actual whole number of damage instances since your last Turn, excluding this Option.");
@@ -243,6 +286,9 @@ export const ANTI_AIR_PLANS = {
           receipt.summary += ` Shoot to Kill: +${instances}${die} Piercing Damage (${instances} prior damage instance${instances > 1 ? "s" : ""}).`;
           receipt.summary += " Count damage instances since your last Turn, excluding damage from this Option. The table keeps this count manually.";
           if (instances) { receipt.formula = `${instances}${die}`; receipt.damageParts = [{ formula: receipt.formula, type: "piercing" }]; }
+          if (instances && data.targetUuid) (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: `shoot-to-kill-${encodeURIComponent(data.targetUuid)}`, kind: "damage",
+            label: "Shoot to Kill", targetUuids: [data.targetUuid], damageParts: [{ formula: `${instances}${die}`, type: "piercing" }], requiresHit: true,
+            originUseId: data.originUseId ?? null });
         }
 
         if (data.resolutionNotes) receipt.summary += ` Resolution notes: ${data.resolutionNotes}`;
@@ -271,12 +317,14 @@ export const ANTI_AIR_PLANS = {
     }
 
     const targetName = data.targetName ?? "Hostile creature";
+    if (!targetUuid) warn(warnings, "target", "Select the triggering Creature.");
+    if (!data.weaponUuid || !data.activityId) warn(warnings, "weapon", "Select the wielded ranged weapon and Attack activity.");
 
     return {
       warnings,
       title: "Unapproachable",
       apply(next, receipt) {
-        const updates = { [`flags.ak5e.marksman.unapproachableTargets.${targetKey(targetUuid)}`]: turn };
+        const updates = {};
         if (!isLocked) {
           receipt.reaction = { requested: true, triggerId: `${receipt.id}-unapproachable` };
         } else {
@@ -287,6 +335,9 @@ export const ANTI_AIR_PLANS = {
         receipt.summary += " Manual resolution: select that hostile Creature and roll your wielded weapon from this card. Then move your token up to half Speed; movement is optional.";
         receipt.weaponUuid = data.weaponUuid;
         receipt.result = { unapproachableAttack: true, halfSpeedMove: true, targetLocked: isLocked };
+        (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: `unapproachable-${targetKey(targetUuid)}`, kind: "attack",
+          label: "Unapproachable: Reaction Attack", targetUuids: [targetUuid].filter(Boolean), weaponUuid: data.weaponUuid, activityId: data.activityId,
+          consumeUpdates: { [`flags.ak5e.marksman.unapproachableTargets.${targetKey(targetUuid)}`]: turn }, halfSpeedMove: true });
         return updates;
       }
     };
@@ -297,6 +348,7 @@ export const ANTI_AIR_PLANS = {
     const warnings = [];
     levelWarning(warnings, actor, 18, "The Last Option");
     if (!ownTurn(actor)) warn(warnings, "turn", "The Last Option is activated during your Turn (no Action required).");
+    if (!data.weaponUuid || !data.activityId) warn(warnings, "weapon", "Choose a Ranged Weapon and Attack activity for the additional Attack, or add it manually from the sheet.");
 
     const available = resourceValue(actor, { pool: "theLastOption" });
     if (available < 1) {
@@ -314,6 +366,9 @@ export const ANTI_AIR_PLANS = {
         receipt.summary += " During each of your Turns, the first Option is free. Make the additional ranged weapon attack manually each Attack Action; this card never starts it for you. Outside combat, track your Turns and the minute by hand.";
         receipt.weaponUuid = data.weaponUuid;
         receipt.result = { stance: "theLastOption", duration: "1 minute" };
+        if (data.weaponUuid && data.activityId) (receipt.resolution ??= { version: 1, steps: [] }).steps.push({ id: "last-option-extra-attack", kind: "attack",
+          label: "The Last Option: additional Attack", targetUuids: [data.targetUuid].filter(Boolean), weaponUuid: data.weaponUuid, activityId: data.activityId,
+          extraAttack: true, actionId: data.actionId ?? null });
         return updates;
       }
     };

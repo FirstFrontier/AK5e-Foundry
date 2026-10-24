@@ -7,7 +7,9 @@ import {
   MARKSMAN_CLASS_ID, marksmanEnabled, marksmanLevel, marksmanBranch, marksmanState,
   targetLockBonus, isTargetLocked, hasFightingStyle, FIGHTING_STYLES
 } from "./marksman-rules.mjs";
-import { marksmanUses } from "./marksman-uses.mjs";
+import { marksmanUses, recoverMarksmanPool } from "./marksman-uses.mjs";
+import { hasWeaponProperty } from "./weapon-properties.mjs";
+import { marksmanAttackTarget, inheritMarksmanAttackContext } from "./marksman-context.mjs";
 import { definePool, getPool, getPoolDefinition, recoverPool } from "./resource-pools.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
 import { flag, values, need, keyedSerial } from "./operation-kernel.mjs";
@@ -110,7 +112,7 @@ export async function recoverTargetLockOnInitiative(event) {
     }
     return [];
   }
-  return recoverPool(actor, "initiative", {
+  return recoverMarksmanPool(actor, "initiative", {
     poolIds: ["targetLock"],
     eventKey: event.eventId ?? `enhancedTargetLock:${event.combatantId ?? actor.uuid}:${event.combatUuid ?? "combat"}`,
     context: { marksmanEvent: true, actorUuid: actor.uuid, combatUuid: event.combatUuid ?? null, combatantId: event.combatantId ?? null }
@@ -138,7 +140,8 @@ export function hasAdjacentHostile(attackerToken) {
   for (const token of globalThis.canvas.tokens.placeables) {
     if (token === attackerToken) continue;
     const disposition = token.document?.disposition ?? 0;
-    if (disposition >= 0) continue; // Not hostile
+    const attackerDisposition = attackerToken.document?.disposition ?? 1;
+    if (disposition === 0 || disposition === attackerDisposition) continue;
     const tCenter = token.center ?? { x: token.x, y: token.y };
     const distPx = Math.hypot(aCenter.x - tCenter.x, aCenter.y - tCenter.y);
     if (distPx <= fiveFtPx) return true;
@@ -154,8 +157,7 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
   const roll = config.rolls?.[0];
   if (!roll) return;
 
-  const targetToken = globalThis.game?.user?.targets?.first?.() ?? null;
-  const targetUuid = targetToken?.document?.uuid ?? targetToken?.actor?.uuid ?? null;
+  const { token: targetToken, uuid: targetUuid } = marksmanAttackTarget(config);
   const attackerToken = actor.getActiveTokens?.()?.[0] ?? null;
 
   // 1. Target Lock: +1 (or +2) attack bonus if attacking the locked target
@@ -174,9 +176,7 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
   }
 
   // 3. Ranger Fighting Style: +2 to attack rolls with Ranged or Thrown weapons
-  const isRangedOrThrown = activity.actionType === "rwak" ||
-    activity.item?.system?.properties?.has?.("thr") ||
-    flag(activity.item, "thrown");
+  const isRangedOrThrown = activity.actionType === "rwak" || hasWeaponProperty(activity.item, "thrown");
   if (isRangedOrThrown && hasFightingStyle(actor, "ranger")) {
     roll.parts ??= [];
     roll.parts.push("2");
@@ -193,7 +193,7 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
 
   // 5. Deadly Fighter: +1 critical range on first attack roll each turn with Deadly weapon
   if (hasFightingStyle(actor, "deadlyFighter")) {
-    const isDeadly = Boolean(activity.item?.system?.properties?.has?.("deadly") || flag(activity.item, "deadly"));
+    const isDeadly = hasWeaponProperty(activity.item, "deadly");
     const cycle = isDeadly && deadlyFighterCycle(actor);
     const actorKey = actor.uuid ?? actor.id ?? actor.name;
     if (cycle && deadlyFighterTurn.get(actorKey) !== cycle && !deadlyAdjustedRolls.has(roll)) {
@@ -211,15 +211,38 @@ export function marksmanPreRollDamage(config, _dialog, _message) {
   if (!actor || !marksmanEnabled(actor)) return;
   const roll = config.rolls?.[0];
   if (!roll?.parts) return;
+  inheritMarksmanAttackContext(config);
+  marksmanAttackTarget(config);
 
   // Smooth Operator Fighting Style: add ability modifier to Bonus Action Rapid Fire attack
   if (hasFightingStyle(actor, "smoothOperator")) {
-    const isRapidFire = Boolean(activity.item?.system?.properties?.has?.("rapid") || flag(activity.item, "rapidFire"));
+    const isRapidFire = hasWeaponProperty(activity.item, "rapidFire");
     if (isRapidFire && activity.activation?.type === "bonus") {
-      const abl = activity.ability || actor.system?.attributes?.spellcasting || "dex";
+      const abl = activity.ability || "dex";
       const mod = Number(actor.system?.abilities?.[abl]?.mod ?? 0);
-      if (mod > 0) roll.parts.push(String(mod));
+      if (!roll.options?._ak5eAbilityModifierAdded) {
+        // Native off-hand activities may already include the modifier. The
+        // dedicated Rapid Fire workflow explicitly omits it; add it once only.
+        const hasNativeModifier = roll.parts.some(part => typeof part === "string" && /@mod\b/.test(part));
+        if (!hasNativeModifier) roll.parts.push(String(mod));
+        roll.options ??= {}; roll.options._ak5eAbilityModifierAdded = true;
+      }
     }
+  }
+  if (hasFightingStyle(actor, "twoWeaponFighting") && activity.activation?.type === "bonus" &&
+    (config.ak5eTwoWeaponFighting === true || activity.flags?.ak5e?.twoWeaponFighting === true) && !roll.options?._ak5eAbilityModifierAdded) {
+    const ability = activity.ability || "dex";
+    if (!roll.parts.some(part => typeof part === "string" && /@mod\b/.test(part))) roll.parts.push(String(Number(actor.system?.abilities?.[ability]?.mod ?? 0)));
+    roll.options ??= {}; roll.options._ak5eAbilityModifierAdded = true;
+  }
+  if (config.ak5eTwoWeaponFighting && hasFightingStyle(actor, "twoWeaponFighting") && !roll.options?._ak5eAbilityModifierAdded) {
+    if (!roll.parts.some(part => typeof part === "string" && /@mod\b/.test(part))) roll.parts.push(String(Number(actor.system?.abilities?.[activity.ability || "dex"]?.mod ?? 0)));
+    roll.options ??= {}; roll.options._ak5eAbilityModifierAdded = true;
+  }
+  const scale = Number(config.ak5eDamageScale ?? 1);
+  if (scale !== 1 && Number.isFinite(scale) && scale >= 0 && scale <= 1 && !roll.options?._ak5eDamageScaled) {
+    roll.parts = [`floor((${roll.parts.join(" + ")}) * ${scale})`];
+    roll.options ??= {}; roll.options._ak5eDamageScaled = true;
   }
 }
 

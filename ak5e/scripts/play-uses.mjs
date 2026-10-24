@@ -65,7 +65,7 @@ export function spendResource(actor, receipt, { pool, path, amount, label, max }
 /** Current value of a resource, for warnings before anything is spent. */
 export function resourceValue(actor, { pool, path }) { return pool ? getPool(actor, pool).value : Number(getPath(actor, path)) || 0; }
 
-export function createPlayUses({ ns, label, isMember, ruling = () => undefined }) {
+export function createPlayUses({ ns, label, isMember, ruling = () => undefined, publicSnapshot = false }) {
   need(/^[A-Za-z][A-Za-z0-9]{2,40}$/.test(ns), "A play-use namespace must be a short identifier.");
   const PLANS = {}, READINGS = {}, KINDS = {}, CLEANUPS = [], serial = keyedSerial();
   const effectFlag = `${ns}Effect`, appliedFlag = `${ns}Applied`, cardFlag = `${ns}Use`, operationFlag = `${ns}Operation`, actorFlag = `${ns}Actor`;
@@ -245,13 +245,14 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     const id = kind === "use" ? receipt.id : `${receipt.id}-${kind}`;
     if (values(game.messages).some(message => flag(message, operationFlag) === id && flag(message, actorFlag) === actor.uuid)) return;
     const title = kind === "undo" ? `Undone: ${receipt.title}` : kind === "roll" ? `${receipt.title}: result` : receipt.title;
-    const body = kind === "undo" ? `<p>${esc(game.user.name)} undid this use.${receipt.undoNotes?.length ? ` ${receipt.undoNotes.map(esc).join(" ")}` : ""}</p>`
+    const body = kind === "undo" ? `<p>${esc(receipt.undoneByName ?? game.user.name)} undid this use.${receipt.undoNotes?.length ? ` ${receipt.undoNotes.map(esc).join(" ")}` : ""}</p>`
       : kind === "roll" ? (receipt.targets.filter(entry => KINDS[entry.kind]?.rollText).map(entry => `<p>${esc(KINDS[entry.kind].rollText(entry))}</p>`).join("")
         || (receipt.rollParts?.length ? `<p>${esc(`${receipt.rollLabel ?? "Damage"} rolled: ${receipt.roll} (${receipt.rollParts.map(part => `${part.total} ${part.type}`).join(", ")}). Apply it with the native damage controls on the roll card.`)}</p>` : ""))
         + (receipt.targets.some(entry => entry.relayed) ? "<p>Applied by the GM's client.</p>" : "")
         : cardHtml(receipt);
     await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }), content: `<h3>${esc(title)}</h3>${body}`,
-      flags: { ak5e: { [operationFlag]: id, [actorFlag]: actor.uuid, ...(kind === "use" ? { [cardFlag]: { actorUuid: actor.uuid, useId: receipt.id } } : {}) } } });
+      flags: { ak5e: { [operationFlag]: id, [actorFlag]: actor.uuid, ...(kind === "use" ? { [cardFlag]: { actorUuid: actor.uuid, useId: receipt.id,
+        ...(publicSnapshot && receipt.resolution ? { snapshot: { command: receipt.command, data: clone(receipt.data), resolution: clone(receipt.resolution) } } : {}) } } : {}) } } });
   }
   async function finish(actor, useId) {
     const state = readState(actor), receipt = state.undo.find(entry => entry.id === useId);
@@ -290,7 +291,13 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     }
     for (const entry of receipt.targets ?? []) {
       if (!entry.ready || entry.applied) continue;
-      try { entry.applied = (await changeTarget(actor, receipt, entry, "apply")) ?? true; }
+      try {
+        // Persist an attempted target write too: a crash between an embedded
+        // effect and its acknowledgement must remain undoable.
+        entry.attempted = true;
+        await save(actor, state);
+        entry.applied = (await changeTarget(actor, receipt, entry, "apply")) ?? true;
+      }
       catch (error) {
         receipt.status = "pending"; receipt.lastError = error instanceof NoGM ? "no GM is connected" : String(error.message).replace(/\.$/, "");
         await save(actor, state); await useCard(actor, receipt);
@@ -307,10 +314,10 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
    * Run one use. Warnings throw `PlayWarnings` until overridden; a missing ruling throws `PlayReading` with the
    * readings; both happen before anything is written. Commands `useRoll` and `undoUse` act on a recorded receipt.
    */
-  async function command(actor, name, data = {}, operationId = globalThis.foundry?.utils?.randomID?.()) {
+  async function command(actor, name, data = {}, operationId = globalThis.foundry?.utils?.randomID?.(), requester = game.user) {
     need(actor?.isOwner && !actor.pack && isMember(actor), `Choose an owned, configured ${label}.`);
     need(typeof operationId === "string" && /^[A-Za-z0-9_-]{1,60}$/.test(operationId), "A stable operation ID is required.");
-    if (name === "undoUse") return serial(actor, () => undoUse(actor, data));
+    if (name === "undoUse") return serial(actor, () => undoUse(actor, data, requester));
     if (name === "useRoll") return serial(actor, () => useRoll(actor, data));
     need(Object.hasOwn(PLANS, name), `Unknown ${label} command.`);
     need(data.confirmed === true, "Confirm this use before applying it.");
@@ -330,7 +337,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
         const value = ruled(actor, plan.reading);
         reading = resolveReading(value === undefined ? undefined : value, data.readings?.[plan.reading] ?? data.reading, plan.reading, offered.label, offered.options);
       }
-      const receipt = { id: operationId, command: name, title: plan.title, userId: game.user.id, epoch: currentEpoch(), createdAt: Date.now(), status: "applying",
+      const receipt = { id: operationId, command: name, title: plan.title, userId: requester.id, epoch: currentEpoch(), createdAt: Date.now(), status: "applying",
         data: structuredClone(data), overridden: overridden.map(warning => warning.text), targets: [],
         reading: reading?.source === "player" ? READINGS[plan.reading].options.find(option => option.value === reading.value)?.label ?? String(reading.value) : null };
       const updates = await plan.apply(state, receipt, reading?.value) ?? {};
@@ -390,21 +397,26 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     }
     for (const note of PLANS[receipt.command]?.undoNotes?.(actor, readState(actor), receipt) ?? []) lines.push(note);
     for (const entry of receipt.targets ?? []) {
-      if (!entry.applied) { lines.push(`${entry.name}: nothing was applied yet.`); continue; }
+      if (!entry.applied && !entry.attempted) { lines.push(`${entry.name}: nothing was applied yet.`); continue; }
       lines.push(KINDS[entry.kind].preview(actor, receipt, entry, globalThis.fromUuidSync?.(entry.uuid)));
     }
     return { lines, blocked: locked && !game.user.isGM, locked };
   }
-  async function undoUse(actor, data) {
-    const state = readState(actor), receipt = state.undo.find(entry => entry.id === data.useId);
+  async function undoUse(actor, data, requester = game.user) {
+    let state = readState(actor), receipt = state.undo.find(entry => entry.id === data.useId);
     need(receipt, "This use is no longer recorded.");
     if (receipt.status === "undone") return { undone: receipt.id, already: true };
-    need(!isLocked(receipt) || game.user.isGM, "This use is locked: its encounter window has ended.");
+    need(!isLocked(receipt) || requester.isGM, "This use is locked: its encounter window has ended.");
+    // A source feature owns its resolution steps. Reverse descendants first,
+    // then re-read the ledger so child undo receipts cannot be overwritten.
+    const children = state.undo.filter(entry => entry.parentUseId === receipt.id && entry.status !== "undone").reverse();
+    for (const child of children) await undoUse(actor, { useId: child.id }, requester);
+    state = readState(actor); receipt = state.undo.find(entry => entry.id === data.useId);
     receipt.undoNotes = [...(PLANS[receipt.command]?.undoNotes?.(actor, state, receipt) ?? [])];
     for (const entry of receipt.targets ?? []) {
-      if (!entry.applied) continue;
+      if (!entry.applied && !entry.attempted) continue;
       try {
-        const reverted = await changeTarget(actor, receipt, entry, "revert"); entry.applied = false;
+        const reverted = await changeTarget(actor, receipt, entry, "revert"); entry.applied = false; entry.attempted = false;
         if (reverted?.missing) receipt.undoNotes.push(`${entry.name} no longer exists; nothing to revert there.`);
       }
       catch (error) { throw new Error(`Not undone yet: ${error instanceof NoGM ? "no GM is connected to change the target" : error.message}.`); }
@@ -432,7 +444,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
       updates[resource.path] = Math.max(0, Math.min(Math.max(pool?.max ?? resource.max ?? Infinity, resource.before), current + (resource.before - resource.after)));
     }
     for (const cleanup of CLEANUPS) cleanup(state, receipt, actor);
-    receipt.status = "undone"; receipt.undoneBy = game.user.id;
+    receipt.status = "undone"; receipt.undoneBy = requester.id; receipt.undoneByName = requester.name;
     await save(actor, state, updates);
     await useCard(actor, receipt, "undo");
     return { undone: receipt.id };
@@ -446,11 +458,21 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined }
     Object.assign(PLANS, plans); Object.assign(READINGS, readings); Object.assign(KINDS, targetKinds);
     if (cleanup && !CLEANUPS.includes(cleanup)) CLEANUPS.push(cleanup);
   }
+  function validate(actor, name, data = {}, operationId) {
+    if (["useRoll", "undoUse"].includes(name) || readState(actor).undo.some(entry => entry.id === operationId)) return;
+    need(Object.hasOwn(PLANS, name), `Unknown ${label} command.`);
+    const plan = PLANS[name](actor, readState(actor), data, operationId);
+    requireOverrides(plan.warnings, data.overrides);
+    if (plan.reading) {
+      const offered = READINGS[plan.reading];
+      resolveReading(ruled(actor, plan.reading), data.readings?.[plan.reading] ?? data.reading, plan.reading, offered.label, offered.options);
+    }
+  }
   return {
     ns, label, cardFlag, effectFlag, appliedFlag, register, command, previewUndo, uses, state: readState, serial,
     isCommand: name => Object.hasOwn(PLANS, name) || ["useRoll", "undoUse"].includes(name),
     readings: () => ({ ...READINGS }),
-    receipt: (actor, useId) => readState(actor).undo.find(entry => entry.id === useId) ?? null,
+    receipt: (actor, useId) => readState(actor).undo.find(entry => entry.id === useId) ?? null, validate,
     handleRelay: (message, options, userId) => relay.handle(message, options, userId),
     relayedTargetChange
   };

@@ -17,6 +17,7 @@
  *    in); within one trigger the first entry whose 'when' passes is used.
  */
 import { flag, values, need, gmActive, keyedSerial } from "./operation-kernel.mjs";
+import { specialistLevel, prowessEarlyUnlocked } from "./specialist-rules.mjs";
 
 export const TRIGGERS = ["sr", "lr", "initiative", "turnStart", "turnEnd", "combatEnd"];
 export const LIMITER_SCOPES = ["turn", "round", "creaturePerTurn"];
@@ -24,6 +25,11 @@ const ABILITIES = ["str", "dex", "con", "int", "wis", "cha"];
 const VARIABLE = /^(prof|level|classLevel|details\.level|attributes\.prof|abilities\.(str|dex|con|int|wis|cha)\.(mod|value))$/;
 const RECEIPT_LIMIT = 24;
 const serial = keyedSerial();
+const recoveryRouters = [];
+/** Class integrations may serialize their own pool recovery with their play commands. */
+export function registerPoolRecoveryRouter(matches, recover) {
+  if (!recoveryRouters.some(router => router.matches === matches)) recoveryRouters.push({ matches, recover });
+}
 
 /* ---------------------------------------------------------------- safe formulas */
 
@@ -409,7 +415,11 @@ export function restTriggers(config = {}) {
 }
 
 const event = (...parts) => parts.join(":");
-const poolRun = (actor, trigger, eventKey, context) => actor ? safely(recoverPool(actor, trigger, { eventKey, context })) : undefined;
+const poolRun = (actor, trigger, eventKey, context) => {
+  if (!actor) return undefined;
+  const router = recoveryRouters.find(router => router.matches(actor));
+  return safely(router ? router.recover(actor, trigger, { eventKey, context }) : recoverPool(actor, trigger, { eventKey, context }));
+};
 
 /** updateCombat(combat, changed, options, userId): Foundry sets combat.previous / combat.current before this hook fires. */
 export const onUpdateCombat = guarded(function onUpdateCombat(combat, changed, options) {
@@ -462,3 +472,40 @@ export function registerResourcePoolHooks() {
   Hooks.on("dnd5e.restCompleted", onRestCompleted);
   return true;
 }
+
+/** Register the Medic Life Support pool (Ch. 3 L4620–4648). Idempotent. */
+export function registerLifeSupportPool() {
+  if (getPoolDefinition("lifeSupport")) return getPoolDefinition("lifeSupport");
+  return definePool({
+    id: "lifeSupport",
+    label: "Life Support",
+    classId: "class-medic",
+    levelBasis: "classLevel",
+    max: { 1: 20, 2: 35, 4: 50, 6: 65, 8: 80, 10: 95, 12: 110, 14: 125, 16: 140, 18: 155, 20: 170 },
+    overMax: true,
+    initial: "max",
+    recovery: [{ on: "lr", amount: "toMax" }]
+  });
+}
+
+/** Register the Specialist Prowess pool (Ch. 3 L5312–5320). Idempotent. */
+export function registerProwessPool() {
+  if (getPoolDefinition("prowess")) return getPoolDefinition("prowess");
+  return definePool({
+    id: "prowess",
+    label: "Prowess",
+    classId: "class-specialist",
+    levelBasis: "classLevel",
+    max: "@prof",
+    initial: 0,
+    appliesTo: actor => {
+      const lvl = specialistLevel(actor);
+      return (lvl !== null && lvl !== undefined && lvl >= 4) || prowessEarlyUnlocked(actor);
+    },
+    recovery: [
+      { on: "lr", amount: 1 },
+      { on: "sr", amount: 1 }
+    ]
+  });
+}
+

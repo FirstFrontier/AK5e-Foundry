@@ -24,6 +24,11 @@
     "test:rules": "node ak5e/tools/verify-chapter-one-helpers.mjs && node --test ak5e/test/arts-rules.test.mjs ak5e/test/arts-sheet.test.mjs ak5e/test/world-rules.test.mjs ak5e/test/operator-*.test.mjs",
     "test:installers": "node ak5e/tools/verify-installer-data.mjs",
     "test:origins": "node --test ak5e/test/origin-setup.test.mjs ak5e/test/origin-sheet.test.mjs ak5e/test/sheet-themes.test.mjs ak5e/test/feature-trackers.test.mjs ak5e/test/feature-tags.test.mjs",
-    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment && npm run test:caster && npm run test:defender && npm run test:guard && npm run test:marksman"
+    "test:vanguard": "node --test ak5e/test/vanguard-*.test.mjs ak5e/test/tip-of-the-spear.test.mjs ak5e/test/standard-bearer.test.mjs",
+    "test:supporter": "node --test ak5e/test/supporter-*.test.mjs",
+    "test:specialist": "node --test ak5e/test/specialist-*.test.mjs ak5e/test/executor.test.mjs ak5e/test/executor-adversarial.test.mjs ak5e/test/hookmaster.test.mjs ak5e/test/hookmaster-adversarial.test.mjs ak5e/test/infuser.test.mjs ak5e/test/infuser-adversarial.test.mjs ak5e/test/inventor*.test.mjs",
+    "test:medic": "node --test ak5e/test/medic-*.test.mjs",
+    "test:base-classes": "npm run test:vanguard && npm run test:supporter && npm run test:specialist && npm run test:medic",
+    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment && npm run test:caster && npm run test:defender && npm run test:guard && npm run test:marksman && npm run test:base-classes"
   }
 }

@@ -1,0 +1,28 @@
+# Progress Log — worker_skyranger_11
+
+- **Last visited**: 2026-10-24T03:45:00Z
+- **Status**: Skyranger Specialist branch implementation and test suite complete.
+- **Completed**:
+  - Implemented `ak5e/scripts/skyranger-features.mjs`:
+    - Flight Suit starting equipment generator and predicates (AC 12+Dex, 0 DR, 25 lb, 650 LMD, 24 hr crafting).
+    - Fuel resource pool scaling (2 to 8 across levels 1–20, Long Rest recovery).
+    - Take Off bonus action (1 Fuel -> 1 min fly speed equal to walking speed, undoable).
+    - Strafe Damage lookup and calculations (5d8 at Lv 5 scaling to 10d8 at Lv 20; maximized dice support; reduced dice support).
+    - Air Doctrine rest selection (Air Superiority, Bombardment, Close Air Support) and active actions (AA Missile, Bombing Run, Swooping Dive).
+    - Jink at 5th level: Evasive Manoeuvres (+PB AC reaction, damage halving if still hit) and Aerial Prowess gain triggers (1/turn limit).
+    - Advanced Doctrine at 11th level: Crash AoE (2x height distance, 10 ft radius, half Strafe Damage Thunder), Bombardment Firebomb (Fire damage + Burning) and Gas Strike (Poison damage + Poisoned + 15 ft Difficult Terrain), CAS Frighten save.
+    - Afterburners at 15th level: reaction movement and 1/turn 10 ft Fire damage aura.
+    - Skyscreamer at 20th level: 1/LR Combat Mode, Multirole (all 3 doctrines at once), free Fuel for Air Doctrine features, Core Cannon & Core Saber special weapons.
+    - Full encounter-window undo receipts and table-play philosophy (WORKFLOW.md §3.2).
+    - Pure functional implementation and hook handlers.
+  - Implemented `ak5e/test/skyranger.test.mjs`:
+    - 19 comprehensive unit, functional, integration, and adversarial tests covering all requirements and boundary values.
+  - Verification:
+    - `node --test ak5e/test/skyranger.test.mjs`: 19/19 tests passed (100% green).
+    - `node ak5e/tools/validate-files.mjs`: Validated with 0 errors.
+    - Full regression test against existing Specialist suites: 48/48 tests passed (100% green).
+    - Strict file ownership respected: only `ak5e/scripts/skyranger-features.mjs` and `ak5e/test/skyranger.test.mjs` touched.
+- **Next steps**:
+  - Update `BRIEFING.md`.
+  - Write `handoff.md`.
+  - Send message to parent orchestrator.
