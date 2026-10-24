@@ -510,6 +510,18 @@ test("UA-4: an invalid roll type (initiative) warns; the Aid Die is only for att
   assert.ok(ids.length > 0, "an unsupported roll type must warn");
 });
 
+// C3:6635: "they may expend and roll that Aid Dice". The holder is any Creature, not only a Supporter.
+test("UA-5: a non-Supporter creature holding an Aid Die can expend it (C3:6635)", async () => {
+  const giver = makeSupporter({ level: 3 });
+  const ally = makeAlly("Non-supporter holder");
+  await grant(giver, ally, "ua5-grant");
+  assert.equal(ally.effects.size, 1, "the non-Supporter holds the Aid Die effect");
+  const rolls = forbidRolls();
+  await Uses.supporterUses.execute(ally, "useAidDie", { rollType: "attack", dieSize: "d8", supporterLevel: 3 }, "ua5-use");
+  assert.equal(ally.effects.size, 0, "the expended die is removed from the non-Supporter holder");
+  assert.deepEqual(rolls, [], "no Roll call");
+});
+
 // C3:6664-6666 / 6658: Advanced Aid starts at level 5. Attack rider widens crit for that one attack.
 test("ADV-CRIT-1: level 5 attack rider widens the crit range for that attack only (C3:6658, R6)", async () => {
   const { giver, holder } = aidPair(5);
