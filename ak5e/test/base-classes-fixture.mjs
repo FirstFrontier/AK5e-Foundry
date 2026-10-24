@@ -408,6 +408,9 @@ export function createTestActor(data = {}) {
         if (type === "ActiveEffect") {
           doc.documentName = "ActiveEffect";
           doc.uuid = `${this.uuid}.ActiveEffect.${docId}`;
+          // createTestItem keeps only Item fields; carry the Active Effect's own data across.
+          Object.assign(doc, { changes: structuredClone(entry.changes ?? []), disabled: entry.disabled === true,
+            transfer: entry.transfer ?? true, duration: structuredClone(entry.duration ?? {}), origin: entry.origin ?? null });
         }
         if (type === "Item") {
           this.items.set(docId, doc);
