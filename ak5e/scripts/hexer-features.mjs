@@ -176,7 +176,7 @@ const HEX_TARGET_KIND = {
       const built = hexChanges(hexKind, { roll: rolledHere, ability, walk: Number.isFinite(walk) ? walk : undefined, sides });
       await target.createEmbeddedDocuments("ActiveEffect", [{
         name: `AK5e Hex: ${HEX_LABELS[hexKind]}`,
-        icon: "icons/magic/unholy/strike-body-explode-red.webp",
+        icon: "icons/svg/aura.svg",
         origin: source.uuid,
         changes: built.changes,
         duration: { seconds: HEX_DURATION_SECONDS, startTime: now },
