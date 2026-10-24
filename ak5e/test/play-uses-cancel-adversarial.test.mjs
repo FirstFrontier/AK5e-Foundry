@@ -114,7 +114,6 @@ const emulatedDialogV2 = {
    ========================================================================== */
 
 let libs = null;
-let bardPlansRegistered = false;
 async function lib() {
   if (!libs) {
     libs = {
@@ -138,7 +137,6 @@ async function lib() {
 async function ready() {
   const L = await lib();
   await import("../scripts/supporter-branch-index.mjs");
-  if (!bardPlansRegistered) { L.uses.registerSupporterPlans({ plans: L.bard.bardComposePlans, readings: {} }); bardPlansRegistered = true; }
   L.supporterFeatures.defineSupporterPools();
   L.branches.initSupporterBranches();
   return L;
