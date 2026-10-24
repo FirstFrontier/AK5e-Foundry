@@ -519,7 +519,13 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
       return;
     }
     const data = sourceData(talentEntry, "talent");
-    data.flags.ak5e[SUPPORTER_TALENT_FLAG] = { sourceId: talentId, tier };
+    const rule = SUPPORTER_TALENT_RULES[talentId];
+    data.flags.ak5e[SUPPORTER_TALENT_FLAG] = {
+      sourceId: talentId,
+      tier,
+      mode: rule?.mode ?? "manual",
+      ...(rule?.ruling ? { ruling: rule.ruling } : {})
+    };
     if (SUPPORTER_TALENT_RULES[talentId]?.mode === "ae") data.effects = supporterTalentEffects(talentId);
     createItems.push(data);
     existingIds.add(talentId);

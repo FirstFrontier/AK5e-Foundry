@@ -5,7 +5,7 @@
  * Damage, healing and feature dice are never rolled here; uses post roll buttons on their cards.
  */
 import {
-  supporterProfile, supporterLevel, supporterState, aidDieSize, pbForLevel
+  supporterProfile, supporterLevel, aidDieSize, pbForLevel
 } from "./supporter-rules.mjs";
 import { getPool, getPoolDefinition } from "./resource-pools.mjs";
 import { supporterUses } from "./supporter-uses.mjs";
@@ -212,6 +212,8 @@ export async function handleSupporterCommand(actor, cmd) {
 
   if (cmd === "undo") return openPlayUndoList(supporterUses, actor);
 
+  if (cmd === "__open") return openSupporterControls(actor);
+
   if (cmd === "__setup") {
     const preview = await previewSupporterSetup(actor);
     const names = preview.creates.map(item => item.name);
@@ -268,19 +270,36 @@ function flagData(cmd, value) {
   return key ? { [key]: value } : {};
 }
 
-/** Summary row: Aid Dice, die size, and the 0-or-below warning (R1: the GM resolves). */
-function summaryNodes(actor) {
+/**
+ * The Features-tab panel as HTML: the single source for the panel, so the DOM hook and any other caller cannot drift.
+ * Returns "" for a non-character or a non-Supporter. Action and talent buttons appear only for the Actor's owner.
+ * Needs no `game` and no defined pool: supporterAidDieView reports "not set up" in that case.
+ */
+export function supporterPanelHtml(actor) {
+  if (!eligible(actor)) return "";
+  const profile = supporterProfile(actor);
   const view = supporterAidDieView(actor);
-  const nodes = [];
+  const branch = profile.branch;
   const aid = view.max === null ? "Aid Dice: not set up"
     : `Aid Dice: ${view.value} / ${view.max}${view.over > 0 ? ` (+${view.over})` : ""} · ${view.size}`;
-  nodes.push(node("span", aid, "ak5e-supporter-badge ak5e-supporter-badge-aid"));
-  const branch = supporterState(actor).branch ?? supporterProfile(actor).branch;
-  nodes.push(node("span", `Branch: ${branchName(branch)}`, "ak5e-supporter-badge ak5e-supporter-badge-branch"));
-  if (view.max !== null && view.max <= 0) {
-    nodes.push(node("div", `${Math.max(0, view.max)} Aid Dice — GM resolves`, "ak5e-supporter-warning"));
+  const cmdButton = (cmd, label) => `<button type="button" data-supporter-cmd="${esc(cmd)}">${esc(label)}</button>`;
+  const parts = [
+    "<h3>Supporter</h3>",
+    `<div class="ak5e-supporter-badges"><span class="ak5e-supporter-badge ak5e-supporter-badge-aid">${esc(aid)}</span>`
+      + `<span class="ak5e-supporter-badge ak5e-supporter-badge-branch">Branch: ${esc(branchName(branch))}</span></div>`
+  ];
+  // R1: at 0 or below the sheet warns; the GM resolves.
+  if (view.max !== null && view.max <= 0) parts.push(`<div class="ak5e-supporter-warning">${esc(Math.max(0, view.max))} Aid Dice — GM resolves</div>`);
+  if (actor.isOwner && profile.configured) {
+    parts.push(`<div class="ak5e-supporter-button-row">${supporterActions(actor).map(action => cmdButton(action.cmd, action.label)).join("")}${cmdButton("undo", "Review / Undo Recent Uses")}</div>`);
+    const talents = supporterTalentActions(actor);
+    if (talents.length) parts.push(`<div class="ak5e-supporter-button-row ak5e-supporter-talents">${talents.map(action => cmdButton(action.cmd, action.label)).join("")}</div>`);
   }
-  return nodes;
+  const branchHtml = branch ? SUPPORTER_BRANCH_MODULES.get(branch)?.sheetPanel?.(actor) : null;
+  if (typeof branchHtml === "string" && branchHtml.length) parts.push(`<div class="ak5e-supporter-branch-slot">${branchHtml}</div>`);
+  if (actor.isOwner) parts.push(cmdButton(profile.configured ? "__open" : "__setup", profile.configured ? "Open Supporter Controls" : "Set up Supporter"));
+  parts.push('<p class="ak5e-supporter-note">Opening this panel makes no changes (confirm before use).</p>');
+  return `<section class="ak5e-supporter-sheet-panel">${parts.join("")}</section>`;
 }
 
 export async function openSupporterControls(actor) {
@@ -336,10 +355,12 @@ export async function openSupporterControls(actor) {
 
 const eligibleForPanel = (actor, app) => eligible(actor) && (actor.isOwner || game.user?.isGM);
 
-/** Features-tab panel: summary, Aid Die pool, use buttons, talent uses, the branch slot and undo. */
+/** Features-tab DOM hook. Builds from supporterPanelHtml, then binds each [data-supporter-cmd] button to the dispatcher. */
 export function renderSupporterControls(app, element) {
   const actor = actorFor(app);
   if (!eligibleForPanel(actor, app)) return;
+  const html = supporterPanelHtml(actor);
+  if (!html) return;
 
   const roots = app.element?.contains(element) ? [app.element] : [element];
   for (const root of roots) {
@@ -347,40 +368,17 @@ export function renderSupporterControls(app, element) {
     const features = root.matches?.('.tab[data-tab="features"]') ? root : root.querySelector('.tab[data-tab="features"]');
     if (!features) continue;
 
-    const panel = node("section", null, "ak5e-supporter-sheet-panel");
-    panel.append(node("h3", "Supporter"));
-    const summary = node("div", null, "ak5e-supporter-badges");
-    summaryNodes(actor).forEach(el => summary.append(el));
-    panel.append(summary);
-
-    if (actor.isOwner && supporterProfile(actor).configured) {
-      const row = node("div", null, "ak5e-supporter-button-row");
-      for (const action of supporterActions(actor)) row.append(button(action.label, () => handleSupporterCommand(actor, action.cmd)));
-      row.append(button("Review / Undo Recent Uses", () => handleSupporterCommand(actor, "undo")));
-      panel.append(row);
-
-      const talents = supporterTalentActions(actor);
-      if (talents.length) {
-        const talentRow = node("div", null, "ak5e-supporter-button-row ak5e-supporter-talents");
-        for (const action of talents) talentRow.append(button(action.label, () => handleSupporterCommand(actor, action.cmd)));
-        panel.append(talentRow);
-      }
+    const holder = document.createElement("div");
+    holder.innerHTML = html;
+    const panel = holder.firstElementChild;
+    for (const btn of panel.querySelectorAll("[data-supporter-cmd]")) {
+      btn.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        btn.disabled = true;
+        safe(() => handleSupporterCommand(actor, btn.dataset.supporterCmd)).finally(() => { btn.disabled = false; });
+      });
     }
-
-    const branch = supporterProfile(actor).branch;
-    const branchHtml = branch ? SUPPORTER_BRANCH_MODULES.get(branch)?.sheetPanel?.(actor) : null;
-    if (typeof branchHtml === "string" && branchHtml.length) {
-      const slot = node("div", null, "ak5e-supporter-branch-slot");
-      slot.innerHTML = branchHtml;
-      panel.append(slot);
-    }
-
-    if (actor.isOwner) {
-      panel.append(button(supporterProfile(actor).configured ? "Open Supporter Controls" : "Set up Supporter", () => (
-        supporterProfile(actor).configured ? openSupporterControls(actor) : handleSupporterCommand(actor, "__setup")
-      )));
-    }
-    panel.append(node("p", "Opening this panel makes no changes (confirm before use).", "ak5e-supporter-note"));
     features.prepend(panel);
   }
 }

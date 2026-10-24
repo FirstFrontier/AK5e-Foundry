@@ -13,7 +13,7 @@ import { previewSupporterSetup } from "../scripts/supporter-setup.mjs";
 import {
   previewSupporterProgression, applySupporterProgression, inspectSupporterFields
 } from "../scripts/supporter-progression.mjs";
-import { supporterActions, supporterAidDieView, supporterTalentActions } from "../scripts/supporter-sheet.mjs";
+import { supporterActions, supporterAidDieView, supporterTalentActions, supporterPanelHtml } from "../scripts/supporter-sheet.mjs";
 import { defineSupporterPools } from "../scripts/supporter-features.mjs";
 import { getPool, getPoolDefinition } from "../scripts/resource-pools.mjs";
 import { SUPPORTER_CLASS_ID } from "../scripts/supporter-rules.mjs";
@@ -282,4 +282,75 @@ test("talent plans register through the U1 contract guard: the call is safe whet
   const registered = registerSupporterTalentPlans();
   assert.equal(typeof registered, "boolean");
   assert.equal(Object.keys(SUPPORTER_TALENT_PLANS).length, 7);
+});
+
+test("supporterPanelHtml: empty string for a non-character and for a non-Supporter", () => {
+  const plain = createTestActor({ type: "character", items: [] });
+  assert.equal(supporterPanelHtml(plain), "");
+  const npc = createSupporterActor(5);
+  npc.type = "npc";
+  assert.equal(supporterPanelHtml(npc), "");
+});
+
+test("supporterPanelHtml: Aid Die value, max and die size; owner sees action and talent buttons with stable commands", () => {
+  defineSupporterPools();
+  const lucky = createTestItem({ name: "Lucky", type: "feat", flags: { ak5e: { chapterThreeId: SUPPORTER_TALENT_IDS.lucky } } });
+  const html = supporterPanelHtml(createSupporterActor(11, { items: [lucky] }));
+  assert.match(html, /Aid Dice: \d+ \/ \d+ · d10/);
+  assert.match(html, /Lighten the Load/);
+  assert.doesNotMatch(html, /Self-Supportive/);
+  assert.match(html, /data-supporter-cmd="provideAid"/);
+  assert.match(html, /data-supporter-cmd="lucky"/);
+  assert.match(html, /data-supporter-cmd="undo"/);
+  assert.match(html, /data-supporter-cmd="__open"/);
+  assert.match(html, /Branch: None/);
+});
+
+test("supporterPanelHtml: R1 warning row appears at a 0 Aid Dice maximum", () => {
+  defineSupporterPools();
+  const actor = createSupporterActor(5);
+  actor.system.abilities.cha.mod = -1;
+  assert.match(supporterPanelHtml(actor), /0 Aid Dice — GM resolves/);
+  assert.doesNotMatch(supporterPanelHtml(createSupporterActor(5)), /GM resolves/);
+});
+
+test("supporterPanelHtml: level gates for Lighten the Load and Self-Supportive; branch name and registered slot", () => {
+  defineSupporterPools();
+  assert.doesNotMatch(supporterPanelHtml(createSupporterActor(5)), /Lighten the Load/);
+  assert.match(supporterPanelHtml(createSupporterActor(18)), /Self-Supportive Die/);
+
+  registerSupporterBranchModule({
+    id: "shell-test-bard-panel",
+    branch: "bard",
+    sheetPanel: () => '<p class="shell-bard-slot">BARD SLOT</p>'
+  });
+  const subclass = createTestItem({ name: "Supporter: Bard", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-supporter-bard" } } });
+  const html = supporterPanelHtml(createSupporterActor(4, { items: [subclass] }));
+  assert.match(html, /Branch: Bard/);
+  assert.match(html, /class="shell-bard-slot"/);
+});
+
+test("talent grants record flags.ak5e.supporterTalent mode, and the R11 ruling only on borrows", async () => {
+  const actor = createSupporterActor(9);
+  const choices = {
+    ...baseChoices,
+    branch: "subclass-supporter-bard",
+    talents: { basic: SUPPORTER_TALENT_IDS.alert, advanced: SUPPORTER_TALENT_IDS.antiArtsTraining }
+  };
+  const preview = await previewSupporterProgression(actor, choices);
+  const grant = id => preview.createItems.find(i => i.flags?.ak5e?.chapterThreeId === id);
+
+  const alert = grant(SUPPORTER_TALENT_IDS.alert);
+  assert.equal(alert.flags.ak5e.supporterTalent.mode, "ae");
+  assert.equal(alert.flags.ak5e.supporterTalent.sourceId, SUPPORTER_TALENT_IDS.alert);
+  assert.equal(alert.flags.ak5e.supporterTalent.tier, "basic");
+  assert.equal(alert.flags.ak5e.supporterTalent.ruling, undefined);
+  assert.equal(alert.effects.length, 1);
+
+  const borrow = grant(SUPPORTER_TALENT_IDS.antiArtsTraining);
+  assert.equal(borrow.flags.ak5e.supporterTalent.mode, "manual");
+  assert.equal(borrow.flags.ak5e.supporterTalent.ruling, "R11");
+
+  const plan = await previewSupporterProgression(createSupporterActor(3), { ...baseChoices, talents: { basic: SUPPORTER_TALENT_IDS.lucky } });
+  assert.equal(plan.createItems.find(i => i.flags?.ak5e?.chapterThreeId === SUPPORTER_TALENT_IDS.lucky).flags.ak5e.supporterTalent.mode, "plan");
 });
