@@ -132,6 +132,12 @@ export function martialDC(actor) {
   return 8 + pb + Math.max(strMod, dexMod);
 }
 
+/** Artificer DC (Ch. 3 L6958): 8 + Intelligence modifier + Proficiency Bonus; usable in place of the Martial DC. */
+export function artificerDC(actor) {
+  const system = actor?.system ?? {};
+  return 8 + Number(system.attributes?.prof ?? 2) + Number(system.abilities?.int?.mod ?? 0);
+}
+
 /** The Aid Ability chosen at 1st Level: "int", "wis" or "cha" (default "cha"). */
 export function aidAbilityKey(actor) {
   const key = flag(actor, "supporter")?.aidAbility;

@@ -246,3 +246,9 @@ test("calculateSupporterProfile: returns full interface contract object", () => 
   assert.equal(profile.dc.supporter, undefined, "no Supporter DC (R2)");
   assert.ok(profile.features.length >= 6);
 });
+
+test("artificerDC is 8 + Intelligence modifier + Proficiency Bonus (Ch. 3 L6958)", async () => {
+  const { artificerDC } = await import("../scripts/supporter-rules.mjs");
+  assert.equal(artificerDC({ system: { attributes: { prof: 4 }, abilities: { int: { mod: 3 } } } }), 15);
+  assert.equal(artificerDC({ system: { attributes: { prof: 2 }, abilities: { int: { mod: -1 } } } }), 9);
+});
