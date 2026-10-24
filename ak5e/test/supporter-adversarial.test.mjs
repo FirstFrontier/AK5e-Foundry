@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   setupFoundryGlobals, teardownFoundryGlobals, createTestActor, createTestItem
 } from "./base-classes-fixture.mjs";
-import { SUPPORTER_CLASS_ID, pbForLevel, aidDieSize } from "../scripts/supporter-rules.mjs";
+import { SUPPORTER_CLASS_ID, pbForLevel, aidDieSize, supporterLevel } from "../scripts/supporter-rules.mjs";
 import {
   hasProvideAid, hasAdvancedAid, hasLightenTheLoad,
   hasEverReliable, hasSelfSupportive, hasWillIntoBeing,
@@ -206,6 +206,18 @@ test("ADV-AID-4: Pool exhaustion, shortfall warning, and zero-clamping override"
   assert.equal(receipt.resources?.[0]?.after, 0);
 });
 
+/** Plants the Aid Die Active Effect that Provide Aid creates, so useAidDie has a die to expend (R-plans: expend the effect). */
+async function holdAidDie(actor, extra = {}) {
+  const level = supporterLevel(actor) ?? 1;
+  await actor.createEmbeddedDocuments("ActiveEffect", [{
+    name: "Aid Die",
+    flags: { ak5e: {
+      supporterUsesEffect: { aidDie: true, opId: "test-hold", sourceUuid: "Actor.test-supporter" },
+      featureTag: { data: { dieSize: aidDieSize(level), supporterLevel: level, supporterPB: pbForLevel(level), advancedAid: level >= 5, willIntoBeing: level >= 20, ...extra } }
+    } }
+  }]);
+}
+
 test("ADV-AID-5: Mental ability modifier minimum bounds (negative/zero mental mods)", () => {
   // Supporter with all negative mental mods: INT 8 (-1), WIS 6 (-2), CHA 8 (-1)
   const feebleSupporter = createSupporter(1, {
@@ -217,8 +229,8 @@ test("ADV-AID-5: Mental ability modifier minimum bounds (negative/zero mental mo
   });
 
   const pool = getPool(feebleSupporter, "aidDie");
-  assert.equal(pool.max, 1, "Aid Die pool max is at least 1 even with negative modifiers");
-  assert.equal(pool.value, 1);
+  assert.equal(pool.max, 0, "Aid Die maximum is 0 with negative modifiers (R1: no floor of 1)");
+  assert.equal(pool.value, 0);
 });
 
 /* ==========================================================================
@@ -227,6 +239,8 @@ test("ADV-AID-5: Mental ability modifier minimum bounds (negative/zero mental mo
 
 test("ADV-ADV-1: Pre-level 5 Supporter does not trigger Advanced Aid riders", async () => {
   const supporter = createSupporter(4);
+
+  await holdAidDie(supporter);
 
   const res = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "attack",
@@ -242,6 +256,7 @@ test("ADV-ADV-2: All five Advanced Aid riders resolve correctly at Level 5+", as
   const supporter = createSupporter(10);
 
   // 1. Attack roll -> crit range +1
+  await holdAidDie(supporter);
   const rAttack = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "attack",
     dieSize: "d10",
@@ -250,6 +265,7 @@ test("ADV-ADV-2: All five Advanced Aid riders resolve correctly at Level 5+", as
   assert.equal(rAttack.advancedEffect, "attack");
 
   // 2. Skill check -> roll second die and choose
+  await holdAidDie(supporter);
   const rSkill = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "skill",
     dieSize: "d10",
@@ -258,6 +274,7 @@ test("ADV-ADV-2: All five Advanced Aid riders resolve correctly at Level 5+", as
   assert.equal(rSkill.advancedEffect, "skill");
 
   // 3. Saving throw -> temp HP = roll + PB
+  await holdAidDie(supporter);
   const rSave = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "save",
     dieSize: "d10",
@@ -266,6 +283,7 @@ test("ADV-ADV-2: All five Advanced Aid riders resolve correctly at Level 5+", as
   assert.equal(rSave.advancedEffect, "save");
 
   // 4. Damage roll -> 10 ft splash Force damage = roll
+  await holdAidDie(supporter);
   const rDamage = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "damage",
     dieSize: "d10",
@@ -274,6 +292,7 @@ test("ADV-ADV-2: All five Advanced Aid riders resolve correctly at Level 5+", as
   assert.equal(rDamage.advancedEffect, "damage");
 
   // 5. Healing roll -> temp HP = roll
+  await holdAidDie(supporter);
   const rHeal = await supporterUses.execute(supporter, "useAidDie", {
     rollType: "healing",
     dieSize: "d10",
@@ -520,12 +539,17 @@ test("ADV-WIB-1: Will Into Being bonus (+PB) at Level 20 vs Level 19", async () 
   assert.equal(hasWillIntoBeing(supporter19), false);
   assert.equal(willIntoBeingBonus(supporter19), 0);
 
+  await holdAidDie(supporter20);
+
   const res20 = await supporterUses.execute(supporter20, "useAidDie", {
     rollType: "attack",
     dieSize: "d12",
-    supporterLevel: 20
+    supporterLevel: 20,
+    willIntoBeing: true
   }, "wib-20-op");
-  assert.equal(res20.willBonus, 6, "useAidDie applies willBonus 6");
+  assert.equal(res20.willBonus, 6, "useAidDie applies willBonus 6 when opted in (R5)");
+
+  await holdAidDie(supporter19);
 
   const res19 = await supporterUses.execute(supporter19, "useAidDie", {
     rollType: "attack",
@@ -581,6 +605,7 @@ test("ADV-UNDO-1: Full multi-step operations and undo reversibility across table
 
   // 3. useAidDie
   const op3 = "test-undo-use-3";
+  await holdAidDie(supporter);
   await supporterUses.execute(supporter, "useAidDie", {
     rollType: "attack",
     dieSize: "d12"

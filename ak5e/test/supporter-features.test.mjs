@@ -7,7 +7,7 @@ import {
   onSupporterTurnStart, hasSelfSupportDie, consumeSelfSupportDie
 } from "../scripts/supporter-features.mjs";
 import { supporterUses } from "../scripts/supporter-uses.mjs";
-import { SUPPORTER_CLASS_ID } from "../scripts/supporter-rules.mjs";
+import { SUPPORTER_CLASS_ID, supporterLevel, aidDieSize, pbForLevel } from "../scripts/supporter-rules.mjs";
 import { getPool, refundPool, spendPool } from "../scripts/resource-pools.mjs";
 import {
   setupFoundryGlobals, teardownFoundryGlobals, createTestActor, createTestItem
@@ -50,6 +50,18 @@ function createSupporterActor(level = 1, options = {}) {
     }
   });
   return actor;
+}
+
+/** Plants the Aid Die Active Effect that Provide Aid creates, so useAidDie has a die to expend. */
+async function holdAidDie(actor, extra = {}) {
+  const level = supporterLevel(actor) ?? 1;
+  await actor.createEmbeddedDocuments("ActiveEffect", [{
+    name: "Aid Die",
+    flags: { ak5e: {
+      supporterUsesEffect: { aidDie: true, opId: "test-hold", sourceUuid: "Actor.test-supporter" },
+      featureTag: { data: { dieSize: aidDieSize(level), supporterLevel: level, supporterPB: pbForLevel(level), advancedAid: level >= 5, willIntoBeing: level >= 20, ...extra } }
+    } }
+  }]);
 }
 
 test("Feature level unlocks: Provide Aid, Advanced Aid, Lighten the Load, Ever Reliable, Self-Supportive, Will Into Being", () => {
@@ -178,6 +190,7 @@ test("supporterUses: provideAid plan, warnings, overrides, and undo reversibilit
 
 test("supporterUses: useAidDie plan with Advanced Aid and Will Into Being", async () => {
   const actor = createSupporterActor(20);
+  await holdAidDie(actor);
 
   // Invalid roll type warning throws
   assert.throws(() => {
@@ -194,10 +207,11 @@ test("supporterUses: useAidDie plan with Advanced Aid and Will Into Being", asyn
     rollType: "attack",
     dieSize: "d12",
     supporterLevel: 20,
-    supporterPB: 6
+    supporterPB: 6,
+    willIntoBeing: true
   }, "use-aid-1");
   assert.ok(result);
-  assert.equal(result.willBonus, 6); // Lv 20 Will Into Being
+  assert.equal(result.willBonus, 6); // Lv 20 Will Into Being, opt-in (R5)
   assert.equal(result.advancedEffect, "attack"); // Lv 5+ Advanced Aid rider
 });
 
