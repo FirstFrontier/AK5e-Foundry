@@ -171,13 +171,15 @@ const startPerformance = (actor, _state, data = {}) => {
     apply(_next, receipt) {
       const castingUnit = String(casting.castingUnit ?? "");
       const changeUnit = Boolean(instrument) && castingUnit !== instrument.id;
-      const performances = performancesOf(actor).map(entry => entry.id === performance.id ? { ...entry, performed: true } : entry);
+      // Index-targeted: only this Performance's `performed` flag is written, so a concurrent compose (bard-compose) that
+      // rewrites the array is not clobbered by a whole-array write from here.
+      const index = performancesOf(actor).findIndex(entry => entry.id === performance.id);
       const updates = {
         "flags.ak5e.bard.active": {
           performanceId: performance.id, index: 0, crescendo: 0, castsThisTurn: 0, concentration: null,
           castingUnitChanged: changeUnit, castingUnitBefore: changeUnit ? castingUnit : null
         },
-        "flags.ak5e.bard.performances": performances,
+        [`flags.ak5e.bard.performances.${index}.performed`]: true,
         "flags.ak5e.bard.fontDie": level >= FONT_LEVEL
       };
       // The Instrument is the Casting Unit while Performing; the Arts engine reads the configured unit (restored at the end).

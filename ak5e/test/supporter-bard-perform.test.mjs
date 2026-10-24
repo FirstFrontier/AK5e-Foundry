@@ -56,6 +56,26 @@ function artItem(actor, name, { level = 1, concentration = false, id = null } = 
   return item;
 }
 
+/**
+ * Test double for Foundry's array-index updates (`flags.x.performances.0.performed`). The shared fixture replaces an
+ * array on a dotted write, which Foundry does not do: this wrapper writes the index in place, then delegates the rest.
+ */
+function arrayAwareUpdate(actor) {
+  const original = actor.update.bind(actor);
+  const getPath = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
+  actor.update = async (changes, options = {}) => {
+    const plain = {};
+    for (const [path, value] of Object.entries(changes)) {
+      const match = path.match(/^(.*)\.(\d+)\.([^.]+)$/);
+      const list = match ? getPath(actor, match[1]) : null;
+      if (Array.isArray(list)) list[Number(match[2])][match[3]] = value;
+      else plain[path] = value;
+    }
+    return original(plain, options);
+  };
+  return actor;
+}
+
 function bard({ level = 9, performances = [PERFORMANCE], flags = {}, instrument = true, cha = 16, arts = ["Bless", "Healing Word", "Heroism"], concentrationArts = [] } = {}) {
   const sClass = createTestItem({ name: "Supporter", type: "class", system: { levels: level }, flags: { ak5e: { chapterThreeId: SUPPORTER_CLASS_ID } } });
   const branch = createTestItem({ name: "Supporter: Bard", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-supporter-bard" } } });
@@ -71,6 +91,7 @@ function bard({ level = 9, performances = [PERFORMANCE], flags = {}, instrument 
       ...flags
     } }
   });
+  arrayAwareUpdate(actor);
   docsRef.docs.set(actor.uuid, actor);
   if (instrument) {
     const lute = createTestItem({ id: INSTRUMENT_ID, name: "Lute", type: "tool", system: { equipped: true } }, actor);
@@ -102,6 +123,26 @@ test("start sets the Performance active at index 0, marks it performed and gives
   assert.equal(actor.getFlag("ak5e", "bard").performances[0].performed, true);
   assert.equal(actor.getFlag("ak5e", "bard").fontDie, true);
   assert.equal(actor.getFlag("ak5e", "casting").castingUnit, INSTRUMENT_ID);
+});
+
+test("start writes only the indexed performed flag, never the whole performances array", () => {
+  const actor = bard({ level: 9, performances: [
+    { ...PERFORMANCE, id: "P0" }, { ...PERFORMANCE, id: "P1" }, { ...PERFORMANCE, id: "P2" }] });
+  const plan = bardPerformPlans.startPerformance(actor, {}, { performanceId: "P1" });
+  const updates = plan.apply({}, {});
+  assert.equal(updates["flags.ak5e.bard.performances.1.performed"], true, "the indexed flag is targeted");
+  assert.equal(Object.hasOwn(updates, "flags.ak5e.bard.performances"), false, "no whole-array write");
+  assert.equal(Object.keys(updates).filter(key => key.startsWith("flags.ak5e.bard.performances")).length, 1);
+});
+
+test("starting one of several Performances marks only that one performed and leaves the others as composed", async () => {
+  const actor = bard({ level: 9, performances: [
+    { ...PERFORMANCE, id: "P0" }, { ...PERFORMANCE, id: "P1" }, { ...PERFORMANCE, id: "P2" }] });
+  await run(actor, "startPerformance", { performanceId: "P1" });
+  assert.deepEqual(actor.getFlag("ak5e", "bard").performances.map(entry => entry.performed), [false, true, false]);
+  const receipt = supporterUses.state(actor).undo.find(entry => entry.command === "startPerformance");
+  await supporterUses.undo(actor, receipt.id);
+  assert.deepEqual(actor.getFlag("ak5e", "bard").performances.map(entry => entry.performed), [false, false, false]);
 });
 
 test("casting in sequence advances the index and counts casts per Turn", async () => {
