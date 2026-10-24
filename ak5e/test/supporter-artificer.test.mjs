@@ -392,3 +392,59 @@ test("the branch hooks install once", () => {
   assert.doesNotThrow(() => registerArtificerHooks());
   assert.doesNotThrow(() => registerArtificerHooks());
 });
+
+/* ------------------------------------------------------------------ CAP-6 and warn-not-block creator checks */
+
+test("CAP-6: a destroyed Automaton does not count against the cap, even when not exempt", async () => {
+  const a = artificer(12);
+  const { automaton } = await build(a);
+  assert.equal(artificerApi.countsAgainstCap(automaton), true, "live, not exempt: counts");
+  destroy(automaton);
+  assert.equal(artificerApi.countsAgainstCap(automaton), false, "destroyed: does not count");
+  const plan = artificerPlans.buildAutomaton(a, supporterUses.state(a), { variant: "platform", technologyModifier: "intMod" });
+  assert.equal(plan.warnings.some(w => w.id === "cap"), false, "a new build is not capped by the destroyed one");
+});
+
+/** An Automaton some other Artificer created (or one with no creator), placed in the document registry. */
+function foreignAutomaton({ creator = "Actor.someoneElse", name = "Stray Automaton" } = {}) {
+  const flags = { ak5e: { automaton: { creator, variant: "platform", upgrades: [], personality: null, destroyed: false, exempt: false, attackBonus: 4 } } };
+  const automaton = createTestActor({ name, owner: true, flags, system: { attributes: { hp: { value: 25, max: 25 } }, abilities: {
+    int: { mod: 4, value: 4 }, wis: { mod: 4, value: 4 }, cha: { mod: 1, value: 1 }, con: { mod: 2, value: 14 }, str: { mod: 1, value: 12 }, dex: { mod: 0, value: 10 } } } });
+  docs.set(automaton.uuid, automaton);
+  return automaton;
+}
+
+test("CTL-6 / CM-6 path: a foreign Automaton warns with id 'creator' on every command plan, and Use anyway proceeds", async () => {
+  const a = artificer(13);
+  const foreign = foreignAutomaton();
+  const data = [
+    ["asOne", { automatonUuid: foreign.uuid, action: "ram", attackAction: true }],
+    ["commandAutomaton", { automatonUuid: foreign.uuid, move: true, distance: 10 }],
+    ["concussiveMaintenance", { automatonUuid: foreign.uuid, distance: 5 }],
+    ["rebuildAutomaton", { automatonUuid: foreign.uuid, method: "longRest" }],
+    ["advancedPersonalityMatrix", { automatonUuid: foreign.uuid, saves: ["con", "wis"] }]
+  ];
+  for (const [name, input] of data) {
+    const plan = artificerPlans[name](a, supporterUses.state(a), input);
+    assert.ok(plan.warnings.some(w => w.id === "creator"), `${name} warns about the creator`);
+  }
+  // Use anyway proceeds: the use is not blocked.
+  await supporterUses.execute(a, "commandAutomaton", { automatonUuid: foreign.uuid, move: true, distance: 10, overrides: ["creator"] }, "foreign-cmd");
+  assert.deepEqual(rolls, [], "still no auto-roll");
+});
+
+test("a foreign Automaton with no recorded creator also warns, with the creator id", () => {
+  const a = artificer(13);
+  const orphan = foreignAutomaton({ creator: null, name: "Orphan" });
+  const plan = artificerPlans.asOne(a, supporterUses.state(a), { automatonUuid: orphan.uuid, action: "ram", attackAction: true });
+  assert.ok(plan.warnings.some(w => w.id === "creator" && /no recorded creator/.test(w.text)));
+});
+
+test("missing, unknown, or non-Automaton UUIDs are still hard errors", () => {
+  const a = artificer(13);
+  assert.throws(() => artificerPlans.asOne(a, supporterUses.state(a), { action: "ram", attackAction: true }), /Choose an Automaton/);
+  assert.throws(() => artificerPlans.asOne(a, supporterUses.state(a), { automatonUuid: "Actor.nope", action: "ram", attackAction: true }), /no longer exists/);
+  const plain = createTestActor({ name: "Goblin", owner: true, system: {} });
+  docs.set(plain.uuid, plain);
+  assert.throws(() => artificerPlans.concussiveMaintenance(a, supporterUses.state(a), { automatonUuid: plain.uuid }), /not an Automaton/);
+});

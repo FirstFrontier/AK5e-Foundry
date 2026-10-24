@@ -82,7 +82,7 @@ export function automatonsOf(actor) {
 }
 
 /** Cap counting rule: an explicit exemption (Ch. 4 Turret, Protocol constructs) never counts. */
-export const countsAgainstCap = automaton => automatonFlag(automaton).exempt !== true;
+export const countsAgainstCap = automaton => automatonFlag(automaton).exempt !== true && !isDestroyedAutomaton(automaton);
 
 /** Automaton maximum (C3:6895 one; C3:6938 two at Supporter level 13). */
 export function automatonCap(actor) {
@@ -103,10 +103,22 @@ const distanceWarning = (warnings, distance, limit, text) => {
   if (Number.isFinite(Number(distance)) && distance !== null && distance !== undefined && Number(distance) > limit) warn(warnings, "range", text);
 };
 
-const automatonAt = (actor, uuid) => {
-  need(uuid, "Choose an Automaton you created.");
-  const doc = rawAutomatons(actor).find(entry => entry.uuid === uuid);
-  need(doc, "Choose an Automaton you created.");
+/**
+ * Resolves an Automaton by UUID. A missing UUID, a UUID that resolves to nothing, or a document that is not an
+ * Automaton is a hard error. An Automaton created by another Artificer, or with no creator, is a warning (id
+ * "creator") that the user may override (WORKFLOW §3.2).
+ */
+const automatonAt = (actor, uuid, warnings = []) => {
+  need(uuid, "Choose an Automaton.");
+  const doc = globalThis.fromUuidSync?.(uuid) ?? null;
+  need(doc?.documentName === "Actor", "That Automaton no longer exists.");
+  need(isAutomatonFlagged(doc), "That Creature is not an Automaton.");
+  const creator = automatonFlag(doc).creator;
+  if (creator !== actor.uuid) {
+    warn(warnings, "creator", creator
+      ? `${doc.name} was created by another Artificer (${creator}); it is not in this Artificer's Automaton list.`
+      : `${doc.name} has no recorded creator.`);
+  }
   return doc;
 };
 
@@ -316,11 +328,11 @@ function setupPlan(actor, state, data = {}) {
 /** As One (L1): each Automaton may take an Action when you take the Attack Action; it cannot repeat that Action until your next Turn. */
 function asOnePlan(actor, state, data = {}) {
   need(isArtificer(actor), "As One is an Artificer feature.");
-  const automaton = automatonAt(actor, data.automatonUuid);
+  const warnings = [];
+  const automaton = automatonAt(actor, data.automatonUuid, warnings);
   const variant = automatonFlag(automaton).variant;
   const action = String(data.action ?? "");
   need(AUTOMATON_VARIANTS[variant]?.actions.includes(action), "Choose an Action in that Automaton's stat block.");
-  const warnings = [];
   if (data.attackAction !== true) warn(warnings, "attackAction", "As One is used when you take the Attack Action during your Turn.");
   if (isDestroyedAutomaton(automaton)) warn(warnings, "destroyed", `${automaton.name} is destroyed (0 HP).`);
   const key = opaqueKey(automaton.uuid);
@@ -420,9 +432,9 @@ function commandAutomatonPlan(actor, state, data = {}) {
   const level = supporterLevel(actor) ?? 1, advanced = level >= 13;
   const move = data.move === true, action = data.action ? String(data.action) : null;
   need(move || action, "Choose a move or one Action in the stat block.");
-  const targets = data.all === true ? rawAutomatons(actor) : [automatonAt(actor, data.automatonUuid)];
-  need(targets.length, "You have no Automaton to command.");
   const warnings = [];
+  const targets = data.all === true ? rawAutomatons(actor) : [automatonAt(actor, data.automatonUuid, warnings)];
+  need(targets.length, "You have no Automaton to command.");
   if (data.all === true) levelWarning(warnings, actor, 13, "Commanding all Automatons at once");
   if (move && action && !advanced) levelWarning(warnings, actor, 13, "Moving and taking an Action with one command");
   if (move && targets.some(t => !AUTOMATON_VARIANTS[automatonFlag(t).variant]?.moves)) {
@@ -458,8 +470,8 @@ function commandAutomatonPlan(actor, state, data = {}) {
 function rebuildPlan(actor, state, data = {}) {
   need(isArtificer(actor), "Rebuilding an Automaton is an Artificer feature.");
   need(["longRest", "lmd"].includes(data.method), "Choose a Long Rest rebuild or 500 LMD.");
-  const automaton = automatonAt(actor, data.automatonUuid);
   const warnings = [];
+  const automaton = automatonAt(actor, data.automatonUuid, warnings);
   if (!isDestroyedAutomaton(automaton)) warn(warnings, "notDestroyed", `${automaton.name} is not destroyed; a rebuild is for a destroyed Automaton.`);
   if (data.method === "lmd" && Number(actor.system?.currency?.cp ?? 0) < REBUILD_LMD) {
     warn(warnings, "shortfall", `Rebuilding costs ${REBUILD_LMD} LMD; the character has ${Number(actor.system?.currency?.cp ?? 0)} LMD (shortfall ${REBUILD_LMD - Number(actor.system?.currency?.cp ?? 0)} LMD).`);
@@ -488,8 +500,8 @@ function rebuildPlan(actor, state, data = {}) {
 /** Concussive Maintenance (L10): sacrifice one Attack, expend one Aid Die; roll Aid Die x PB as a heal the owner clicks. */
 function concussivePlan(actor, state, data = {}) {
   need(isArtificer(actor), "Concussive Maintenance is an Artificer feature.");
-  const automaton = automatonAt(actor, data.automatonUuid);
   const warnings = [];
+  const automaton = automatonAt(actor, data.automatonUuid, warnings);
   levelWarning(warnings, actor, 10, "Concussive Maintenance");
   distanceWarning(warnings, data.distance, 5, "The Automaton is outside your Reach (5 ft).");
   if (isDestroyedAutomaton(automaton)) warn(warnings, "destroyed", `${automaton.name} is destroyed (0 HP); a destroyed Automaton cannot be healed. Rebuild it first.`);
@@ -519,9 +531,9 @@ function advancedMatrixPlan(actor, state, data = {}) {
   need(isArtificer(actor), "The Advanced Personality Matrix is an Artificer feature.");
   const saves = Array.isArray(data.saves) ? data.saves : [];
   need(saves.length === 2 && new Set(saves).size === 2 && saves.every(key => ABILITY_KEYS.includes(key)), "Choose two different saving throws.");
-  const automatons = data.automatonUuid ? [automatonAt(actor, data.automatonUuid)] : automatonsOf(actor);
-  need(automatons.length, "You have no live Automaton to upgrade.");
   const warnings = [];
+  const automatons = data.automatonUuid ? [automatonAt(actor, data.automatonUuid, warnings)] : automatonsOf(actor);
+  need(automatons.length, "You have no live Automaton to upgrade.");
   levelWarning(warnings, actor, 13, "The Advanced Personality Matrix");
   return {
     title: "Advanced Personality Matrix",
