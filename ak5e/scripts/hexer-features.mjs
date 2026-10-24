@@ -652,11 +652,14 @@ async function clickSave(button) {
   const actor = actorFromUuid(button.dataset.actor);
   need(actor?.isOwner, "Only the creature's owner may roll this save.");
   const ability = button.dataset.ak5eHexerSave;
-  const mod = Number(actor.system?.abilities?.[ability]?.save?.value ?? actor.system?.abilities?.[ability]?.mod ?? 0);
-  const roll = await new globalThis.Roll(`1d20 + ${Number.isFinite(mod) ? mod : 0}`, {}).evaluate();
   const dc = Number(button.dataset.dc);
-  const outcome = roll.total >= dc ? "Saved" : "Failed: Silenced until the end of its next Turn (apply the Silenced condition)";
-  await roll.toMessage({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }), flavor: `${ability.toUpperCase()} save vs DC ${dc}. ${outcome}.` });
+  // The native dnd5e 5.x save (bonuses, advantage, dialog); a failure means Silenced until the end of its next Turn.
+  const rolls = await actor.rollSavingThrow({ ability, target: dc });
+  const total = (Array.isArray(rolls) ? rolls[0] : rolls)?.total;
+  if (Number.isFinite(total) && total < dc) {
+    await globalThis.ChatMessage.implementation.create({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }),
+      content: `<p>Voicethief Hex: ${esc(actor.name)} failed the ${ability.toUpperCase()} save (DC ${dc}) and is Silenced until the end of its next Turn. Apply the Silenced condition.</p>` });
+  }
 }
 
 /** renderChatMessageHTML: wires the Hexer card buttons once. Nothing rolls until a click. */
