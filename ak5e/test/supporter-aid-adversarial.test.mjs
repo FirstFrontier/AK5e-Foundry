@@ -108,22 +108,25 @@ function recordsShortfall(receipt) {
   return (Array.isArray(receipt?.shortfalls) && receipt.shortfalls.length > 0) || /short/i.test(JSON.stringify(receipt ?? {}));
 }
 
-/** Number of roll buttons in whatever shape the implementation returns (HTML string, array, or {buttons}). */
-function buttonCount(out) {
-  if (out == null) return 0;
-  if (typeof out === "string") return (out.match(/<button\b/gi) ?? []).length;
-  if (Array.isArray(out)) return out.length;
-  if (Array.isArray(out.buttons)) return out.buttons.length;
-  if (typeof out.html === "string") return buttonCount(out.html);
-  return 0;
+/**
+ * Count the <button> tags of a useAidDie card that carry one of `attrs` (e.g. data-ak5e-aid-roll).
+ * The card is receipt.result.card, an HTML string. With no attrs, every <button> counts.
+ */
+function cardButtons(receipt, ...attrs) {
+  const card = receipt?.result?.card ?? "";
+  const tags = card.match(/<button\b[^>]*>/gi) ?? [];
+  return tags.filter(tag => attrs.length === 0 || attrs.some(attr => tag.includes(attr))).length;
 }
 
-/** Roll button output for an Aid Die roll. The brief leaves the signature open, so pass a superset of keys. */
-function rollButtonsFor(actor, rollType, level) {
-  return Features.rollAidDieButton(actor, {
-    rollType, type: rollType, rollKind: rollType, dieSize: dieOf(level),
-    supporterLevel: level, level, supporterPB: pbOf(level)
-  });
+/**
+ * Grant an Aid Die at `level` to a holder, then expend it with useAidDie. Returns the holder and the
+ * use's receipt. Callers install forbidRolls() first so any Roll call is recorded.
+ */
+async function useAidCard(level, rollType, opId) {
+  const { giver, holder } = aidPair(level);
+  await grant(giver, holder, `${opId}-grant`);
+  await Uses.supporterUses.execute(holder, "useAidDie", { rollType, dieSize: dieOf(level), supporterLevel: level }, `${opId}-use`);
+  return { holder, receipt: Uses.supporterUses.receipt(holder, `${opId}-use`) };
 }
 
 /** Stub Roll so any evaluate() or static roll() during plan, apply, undo or button creation is recorded. */
@@ -348,10 +351,10 @@ test("EP-2: 'Use anyway' at 0 dice clamps the pool at 0 and records the shortfal
 
 test("EP-3: spendAidDice clamps at 0 and records the shortfall when it overspends", async () => {
   const s = makeSupporter({ level: 4, aidAbility: "int", mods: { int: 2 } });
-  await Features.spendAidDice(s, 1, {});
+  await s.update(await Features.spendAidDice(s, 1, {}));
   assert.equal(poolValue(s), 1);
   const receipt = {};
-  await Features.spendAidDice(s, 5, receipt);
+  await s.update(await Features.spendAidDice(s, 5, receipt));
   assert.equal(poolValue(s), 0, "clamped at 0");
   assert.ok(recordsShortfall(receipt), "overspend is recorded on the receipt");
 });
@@ -359,7 +362,7 @@ test("EP-3: spendAidDice clamps at 0 and records the shortfall when it overspend
 test("EP-4: spendAidDice that exactly empties the pool records no shortfall", async () => {
   const s = makeSupporter({ level: 4, aidAbility: "int", mods: { int: 2 } });
   const receipt = {};
-  await Features.spendAidDice(s, 2, receipt);
+  await s.update(await Features.spendAidDice(s, 2, receipt));
   assert.equal(poolValue(s), 0);
   assert.equal(recordsShortfall(receipt), false, "an exact spend is not a shortfall");
 });
@@ -406,7 +409,7 @@ test("NR-1: Provide Aid, useAidDie and button creation never call Roll.evaluate 
   const { giver, holder } = aidPair(5);
   await grant(giver, holder, "nr1-grant");
   await Uses.supporterUses.execute(holder, "useAidDie", { rollType: "attack", dieSize: "d8", supporterLevel: 5 }, "nr1-use");
-  await rollButtonsFor(giver, "skill", 5);
+  await useAidCard(5, "skill", "nr1-card");
   assert.deepEqual(rolls, [], `no Roll call expected, saw: ${rolls.join(", ")}`);
 });
 
@@ -425,32 +428,36 @@ test("NR-2: plan-only and undo flows never call Roll", async () => {
    ========================================================================== */
 
 // C3:6658 / 6661 / 6662: the skill rider rolls the die an additional time; other riders are not rolled automatically.
-test("RB-1: level 4 skill check offers one roll button (below Advanced Aid, C3:6652)", async () => {
-  const s = makeSupporter({ level: 4 });
-  assert.equal(buttonCount(await rollButtonsFor(s, "skill", 4)), 1);
+test("RB-1: level 4 skill check card has one roll button (below Advanced Aid, C3:6652)", async () => {
+  const rolls = forbidRolls();
+  const { receipt } = await useAidCard(4, "skill", "rb1");
+  assert.equal(cardButtons(receipt, "data-ak5e-aid-roll", "data-ak5e-rider"), 1);
+  assert.deepEqual(rolls, [], "no Roll call");
 });
 
-test("RB-2: level 5 skill check offers two roll buttons (Advanced Aid skill rider, C3:6659)", async () => {
-  const s = makeSupporter({ level: 5 });
-  assert.equal(buttonCount(await rollButtonsFor(s, "skill", 5)), 2);
+test("RB-2: level 5 skill check card offers at least two roll buttons (Advanced Aid skill rider, C3:6659)", async () => {
+  const rolls = forbidRolls();
+  const { receipt } = await useAidCard(5, "skill", "rb2");
+  assert.ok(cardButtons(receipt, "data-ak5e-aid-roll", "data-ak5e-rider") >= 2, "the skill check offers a second roll (roll again) button");
+  assert.deepEqual(rolls, [], "no Roll call");
 });
 
 test("RB-3: an attack roll at level 5 has one roll button; the crit rider is not a second roll (C3:6658)", async () => {
-  const s = makeSupporter({ level: 5 });
-  assert.equal(buttonCount(await rollButtonsFor(s, "attack", 5)), 1);
+  const rolls = forbidRolls();
+  const { receipt } = await useAidCard(5, "attack", "rb3");
+  assert.equal(cardButtons(receipt, "data-ak5e-aid-roll"), 1);
+  assert.deepEqual(rolls, [], "no Roll call");
 });
 
 // C3:6660-6662: save, damage and healing riders are buttons only; nothing is applied automatically.
 test("RB-4: save, damage and healing riders at level 5 apply nothing automatically", async () => {
   for (const rollType of ["save", "damage", "healing"]) {
-    const { giver, holder } = aidPair(5);
-    await grant(giver, holder, `rb4-grant-${rollType}`);
     const rolls = forbidRolls();
-    await Uses.supporterUses.execute(holder, "useAidDie", { rollType, dieSize: "d10", supporterLevel: 5 }, `rb4-use-${rollType}`);
+    const { holder, receipt } = await useAidCard(5, rollType, `rb4-${rollType}`);
     assert.equal(holder.system.attributes.hp.temp, 0, `${rollType}: no Temporary HP applied automatically`);
     assert.equal(holder.system.attributes.hp.value, 10, `${rollType}: no Hit Points changed automatically`);
     assert.deepEqual(rolls, [], `${rollType}: no Roll call`);
-    assert.ok(buttonCount(await rollButtonsFor(holder, rollType, 5)) >= 1, `${rollType}: at least one roll button`);
+    assert.ok(cardButtons(receipt, "data-ak5e-aid-roll", "data-ak5e-rider") >= 1, `${rollType}: at least one roll or rider button on the card`);
   }
 });
 
@@ -461,12 +468,11 @@ test("WI-1: Will Into Being bonus is +PB at level 20 and zero at level 19 (C3:66
 });
 
 test("WI-2: at level 20 the +PB is an extra opt-in button, not applied automatically (R5)", async () => {
-  const at19 = makeSupporter({ level: 19 });
-  const at20 = makeSupporter({ level: 20 });
   const rolls = forbidRolls();
-  const count19 = buttonCount(await rollButtonsFor(at19, "attack", 19));
-  const count20 = buttonCount(await rollButtonsFor(at20, "attack", 20));
-  assert.equal(count20, count19 + 1, "one extra opt-in +PB button at level 20");
+  const at19 = await useAidCard(19, "attack", "wi2-19");
+  const at20 = await useAidCard(20, "attack", "wi2-20");
+  assert.equal(cardButtons(at19.receipt, "data-ak5e-will-into-being"), 0, "no +PB button below level 20");
+  assert.equal(cardButtons(at20.receipt, "data-ak5e-will-into-being"), 1, "exactly one opt-in +PB button at level 20");
   assert.deepEqual(rolls, []);
 });
 
@@ -780,7 +786,7 @@ test("SS-6: a level 18 Supporter can use its own special die as if it were its o
   const s = makeSupporter({ level: 18 });
   await Features.onSupporterTurnStart(s);
   const rolls = forbidRolls();
-  await Uses.supporterUses.execute(s, "useAidDie", { rollType: "skill", dieSize: "d12", supporterLevel: 18, selfSupport: true }, "ss6-use");
+  await Uses.supporterUses.execute(s, "selfSupportiveDie", { rollType: "skill" }, "ss6-use");
   assert.deepEqual(rolls, [], "no Roll call");
   assert.ok(Uses.supporterUses.receipt(s, "ss6-use"), "the self-supportive use is recorded");
 });
