@@ -614,7 +614,9 @@ test("CR-4: boundary 17 (Fortissimo, C3:7161-7164): each Art after the first cou
   assertCrescendo(B, actor, 4, "level 17: the third Art counts as two more, so Crescendo 4");
 });
 
-test("CR-5: Crescendo is reset when the Performance ends on its last Art (C3:7118, 7112)", async () => {
+// Head ruling: Rising Crescendo applies from the second Art onward, including the LAST Art (C3:7118-7122). The effect
+// stays on the Bard after the last Art as an expiring effect and is removed at the Bard's turn end (not at the last Art).
+test("CR-5: the last Art's Crescendo is still in force at the last Art and clears at the Bard's turn end (C3:7118, 7112)", async () => {
   const B = await ready();
   const actor = makeBard({ level: 17, performances: [P3()] });
   await freshBard();
@@ -625,7 +627,57 @@ test("CR-5: Crescendo is reset when the Performance ends on its last Art (C3:711
   const last = await castNext(actor);
   assert.equal(last.ok, true, "the last Art of the Performance can be cast");
   assert.equal(B.isPerforming(actor), false, "casting the last Art ends the Performance");
-  assertCrescendo(B, actor, 0, "crescendo resets when the Performance ends");
+  assert.ok(crescendoEffectOf(actor), "the last Art's Crescendo is still on the Bard after the last Art");
+  await turnEnd(actor, 3);
+  assertCrescendo(B, actor, 0, "the Crescendo clears at the Bard's turn end");
+});
+
+/** Three Arts of P3 cast in order: start (first Art), a Turn, the second Art, a Turn, the last Art. */
+async function castThreeArts(level) {
+  const actor = makeBard({ level, performances: [P3()] });
+  await freshBard();
+  await startPerformance(actor, "perf-3");
+  await turnStart(actor, 2);
+  await castNext(actor);
+  await turnStart(actor, 3);
+  const last = await castNext(actor);
+  return { actor, last };
+}
+
+// The Rising Crescendo Active Effect carries the value in its changes and the expiring flag (head ruling).
+const crescendoEffectOf = actor => Array.from(actor.effects?.values?.() ?? [])
+  .find(effect => effect.flags?.ak5e?.bardCrescendo !== undefined) ?? null;
+const crescendoEffectValue = effect => {
+  const change = (effect?.changes ?? []).find(entry => entry.key === "system.bonuses.spell.dc");
+  return change ? Number(change.value) : null;
+};
+
+test("CR-6: at the last Art (level 16, three Arts) the Crescendo effect carries 2 and the expiring flag", async () => {
+  const { actor, last } = await castThreeArts(16);
+  assert.equal(last.ok, true, "the last Art is cast");
+  assert.equal(bardOf(actor).active, null, "active is null after the last Art's castNextArt");
+  const effect = crescendoEffectOf(actor);
+  assert.ok(effect, "the Bard still has the Rising Crescendo Active Effect after the last Art");
+  assert.equal(crescendoEffectValue(effect), 2, "level 16: the last Art's Crescendo value is 2");
+  assert.equal(effect.flags.ak5e.bardCrescendo.expiring, true, "the effect is marked expiring");
+});
+
+test("CR-7: at the last Art (level 17, Fortissimo, three Arts) the Crescendo effect carries 4 and the expiring flag", async () => {
+  const { actor, last } = await castThreeArts(17);
+  assert.equal(last.ok, true, "the last Art is cast");
+  assert.equal(bardOf(actor).active, null, "active is null after the last Art's castNextArt");
+  const effect = crescendoEffectOf(actor);
+  assert.ok(effect, "the Bard still has the Rising Crescendo Active Effect after the last Art");
+  assert.equal(crescendoEffectValue(effect), 4, "level 17: the last Art's Crescendo value is 4 (Fortissimo)");
+  assert.equal(effect.flags.ak5e.bardCrescendo.expiring, true, "the effect is marked expiring");
+});
+
+test("CR-8: the Bard's turnEnd removes the expiring Crescendo effect (fresh module instance drives it)", async () => {
+  const { actor, last } = await castThreeArts(17);
+  assert.equal(last.ok, true);
+  assert.ok(crescendoEffectOf(actor), "precondition: the expiring effect is on the Bard");
+  await turnEnd(actor, 3);
+  assert.equal(crescendoEffectOf(actor), null, "the turnEnd removes the expiring Crescendo effect");
 });
 
 /* ==========================================================================
