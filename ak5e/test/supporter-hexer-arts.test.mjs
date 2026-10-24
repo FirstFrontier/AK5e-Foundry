@@ -116,6 +116,23 @@ test("apply at level 11 writes the AP maximum, the maximum Art level and only 5t
   assert.ok(!granted.some(item => members.find(entry => keyOf(entry.name) === keyOf(item.name))?.level > 5));
 });
 
+test("a confirmed apply is never blocked by warnings: one pool at 11th Level applies and reports the missing second pool", async () => {
+  const actor = createHexer({ level: 11 });
+  const result = await applySupporterArts(actor, { branch: "hexer", ability: "cha", poolIds: [POOL_A], confirmed: true });
+  assert.ok(result.warnings.some(warning => warning.id === "second-pool"));
+  assert.equal(actor.flags.ak5e.artsPoints.maximum, 11);
+  assert.ok(spellsOf(actor).length > 0);
+});
+
+test("a confirmed apply with the same pool chosen twice applies it once and warns", async () => {
+  const actor = createHexer({ level: 11 });
+  const result = await applySupporterArts(actor, { branch: "hexer", ability: "cha", poolIds: [POOL_A, POOL_A], confirmed: true });
+  assert.ok(result.warnings.some(warning => warning.id === "duplicate-pool"));
+  assert.equal(new Set(names(actor)).size, names(actor).length, "no duplicate Arts");
+  assert.ok(spellsOf(actor).length > 0);
+  assert.equal(actor.flags.ak5e.supporterArtsSetup.pools.length, 1, "the pool is recorded once");
+});
+
 test("re-applying the same setup creates nothing new", async () => {
   const actor = createHexer({ level: 11 });
   await applySupporterArts(actor, { branch: "hexer", ability: "cha", poolIds: [POOL_A], confirmed: true });

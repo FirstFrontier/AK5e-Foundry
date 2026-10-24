@@ -91,7 +91,7 @@ export function hexerArtsPanel(actor) {
     + `<h5>Hexer Arts</h5>`
     + `<p><strong>Casting ability:</strong> ${esc(ability)}${dc === null ? "" : ` · <strong>Spell Save DC:</strong> ${esc(dc)}`}</p>`
     + `<p><strong>Standard Arts Pool${pools.length === 1 ? "" : "s"}:</strong> ${pools.length ? esc(pools.join(", ")) : "none chosen"}`
-    + `${level >= SECOND_POOL_LEVEL && pools.length < 2 ? ` (a second pool may be chosen at ${SECOND_POOL_LEVEL}th Level)` : ""}</p>`
+    + `${level >= SECOND_POOL_LEVEL && pools.length < 2 ? ` (a second pool may be added at ${SECOND_POOL_LEVEL}th Level)` : ""}</p>`
     + `<p><strong>Arts Points:</strong> ${apText} · <strong>Maximum Art level:</strong> ${maxArt}</p>`
     + `<div class="ak5e-supporter-button-row"><button type="button" data-supporter-cmd="configureHexerArts">Configure Hexer Arts</button></div>`
     + `</section>`;

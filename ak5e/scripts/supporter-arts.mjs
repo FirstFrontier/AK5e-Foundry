@@ -130,7 +130,10 @@ export function supporterArtsSyncPlan(actor, { branch, ability, poolIds = [] } =
  */
 export async function previewSupporterArts(actor, options = {}) {
   need(actor?.isOwner && !actor.pack, "Choose an owned Supporter.");
-  const sync = supporterArtsSyncPlan(actor, options);
+  // Warn, never block (WORKFLOW §3.2): a repeated pool is applied once and reported.
+  const requested = [...(options.poolIds ?? [])], unique = [...new Set(requested)];
+  const sync = supporterArtsSyncPlan(actor, { ...options, poolIds: unique });
+  if (unique.length !== requested.length) sync.warnings.unshift({ id: "duplicate-pool", text: "The same Standard Arts Pool was chosen more than once; it is applied once." });
   const creates = [], missing = [];
   for (const entry of sync.candidates) {
     const data = await resolvePoolArtData(entry.name, entry.level, [entry.poolId]);
@@ -179,6 +182,7 @@ export async function revertArtItems(actor, applied = {}) {
 /** Direct (non-engine) apply. Requires `confirmed: true`; cancelling never reaches this function. */
 export async function applySupporterArts(actor, { branch, ability, poolIds = [], confirmed, contextKey } = {}) {
   need(confirmed === true, "Confirm the previewed Supporter Arts setup first.");
+  // Warn, never block (WORKFLOW §3.2): a confirmed apply is the "use anyway"; the warnings are returned.
   const plan = await previewSupporterArts(actor, { branch, ability, poolIds });
   need(!plan.pending.length, plan.pending.includes("ability") ? "Choose Intelligence, Wisdom or Charisma as your spellcasting ability." : "Choose a Standard Arts Pool.");
   need(contextKey === undefined || plan.contextKey === contextKey, "The character changed since the preview; preview the Supporter Arts setup again.");
