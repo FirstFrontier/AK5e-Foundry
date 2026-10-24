@@ -117,7 +117,8 @@ export function normalizePerformances(input) {
 /** Rule warnings for one Performance: at least three Arts, no Art twice in a row, names that exist in the table. */
 function artWarnings(warnings, names, label) {
   for (const name of names) {
-    if (!lookupBardArt(name)) warn(warnings, "unknownArt", `${label}: "${name}" is not a Performance Art (C3:7168-7211).`);
+    // An Art with no row has no Muse cost and nothing to cast: a hard error, not an overridable warning.
+    need(lookupBardArt(name), `${label}: "${name}" is not a Performance Art (C3:7168-7211), so it has no Muse cost and cannot be composed.`);
   }
   if (names.length < MINIMUM_ARTS) {
     warn(warnings, "minArts", `${label} has ${plural(names.length, "Art")}; a Performance needs at least three.`);
@@ -142,7 +143,7 @@ export function validateComposition(actor, performances) {
 
 /** An Art inserted at `index` into `names` (Emergency Improv): the consecutive rule is checked against its neighbours. */
 function insertWarnings(warnings, names, name, index) {
-  if (!lookupBardArt(name)) warn(warnings, "unknownArt", `"${name}" is not a Performance Art (C3:7168-7211).`);
+  need(lookupBardArt(name), `"${name}" is not a Performance Art (C3:7168-7211), so it has no Muse cost and cannot be inserted.`);
   const left = names[index - 1], right = names[index];
   if ((left && artKey(left) === artKey(name)) || (right && artKey(right) === artKey(name))) {
     warn(warnings, "consecutive", `Inserting ${name} here repeats it next to itself; the same Art cannot be cast twice in a row.`);

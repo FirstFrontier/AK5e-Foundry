@@ -114,8 +114,34 @@ test("composition validation: each rule warns and reports the rule id", () => {
   assert.deepEqual(validateComposition(actor, [["Bane", "Aid", "Bolster"]]), []);
   assert.deepEqual(validateComposition(actor, [["Bane", "Aid"]]).map(w => w.id), ["minArts"]);
   assert.deepEqual(validateComposition(actor, [["Bane", "Aid", "Aid", "Bolster"]]).map(w => w.id), ["consecutive"]);
-  assert.deepEqual(validateComposition(actor, [["Bane", "Dragon", "Bolster"]]).map(w => w.id), ["unknownArt"]);
+  assert.throws(() => validateComposition(actor, [["Bane", "Dragon", "Bolster"]]), /"Dragon" is not a Performance Art.*cannot be composed/);
   assert.deepEqual(validateComposition(actor, [["Bane", "Aid", "Bolster"], ["Aid"]]).map(w => w.id).sort(), ["minArts"]);
+});
+
+test("an Art name with no table row is a hard error that names the Art, not an overridable warning", async () => {
+  const actor = createBard({ cha: 16, flags: { bardRest: { open: true } } });
+  // Hard error: even with every override supplied, nothing is spent or written.
+  await assert.rejects(() => supporterUses.command(actor, "composePerformances",
+    { confirmed: true, aidDice: 1, performances: [["Bane", "Dragon", "Bolster"]], overrides: ["minArts", "unknownArt"] }, "hard-1"),
+    error => /"Dragon" is not a Performance Art/.test(error.message) && !(error.warnings ?? []).length);
+  assert.equal(getPool(actor, "aidDie").value, 3, "a refused composition spends nothing");
+  assert.deepEqual(performancesOf(actor), []);
+});
+
+test("Emergency Improv insert: an unknown Art is a hard error and no check is consumed", async () => {
+  const actor = createBard({ cha: 16, level: 13, prf: { value: 1, total: 6 }, flags: {
+    bardSetup: { done: true, instruments: ["Lute"] },
+    bard: { performances: [{ id: "perf-live", arts: [{ name: "Bane", muse: 1, manual: false }, { name: "Aid", muse: 2, manual: false }, { name: "Bolster", muse: 3, manual: false }], performed: false, composedAt: "2026-10-01T00:00:00.000Z" }],
+      active: { performanceId: "perf-live", index: 0, crescendo: false, castsThisTurn: 0 }, museTHP: 0 } } });
+  const checkId = "ei-hard-check";
+  await supporterUses.command(actor, "emergencyImprov", { confirmed: true }, checkId);
+  stubRoll(18);
+  await rollUse(actor, checkId);
+  await assert.rejects(() => supporterUses.command(actor, "emergencyImprovAid",
+    { confirmed: true, mode: "insert", art: "Dragon", index: 1, checkUseId: checkId, overrides: ["unknownArt"] }, "ei-hard-aid"),
+    error => /"Dragon" is not a Performance Art/.test(error.message));
+  assert.equal(getPool(actor, "aidDie").value, 3, "no Aid Die is expended");
+  assert.deepEqual(armsOf(performancesOf(actor)[0]), ["Bane", "Aid", "Bolster"]);
 });
 
 test("the Performance cap is max(1, Charisma modifier) (R10)", () => {
