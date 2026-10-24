@@ -7,8 +7,9 @@
  *
  * Mechanics that are effects: Binding (speed), Wasting (ability check and save bonuses).
  * Mechanics that are buttons: Voicethief saves, the Force rider, Rupturing and the death burst, and every roll.
- * Mechanics that are reminders or flags only: Abjuring (damage roll), Breaking (DR is not a stored key),
- * Looping (Concentration limit), Voicethief's Silenced state.
+ * Mechanics that are reminders or flags only: Abjuring (its die is rolled when the hexed creature makes a
+ * Damage Roll, so the die is stored on the Hex), Breaking (DR is not a stored key), Looping (Concentration limit),
+ * Voicethief's Silenced state.
  */
 import { isHexer, supporterLevel, pbForLevel, aidDieSize, flag, aidAbilityKey } from "./supporter-rules.mjs";
 import { definePool, getPoolDefinition, getPool } from "./resource-pools.mjs";
@@ -24,6 +25,10 @@ export const HEX_LABELS = Object.freeze({
   abjuring: "Abjuring Hex", binding: "Binding Hex", breaking: "Breaking Hex",
   looping: "Looping Hex", voicethief: "Voicethief Hex", wasting: "Wasting Hex"
 });
+/** Kinds that roll at application (one roll per receipt, so each is its own use). */
+const ROLL_KINDS = Object.freeze(["binding", "breaking", "wasting"]);
+/** Kinds that apply in one receipt with no roll at application (Abjuring's die is rolled on its Damage Roll). */
+const PLAIN_KINDS = Object.freeze(["abjuring", "looping", "voicethief"]);
 /** Level-13 options (Gospel of Curses). */
 const GOSPEL_KINDS = Object.freeze(["voicethief", "wasting"]);
 export const ABILITY_KEYS = Object.freeze(["str", "dex", "con", "int", "wis", "cha"]);
@@ -38,6 +43,7 @@ const HEX_FLAG = "hex";
 const USE_FLAG = "hexUse";
 const HEXER_FLAG = "hexer";
 const HEX_EFFECT_KIND = "hexEffect";
+const RIDER_RELAY_FLAG = "hexerRiderRelay";
 let hooksInstalled = false;
 
 /* -------------------------------------------------------------- pure helpers */
@@ -101,7 +107,7 @@ export function hexChanges(kind, { roll = null, ability = null, walk = undefined
   return { changes: [], reminder: null };
 }
 
-/** Roll made at application (R9): Binding 2 Aid Die rolls, Breaking and Wasting 1 roll. Abjuring rolls on each Damage Roll. */
+/** Roll made by a click at application (R9): Binding 2 Aid Die rolls, Breaking and Wasting 1 roll. */
 export function hexRollFormula(kind, sides) {
   if (kind === "binding") return `2d${sides}`;
   if (kind === "breaking" || kind === "wasting") return `1d${sides}`;
@@ -146,43 +152,48 @@ const snapshotOf = effect => {
 };
 
 /**
- * The Hex Active Effect on a creature. Applied through the play-uses engine, so a creature the user does
- * not own is changed by the GM's client (validateTarget below). Undo deletes the Hex and restores any
- * Hex of the same kind that a re-application replaced (kept on the new effect, not in the receipt).
+ * The Hex Active Effects on a creature. Applied through the play-uses engine, so a creature the user does
+ * not own is changed by the GM's client (validateTarget below). One entry can carry several plain kinds
+ * (the Ultimate Hex) as `hexKinds`. Undo deletes the Hexes and restores any Hex of the same kind that a
+ * re-application replaced (kept on the new effect, not in the receipt).
  */
 const HEX_TARGET_KIND = {
   async apply(source, useId, entry, target) {
     const done = values(target.effects).some(effect => flag(effect, USE_FLAG)?.opId === useId && flag(effect, USE_FLAG)?.sourceUuid === source.uuid);
     if (done) return true;
-    const replaced = values(target.effects).filter(effect => {
-      const hex = flag(effect, HEX_FLAG);
-      return hex?.source === source.uuid && hex?.kind === entry.hexKind;
-    });
-    const snapshots = replaced.map(snapshotOf);
-    if (replaced.length) await target.deleteEmbeddedDocuments("ActiveEffect", replaced.map(effect => effect.id));
     const walk = Number(target.system?.attributes?.movement?.walk);
-    const sides = entry.sides ?? 8;
-    const built = hexChanges(entry.hexKind, { roll: entry.roll ?? null, ability: entry.ability ?? null, walk: Number.isFinite(walk) ? walk : undefined, sides });
     const now = worldTime();
-    const label = HEX_LABELS[entry.hexKind];
-    await target.createEmbeddedDocuments("ActiveEffect", [{
-      name: `AK5e Hex: ${label}`,
-      icon: "icons/magic/unholy/strike-body-explode-red.webp",
-      origin: source.uuid,
-      changes: built.changes,
-      duration: { seconds: HEX_DURATION_SECONDS, startTime: now },
-      description: `<p>${esc(label)} from ${esc(source.name)}.</p><p>${esc(built.reminder ?? "")}</p>`,
-      flags: { ak5e: {
-        [HEX_FLAG]: {
-          source: source.uuid, kind: entry.hexKind, ultimate: entry.ultimate === true,
-          roll: entry.roll ?? null, ability: entry.ability ?? null, expires: now + HEX_DURATION_SECONDS,
-          formula: entry.formula ?? null, ...(built.speedReduction !== undefined ? { speedReduction: built.speedReduction } : {}),
-          ...(built.penalty !== undefined ? { penalty: built.penalty } : {}),
-          ...(built.breakingReduction !== undefined ? { breakingReduction: built.breakingReduction } : {})
-        },
-        [USE_FLAG]: { opId: useId, sourceUuid: source.uuid, replaced: snapshots }
-      } }
-    }]);
+    for (const hexKind of entry.hexKinds ?? [entry.hexKind]) {
+      const replaced = values(target.effects).filter(effect => {
+        const hex = flag(effect, HEX_FLAG);
+        return hex?.source === source.uuid && hex?.kind === hexKind;
+      });
+      const snapshots = replaced.map(snapshotOf);
+      if (replaced.length) await target.deleteEmbeddedDocuments("ActiveEffect", replaced.map(effect => effect.id));
+      const rolledHere = hexKind === entry.hexKind ? entry.roll ?? null : null;
+      const ability = hexKind === "wasting" ? entry.ability ?? null : null;
+      const sides = entry.sides ?? 8;
+      const built = hexChanges(hexKind, { roll: rolledHere, ability, walk: Number.isFinite(walk) ? walk : undefined, sides });
+      await target.createEmbeddedDocuments("ActiveEffect", [{
+        name: `AK5e Hex: ${HEX_LABELS[hexKind]}`,
+        icon: "icons/magic/unholy/strike-body-explode-red.webp",
+        origin: source.uuid,
+        changes: built.changes,
+        duration: { seconds: HEX_DURATION_SECONDS, startTime: now },
+        description: `<p>${esc(HEX_LABELS[hexKind])} from ${esc(source.name)}.</p><p>${esc(built.reminder ?? "")}</p>`,
+        flags: { ak5e: {
+          [HEX_FLAG]: {
+            source: source.uuid, kind: hexKind, ultimate: entry.ultimate === true,
+            roll: rolledHere, ability, expires: now + HEX_DURATION_SECONDS,
+            formula: hexKind === "abjuring" ? `1d${sides}` : hexRollFormula(hexKind, sides),
+            ...(built.speedReduction !== undefined ? { speedReduction: built.speedReduction } : {}),
+            ...(built.penalty !== undefined ? { penalty: built.penalty } : {}),
+            ...(built.breakingReduction !== undefined ? { breakingReduction: built.breakingReduction } : {})
+          },
+          [USE_FLAG]: { opId: useId, sourceUuid: source.uuid, replaced: snapshots }
+        } }
+      }]);
+    }
     return true;
   },
   async revert(source, useId, _entry, target) {
@@ -209,71 +220,80 @@ const HEX_TARGET_KIND = {
 
 supporterUses.register({ targetKinds: { [HEX_EFFECT_KIND]: HEX_TARGET_KIND } });
 
-/** The GM relay may apply only a Hex the Hexer's receipt recorded for this creature (R-relay, WORKFLOW §3.2). */
+/** The GM relay may apply only the Hexes the Hexer's receipt recorded for this creature (WORKFLOW §3.2). */
+const kindsOfEntry = entry => [...(entry.hexKinds ?? [entry.hexKind])].sort().join(",");
 const relayable = (_source, receipt, entry, target) => entry.kind === HEX_EFFECT_KIND && target?.uuid === entry.uuid
-  && entry.hexKind === receipt.result?.kind && entry.ultimate === (receipt.result?.ultimate === true);
+  && kindsOfEntry(entry) === [...(receipt.result?.kinds ?? [receipt.result?.kind])].sort().join(",")
+  && entry.ultimate === (receipt.result?.ultimate === true);
 
 /* -------------------------------------------------------------- plans */
 
 /**
- * One Hex on one creature. Spends from `poolId` when `spend` is true. Warns, never blocks: a duplicate Hex,
- * an overlap with the Ultimate Hex, an empty pool, or a level gate. Cursemark passes `sides: 6` and
- * `cursemarkId`; Ultimate passes `ultimate: true`.
+ * Hexes on one creature (or on none, for a Cursemark placed on a point). Spends from `poolId` when `spend` is
+ * true. Warns, never blocks: a duplicate Hex (use anyway replaces it), an overlap with the Ultimate Hex, an empty
+ * pool, a missing Wasting ability, or a level gate. Roll kinds are one kind per use (the roll is one click).
  */
 function planHex(actor, data, { title, poolId = "hexerPotentHex", spend = true, sides, ultimate = false, cursemarkId = null,
-  extraUpdates = null, levelGate = null } = {}) {
+  extraUpdates = null, levelGate = null, kinds = null, optionalTarget = false } = {}) {
   need(isHexer(actor), "Hexer Hexes require the Hexer branch.");
-  const kind = String(data.kind ?? "");
-  need(HEX_KINDS.includes(kind), `Choose a Hex: ${HEX_KINDS.join(", ")}.`);
+  const chosen = kinds ?? [String(data.kind ?? "")];
+  need(chosen.length > 0 && chosen.every(kind => HEX_KINDS.includes(kind)), `Choose a Hex: ${HEX_KINDS.join(", ")}.`);
+  need(chosen.length === 1 || !chosen.some(kind => ROLL_KINDS.includes(kind)), "Roll Hexes are separate uses.");
   const target = data.target ?? actorFromUuid(data.targetUuid ?? null);
-  need(target?.uuid, "Choose a target creature for this Hex.");
-  const ability = kind === "wasting" ? String(data.ability ?? "") : null;
-  need(kind !== "wasting" || ABILITY_KEYS.includes(ability), "A Wasting Hex needs the ability it applies to.");
+  need(optionalTarget || target?.uuid, "Choose a target creature for this Hex.");
   const warnings = [];
   const level = levelOf(actor);
-  if (GOSPEL_KINDS.includes(kind)) levelWarning(warnings, actor, HEXER_GATES.gospel, "Gospel of Curses (Voicethief and Wasting Hexes)");
+  const ability = chosen.includes("wasting") ? (ABILITY_KEYS.includes(String(data.ability ?? "")) ? String(data.ability) : null) : null;
+  if (chosen.includes("wasting") && !ability) {
+    warn(warnings, "ability", "A Wasting Hex needs the ability it applies to; none was chosen, so no check or save penalty is recorded (its roll still waits for your click).");
+  }
+  if (chosen.some(kind => GOSPEL_KINDS.includes(kind))) levelWarning(warnings, actor, HEXER_GATES.gospel, "Gospel of Curses (Voicethief and Wasting Hexes)");
   if (ultimate) levelWarning(warnings, actor, HEXER_GATES.ultimate, "The Ultimate Hex");
   if (levelGate) levelWarning(warnings, actor, levelGate.level, levelGate.name);
-  if (target.uuid === actor.uuid) warn(warnings, "selfTarget", "A Hex is for another Creature; you cannot Hex yourself.");
-  const current = hexesOn(target).filter(hex => hex.source === actor.uuid);
-  if (current.some(hex => hex.kind === kind)) {
-    warn(warnings, "duplicate", `${target.name} already has the ${HEX_LABELS[kind]} from you; using it anyway replaces it.`);
+  const current = target ? hexesOn(target).filter(hex => hex.source === actor.uuid) : [];
+  if (target?.uuid === actor.uuid) warn(warnings, "selfTarget", "A Hex is for another Creature; you cannot Hex yourself.");
+  if (chosen.some(kind => current.some(hex => hex.kind === kind))) {
+    warn(warnings, "duplicate", `${target.name} already has a ${chosen.filter(kind => current.some(hex => hex.kind === kind)).map(kind => HEX_LABELS[kind]).join(", ")} from you; using it anyway replaces it.`);
   }
-  if (!ultimate && current.some(hex => hex.ultimate)) {
+  if (target && !ultimate && current.some(hex => hex.ultimate)) {
     warn(warnings, "ultimateOverlap", `${target.name} already has your Ultimate Hex; Potent Hex options are not cumulative with it.`);
   }
-  if (ultimate && current.some(hex => !hex.ultimate)) {
+  if (target && ultimate && current.some(hex => !hex.ultimate)) {
     warn(warnings, "potentOverlap", `${target.name} already has a Potent Hex from you; the Ultimate Hex is not cumulative with it.`);
   }
   const sidesUsed = sides ?? sidesFor(level);
   if (spend && getPool(actor, poolId).value < 1) {
     warn(warnings, "shortfall", `${getPool(actor, poolId).label} is empty (0 remaining).`);
   }
-  const roll = hexRollFormula(kind, sidesUsed);
-  const stored = kind === "abjuring" ? `1d${sidesUsed}` : roll;
-  const label = HEX_LABELS[kind];
+  const kind = chosen[0];
+  const roll = chosen.length === 1 ? hexRollFormula(kind, sidesUsed) : null;
+  const stored = kind === "abjuring" && chosen.length === 1 ? `1d${sidesUsed}` : roll;
+  const label = chosen.length > 1 ? "Ultimate Hex" : HEX_LABELS[kind];
   return {
-    title: `${title ?? label} -> ${target.name}`,
+    title: `${title ?? label}${target ? ` -> ${target.name}` : ""}`,
     warnings,
     apply(state, receipt) {
       const updates = spend ? spendResource(actor, receipt, { pool: poolId, amount: 1, label: getPool(actor, poolId).label }) : {};
       Object.assign(updates, extraUpdates?.(state, receipt) ?? {});
-      receipt.targets = [{
-        uuid: target.uuid, name: target.name, kind: HEX_EFFECT_KIND, hexKind: kind, ultimate, ability,
+      receipt.targets = target ? [{
+        uuid: target.uuid, name: target.name, kind: HEX_EFFECT_KIND, hexKind: kind, hexKinds: chosen, ultimate, ability,
         sides: sidesUsed, formula: stored, roll: null, cursemarkId, ready: !roll
-      }];
-      receipt.result = { kind, ultimate, ability, formula: stored, targetUuid: target.uuid, targetName: target.name, sides: sidesUsed, cursemarkId };
-      const detail = hexChanges(kind, { sides: sidesUsed }).reminder ?? "";
+      }] : [];
+      receipt.result = { kind, kinds: chosen, ultimate, ability, formula: stored, targetUuid: target?.uuid ?? null,
+        targetName: target?.name ?? null, sides: sidesUsed, cursemarkId };
       receipt.html = true;
+      const names = chosen.map(hexKind => HEX_LABELS[hexKind]).join(", ");
+      const who = target ? ` to ${esc(target.name)}` : "";
       if (roll) {
         receipt.formula = roll;
         receipt.rollLabel = `${label} (${roll})`;
         const card = rollAidDieButton({ actor, label: `Roll ${label} (${roll})`, formula: roll, rollType: "hex" });
-        receipt.summary = `${esc(actor.name)} applied the ${esc(label)} to ${esc(target.name)} for 1 minute.${card}`;
+        receipt.summary = `${esc(actor.name)} applied the ${esc(label)}${who} for 1 minute.${card}`;
       } else {
-        receipt.summary = `${esc(actor.name)} applied the ${esc(label)} to ${esc(target.name)} for 1 minute. ${esc(detail)}`;
+        const detail = chosen.map(hexKind => hexChanges(hexKind, { sides: sidesUsed }).reminder).filter(Boolean).join(" ");
+        receipt.summary = `${esc(actor.name)} applied ${esc(names)}${who} for 1 minute. ${esc(detail)}`;
       }
-      if (kind === "voicethief") receipt.summary += saveButtonHtml(target, "int", hexerSpellSaveDC(actor));
+      if (target && chosen.includes("voicethief")) receipt.summary += saveButtonHtml(target, "int", hexerSpellSaveDC(actor));
       return updates;
     }
   };
@@ -288,55 +308,57 @@ potentHexPlan.validateTarget = relayable;
 /**
  * Cursemark (L7302): a Bonus Action that spends one Potent Hex use and places a point. Creatures within 10 ft of the
  * point take the chosen Hex for a minute with the Aid Die as a d6. The point is recorded on the Hexer (undoable).
- * `primary: false` applies the same Cursemark to another creature in the area without spending a second use.
+ * With a target, that creature is hexed by this use (`primary`); area creatures use `primary: false` parts. The mark
+ * ID is generated when the caller does not give one.
  */
 function cursemarkPlan(actor, state, data) {
   need(isHexer(actor), "Cursemark requires the Hexer branch.");
-  const pointDistance = Number(data.pointDistance ?? 0);
+  const distance = Number(data.distance ?? data.pointDistance ?? 0);
   const excluded = Array.isArray(data.excluded) ? data.excluded.filter(uuid => typeof uuid === "string") : [];
-  const markId = String(data.markId ?? "");
-  need(/^[A-Za-z0-9_-]{1,60}$/.test(markId), "A Cursemark needs a stable mark ID.");
+  const markId = typeof data.markId === "string" && /^[A-Za-z0-9_-]{1,60}$/.test(data.markId) ? data.markId : `mark-${foundry.utils.randomID()}`;
   const point = data.point ?? null;
   const primary = data.primary !== false;
   const placed = (hexerState(actor).cursemarks ?? []).some(mark => mark.id === markId);
   if (primary && !placed) {
-    need(point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)) && point.sceneId, "Choose the Cursemark point on a scene.");
+    need(point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)), "Choose the Cursemark point.");
   }
+  if (!primary) need(placed, "Place the Cursemark before applying it to another creature.");
   const plan = planHex(actor, data, {
-    title: "Cursemark", sides: 6, spend: primary, cursemarkId: markId,
+    title: "Cursemark", sides: 6, spend: primary, cursemarkId: markId, optionalTarget: true,
     levelGate: { level: HEXER_GATES.cursemark, name: "Cursemark" },
     extraUpdates: () => {
-      if (!primary || (hexerState(actor).cursemarks ?? []).some(mark => mark.id === markId)) return {};
-      const record = { id: markId, point: { x: Number(point.x), y: Number(point.y), sceneId: String(point.sceneId) }, kind: data.kind,
-        radius: CURSEMARK_RADIUS_FT, excluded: levelOf(actor) >= HEXER_GATES.controlledCruelty ? excluded : [],
+      if (!primary || placed) return {};
+      const record = { id: markId, point: { x: Number(point.x), y: Number(point.y), ...(point.sceneId ? { sceneId: String(point.sceneId) } : {}) },
+        kind: data.kind, radius: CURSEMARK_RADIUS_FT, excluded: levelOf(actor) >= HEXER_GATES.controlledCruelty ? excluded : [],
         gridSize: Number(data.gridSize ?? 100), expires: worldTime() + HEX_DURATION_SECONDS };
       return { [`flags.ak5e.${HEXER_FLAG}.cursemarks`]: [...(hexerState(actor).cursemarks ?? []), record] };
     }
   });
-  if (pointDistance > CURSEMARK_RANGE_FT) warn(plan.warnings, "range", `The Cursemark point is ${pointDistance} ft away; Cursemark reaches 100 ft.`);
+  if (distance > CURSEMARK_RANGE_FT) warn(plan.warnings, "range", `The Cursemark point is ${distance} ft away; Cursemark reaches 100 ft.`);
   if (excluded.length && levelOf(actor) < HEXER_GATES.controlledCruelty) {
     warn(plan.warnings, "level", "Spare the Rod (Controlled Cruelty) is a Supporter level 10 feature; the exclusions are ignored.");
-  }
-  if (!primary && !(hexerState(actor).cursemarks ?? []).some(mark => mark.id === markId)) {
-    throw new Error("Place the Cursemark before applying it to another creature.");
   }
   return plan;
 }
 cursemarkPlan.validateTarget = relayable;
 
-/** The Ultimate Hex (L7325): once per Long Rest. Its first use spends the pool; further kinds are `ultimateHexPart` uses. */
+/**
+ * The Ultimate Hex (L7325): once per Long Rest. It applies every plain option at once (Abjuring, Looping, Voicethief,
+ * with ultimate: true), in one receipt. The roll kinds (Binding, Breaking, Wasting) follow as ultimateHexPart uses.
+ */
 function ultimateHexPlan(actor, state, data) {
-  return planHex(actor, data, { title: "Ultimate Hex", poolId: "hexerUltimateHex", ultimate: true });
+  return planHex(actor, data, { title: "Ultimate Hex", poolId: "hexerUltimateHex", ultimate: true, kinds: PLAIN_KINDS });
 }
 ultimateHexPlan.validateTarget = relayable;
 
 /**
- * One further kind of the Ultimate Hex on the same creature. It spends nothing, but only follows a recorded
- * Ultimate Hex use (data.ultimateUseId) so it cannot be run on its own.
+ * A roll kind of the Ultimate Hex on the same creature (Binding, Breaking or Wasting). It spends nothing, and only
+ * follows a recorded Ultimate Hex use (data.ultimateUseId) so it cannot be run on its own.
  */
 function ultimateHexPartPlan(actor, state, data) {
   const parent = supporterUses.receipt(actor, String(data.ultimateUseId ?? ""));
   need(parent?.command === "ultimateHex" && parent.status !== "undone", "The Ultimate Hex must be applied first.");
+  need(ROLL_KINDS.includes(data.kind), "An Ultimate Hex part is a Binding, Breaking or Wasting Hex.");
   return planHex(actor, data, { title: "Ultimate Hex (part)", spend: false, ultimate: true });
 }
 ultimateHexPartPlan.validateTarget = relayable;
@@ -367,6 +389,7 @@ export function hexerRollButton({ actor, label, formula, flavor = label }) {
 /**
  * Hexer panel (Features tab). Buttons use data-supporter-cmd, dispatched by the sheet to hexerCommand().
  * Level-gated options show with their gate; they warn when used below the gate, never block.
+ * Cursemark point: until canvas placement exists, the point is the first token you target.
  */
 export function hexerPanel(actor) {
   if (!isHexer(actor)) return "";
@@ -378,7 +401,9 @@ export function hexerPanel(actor) {
       + `<span class="ak5e-hexer-badge">Spell Save DC ${esc(hexerSpellSaveDC(actor))}</span></div>`,
     `<div class="ak5e-hexer-button-row">${cmd("potentHex", "Apply Potent Hex")}`
       + `${levelOf(actor) >= HEXER_GATES.cursemark ? cmd("cursemark", "Cursemark (Bonus Action)") : ""}`
-      + `${levelOf(actor) >= HEXER_GATES.ultimate ? cmd("ultimateHex", `Ultimate Hex (${ultimate.value} / ${ultimate.max})`) : ""}</div>`
+      + `${levelOf(actor) >= HEXER_GATES.cursemark ? cmd("cursemarkArea", "Apply Cursemark to creatures in area") : ""}`
+      + `${levelOf(actor) >= HEXER_GATES.ultimate ? cmd("ultimateHex", `Ultimate Hex (${ultimate.value} / ${ultimate.max})`) : ""}</div>`,
+    levelOf(actor) >= HEXER_GATES.cursemark ? `<p class="ak5e-hexer-note">Cursemark point: the token you target (canvas placement not yet available).</p>` : ""
   ];
   return `<section class="ak5e-hexer-panel">${rows.join("")}</section>`;
 }
@@ -392,63 +417,107 @@ async function pickHex(actor, title, kinds = HEX_KINDS) {
   const content = `<div class="ak5e-hexer-pick"><p>Target: ${esc(picked)}</p>`
     + `<label>Hex <select name="kind">${options}</select></label>`
     + `<label>Ability (Wasting Hex only) <select name="ability">${abilities}</select></label></div>`;
-  const result = await foundry.applications.api.DialogV2.wait({
+  return foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 420 }, rejectClose: false, content,
     buttons: [
       { action: "apply", label: "Confirm", default: true, callback: (_event, button) => ({ kind: button.form.elements.kind.value, ability: button.form.elements.ability.value }) },
       { action: "cancel", label: "Cancel", callback: () => null }
     ]
   });
-  return result;
 }
 
-/** Confirmed Potent Hex: pick the Hex, then the usual warnings and the Hex on the chosen creature. */
+const targetedUuid = () => globalThis.game?.user?.targets?.first?.()?.actor?.uuid ?? null;
+
+/** Confirmed Potent Hex: the usual warnings, then the Hex on the chosen creature. */
 export async function applyPotentHex(actor, { kind, ability, targetUuid } = {}) {
   const opId = foundry.utils.randomID();
   return confirmPlayUse("Potent Hex", extra => supporterUses.execute(actor, "potentHex", { targetUuid, kind, ability, ...extra }, opId));
 }
 
+/** The point of a Cursemark: the first targeted token (the Hexer places it by targeting until canvas placement exists). */
+function targetedPoint() {
+  const token = globalThis.game?.user?.targets?.first?.() ?? null;
+  need(token, "Target the token that marks the Cursemark point first.");
+  return {
+    point: { x: token.center?.x ?? token.x, y: token.center?.y ?? token.y, sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id ?? null },
+    gridSize: globalThis.canvas?.grid?.size ?? 100,
+    targetUuid: token.actor?.uuid ?? null
+  };
+}
+
+/**
+ * Confirmed Cursemark area: one confirm listing the creatures within 10 ft of the mark (exclusions and the Hexer
+ * removed). Each creature is one undoable use; only the first spends the Potent Hex use.
+ */
+export async function applyCursemarkArea(actor, markId) {
+  need(isHexer(actor), "Cursemark requires the Hexer branch.");
+  const mark = (hexerState(actor).cursemarks ?? []).find(entry => entry.id === markId);
+  need(mark, "Place the Cursemark first.");
+  const tokens = (globalThis.canvas?.tokens?.placeables ?? []).map(token => ({
+    uuid: token.actor?.uuid, x: token.center?.x ?? token.x, y: token.center?.y ?? token.y,
+    sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id ?? null, name: token.name
+  })).filter(token => token.uuid);
+  const areaTokens = cursemarkTargets(actor, markId, tokens);
+  need(areaTokens.length, "No creature is within 10 ft of the Cursemark point.");
+  const names = areaTokens.map(token => token.name ?? token.uuid).join(", ");
+  const { DialogV2 } = foundry.applications.api;
+  const confirmed = await DialogV2.confirm({
+    window: { title: "Apply Cursemark to creatures in area" },
+    content: `<p>Apply the Cursemark Hex to: ${esc(names)}.</p><p>Each creature is a separate use you can undo.</p>`,
+    rejectClose: false
+  });
+  if (!confirmed) return null;
+  const results = [];
+  for (const token of areaTokens) {
+    results.push(await confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
+      { markId, kind: mark.kind, targetUuid: token.uuid, primary: false, ...extra }, foundry.utils.randomID())));
+  }
+  return results;
+}
+
 /**
  * Panel commands. Each one confirms before any use; cancelling changes nothing.
- * cursemark: the point is the first targeted token on the canvas (the Hexer places it by targeting).
+ * cursemark: the point is the first targeted token. Ultimate: the plain options, then one use per roll option.
  */
 export async function hexerCommand(actor, name) {
   need(isHexer(actor), "Hexer commands need the Hexer branch.");
   if (name === "potentHex") {
     const choice = await pickHex(actor, "Apply Potent Hex");
     if (!choice) return null;
-    return applyPotentHex(actor, { ...choice, targetUuid: globalThis.game?.user?.targets?.first?.()?.actor?.uuid ?? null });
+    return applyPotentHex(actor, { ...choice, targetUuid: targetedUuid() });
   }
   if (name === "ultimateHex") {
-    const choice = await pickHex(actor, "Apply The Ultimate Hex (all Potent options and Rupturing)");
+    const choice = await pickHex(actor, "Apply The Ultimate Hex (plain options, then Binding, Breaking and Wasting)", ROLL_KINDS.concat(["abjuring"]));
     if (!choice) return null;
-    const targetUuid = globalThis.game?.user?.targets?.first?.()?.actor?.uuid ?? null;
+    const targetUuid = targetedUuid();
     const opId = foundry.utils.randomID();
-    const first = await confirmPlayUse("Ultimate Hex", extra => supporterUses.execute(actor, "ultimateHex", { targetUuid, kind: HEX_KINDS[0], ...extra }, opId));
+    const first = await confirmPlayUse("Ultimate Hex", extra => supporterUses.execute(actor, "ultimateHex", { targetUuid, ability: choice.ability, ...extra }, opId));
     if (!first) return null;
-    for (const kind of HEX_KINDS.slice(1)) {
-      await confirmPlayUse("Ultimate Hex (part)", extra => supporterUses.execute(actor, "ultimateHexPart",
-        { targetUuid, kind, ultimateUseId: opId, ...extra }, foundry.utils.randomID()));
+    for (const kind of ROLL_KINDS) {
+      await confirmPlayUse(`Ultimate Hex (${HEX_LABELS[kind]})`, extra => supporterUses.execute(actor, "ultimateHexPart",
+        { targetUuid, kind, ability: choice.ability, ultimateUseId: opId, ...extra }, foundry.utils.randomID()));
     }
     return first;
   }
   if (name === "cursemark") {
     const choice = await pickHex(actor, "Cursemark (Bonus Action; spends one Potent Hex use)");
     if (!choice) return null;
-    const token = globalThis.game?.user?.targets?.first?.() ?? null;
-    need(token, "Target the token that marks the Cursemark point first.");
-    const point = { x: token.center?.x ?? token.x, y: token.center?.y ?? token.y, sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id };
-    const gridSize = globalThis.canvas?.grid?.size ?? 100;
-    const markId = foundry.utils.randomID();
+    const placed = targetedPoint();
     return confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
-      { kind: choice.kind, ability: choice.ability, point, gridSize, markId, targetUuid: token.actor?.uuid ?? null, ...extra }, foundry.utils.randomID()));
+      { kind: choice.kind, ability: choice.ability, markId: foundry.utils.randomID(), ...placed, ...extra }, foundry.utils.randomID()));
+  }
+  if (name === "cursemarkArea") {
+    const mark = (hexerState(actor).cursemarks ?? []).at(-1);
+    need(mark, "Place a Cursemark first.");
+    return applyCursemarkArea(actor, mark.id);
   }
   throw new Error(`Unknown Hexer command ${name}.`);
 }
 
 /**
- * Cursemark area: the creatures within 10 ft of the mark (Spare the Rod exclusions removed). Pure: tokens are
- * { uuid, x, y, sceneId }. Distance uses 5 ft per grid cell (gridSize pixels per cell).
+ * Cursemark area: the creatures within 10 ft of the mark (Spare the Rod exclusions and the Hexer removed).
+ * Pure: tokens are { uuid, x, y, sceneId, actor?, center? }. Distance uses 5 ft per grid cell (gridSize pixels).
+ * Returns the matching tokens.
  */
 export function cursemarkTargets(actor, markId, tokens = []) {
   const mark = (hexerState(actor).cursemarks ?? []).find(entry => entry.id === markId);
@@ -456,39 +525,78 @@ export function cursemarkTargets(actor, markId, tokens = []) {
   if (Number.isFinite(Number(mark.expires)) && Number(mark.expires) <= worldTime()) return [];
   const excluded = new Set(mark.excluded ?? []);
   const pixelsPerFoot = Number(mark.gridSize ?? 100) / 5;
-  return tokens.filter(token => token?.uuid && token.uuid !== actor.uuid && !excluded.has(token.uuid)
-    && token.sceneId === mark.point.sceneId
-    && Math.hypot(Number(token.x) - mark.point.x, Number(token.y) - mark.point.y) / pixelsPerFoot <= (mark.radius ?? CURSEMARK_RADIUS_FT));
+  return tokens.filter(token => {
+    const actorUuid = token?.actor?.uuid ?? token?.uuid;
+    if (!actorUuid || actorUuid === actor.uuid || excluded.has(actorUuid) || excluded.has(token.uuid)) return false;
+    if (mark.point.sceneId && token.sceneId && token.sceneId !== mark.point.sceneId) return false;
+    const cx = Number(token.center?.x ?? token.x), cy = Number(token.center?.y ?? token.y);
+    return Math.hypot(cx - mark.point.x, cy - mark.point.y) / pixelsPerFoot <= (mark.radius ?? CURSEMARK_RADIUS_FT);
+  });
 }
 
 /* -------------------------------------------------------------- hooks and events */
 
-/** Force rider (L7287 and L7325). The hit creature is the one hexed; the card goes to the Hexer's owner. */
+/**
+ * Force rider (L7287 and L7325). The rider is per hexed creature and per Hexer: only Hexes whose source is this
+ * Hexer count. The card is posted from whichever client sees the hit. The `riderTaken` record is written by the
+ * Hexer's owner, or relayed to the GM through a whispered message when the current user cannot write it.
+ */
 async function handleHit(event) {
   const target = actorFromUuid(event?.targetUuid);
   if (!target) return;
   for (const hex of hexesOn(target)) {
     const hexer = actorFromUuid(hex.source);
-    if (!hexer || !isHexer(hexer)) continue;
-    if (hex.source !== hexer.uuid) continue;                    // only the Hexer whose Hex this is
-    const used = hexerState(hexer).riderTaken ?? {};
-    if (used[uuidKey(target.uuid)]) continue;                  // one card per hexed creature until the Hexer's next Turn
+    if (!hexer || !isHexer(hexer) || hex.source !== hexer.uuid) continue;
+    const taken = hexerState(hexer).riderTaken ?? {};
+    if (taken[uuidKey(target.uuid)]) continue;                 // one card per hexed creature until the Hexer's next Turn
     const sides = sidesFor(levelOf(hexer));
-    const rupture = hex.ultimate === true;
     const formula = `1d${sides}`;
-    const text = rupture
+    const text = hex.ultimate === true
       ? `Rupturing Hex: ${esc(target.name)} was hit. Instead of Force on ${esc(target.name)}, every hostile creature within ${RUPTURE_RADIUS_FT} ft takes Force damage equal to one roll of your Aid Die.`
-      : `Hex rider: ${esc(target.name)} was hit. Force damage equal to one roll of your Aid Die is available now (use it once per turn cycle).`;
-    const empathic = levelOf(hexer) >= HEXER_GATES.controlledCruelty && !rupture
+      : `Hex rider: ${esc(target.name)} was hit. Force damage equal to one roll of your Aid Die is available now (once until your next Turn).`;
+    const empathic = levelOf(hexer) >= HEXER_GATES.controlledCruelty && hex.ultimate !== true
       ? `<p>Empathic Pain: you may deal this Force to a different creature you can see within ${EMPATHIC_PAIN_RADIUS_FT} ft of ${esc(target.name)}.</p>` : "";
-    const content = `<h3>Hex rider</h3><p>${text}</p>${empathic}${hexerRollButton({ actor: hexer, label: `Roll Force ${formula}`, formula, flavor: rupture ? "Rupturing Hex (Force)" : "Hex rider (Force)" })}`;
+    const content = `<h3>Hex rider</h3><p>${text}</p>${empathic}`
+      + hexerRollButton({ actor: hexer, label: `Roll Force ${formula}`, formula, flavor: hex.ultimate === true ? "Rupturing Hex (Force)" : "Hex rider (Force)" });
     await globalThis.ChatMessage?.implementation?.create?.({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor: hexer }), content });
-    if (hexer.isOwner) {
-      await hexer.update({ [`flags.ak5e.${HEXER_FLAG}.riderTaken.${uuidKey(target.uuid)}`]: true });
-    } else {
-      console.warn("AK5e | Hexer rider: the Hexer's owner must record this cycle (the hit was seen on another client).");
-    }
+    await recordRiderTaken(hexer, target);
   }
+}
+
+/** Writes riderTaken for this creature, directly or through the GM relay, and warns when neither is possible. */
+async function recordRiderTaken(hexer, target) {
+  if (hexer.isOwner) {
+    await hexer.update({ [`flags.ak5e.${HEXER_FLAG}.riderTaken.${uuidKey(target.uuid)}`]: true });
+    return;
+  }
+  const gm = globalThis.game?.users?.activeGM ?? null;
+  if (!gm) {
+    globalThis.ui?.notifications?.warn?.(`${hexer.name}'s once-per-turn Hex rider was NOT recorded for ${target.name}: no GM is connected. Record it when the GM connects.`);
+    console.warn("AK5e | Hexer rider not recorded: no active GM.");
+    return;
+  }
+  await globalThis.ChatMessage?.implementation?.create?.({
+    whisper: [gm.id],
+    content: "<p>Hexer rider record (relay).</p>",
+    flags: { ak5e: { [RIDER_RELAY_FLAG]: { hexerUuid: hexer.uuid, targetUuid: target.uuid } } }
+  });
+}
+
+/**
+ * GM side of the rider relay: applies a relayed riderTaken record when the active GM receives it. The record is
+ * accepted only if the target carries a Hex from that Hexer and the cycle is not already recorded.
+ */
+export async function handleRiderRelayMessage(message) {
+  const relay = message?.flags?.ak5e?.[RIDER_RELAY_FLAG];
+  if (!relay) return;
+  if (!(globalThis.game?.user?.isGM && globalThis.game.users?.activeGM?.id === globalThis.game.user.id)) return;
+  const hexer = actorFromUuid(relay.hexerUuid);
+  const target = actorFromUuid(relay.targetUuid);
+  if (!hexer || !target || !isHexer(hexer)) return;
+  if (!hexesOn(target).some(hex => hex.source === hexer.uuid)) return;
+  if ((hexerState(hexer).riderTaken ?? {})[uuidKey(target.uuid)]) return;
+  await hexer.update({ [`flags.ak5e.${HEXER_FLAG}.riderTaken.${uuidKey(target.uuid)}`]: true });
+  await message.delete?.().catch?.(() => null);
 }
 
 /** Rupturing death burst (L7325): when an Ultimate-hexed creature is reduced to 0 HP. Save and damage are buttons. */
@@ -507,7 +615,7 @@ async function handleKill(event) {
   }
 }
 
-/** Voicethief repeat save at the start of each Turn of the hexed creature (buttons only; the owner clicks). */
+/** A Turn start: the Hexer's rider records reset; a Voicethief creature gets its repeat save button (never a roll). */
 async function handleTurnStart(event) {
   const actor = actorFromUuid(event?.actorUuid);
   if (!actor) return;
@@ -522,7 +630,7 @@ async function handleTurnStart(event) {
   }
 }
 
-/** Artificer-style prompt: after an Art, a button offers Potent Hex. It never applies on its own. */
+/** After an Art: a button offers Potent Hex. It never applies on its own. */
 async function handleArtCast(event) {
   const actor = actorFromUuid(event?.actorUuid);
   if (!actor || !isHexer(actor) || !actor.isOwner) return;
@@ -576,7 +684,7 @@ export function renderHexerCardButtons(message, html) {
   }
 }
 
-/** Idempotent: installs the event handlers and the card wiring once. Pools are defined here too. */
+/** Idempotent: installs the event handlers, the card wiring and the GM rider relay once. Pools are defined here too. */
 export function registerHexerHooks() {
   if (hooksInstalled) return;
   hooksInstalled = true;
@@ -589,6 +697,9 @@ export function registerHexerHooks() {
     globalThis.Hooks.on("renderChatMessageHTML", (message, html) => {
       try { renderHexerCardButtons(message, html); }
       catch (error) { console.error("AK5e | Hexer card", error); }
+    });
+    globalThis.Hooks.on("createChatMessage", message => {
+      Promise.resolve(handleRiderRelayMessage(message)).catch(error => console.error("AK5e | Hexer rider relay", error));
     });
   }
 }
