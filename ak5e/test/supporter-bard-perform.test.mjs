@@ -229,8 +229,12 @@ test("crescendo is an Active Effect on the Bard for Spell Save DC and Spell Atta
   await bardTurnStart(actor);
   // The last Art (index 2 of 3) ends the Performance in the same use: the crescendo effect is removed with it.
   await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
-  assert.equal(effectOf(actor), null, "the effect is removed when the Performance ends");
+  // The last Art keeps its own bonus for its native cast (expiring), and crescendoBonuses reads 0 once the Performance ended.
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true, "the last Art's effect is kept, expiring");
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 2, "at the last Art's value");
   assert.deepEqual(crescendoBonuses(actor), { healing: 0, extraTargets: 0, saveDC: 0, spellAttack: 0 });
+  await run(actor, "clearExpiringCrescendo", { confirmed: true });
+  assert.equal(effectOf(actor), null, "the post-cast step removes the expiring effect");
 });
 
 /* ---------------------------------------------------------------- 0 AP cost through the Arts registry */
@@ -478,7 +482,8 @@ test("the last Art ends the Performance in the same use: active cleared, crescen
   await bardTurnStart(actor);
   await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
   assert.equal(active(actor), null);
-  assert.equal(effectOf(actor), null);
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true, "the last Art's expiring effect is still present for its cast");
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 2, "at the last Art's value");
   assert.equal(actor.getFlag("ak5e", "casting").castingUnit, "", "the prior Casting Unit is restored");
   assert.equal(actor.getFlag("ak5e", "bard").performances[0].performed, true);
 });
@@ -550,4 +555,61 @@ test("a tool item with system.proficient >= 1 is proficient: no warning, and it 
   await run(actor, "startPerformance", startData);
   assert.equal(isPerforming(actor), true);
   assert.equal(actor.getFlag("ak5e", "casting").castingUnit, flute.id);
+});
+
+/* ---------------------------------------------------------------- expiring crescendo for the last Art (C3 L7118) */
+
+test("the last Art's expiring crescendo is removed by the turn end, even if the post-cast step never ran", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true);
+  await bardTurnEnd(actor);
+  assert.equal(effectOf(actor), null, "turnEnd removes the expiring effect");
+  assert.equal(isPerforming(actor), false);
+});
+
+test("starting a new Performance removes a leftover expiring crescendo, and undo of the start restores it", async () => {
+  const actor = bard({ level: 9, performances: [PERFORMANCE, { ...PERFORMANCE, id: "P2", composedAt: 2 }] });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true);
+  await run(actor, "startPerformance", { performanceId: "P2" });
+  assert.equal(effectOf(actor), null, "the new start removes the leftover expiring effect");
+  const receipt = supporterUses.state(actor).undo.at(-1);
+  await supporterUses.undo(actor, receipt.id);
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true, "undo restores the expiring effect");
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 2);
+});
+
+test("the post-cast step removes the expiring effect, and its undo restores it at the last Art's value", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  const cleared = await run(actor, "clearExpiringCrescendo", { confirmed: true });
+  assert.equal(cleared.cleared, 2);
+  assert.equal(effectOf(actor), null);
+  await supporterUses.undo(actor, supporterUses.state(actor).undo.at(-1).id);
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.expiring, true, "undo restores the expiring effect");
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 2);
+});
+
+test("the post-cast step never removes a crescendo of a running Performance", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  const cleared = await run(actor, "clearExpiringCrescendo", { confirmed: true });
+  assert.equal(cleared.cleared, 0);
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 1, "the running Performance keeps its crescendo");
+  assert.equal(isPerforming(actor), true);
 });

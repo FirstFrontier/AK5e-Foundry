@@ -93,7 +93,7 @@ export function bardArtQuoteOptions(actor, item) {
 
 /* ---------------------------------------------------------------- Rising Crescendo effect */
 
-function crescendoEffectData(amount) {
+function crescendoEffectData(amount, expiring = false) {
   const value = String(amount);
   return {
     name: "Rising Crescendo", img: CRESCENDO_ICON, disabled: false, transfer: false,
@@ -102,7 +102,7 @@ function crescendoEffectData(amount) {
       { key: "system.bonuses.msak.attack", mode: 2, value, priority: 20 },
       { key: "system.bonuses.rsak.attack", mode: 2, value, priority: 20 }
     ],
-    flags: { ak5e: { bardCrescendo: { amount } } }
+    flags: { ak5e: { bardCrescendo: { amount, expiring: expiring === true } } }
   };
 }
 
@@ -110,14 +110,23 @@ function crescendoEffectData(amount) {
 const findCrescendoEffect = actor => values(actor.effects).find(effect => effect.id === CRESCENDO_EFFECT_ID
   || flag(effect, "bardCrescendo") !== undefined) ?? null;
 
+/**
+ * The expiring Rising Crescendo effect kept alive for the last Art's own native cast (C3 L7118: the last Art gets its bonus).
+ * Returns its amount, or 0 when there is no expiring effect.
+ */
+const expiringCrescendoAmount = actor => {
+  const info = flag(findCrescendoEffect(actor), "bardCrescendo");
+  return info?.expiring === true ? Number(info.amount) || 0 : 0;
+};
+
 /** Sets the Rising Crescendo effect to `amount`; 0 (or null) removes it. Never creates a second effect. */
-async function setCrescendoEffect(actor, amount) {
+async function setCrescendoEffect(actor, amount, expiring = false) {
   const existing = findCrescendoEffect(actor);
   if (!amount) {
     if (existing) await actor.deleteEmbeddedDocuments("ActiveEffect", [existing.id]);
     return null;
   }
-  const data = crescendoEffectData(amount);
+  const data = crescendoEffectData(amount, expiring);
   if (existing) {
     await existing.update({ changes: data.changes, flags: data.flags });
     return existing;
@@ -132,11 +141,11 @@ const BARD_TARGET_KINDS = Object.freeze({
     local: true,
     documentName: "Actor",
     async apply(_source, _useId, entry, target) {
-      await setCrescendoEffect(target, entry.amount);
+      await setCrescendoEffect(target, entry.amount, entry.expiring === true);
       return { amount: entry.amount };
     },
     async revert(_source, _useId, entry, target) {
-      await setCrescendoEffect(target, entry.before);
+      await setCrescendoEffect(target, entry.before, entry.beforeExpiring === true);
       return { restored: entry.before ?? 0 };
     },
     preview(_source, _receipt, entry) {
@@ -216,6 +225,12 @@ const startPerformance = (actor, _state, data = {}) => {
         + (level >= FONT_LEVEL ? "A Font of Inspiration die is gained (Provide Aid only)." : "")
         + (instrument ? ` Instrument: ${instrument.name}.` : "");
       receipt.result = { performanceId: performance.id, arts, instrument: instrument?.name ?? null, artCount: arts.length };
+      // A Performance that ended on its last Art may leave its expiring crescendo effect: a new start removes it (undoable).
+      const expiring = expiringCrescendoAmount(actor);
+      if (expiring > 0) {
+        receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: 0, before: expiring,
+          beforeExpiring: true, label: "Rising Crescendo (expiring)" }];
+      }
       return updates;
     }
   };
@@ -263,12 +278,14 @@ const castNextArt = (actor, _state, data = {}) => {
       const manualText = manual ? ` This Art has no Chapter 5 record: its effect is not automated and no mechanics are applied (see ak5e/DECISIONS.md, "Bard missing Arts / variants").` : "";
       let updates;
       if (lastArt) {
-        // The end of the Performance, in this same use (L7108): the endPerformance state changes, crescendo included.
+        // The end of the Performance, in this same use (L7108): active is cleared and the Casting Unit restored. The last
+        // Art still gets its own Rising Crescendo bonus (C3 L7118), so the effect stays, flagged expiring, for its native
+        // cast; clearExpiringCrescendo removes it after the cast, and turnEnd/startPerformance remove it otherwise.
         updates = { "flags.ak5e.bard.active": null };
         if (active.castingUnitChanged) updates["flags.ak5e.casting.castingUnit"] = active.castingUnitBefore ?? "";
-        if (before) {
-          receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: 0, before,
-            label: "Rising Crescendo" }];
+        if (crescendo !== before || crescendo > 0) {
+          receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: crescendo, before,
+            expiring: true, beforeExpiring: expiringCrescendoAmount(actor) > 0, label: `Rising Crescendo +${crescendo}` }];
         }
       } else {
         updates = { "flags.ak5e.bard.active": next };
@@ -284,7 +301,7 @@ const castNextArt = (actor, _state, data = {}) => {
       receipt.summary = `${actor.name} cast ${art.name} as Art ${active.index + 1} of ${performance.arts.length} of the Performance; no Arts Points are spent.`
         + `${manualText}${cresText}${concText}${endText}`;
       receipt.result = { performanceId: performance.id, index: active.index, artName: art.name, manual, artFound: Boolean(item),
-        ignoreConcentration, crescendo, lastArt, keepArt: lastArt ? keepArt : null };
+        ignoreConcentration, crescendo, lastArt, keepArt: lastArt ? keepArt : null, expiringCrescendo: lastArt && crescendo > 0 };
       return updates;
     }
   };
@@ -361,8 +378,30 @@ const fontProvideAid = (actor, _state, data = {}) => {
 fontProvideAid.validateTarget = (_source, receipt, entry, target) => entry.kind === "effect" && entry.meta?.aidDie === true
   && target?.uuid === entry.uuid && receipt.result?.dieSize === entry.tag?.data?.dieSize;
 
+/**
+ * Post-cast step after the last Art's native cast: removes the expiring Rising Crescendo effect (undoable). It removes
+ * nothing that is not expiring, so an ordinary crescendo of a running Performance is never touched.
+ */
+const clearExpiringCrescendo = actor => {
+  need(isBard(actor), "Rising Crescendo is a Bard Supporter feature.");
+  const amount = expiringCrescendoAmount(actor);
+  return {
+    title: "Rising Crescendo ends",
+    warnings: [],
+    apply(_state2, receipt) {
+      if (amount) {
+        receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: 0, before: amount,
+          beforeExpiring: true, label: "Rising Crescendo (expiring)" }];
+      }
+      receipt.summary = amount ? `${actor.name}: the last Art's Rising Crescendo +${amount} ends.` : `${actor.name}: no expiring Rising Crescendo to end.`;
+      receipt.result = { cleared: amount };
+      return {};
+    }
+  };
+};
+
 /** Ch.3 Bard plans for the Supporter use engine. Register with registerSupporterPlans({ plans: bardPerformPlans }). */
-export const bardPerformPlans = Object.freeze({ startPerformance, castNextArt, endPerformance, fontProvideAid });
+export const bardPerformPlans = Object.freeze({ startPerformance, castNextArt, endPerformance, fontProvideAid, clearExpiringCrescendo });
 
 /** No resource pool: the Font die and Performance state are flags. Target kinds are registered at module load. */
 export function defineBardPerformPools() {
@@ -389,6 +428,9 @@ export async function bardTurnStart(actor) {
 export async function bardTurnEnd(actor) {
   if (!isBard(actor)) return;
   if (fontDieOf(actor)) await actor.update({ "flags.ak5e.bard.fontDie": false });
+  // The expiring crescendo of a Performance's last Art is removed at turn end, even if the post-cast step never ran.
+  const expiringEffect = expiringCrescendoAmount(actor) > 0 ? findCrescendoEffect(actor) : null;
+  if (expiringEffect) await actor.deleteEmbeddedDocuments("ActiveEffect", [expiringEffect.id]);
   const active = activeOf(actor);
   if (active && (Number(active.castsThisTurn) || 0) === 0) {
     await supporterUses.execute(actor, "endPerformance", { performanceId: active.performanceId, keepArt: null, reason: "turnEnd", confirmed: true }, randomId());
@@ -542,6 +584,8 @@ async function castFlow(actor, { startOpId = null } = {}) {
     if (startOpId) await supporterUses.undo(actor, startOpId);
     return null;
   }
+  // The last Art's native cast has resolved: its expiring crescendo effect is no longer needed.
+  if (result.expiringCrescendo) await supporterUses.execute(actor, "clearExpiringCrescendo", { confirmed: true }, randomId());
   return result;
 }
 
