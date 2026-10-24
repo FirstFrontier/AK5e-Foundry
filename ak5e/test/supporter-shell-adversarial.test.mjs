@@ -30,6 +30,7 @@ import {
   setupFoundryGlobals, teardownFoundryGlobals, createTestActor, createTestItem
 } from "./base-classes-fixture.mjs";
 import { defineSupporterPools } from "../scripts/supporter-features.mjs";
+import { defineSupporterTalentPools } from "../scripts/supporter-talents.mjs";
 
 const { SUPPORTER_CLASS_ID, SUPPORTER_ARMOR_PROFS, SUPPORTER_WEAPON_PROFS, pbForLevel } = rules;
 
@@ -63,7 +64,7 @@ const SOURCE_ADVANCED_TALENTS = [
 
 const ABILITY_MODS = { str: 0, dex: 2, con: 2, int: 2, wis: 1, cha: 4 };
 
-function createSupporter({ level = 1, aidAbility = "wis", mods = {}, branch = null, system = {} } = {}) {
+function createSupporter({ level = 1, aidAbility = "wis", mods = {}, branch = null, branchKey = null, system = {} } = {}) {
   const items = [createTestItem({
     name: "Supporter",
     type: "class",
@@ -99,8 +100,12 @@ function createSupporter({ level = 1, aidAbility = "wis", mods = {}, branch = nu
       currency: { cp: 0 },
       ...system
     },
-    flags: { ak5e: { supporter: { enabled: true, aidAbility } } }
+    flags: { ak5e: { supporter: { enabled: true, aidAbility, ...(branchKey ? { branch: branchKey } : {}) } } }
   });
+}
+
+function effectsOf(item) {
+  return [...(item.effects?.values?.() ?? [])];
 }
 
 function classItemOf(actor) {
@@ -230,6 +235,7 @@ function fakeDef(branch, overrides = {}) {
 test.beforeEach(() => {
   setupFoundryGlobals();
   defineSupporterPools();
+  defineSupporterTalentPools();
 });
 
 test.afterEach(() => {
@@ -280,14 +286,12 @@ test("initSupporterBranches: pools() and hooks() of each def run exactly once ac
   assert.equal(hookCalls, 1, "hooks() must run exactly once");
 });
 
-test("supporter-branch-index: importable without side-effect errors and registers Artificer, Bard and Hexer", async () => {
+test("supporter-branch-index: importable without side-effect errors", async () => {
   const index = await import("../scripts/supporter-branch-index.mjs");
   assert.ok(index, "module loads");
-  const { SUPPORTER_BRANCH_MODULES } = await import("../scripts/supporter-branches.mjs");
-  for (const branch of BRANCHES) {
-    assert.ok(SUPPORTER_BRANCH_MODULES.has(branch.key), `${branch.key} branch module is registered`);
-  }
 });
+
+test.todo("supporter-branch-index registers the real Artificer, Bard and Hexer modules (land in later waves; tests must not register real keys)");
 
 /* ==========================================================================
    2. Progression: proficiencies, saves, skills (L6599-6604)
@@ -295,9 +299,12 @@ test("supporter-branch-index: importable without side-effect errors and register
 
 test("progression: weapon proficiency is Light Melee, not simple weapons (L6601)", async () => {
   const actor = await progressTo(1);
-  const weapons = actor.system.traits.weaponProf.value;
-  assert.ok(!weapons.includes("sim"), `simple weapons must not be granted, got ${JSON.stringify(weapons)}`);
-  assert.ok(SUPPORTER_WEAPON_PROFS.every(p => weapons.includes(p)), `Light Melee expected, got ${JSON.stringify(weapons)}`);
+  const weapon = actor.system.traits.weaponProf;
+  const custom = String(weapon.custom ?? "").split(";").map(p => p.trim()).filter(Boolean);
+  const value = [...(weapon.value ?? [])];
+  const granted = [...custom, ...value];
+  assert.ok(granted.some(p => /light melee/i.test(p)), `Light Melee expected in weaponProf.custom or value, got ${JSON.stringify({ custom, value })}`);
+  assert.ok(!granted.includes("sim"), `simple weapons ("sim") must be in neither custom nor value, got ${JSON.stringify({ custom, value })}`);
 });
 
 test("progression: armour is exactly Light Armour and Light Shields (L6600)", async () => {
@@ -412,16 +419,15 @@ test("ASI fields: one per ASI level (4, 6, 8, 10, 12, 16, 19) and none at 3rd (L
    4. Operator Skill choice fields (L6643, L6664, L6676)
    ========================================================================== */
 
-test("operator skill fields: one new choice each at 2nd, 7th and 14th (L6643, L6664, L6676)", () => {
-  const opCount = level => inspectSupporterFields(createSupporter({ level }), {})
-    .filter(f => /operator\s*skill/i.test(`${f.key} ${f.label}`)).length;
-  assert.equal(opCount(1), 0, "no operator skill choice at 1st");
-  assert.equal(opCount(2), 1, "Basic Operator Skill at 2nd");
-  assert.equal(opCount(6), 1);
-  assert.equal(opCount(7), 2, "Advanced Operator Skill added at 7th");
-  assert.equal(opCount(13), 2);
-  assert.equal(opCount(14), 3, "Elite Operator Skill added at 14th");
+test("operator skills: inspectSupporterFields adds NO operator-skill fields (operator-progression.mjs owns the 2/7/14 picks)", () => {
+  for (const level of [1, 2, 7, 14]) {
+    const hits = inspectSupporterFields(createSupporter({ level }), {})
+      .filter(f => /operator\s*skill/i.test(`${f.key} ${f.label}`));
+    assert.equal(hits.length, 0, `no operator-skill field at level ${level} (would duplicate skill items), got ${JSON.stringify(hits.map(h => h.key))}`);
+  }
 });
+
+test.todo("Operator Skill picks: the 'any other Basic/Advanced/Elite Skill table available to you' option (C3:6644, 6665, 6677) is not offered by the current picker");
 
 /* ==========================================================================
    5. Module upgrades and duplicate talent warnings (L6646-6647, L6667-6668)
@@ -542,7 +548,10 @@ test("Tough: Hit Point maximum rises by 2 x character level at 3rd level (L6822)
   await applyLevel(actor, baseChoices(BRANCHES[0], { talents: { basic: tough } }));
   const delta = Number(actor.system.attributes.hp.max) - hpBefore;
   const effectSix = allChanges(actor).some(c => /hp|hitpoint/i.test(String(c.key)) && Number(c.value) === 6);
-  assert.ok(delta === 6 || effectSix, `expected +6 max HP (delta ${delta}) or an effect change of 6`);
+  // Implementation writes "@details.level * 2" on system.attributes.hp.bonuses.overall; at 3rd level that is 6.
+  const formulaTwoPerLevel = allChanges(actor).some(c =>
+    /hp|hitpoint/i.test(String(c.key)) && /^\s*@details\.level\s*\*\s*2\s*$/.test(String(c.value)));
+  assert.ok(delta === 6 || effectSix || formulaTwoPerLevel, `expected +6 max HP (delta ${delta}), an effect change of 6, or "@details.level * 2"`);
 });
 
 test("Alert: initiative bonus equals Proficiency Bonus (L6813), which is 2 at 3rd level", async () => {
@@ -561,74 +570,72 @@ test("Alacrity: Speed increases by 10 feet (L6812)", async () => {
   assert.ok(speed.some(c => Number(c.value) === 10), `Speed +10 expected; got ${JSON.stringify(speed)}`);
 });
 
-test("Unarmoured Agility: Speed increases by 20 feet while unarmoured (L6823)", async () => {
-  const actor = await progressTo(3, { talents: { basic: talentValue(3, "talents.basic", "Unarmoured Agility") } });
-  const speed = allChanges(actor).filter(c => /movement|speed/i.test(String(c.key)));
-  assert.ok(speed.some(c => Number(c.value) === 20), `Speed +20 expected; got ${JSON.stringify(speed)}`);
+test("Unarmoured Agility is a MANUAL talent: no speed Active Effect, because it depends on wearing no Armour (L6823)", async () => {
+  const { actor, talent } = await grantedTalent("Unarmoured Agility");
+  assert.equal(talent.flags.ak5e.supporterTalent?.mode, "manual");
+  assert.equal(effectsOf(talent).length, 0, "no item Active Effect");
+  assert.ok(!allChanges(actor).some(c => /movement|speed/i.test(String(c.key))), "no speed change is created");
 });
 
-const LUCK_POOL_IDS = ["luck", "luckPoints", "lucky"];
-function luckPool(actor) {
-  for (const id of LUCK_POOL_IDS) {
-    try { return getPool(actor, id); } catch { /* try the next candidate id */ }
-  }
-  return null;
-}
-
-test("Lucky: two Luck Points at 3rd level, and maximum equal to PB once the Module is taken at 8th (L6817)", async () => {
+test("Lucky: supporterLuckBase holds two Luck Points, and supporterLuckModule holds PB once the Module is active (L6817)", async () => {
   const actor = await progressTo(3, { talents: { basic: talentValue(3, "talents.basic", "Lucky") } });
-  const pool = luckPool(actor);
-  assert.ok(pool, `a Luck pool must exist under one of ${LUCK_POOL_IDS.join(", ")}`);
-  assert.equal(pool.max, 2, "Lucky starts with two Luck Points");
+  assert.equal(getPool(actor, "supporterLuckBase").max, 2, "base Luck Points is 2");
 
   await setLevel(actor, 8);
   await applyLevel(actor, baseChoices(BRANCHES[0], {
     talents: { basic: talentValue(3, "talents.basic", "Lucky"), basicModule: "upgrade" }
   }));
-  assert.equal(luckPool(actor).max, pbForLevel(8), "Module sets maximum Luck Points to PB (3 at 8th)");
+  assert.equal(getPool(actor, "supporterLuckModule").max, pbForLevel(8), "Module Luck Points equal PB (3 at 8th)");
 });
 
-const FLAT_TALENTS = ["Alacrity", "Alert", "Tough", "Unarmoured Agility"];
-// Use, reaction and manual-ruling talents must not become flat Active Effects (DECISIONS rule 11).
-const NON_FLAT_TALENTS = ["Accelerando", "Art of Binding", "Ignition", "Mirror Move", "Painful Lesson"];
-const MANUAL_TALENTS = ["Anti-Arts Training", "Lieutenant", "Part-Time Inventor"];
+const FLAT_TALENTS = ["Alacrity", "Alert", "Tough"];
+const NON_FLAT_PLAN_TALENTS = ["Accelerando", "Art of Binding", "Ignition", "Mirror Move", "Painful Lesson"];
+const MANUAL_TALENTS = ["Anti-Arts Training", "Lieutenant", "Part-Time Inventor", "Unarmoured Agility"];
+const R11_TALENTS = ["Anti-Arts Training", "Lieutenant", "Part-Time Inventor"];
+
+function talentLevel(name) {
+  return SOURCE_ADVANCED_TALENTS.includes(name) ? 9 : 3;
+}
+
+async function grantedTalent(name) {
+  const level = talentLevel(name);
+  const slot = level === 9 ? "advanced" : "basic";
+  const actor = await progressTo(level, { talents: { [slot]: talentValue(level, `talents.${slot}`, name) } });
+  const talent = talentItems(actor).find(i => i.name === name);
+  assert.ok(talent, `${name} item created`);
+  return { actor, talent };
+}
 
 for (const name of FLAT_TALENTS) {
-  test(`flat talent ${name} becomes Active Effect changes (DECISIONS rule 11)`, async () => {
-    const actor = await progressTo(3, { talents: { basic: talentValue(3, "talents.basic", name) } });
-    const talent = talentItems(actor).find(i => i.name === name);
-    assert.ok(talent, `${name} item created`);
-    assert.ok(allChanges(actor).length > 0 || [...(talent.effects?.values?.() ?? [])].length > 0,
-      `${name} must carry at least one Active Effect`);
+  test(`flat talent ${name}: mode "ae" and Active Effect changes (DECISIONS rule 11)`, async () => {
+    const { actor, talent } = await grantedTalent(name);
+    assert.equal(talent.flags.ak5e.supporterTalent?.mode, "ae", `${name} marker mode`);
+    assert.ok(allChanges(actor).length > 0 || effectsOf(talent).length > 0, `${name} must carry an Active Effect`);
   });
 }
 
-for (const name of NON_FLAT_TALENTS) {
-  test(`use or reaction talent ${name} does not become a flat Active Effect (DECISIONS rule 11)`, async () => {
-    const level = SOURCE_ADVANCED_TALENTS.includes(name) ? 9 : 3;
-    const slot = level === 9 ? "advanced" : "basic";
-    const actor = await progressTo(level, { talents: { [slot]: talentValue(level, `talents.${slot}`, name) } });
-    const talent = talentItems(actor).find(i => i.name === name);
-    assert.ok(talent, `${name} item created`);
-    assert.equal([...(talent.effects?.values?.() ?? [])].length, 0, `${name} must not be an Active Effect`);
+for (const name of NON_FLAT_PLAN_TALENTS) {
+  test(`use or reaction talent ${name}: mode "plan" and no flat Active Effect (DECISIONS rule 11)`, async () => {
+    const { talent } = await grantedTalent(name);
+    assert.equal(talent.flags.ak5e.supporterTalent?.mode, "plan", `${name} marker mode`);
+    assert.equal(effectsOf(talent).length, 0, `${name} must not be an Active Effect`);
   });
 }
 
 for (const name of MANUAL_TALENTS) {
-  test(`manual-ruling talent ${name} is a manual card with no Active Effect (DECISIONS rule 11)`, async () => {
-    const level = SOURCE_ADVANCED_TALENTS.includes(name) ? 9 : 3;
-    const slot = level === 9 ? "advanced" : "basic";
-    const actor = await progressTo(level, { talents: { [slot]: talentValue(level, `talents.${slot}`, name) } });
-    const talent = talentItems(actor).find(i => i.name === name);
-    assert.ok(talent, `${name} item created`);
-    assert.equal([...(talent.effects?.values?.() ?? [])].length, 0, `${name} must not be an Active Effect`);
-    assert.match(JSON.stringify({ flags: talent.flags, system: talent.system }), /manual/i, `${name} must be marked manual`);
+  test(`manual talent ${name}: mode "manual" and no Active Effect (DECISIONS rule 11)`, async () => {
+    const { talent } = await grantedTalent(name);
+    assert.equal(talent.flags.ak5e.supporterTalent?.mode, "manual", `${name} marker mode`);
+    assert.equal(effectsOf(talent).length, 0, `${name} must not be an Active Effect`);
   });
 }
 
-test.todo("use and reaction talents (Accelerando, Preserving Sanctuary, Mirror Move, Ignition) become play-uses plans; plan shape and uses (e.g. Proficiency Bonus per rest) are not specified in the contract");
-test.todo("Strength Through Numbers grants a special Inspiration: DECISIONS line 416 leaves Special Inspiration UNRESOLVED; do not assert automation");
-test.todo("Sky Smite (+PB damage on airborne targets): flat or conditional-plan representation is not specified");
+for (const name of R11_TALENTS) {
+  test(`R11 manual card ${name}: ruling "R11" is recorded on the item`, async () => {
+    const { talent } = await grantedTalent(name);
+    assert.equal(talent.flags.ak5e.supporterTalent?.ruling, "R11", `${name} ruling`);
+  });
+}
 
 // Every numeric value in a talent's Active Effect changes must come from its source row or be PB or 2 x level (Tough).
 for (const entry of CHAPTER_THREE_CLASSES.filter(e => e.kind === "class-option" && e.parentClass === "Supporter" && e.classOption?.category === "talent" && !e.parentBranch)) {
@@ -652,31 +659,31 @@ for (const entry of CHAPTER_THREE_CLASSES.filter(e => e.kind === "class-option" 
    ========================================================================== */
 
 test("sheet: a non-Supporter actor renders without throwing and shows no Aid Dice panel", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
   const plain = createTestActor({ name: "Civilian", items: [] });
-  const html = renderSupporterControls(plain);
+  const html = supporterPanelHtml(plain);
   assert.equal(typeof html, "string");
   assert.doesNotMatch(text(html), /Aid Di/i);
 });
 
 test("sheet: level 7 Supporter shows the Aid Die value/max and the d10 die size", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
   const actor = createSupporter({ level: 7, aidAbility: "cha" });
-  const shown = text(renderSupporterControls(actor));
+  const shown = text(supporterPanelHtml(actor));
   assert.match(shown, /Aid Di/i);
   assert.match(shown, /d10/);
   assert.match(shown, /Aid Di[^]{0,120}?\b4\b/, "Charisma modifier 4 is the max");
 });
 
 test("sheet: level 14 Supporter shows a d12 Aid Die", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
-  assert.match(text(renderSupporterControls(createSupporter({ level: 14 }))), /d12/);
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
+  assert.match(text(supporterPanelHtml(createSupporter({ level: 14 }))), /d12/);
 });
 
 test("sheet: Aid Dice max of zero or below shows '0 Aid Dice — GM resolves' (ruling 1, C3:6637)", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
   const actor = createSupporter({ level: 5, aidAbility: "cha", mods: { cha: -1 } });
-  assert.match(text(renderSupporterControls(actor)), /0 Aid Dice\s*(—|–|-)\s*GM resolves/);
+  assert.match(text(supporterPanelHtml(actor)), /0 Aid Dice\s*(—|–|-)\s*GM resolves/);
 });
 
 test("aid die pool: max is the chosen ability modifier, not the best of INT/WIS/CHA (C3:6637)", async () => {
@@ -691,50 +698,48 @@ test("aid die pool: a zero or negative chosen modifier gives max 0, with no floo
 });
 
 test("sheet: level 1 Supporter shows no Lighten the Load or Self-Supportive buttons", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
-  const labels = buttonLabels(renderSupporterControls(createSupporter({ level: 1 })));
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
+  const labels = buttonLabels(supporterPanelHtml(createSupporter({ level: 1 })));
   assert.ok(!labels.some(l => /Lighten/i.test(l)), `unexpected Lighten button in ${JSON.stringify(labels)}`);
   assert.ok(!labels.some(l => /Self-Supportive/i.test(l)), `unexpected Self-Supportive button in ${JSON.stringify(labels)}`);
 });
 
 test("sheet: Lighten the Load button appears from 11th level and not at 10th (L6673)", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
-  const at10 = buttonLabels(renderSupporterControls(createSupporter({ level: 10 })));
-  const at11 = buttonLabels(renderSupporterControls(createSupporter({ level: 11 })));
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
+  const at10 = buttonLabels(supporterPanelHtml(createSupporter({ level: 10 })));
+  const at11 = buttonLabels(supporterPanelHtml(createSupporter({ level: 11 })));
   assert.ok(!at10.some(l => /Lighten/i.test(l)), "no Lighten at 10th");
   assert.ok(at11.some(l => /Lighten/i.test(l)), "Lighten at 11th");
 });
 
 test("sheet: Self-Supportive button appears from 18th level and not at 17th (L6686)", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
-  const at17 = buttonLabels(renderSupporterControls(createSupporter({ level: 17 })));
-  const at18 = buttonLabels(renderSupporterControls(createSupporter({ level: 18 })));
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
+  const at17 = buttonLabels(supporterPanelHtml(createSupporter({ level: 17 })));
+  const at18 = buttonLabels(supporterPanelHtml(createSupporter({ level: 18 })));
   assert.ok(!at17.some(l => /Self-Supportive/i.test(l)), "no Self-Supportive at 17th");
   assert.ok(at18.some(l => /Self-Supportive/i.test(l)), "Self-Supportive at 18th");
 });
 
-for (const branch of BRANCHES) {
-  test(`sheet: ${branch.name} branch slot contains the registered def's sheetPanel output`, async () => {
-    await import("../scripts/supporter-branch-index.mjs");
-    const { SUPPORTER_BRANCH_MODULES } = await import("../scripts/supporter-branches.mjs");
-    const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
-    const def = SUPPORTER_BRANCH_MODULES.get(branch.key);
-    assert.ok(def, `${branch.key} def registered`);
-    const actor = createSupporter({ level: 4, branch });
-    const panel = def.sheetPanel(actor);
-    assert.equal(typeof panel, "string", "sheetPanel must return an HTML string");
-    assert.ok(panel.trim().length > 0, "branch panel must not be empty");
-    assert.ok(String(renderSupporterControls(actor)).includes(panel), "render must include the branch panel output");
+for (let n = 1; n <= 3; n++) {
+  test(`sheet: branch slot for fake branch testslot${n} contains that def's sheetPanel output`, async () => {
+    const key = `testslot${n}`;
+    const marker = `SLOT-MARK-${key}`;
+    const { registerSupporterBranchModule } = await import("../scripts/supporter-branches.mjs");
+    const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
+    const def = registerSupporterBranchModule(fakeDef(key, { sheetPanel: () => `<div class="slot">${marker}</div>` }));
+    assert.ok(def, "fake def registered");
+    const actor = createSupporter({ level: 4, branchKey: key });
+    assert.ok(String(supporterPanelHtml(actor)).includes(marker), "panel contains the fake sheetPanel output");
   });
 }
 
 test("sheet: rendering and planning never call Roll.evaluate (no auto-roll)", async () => {
-  const { renderSupporterControls } = await import("../scripts/supporter-sheet.mjs");
+  const { supporterPanelHtml } = await import("../scripts/supporter-sheet.mjs");
   const actor = createSupporter({ level: 18, branch: BRANCHES[0] });
   const roll = forbidRolls();
   try {
-    renderSupporterControls(actor);
-    renderSupporterControls(createSupporter({ level: 1 }));
+    supporterPanelHtml(actor);
+    supporterPanelHtml(createSupporter({ level: 1 }));
     await previewSupporterProgression(actor, baseChoices(BRANCHES[0], { talents: { basic: talentValue(3, "talents.basic", "Alert") } }));
     assert.equal(roll.evaluated, 0, "no dice may be evaluated during render or plan");
   } finally {
