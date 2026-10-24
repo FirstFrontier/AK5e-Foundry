@@ -189,7 +189,7 @@ try {
   await step("put on the Performance: the first Art (Bless) casts at 0 AP", async () => {
     await closeStrayDialogs();
     await page.evaluate(id => { globalThis.__u8MsgBase = game.messages.contents.length; globalThis.__u8.B.bardPerformCommand(game.actors.get(id), "bardStartPerformance").catch(e => console.error("AK5e U8", e)); }, ids.id);
-    await confirmDialog("choose the Performance", "Put on a Performance");
+    await confirmDialog("choose the Performance", "Put on a Performance", { pick: /continue/i, screenshot: "u8-00-picker-cancel.png" });
     await confirmDialog("put on the Performance (confirm)", "Performance P-U8", { screenshot: "u8-01b-put-on-confirm.png" });
     await confirmDialog("cast Bless", "Bless");
     await page.waitForFunction(id => game.actors?.get(id)?.getFlag("ak5e", "bard")?.active?.index === 1, ids.id, { timeout: 30000 });

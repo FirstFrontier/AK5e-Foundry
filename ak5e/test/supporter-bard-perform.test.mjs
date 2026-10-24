@@ -15,7 +15,12 @@ import {
 } from "../scripts/bard-perform.mjs";
 import { emitAk5eEvent } from "../scripts/trigger-events.mjs";
 
-registerSupporterPlans({ plans: bardPerformPlans });
+try {
+  registerSupporterPlans({ plans: bardPerformPlans });
+} catch (error) {
+  // Guard: a branch index may already have registered the Bard plans in this process.
+  if (!/already registered/.test(error?.message ?? "")) throw error;
+}
 
 const INSTRUMENT_ID = "lute0000000001";
 const docsRef = { docs: null };
@@ -629,9 +634,12 @@ function stubDialogs(answers) {
       const answer = queue.shift();
       seen.push(window.title);
       if (answer === null || answer === undefined) return null;
-      const button = buttons.find(entry => entry.action === answer);
-      if (!button) throw new Error(`no button ${answer} in ${window.title}`);
-      return (await button.callback?.()) ?? answer;
+      // A string answer is a button action; an object answer is a picker's form values with an optional action.
+      const action = typeof answer === "string" ? answer : (answer.action ?? "continue");
+      const button = buttons.find(entry => entry.action === action);
+      if (!button) throw new Error(`no button ${action} in ${window.title}`);
+      const elements = { performanceId: { value: answer.performanceId ?? "" }, keepArt: { value: answer.keepArt ?? "" } };
+      return (await button.callback?.(null, { form: { elements } })) ?? action;
     },
     async prompt({ window, ok }) {
       const answer = queue.shift();
@@ -770,4 +778,24 @@ test("Put on a Performance confirms first: Cancel starts nothing; confirm starts
   const result = await bardPerformCommand(actor, "bardStartPerformance");
   assert.equal(result.artName, "Bless");
   assert.equal(active(actor).index, 1);
+});
+
+test("the Performance picker has Cancel and X: both start nothing and write nothing", async () => {
+  const actor = bard({ level: 9 });
+  const before = stateOf(actor);
+  const cancelled = stubDialogs([{ performanceId: "P1", action: "cancel" }]);
+  assert.equal(await bardPerformCommand(actor, "bardStartPerformance"), null);
+  assert.equal(cancelled.remaining(), 0);
+  assert.equal(stateOf(actor), before, "Cancel on the picker changes nothing");
+  stubDialogs([null]);
+  assert.equal(await bardPerformCommand(actor, "bardStartPerformance"), null);
+  assert.equal(stateOf(actor), before, "closing the picker with X changes nothing");
+});
+
+test("the picker's Continue reaches the start confirm, which names the first Art at 0 AP", async () => {
+  const actor = bard({ level: 9 });
+  const dialogs = stubDialogs([{ performanceId: "P1" }, "cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardStartPerformance"), null);
+  assert.equal(dialogs.seen.length, 2, "picker, then the start confirm");
+  assert.match(dialogs.seen[1], /Put on P1/);
 });
