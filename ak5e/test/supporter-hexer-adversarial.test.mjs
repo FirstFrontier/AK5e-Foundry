@@ -132,14 +132,13 @@ function hexOfKind(target, kind) {
 }
 
 /** Speed lost to Binding Hexes: ADD changes on movement.walk, plus the flag fallback. */
+// One source per Hex: the ADD change on movement.walk when present, otherwise the speedReduction flag. Never both.
 function speedLoss(target) {
   let loss = 0;
   for (const effect of hexEffects(target)) {
-    for (const change of effect.changes ?? []) {
-      if (/movement\.walk/.test(change.key) && Number.isFinite(Number(change.value))) loss += -Number(change.value);
-    }
-    const reduction = Number(flagOf(effect)?.speedReduction ?? 0);
-    if (Number.isFinite(reduction)) loss += reduction;
+    const walk = (effect.changes ?? []).find(change => /movement\.walk/.test(change.key) && Number.isFinite(Number(change.value)));
+    if (walk) loss += -Number(walk.value);
+    else loss += Number(flagOf(effect)?.speedReduction ?? 0);
   }
   return loss;
 }
@@ -501,16 +500,21 @@ test("R9-1: Abjuring never rolls at plan or application; the roll waits for the 
   assert.deepEqual(calls, [], "no Roll.evaluate during plan or application");
 });
 
-test("R9-2: the abjuring roll is recorded on the Hex at the user's click, and nothing is recorded before", async () => {
+// C3:7290: the hexed creature rolls a die of the Aid Die size on EACH of its own Damage Rolls. Nothing is rolled
+// when the Hex is applied; the Hex records the die formula and a reminder (R9).
+test("R9-2: applying Abjuring records the die formula (1d8 at level 4) and a reminder, with no roll and no awaiting-roll state", async () => {
   await ready();
   const s = makeHexer({ level: 4 });
   const foe = foeActor();
   const calls = rollSpy(5);
   await run(s, "potentHex", potentData(foe, "abjuring"), "r9-2");
-  assert.equal(hexOfKind(foe, "abjuring")?.roll, undefined, "no roll is stored before the click");
-  await click(s, receiptOf(s, "r9-2").id ?? "r9-2");
-  assert.equal(calls.length, 1, "exactly one roll, on the click");
-  assert.equal(hexOfKind(foe, "abjuring")?.roll, 5, "the clicked roll is recorded on the Hex");
+  assert.deepEqual(calls, [], "no Roll on application");
+  assert.equal(receiptOf(s, "r9-2").status, "complete", "no awaiting-roll state");
+  const hex = hexOfKind(foe, "abjuring");
+  assert.ok(hex, "the Abjuring Hex is applied at once");
+  assert.equal(hex.formula, "1d8", "the die the creature rolls on its Damage Rolls is recorded");
+  assert.equal(hex.roll ?? null, null, "nothing is rolled or recorded at application");
+  assert.match(JSON.stringify(receiptOf(s, "r9-2") ?? {}), /Damage Roll/i, "the reminder that the creature rolls on its Damage Roll is shown");
 });
 
 test("R9-3: the binding roll is two Aid Dice (2d8 at level 4), not one (C3:7292, ruling 9)", async () => {
@@ -555,17 +559,18 @@ test("R9-6: Binding with no click records no speed loss at all (the plan never r
   assert.equal(speedLoss(foe), 0, "no speed is lost before the roll is clicked");
 });
 
-test("R9-7: an Abjuring Hex is removed by undo after the click, and the pool is restored (every change is undoable)", async () => {
+test("R9-7: undo after applying Abjuring removes the effect and restores the pool, with no click step", async () => {
   await ready();
   const s = makeHexer({ level: 4 });
   const foe = foeActor();
   const prior = potentValue(s);
-  rollSpy(5);
+  const calls = rollSpy(5);
   await run(s, "potentHex", potentData(foe, "abjuring"), "r9-7");
-  await click(s, "r9-7");
+  assert.equal(hexEffects(foe).length, 1, "the Abjuring Hex is applied");
   await Uses.supporterUses.undo(s, "r9-7");
-  assert.equal(potentValue(s), prior);
-  assert.equal(hexEffects(foe).length, 0, "the abjuring Hex is removed on undo");
+  assert.equal(potentValue(s), prior, "the pool is restored exactly");
+  assert.equal(hexEffects(foe).length, 0, "the Abjuring Hex is removed on undo");
+  assert.deepEqual(calls, [], "undo never rolls");
 });
 
 test.todo("ABJ-DMG: Abjuring subtracts floor(roll/2) from the creature's damage roll, minimum 1 (C3:7290, R9). Gap: the contract has no damage-pipeline seam to call.");
@@ -637,7 +642,34 @@ test("FR-5: the Force rider is a button, not automatic: no roll, and the card ca
   assert.match(lastMessageText(), /1d8/, "the Force formula is one roll of the Aid Die (d8 at level 4)");
 });
 
-test.todo("FR-6: the Force rider is once per creature (C3:7290: 'cannot take it again' per creature), so two different hexed creatures each get a card. Ambiguous with the contract's 'at most once per turn cycle'; head ruling needed.");
+// C3:7290: "Once THEY have taken this Damage, they cannot take it again until the beginning of your next Turn."
+// Head ruling: the limit is per hexed creature, and everything resets at the Hexer's turnStart.
+test("FR-6: the Force rider limit is per hexed creature: two creatures each get one card, the same creature twice gets one, and it all resets at turnStart", async () => {
+  const H = await ready();
+  H.registerHexerHooks();
+  const s = makeHexer({ level: 4 });
+  const foeA = foeActor("Creature A"), foeB = foeActor("Creature B");
+  await run(s, "potentHex", potentData(foeA, "looping"), "fr6-a");
+  await run(s, "potentHex", potentData(foeB, "looping"), "fr6-b");
+  const hit = (target, n) => emitAk5eEvent("hit", { actorUuid: foeActor(`Attacker ${n}`).uuid, targetUuid: target.uuid, ac: 10, eventId: `hit:fr6-${target.name}-${n}` });
+
+  const before = messageCount();
+  await hit(foeA, 1);
+  assert.equal(messageCount() - before, 1, "creature A's first hit in the cycle: one card");
+  await hit(foeA, 2);
+  assert.equal(messageCount() - before, 1, "creature A hit again in the same cycle: no second card");
+  await hit(foeB, 1);
+  assert.equal(messageCount() - before, 2, "creature B is a different creature: its own card");
+  await hit(foeB, 2);
+  assert.equal(messageCount() - before, 2, "creature B hit again in the same cycle: no second card");
+
+  await emitAk5eEvent("turnStart", { actorUuid: s.uuid, eventId: "turnStart:fr6" });
+  const mid = messageCount();
+  await hit(foeA, 3);
+  assert.equal(messageCount() - mid, 1, "after the Hexer's turnStart, creature A gets a card again");
+  await hit(foeB, 3);
+  assert.equal(messageCount() - mid, 2, "after the Hexer's turnStart, creature B gets a card again");
+});
 
 /* ==========================================================================
    7. Cursemark (C3:7302-7305, C3:7307-7312)
