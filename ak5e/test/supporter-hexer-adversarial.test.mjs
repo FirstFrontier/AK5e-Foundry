@@ -480,7 +480,10 @@ test("LV-H5: the Hex die follows the Aid Die size at the 6/7 and 13/14 boundarie
     const calls = rollSpy(3);
     const opId = `lv5-${level}`;
     await run(s, "potentHex", potentData(foeActor(), "abjuring"), opId);
-    assert.equal(receiptOf(s, opId).formula, `1${dieOf(level)}`, `level ${level} die`);
+    // The Abjuring die is in receipt.result.formula; fall back to the target entry, then to receipt.formula (rolled kinds).
+    const receipt = receiptOf(s, opId);
+    const formula = receipt?.result?.formula ?? receipt?.targets?.[0]?.formula ?? receipt?.formula;
+    assert.equal(formula, `1${dieOf(level)}`, `level ${level} die`);
     assert.deepEqual(calls, [], "no roll at application");
   }
 });
