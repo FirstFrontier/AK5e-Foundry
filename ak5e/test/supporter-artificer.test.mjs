@@ -440,6 +440,14 @@ test("a foreign Automaton with no recorded creator also warns, with the creator 
   assert.ok(plan.warnings.some(w => w.id === "creator" && /no recorded creator/.test(w.text)));
 });
 
+test("listed with a mismatched creator flag: no creator warning (the Artificer's list is authoritative)", async () => {
+  const a = artificer(13);
+  const { automaton } = await build(a);
+  automaton.flags.ak5e.automaton.creator = "Actor.someoneElse";
+  const plan = artificerPlans.asOne(a, supporterUses.state(a), { automatonUuid: automaton.uuid, action: "ram", attackAction: true });
+  assert.equal(plan.warnings.some(w => w.id === "creator"), false, "no creator warning for a listed Automaton");
+});
+
 test("missing, unknown, or non-Automaton UUIDs are still hard errors", () => {
   const a = artificer(13);
   assert.throws(() => artificerPlans.asOne(a, supporterUses.state(a), { action: "ram", attackAction: true }), /Choose an Automaton/);

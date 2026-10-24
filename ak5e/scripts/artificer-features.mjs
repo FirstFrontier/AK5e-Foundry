@@ -114,7 +114,9 @@ const automatonAt = (actor, uuid, warnings = []) => {
   need(doc?.documentName === "Actor", "That Automaton no longer exists.");
   need(isAutomatonFlagged(doc), "That Creature is not an Automaton.");
   const creator = automatonFlag(doc).creator;
-  if (creator !== actor.uuid) {
+  // The Artificer's own automatons list is authoritative for ownership (buildAutomaton writes it); the creator flag is the fallback.
+  const listed = (artificerState(actor).automatons ?? []).includes(doc.uuid);
+  if (!listed && creator !== actor.uuid) {
     warn(warnings, "creator", creator
       ? `${doc.name} was created by another Artificer (${creator}); it is not in this Artificer's Automaton list.`
       : `${doc.name} has no recorded creator.`);
