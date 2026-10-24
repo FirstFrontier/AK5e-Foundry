@@ -44,15 +44,18 @@ globalThis.Roll = class SpyRoll {
 
 /** The probe reads the world state. Set by cancelControl(); each dialog records the state at the moment it opens. */
 let probe = null;
+/** When set, every dialog is dismissed with X (resolves null) instead of its Cancel button. */
+let dismissWithX = false;
 /** Every dialog opened, in order: { title, actions, stateAtOpen }. */
 const dialogCalls = [];
 
 async function emulateWait(options, buttons) {
   const title = options.window?.title ?? "";
-  dialogCalls.push({ title, actions: buttons.map(button => button.action), stateAtOpen: probe ? probe() : null });
-  // Cancel: the button with action "cancel" when present. A dialog without one is closed with X, which resolves null.
+  dialogCalls.push({ title, actions: buttons.map(button => button.action), labels: buttons.map(button => button.label ?? ""), stateAtOpen: probe ? probe() : null });
+  // Cancel: the button with action "cancel" when present. A dialog without one, or any dialog while `dismissWithX` is set,
+  // is closed with X, which resolves null.
   const cancel = buttons.find(button => button.action === "cancel");
-  if (!cancel) return null;
+  if (dismissWithX || !cancel) return null;
   const result = await cancel.callback?.(null, { form: { elements: {} }, dataset: { action: cancel.action } }, null);
   return result ?? cancel.action;
 }
@@ -63,7 +66,7 @@ const emulatedDialogV2 = {
 };
 globalThis.foundry.applications = { api: { DialogV2: emulatedDialogV2 } };
 
-test.beforeEach(() => { rollCalls.length = 0; dialogCalls.length = 0; probe = null; });
+test.beforeEach(() => { rollCalls.length = 0; dialogCalls.length = 0; probe = null; dismissWithX = false; });
 test.after(() => { teardownFoundryGlobals(); });
 
 /* ==========================================================================
@@ -470,10 +473,22 @@ test("bardCastNextArt on the LAST Art: Cancel (X) on the keep-Concentration prom
   assert.ok(mod, missingReason);
   // Index 2 is Heroism, the Concentration Art and the last Art of P3: the keep-Concentration prompt opens first (L7108).
   const actor = performingAt(2);
-  const { outcome, before, after, dialogs } = await cancelControl(mod, actor, "bardCastNextArt");
+  dismissWithX = true;
+  let run;
+  try {
+    run = await cancelControl(mod, actor, "bardCastNextArt");
+  } finally {
+    dismissWithX = false;
+  }
+  const { outcome, before, after, dialogs } = run;
   assert.ok(!(outcome.error instanceof TypeError), `not a programming error: ${outcome.error?.message}`);
   assert.ok(dialogs.length >= 1, "the keep-Concentration prompt is shown");
-  assert.match(dialogs[0].title, /^End Performance: keep Concentration/, "the first prompt is the keep-Concentration choice");
+  // Identified by its buttons, not its title (the title is the last-Art confirm, which may change): "Keep: <Art>" per
+  // Concentration Art, "Keep none", and "Cancel".
+  const labels = dialogs[0]?.labels ?? [];
+  assert.ok(labels.some(label => /^Keep: /.test(label)), "the first prompt offers a \"Keep: <Art>\" button");
+  assert.ok(labels.includes("Keep none"), "the first prompt offers \"Keep none\"");
+  assert.ok(labels.includes("Cancel"), "the first prompt offers \"Cancel\"");
   assert.equal(dialogs[0].stateAtOpen, before, "nothing is written before that prompt");
   assert.equal(after, before, "closing the prompt cancels the cast: the Art is not cast and nothing is written");
 });
