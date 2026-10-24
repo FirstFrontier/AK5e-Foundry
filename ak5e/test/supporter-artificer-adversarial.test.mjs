@@ -60,25 +60,32 @@ async function artificer() {
 /** Load the module and register its plans with the Supporter engine (once per file). */
 async function ready() {
   const A = await artificer();
+  VARIANTS = A.AUTOMATON_VARIANTS;
   if (!plansRegistered) {
-    Uses.registerSupporterPlans({ plans: A.artificerPlans });
+    Uses.registerSupporterPlans({ plans: A.artificerPlans, readings: A.artificerReadings });
     plansRegistered = true;
   }
   return A;
 }
 
-// Local Actor.create stub. Restored in afterEach so no other file sees it.
+// Action ids per Automaton variant, read from AUTOMATON_VARIANTS after the module loads (never hard-coded).
+let VARIANTS = {};
+/** The first stat-block action id of an Automaton. */
+const firstActionOf = automaton => VARIANTS[automaton.flags.ak5e.automaton.variant].actions[0];
+
+// Local Actor creation stub, restored in afterEach. Mirrors Foundry's create(data, { keepId }): the requested _id
+// is kept, system and flags carry over, and the "Creator proficiency" change on system.attributes.prof is applied
+// (the fixture does not run Active Effects).
 let restoreActor = null;
 function installActorStub() {
   const previous = globalThis.Actor;
   const create = async (data = {}) => {
-    const automatonFlags = structuredClone(data.flags?.ak5e?.automaton ?? {});
-    const created = makeAutomaton({
-      name: data.name ?? "Automaton",
-      creator: automatonFlags.creator ?? null,
-      variant: automatonFlags.variant ?? "platform"
+    const created = createTestActor({
+      id: data._id, name: data.name ?? "Automaton", type: data.type ?? "npc", ownership: data.ownership,
+      system: structuredClone(data.system ?? {}), flags: structuredClone(data.flags ?? {})
     });
-    created.flags.ak5e.automaton = { ...created.flags.ak5e.automaton, ...automatonFlags };
+    const profChange = (data.effects ?? []).flatMap(effect => effect.changes ?? []).find(change => change.key === "system.attributes.prof");
+    if (profChange) created.system.attributes.prof = Number(profChange.value);
     created.delete = async () => {
       game.actors.delete(created.id);
       globalThis._ak5eTestDocs?.delete(created.uuid);
@@ -89,6 +96,9 @@ function installActorStub() {
   globalThis.Actor = { create, implementation: { create } };
   return () => { globalThis.Actor = previous; };
 }
+
+/** Flush async Hooks.callAll handlers (the fixture's callAll does not await them). */
+const flush = async () => { for (let i = 0; i < 3; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
 
 test.beforeEach(async () => {
   setupFoundryGlobals();
@@ -105,7 +115,7 @@ test.afterEach(() => {
 });
 
 /** An Artificer (branch flag "artificer") at `level`. `automatons` and `covers` seed flags.ak5e.artificer. */
-function makeArtificer({ level = 1, mods = {}, branch = "artificer", enabled = true, lmd = 0,
+function makeArtificer({ level = 1, mods = {}, branch = "artificer", enabled = true, lmd = 0, tech = 5,
   automatons = [], covers = [], supporter = true } = {}) {
   const abilities = {};
   for (const [key, mod] of Object.entries({ ...DEFAULT_MODS, ...mods })) abilities[key] = { mod, value: 10 + 2 * mod };
@@ -118,7 +128,8 @@ function makeArtificer({ level = 1, mods = {}, branch = "artificer", enabled = t
   return createTestActor({
     name: `Artificer L${level}`, level, items, abilities,
     hp: { value: 20, max: 20, temp: 0 },
-    system: { currency: { lmd } },
+    // LMD is system.currency.cp (head ruling; the module convention in supporter-progression.mjs).
+    system: { currency: { cp: lmd }, skills: { ak5etech: { total: tech, value: 1 } } },
     flags: { ak5e }
   });
 }
@@ -144,8 +155,11 @@ function makeAutomaton({ name = "Automaton", creator = null, variant = "platform
 }
 
 /** Plan data helpers. */
-const buildData = (variant = "platform", extra = {}) => ({ variant, ...extra });
-const commandData = (auto, distance = 60, command = "move", extra = {}) => ({ automatonUuid: auto.uuid, distance, command, ...extra });
+const buildData = (variant = "platform", extra = {}) => ({ variant, technologyModifier: "intMod", ...extra });
+// Accepted shape (head ruling): { automatonUuid, distance, move: true } or { automatonUuid, distance, action: <id> }.
+const commandData = (auto, distance = 60, command = "move", extra = {}) => command === "move"
+  ? { automatonUuid: auto.uuid, distance, move: true, ...extra }
+  : { automatonUuid: auto.uuid, distance, action: command, ...extra };
 
 /** Click the use's roll button (the only path that rolls). */
 const click = (actor, useId) => Uses.supporterUses.command(actor, "useRoll", { useId }, `roll-${useId}`);
@@ -160,7 +174,7 @@ const aidValue = actor => aidPool(actor).value;
 const uuidsOf = actor => actor?.flags?.ak5e?.artificer?.automatons ?? [];
 const coversOf = actor => actor?.flags?.ak5e?.artificer?.covers ?? [];
 const fromUuid = uuid => globalThis.fromUuidSync?.(uuid) ?? game.actors.get(String(uuid).split(".").pop()) ?? null;
-const lmdOf = actor => Number(actor?.system?.currency?.lmd ?? 0);
+const lmdOf = actor => Number(actor?.system?.currency?.cp ?? 0);
 
 /** Warnings from a plan run: the plan's own list when it passes, or the AK5eWarnings thrown when it is not yet overridden. */
 async function warningsOf(run) {
@@ -204,10 +218,10 @@ const lastMessageText = () => String(game.messages[game.messages.length - 1]?.co
 const run = (actor, name, data, opId) => Uses.supporterUses.execute(actor, name, data, opId);
 
 /** Build one Automaton through the real plan and return the new actor (or null if none appeared). */
-async function buildOne(art, variant = "platform", opId = `build-${Math.random().toString(36).slice(2, 8)}`) {
+async function buildOne(art, variant = "platform", opId = `build-${Math.random().toString(36).slice(2, 8)}`, technologyModifier = "intMod") {
   const before = uuidsOf(art).slice();
-  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "buildAutomaton", buildData(variant)));
-  await run(art, "buildAutomaton", buildData(variant, { overrides: overridesFor(ws) }), opId);
+  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "buildAutomaton", buildData(variant, { technologyModifier })));
+  await run(art, "buildAutomaton", buildData(variant, { technologyModifier, overrides: overridesFor(ws) }), opId);
   const added = uuidsOf(art).find(uuid => !before.includes(uuid)) ?? null;
   return { uuid: added, automaton: added ? fromUuid(added) : null, opId, receipt: receiptOf(art, opId) };
 }
@@ -314,19 +328,18 @@ test("BR-3: a Bard (branch bard) is refused by the concussive plan with a clear 
    3. Build (Professional Engineer, C3:6886-6889; Ch.6 stat blocks)
    ========================================================================== */
 
-test("BLD-1: a built Automaton has max HP 25 plus the Technology Modifier (one of the two readings)", async () => {
-  // Source (C3:6886-6889): "additional Maximum Hit Points equal to your Technology Modifier". The source does not say
-  // whether this is the Technology skill total or the INT modifier (see the DECISIONS "Technology Modifier" note).
-  // The test accepts either reading, so it cannot pass by inventing one.
+test("BLD-1: max HP is 25 plus the Technology Modifier for each reading (techTotal = 25 + 5, intMod = 25 + 3)", async () => {
+  // Source (C3:6886-6889): "additional Maximum Hit Points equal to your Technology Modifier". The reading is a
+  // head ruling (caster-drones precedent): "techTotal" = the ak5etech skill total, "intMod" = the INT modifier.
+  // Both readings are tested with exact values (Technology total 5, INT modifier 3).
   await ready();
-  const art = makeArtificer({ level: 5, mods: { int: 3 } });
-  const { automaton } = await buildOne(art, "platform", "bld1");
-  assert.ok(automaton, "an Automaton actor was created");
-  const hpMax = Number(automaton.system.attributes.hp.max);
-  const techTotal = Number(art.system?.skills?.tec?.total ?? art.system?.skills?.tec?.mod ?? NaN);
-  const readings = [AUTOMATON_BASE_HP + 3, AUTOMATON_BASE_HP + (Number.isFinite(techTotal) ? techTotal : -999)];
-  assert.ok(readings.includes(hpMax), `max HP ${hpMax} is one of ${readings.join(", ")}`);
-  assert.ok(hpMax > AUTOMATON_BASE_HP, "the Automaton gains extra max HP");
+  const expected = { techTotal: 5, intMod: 3 };
+  for (const [reading, bonus] of Object.entries(expected)) {
+    const art = makeArtificer({ level: 5, mods: { int: 3 }, tech: 5 });
+    const { automaton } = await buildOne(art, "platform", `bld1-${reading}`, reading);
+    assert.ok(automaton, `an Automaton is created with reading ${reading}`);
+    assert.equal(Number(automaton.system.attributes.hp.max), AUTOMATON_BASE_HP + bonus, `reading ${reading}: 25 + ${bonus}`);
+  }
 });
 
 test("BLD-2: the built Automaton uses the Artificer's Proficiency Bonus (C3:6886-6889)", async () => {
@@ -503,7 +516,9 @@ test("FB-2: an empty Fort Builder pool warns, a blocked use spends nothing, and 
   const coversBefore = coversOf(art).length;
   await assert.rejects(() => run(art, "fortBuilder", {}, "fb2-blocked"), error => error instanceof Error);
   assert.equal(coversOf(art).length, coversBefore, "a blocked use adds no cover");
-  await run(art, "fortBuilder", {}, "fb2-anyway");
+  // Overrides come from the warnings the plan actually raises now (pool still empty), not from an earlier plan.
+  const current = await warningsOf(() => Uses.supporterUses.plan(art, "fortBuilder", {}));
+  await run(art, "fortBuilder", { overrides: overridesFor(current) }, "fb2-anyway");
   assert.equal(fortValue(art), 0, "the pool clamps at 0, never below");
   assert.ok(recordsShortfall(receiptOf(art, "fb2-anyway")), "the shortfall is recorded on the receipt");
 });
@@ -555,7 +570,7 @@ test("CTL-3: a command card posts roll buttons and rolls nothing (no Roll.evalua
   const calls = forbidRolls();
   const auto = makeAutomaton({ creator: "x" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
-  await run(art, "commandAutomaton", commandData(auto, 60, "attack"), "ctl3");
+  await run(art, "commandAutomaton", commandData(auto, 60, firstActionOf(auto)), "ctl3");
   assert.equal(calls.length, 0, `no roll was evaluated, got ${JSON.stringify(calls)}`);
   assert.match(JSON.stringify(receiptOf(art, "ctl3") ?? {}) + lastMessageText(), /roll/i, "a roll control is offered on the card");
 });
@@ -564,9 +579,9 @@ test("CTL-4: at level 13 one command covers all Automatons (C3:6945; Ch.3 Maximu
   await ready();
   const a = makeAutomaton({ creator: "x" }), b = makeAutomaton({ creator: "x" });
   const art = makeArtificer({ level: 13, automatons: [a.uuid, b.uuid] });
-  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "commandAutomaton", { all: true, distance: 60, command: "move" }));
+  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "commandAutomaton", { all: true, distance: 60, move: true }));
   assert.equal(rangeWarning(ws), false, "a 60 ft command to both is in range");
-  await run(art, "commandAutomaton", { all: true, distance: 60, command: "move" }, "ctl4");
+  await run(art, "commandAutomaton", { all: true, distance: 60, move: true }, "ctl4");
   const receipt = JSON.stringify(receiptOf(art, "ctl4") ?? {});
   assert.ok(receipt.includes(a.uuid) && receipt.includes(b.uuid), "the receipt covers both Automatons");
 });
@@ -575,7 +590,8 @@ test("CTL-5: an unknown command returns undefined from artificerCommand (no thro
   const A = await ready();
   const art = makeArtificer({ level: 5 });
   const before = messageCount();
-  assert.equal(A.artificerCommand(art, "dance"), undefined);
+  // artificerCommand is async (the forms it opens are awaited), so an unknown command resolves to undefined.
+  assert.equal(await A.artificerCommand(art, "dance"), undefined);
   assert.equal(messageCount(), before, "no card is posted for an unknown command");
 });
 
@@ -602,16 +618,16 @@ test("CTL-8: at level 12 the all-Automatons command is not available; at level 1
   const a = makeAutomaton({ creator: "x" }), b = makeAutomaton({ creator: "x" });
   const at12 = makeArtificer({ level: 12, automatons: [a.uuid] });
   const at13 = makeArtificer({ level: 13, automatons: [a.uuid, b.uuid] });
-  const w12 = await warningsOf(() => Uses.supporterUses.plan(at12, "commandAutomaton", { all: true, distance: 30, command: "move" }));
+  const w12 = await warningsOf(() => Uses.supporterUses.plan(at12, "commandAutomaton", { all: true, distance: 30, move: true }));
   const refused12 = await refusedPlan(at12);
   assert.ok(w12.length > 0 || refused12, "level 12 cannot command all at once (a warning or a refusal)");
-  const w13 = await warningsOf(() => Uses.supporterUses.plan(at13, "commandAutomaton", { all: true, distance: 30, command: "move" }));
+  const w13 = await warningsOf(() => Uses.supporterUses.plan(at13, "commandAutomaton", { all: true, distance: 30, move: true }));
   assert.equal(hasWarning(w13, /all|level|bonus/i), false, "level 13 allows the all-Automatons command");
 });
 
 /** True when the plan throws (a refusal, not a warning). */
 async function refusedPlan(art) {
-  try { await Uses.supporterUses.plan(art, "commandAutomaton", { all: true, distance: 30, command: "move" }); return false; }
+  try { await Uses.supporterUses.plan(art, "commandAutomaton", { all: true, distance: 30, move: true }); return false; }
   catch { return true; }
 }
 
@@ -619,31 +635,42 @@ async function refusedPlan(art) {
    7. As One (A2, C3:6870-6876)
    ========================================================================== */
 
+// As One data shape: { automatonUuid, action: <id>, attackAction: true } (the As One rider is taken with the
+// Attack Action). The turret variant has two stat-block actions (multiattack, crossbow), so a "different Action"
+// case is a real one.
+const asOneData = (auto, action, extra = {}) => ({ automatonUuid: auto.uuid, action, attackAction: true, ...extra });
+const TURRET_ACTIONS = () => VARIANTS.turret.actions;
+const repeatWarning = ws => hasWarning(ws, /repeat|already|same|cannot/i);
+
 test("AO-1: an Automaton repeating the same Action before the Artificer's next turn warns (A2)", async () => {
   await ready();
-  const auto = makeAutomaton({ creator: "x" });
+  const [first] = TURRET_ACTIONS();
+  const auto = makeAutomaton({ creator: "x", variant: "turret" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
-  await run(art, "asOne", { automatonUuid: auto.uuid, action: "Ram" }, "ao1-first");
-  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", { automatonUuid: auto.uuid, action: "Ram" }));
-  assert.ok(ws.length > 0, `a repeated Action warns, got: ${warningText(ws)}`);
+  await run(art, "asOne", asOneData(auto, first), "ao1-first");
+  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", asOneData(auto, first)));
+  assert.ok(repeatWarning(ws), `the repeated Action raises a repeat warning, got: ${warningText(ws)}`);
 });
 
-test("AO-2: a different Action is not a repeat (no As One warning)", async () => {
+test("AO-2: a different Action is not a repeat (no As One repeat warning)", async () => {
   await ready();
-  const auto = makeAutomaton({ creator: "x" });
+  const [first, second] = TURRET_ACTIONS();
+  assert.notEqual(first, second, "the turret has two distinct Actions");
+  const auto = makeAutomaton({ creator: "x", variant: "turret" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
-  await run(art, "asOne", { automatonUuid: auto.uuid, action: "Ram" }, "ao2-first");
-  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", { automatonUuid: auto.uuid, action: "Dodge" }));
-  assert.equal(hasWarning(ws, /same|repeat|already|cannot/i), false, "a different Action raises no repeat warning");
+  await run(art, "asOne", asOneData(auto, first), "ao2-first");
+  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", asOneData(auto, second)));
+  assert.equal(repeatWarning(ws), false, "a different Action raises no repeat warning");
 });
 
 test("AO-3: As One with a repeat is overridable with 'Use anyway'", async () => {
   await ready();
-  const auto = makeAutomaton({ creator: "x" });
+  const [first] = TURRET_ACTIONS();
+  const auto = makeAutomaton({ creator: "x", variant: "turret" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
-  await run(art, "asOne", { automatonUuid: auto.uuid, action: "Ram" }, "ao3-first");
-  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", { automatonUuid: auto.uuid, action: "Ram" }));
-  await run(art, "asOne", { automatonUuid: auto.uuid, action: "Ram", overrides: overridesFor(ws) }, "ao3-anyway");
+  await run(art, "asOne", asOneData(auto, first), "ao3-first");
+  const ws = await warningsOf(() => Uses.supporterUses.plan(art, "asOne", asOneData(auto, first)));
+  await run(art, "asOne", asOneData(auto, first, { overrides: overridesFor(ws) }), "ao3-anyway");
   assert.ok(receiptOf(art, "ao3-anyway"), "the repeat proceeds after Use anyway");
 });
 
@@ -653,11 +680,14 @@ test("AO-3: As One with a repeat is overridable with 'Use anyway'", async () => 
 
 test("RB-1: an Automaton reduced to 0 HP is marked destroyed: true", async () => {
   const A = await ready();
+  // The destroyed check is an updateActor hook installed by registerArtificerHooks().
+  A.registerArtificerHooks();
   const auto = makeAutomaton({ creator: "x" });
   const art = makeArtificer({ level: 5, automatons: [auto.uuid] });
   const changes = { "system.attributes.hp.value": 0 };
   await auto.update(changes);
   globalThis.Hooks.callAll?.("updateActor", auto, changes, {}, game.user.id);
+  await flush();
   assert.equal(auto.flags.ak5e.automaton.destroyed, true, "the Automaton is destroyed at 0 HP");
   assert.equal(A.countsAgainstCap(auto), false, "a destroyed Automaton no longer counts");
   assert.ok(art, "the Artificer is still present");
@@ -865,7 +895,7 @@ test("NR-1: no Roll.evaluate or Roll.roll during plan, apply or undo across the 
   const art = makeArtificer({ level: 10, lmd: 800, automatons: [auto.uuid] });
   await run(art, "fortBuilder", {}, "nr-fort");
   await run(art, "concussiveMaintenance", { automatonUuid: auto.uuid }, "nr-cm");
-  await run(art, "commandAutomaton", commandData(auto, 60, "attack"), "nr-cmd");
+  await run(art, "commandAutomaton", commandData(auto, 60, firstActionOf(auto)), "nr-cmd");
   await Uses.supporterUses.undo(art, "nr-fort");
   await Uses.supporterUses.undo(art, "nr-cm");
   assert.deepEqual(calls, [], `no roll evaluated, got ${JSON.stringify(calls)}`);
