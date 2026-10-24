@@ -126,16 +126,19 @@ function makeBard({ level = 1, cha = 4, performances = [], active = null, fontDi
     for (const art of entry.arts) {
       if (art.manual || seenArts.has(art.name)) continue;
       seenArts.add(art.name);
-      items.push(createTestItem({ name: art.name, type: "spell", system: { level: 1 } }));
+      // Only Heroism is seeded as a Concentration Art (the property the engine reads, D&D5e system.properties).
+      const properties = CONCENTRATION_ARTS.has(art.name) ? new Set(["concentration"]) : new Set();
+      items.push(createTestItem({ name: art.name, type: "spell", system: { level: 1, properties } }));
     }
   }
-  const toolValue = instrument === "ready" || instrument === "unequipped" ? 1 : 0;
+  // Proficiency is detectably absent for "unproficient": proficient 0 on the tool and no tools entry (ruling D).
+  const toolsSystem = instrument === "unproficient" || instrument === "none" ? {} : { tools: { lute: { value: 1 } } };
   const bardFlags = { performances: structuredClone(performances), active: structuredClone(active), museTHP: 0 };
   if (fontDie !== undefined) bardFlags.fontDie = fontDie;
-  return createTestActor({
+  return arrayAwareUpdate(createTestActor({
     name, level, items, abilities, owner,
     hp: { value: 20, max: 20, temp: 0 },
-    system: { tools: { lute: { value: toolValue } } },
+    system: toolsSystem,
     flags: {
       ak5e: {
         supporter: { enabled: supporter, branch },
@@ -144,7 +147,28 @@ function makeBard({ level = 1, cha = 4, performances = [], active = null, fontDi
         bard: bardFlags
       }
     }
-  });
+  }));
+}
+
+/**
+ * Foundry's array-index updates (`flags.ak5e.bard.performances.0.performed`) write the index in place. The shared
+ * fixture would replace the whole array on such a dotted write, so this wrapper writes the index itself, then
+ * delegates the rest. Same approach as the implementer's supporter-bard-perform.test.mjs.
+ */
+function arrayAwareUpdate(actor) {
+  const original = actor.update.bind(actor);
+  const getPath = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
+  actor.update = async (changes, options = {}) => {
+    const plain = {};
+    for (const [path, value] of Object.entries(changes)) {
+      const match = path.match(/^(.*)\.(\d+)\.([^.]+)$/);
+      const list = match ? getPath(actor, match[1]) : null;
+      if (Array.isArray(list)) list[Number(match[2])][match[3]] = value;
+      else plain[path] = value;
+    }
+    return original(plain, options);
+  };
+  return actor;
 }
 
 /** A plain target creature. `owner: false` is the unowned relay case (WORKFLOW 3.2). */
@@ -162,7 +186,11 @@ function perf(id, names, extra = {}) {
     ...extra
   };
 }
+// Concentration Arts seeded on the spell sheet (non-manual Arts only).
+const CONCENTRATION_ARTS = new Set(["Heroism"]);
 const P3 = (extra = {}) => perf("perf-3", ["Bless", "Aid", "Heroism"], extra);
+// A Performance whose first Art is the Concentration Art, so keepArt can name a cast Art (ruling E).
+const PC = (extra = {}) => perf("perf-c", ["Heroism", "Aid", "Bane"], extra);
 const P4 = (extra = {}) => perf("perf-4", ["Bless", "Aid", "Bane", "Heroism"], extra);
 const PM = (extra = {}) => perf("perf-m", ["Bless", "Cause Fear", "Aid"], extra);
 
@@ -228,7 +256,13 @@ function assertRefused(outcome, message) {
 
 /** Start a Performance and cast its first Art, overriding any warnings the caller explicitly accepts. */
 async function startPerformance(actor, performanceId, overrides = []) {
-  return attempt(actor, "startPerformance", { performanceId, overrides });
+  // The engine's start does not cast (a native cast needs the dnd5e dialog). The UI flow is start, then castNextArt for
+  // the first Art (ruling A). Only a successful start is followed by that first cast; a warned start casts nothing.
+  const started = await attempt(actor, "startPerformance", { performanceId, overrides });
+  if (started.ok) {
+    const active = bardOf(actor)?.active ?? {};
+    started.firstCast = await attempt(actor, "castNextArt", { performanceId: active.performanceId, index: active.index, overrides: [] });  }
+  return started;
 }
 
 /**
@@ -643,9 +677,9 @@ test("EP-3: keepArt must name an Art that was cast; keepArt for an uncast Art is
 
 test("EP-4: keepArt naming the cast Art ends the Performance and succeeds (C3:7104-7105)", async () => {
   const B = await ready();
-  const actor = makeBard({ level: 1, performances: [P3()] });
-  await startPerformance(actor, "perf-3");
-  const outcome = await attempt(actor, "endPerformance", { keepArt: "Bless" });
+  const actor = makeBard({ level: 1, performances: [PC()] });
+  await startPerformance(actor, "perf-c");
+  const outcome = await attempt(actor, "endPerformance", { keepArt: "Heroism" });
   assert.equal(outcome.ok, true, "keeping the cast Art is valid");
   assert.equal(B.isPerforming(actor), false);
 });
@@ -807,6 +841,9 @@ test("UN-1: undoing the start restores active, performed, fontDie, AP, effects a
   const outcome = await startPerformance(actor, "perf-3");
   assert.equal(outcome.ok, true);
   assert.equal(B.isPerforming(actor), true);
+  // Start is two uses in the UI flow (start, then the first Art). Undo the first Art, then the start.
+  assert.equal(outcome.firstCast?.ok, true, "the first Art is cast after the start");
+  await Uses.supporterUses.undo(actor, outcome.firstCast.opId);
   await Uses.supporterUses.undo(actor, outcome.opId);
   assert.deepEqual(snap(actor, B), before, "undo restores every observable of the start");
   assert.equal(B.isPerforming(actor), false);
