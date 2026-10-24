@@ -11,9 +11,11 @@ import {
   ASI_LEVELS, checkLevel, supporterProfile, supporterState
 } from "./supporter-rules.mjs";
 import { need } from "./operation-kernel.mjs";
+import { supporterBranchFeatureIds } from "./supporter-branches.mjs";
+import { SUPPORTER_TALENT_FLAG, SUPPORTER_TALENT_RULES, supporterTalentEffects } from "./supporter-talents.mjs";
 
 export const SUPPORTER_PROGRESS_FLAG = "supporterProgression";
-export const SUPPORTER_TALENT_FLAG = "supporterTalent";
+export { SUPPORTER_TALENT_FLAG };
 
 const TALENTS = CHAPTER_THREE_CLASSES.filter(entry =>
   entry.kind === "class-option" && entry.parentClass === "Supporter" && entry.classOption?.category === "talent"
@@ -289,10 +291,11 @@ export function inspectSupporterFields(actor, choices = {}) {
   if (level >= 3) {
     fields.push(field("talents.basic", "Level 3: Basic Talent", talentOptions("basic"), 1, currentChoices.talents?.basic ?? null));
   }
+  // A new talent at Level 8 must differ from the Basic Talent chosen at Level 3 (source: "pick a different Basic Talent").
   if (level >= 8) {
     fields.push(field("talents.basicModule", "Level 8: Basic Talent Module Upgrade or New Basic Talent", [
       option("upgrade", "Upgrade chosen Basic Talent (gain Module Effect)"),
-      ...talentOptions("basic")
+      ...talentOptions("basic").filter(entry => entry.value !== currentChoices.talents?.basic)
     ], 1, currentChoices.talents?.basicModule ?? null));
   }
   if (level >= 9) {
@@ -301,11 +304,21 @@ export function inspectSupporterFields(actor, choices = {}) {
   if (level >= 13) {
     fields.push(field("talents.advancedModule", "Level 13: Advanced Talent Module Upgrade or New Advanced Talent", [
       option("upgrade", "Upgrade chosen Advanced Talent (gain Module Effect)"),
-      ...talentOptions("advanced")
+      ...talentOptions("advanced").filter(entry => entry.value !== currentChoices.talents?.advanced)
     ], 1, currentChoices.talents?.advancedModule ?? null));
   }
 
+  // Operator Skills (Levels 2, 7, 14) are NOT offered here: operator-progression.mjs already owns the Supporter
+  // Operator Skill choices (same 37 records, tiers and levels) and opens its own chooser on the sheet.
   return fields;
+}
+
+const mergeSemicolon = (current, additions) =>
+  [...new Set([...String(current ?? "").split(";").map(value => value.trim()).filter(Boolean), ...additions])].join("; ");
+
+/** chapterThreeId of the talent already owned in a tier ("basic" or "advanced"), from its talent flag. */
+function ownedTalentIdForTier(actor, tier) {
+  return entries(actor?.items).map(item => flag(item, SUPPORTER_TALENT_FLAG)).find(entry => entry?.tier === tier)?.sourceId ?? null;
 }
 
 function actorSnapshotKey(actor, choices, profile) {
@@ -417,10 +430,8 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
   for (const prof of SUPPORTER_ARMOR_PROFS) currentArmor.add(prof);
   writes["system.traits.armorProf.value"] = Array.from(currentArmor);
 
-  // Weapons: Light Melee
-  const currentWeapons = new Set(system.traits?.weaponProf?.value ?? []);
-  currentWeapons.add("sim");
-  writes["system.traits.weaponProf.value"] = Array.from(currentWeapons);
+  // Weapons: Light Melee, recorded as custom weapon proficiency text (the caster convention, merged without duplicates)
+  writes["system.traits.weaponProf.custom"] = mergeSemicolon(system.traits?.weaponProf?.custom, SUPPORTER_WEAPON_PROFS);
 
   // Skills
   if (validSkills) {
@@ -481,25 +492,72 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
     writes[`system.abilities.${abl}.value`] = Math.min(20, current + inc);
   }
 
-  // Talents
-  const existingTalents = entries(actor.items).filter(i => flag(i, "classContentKind") === "class-option");
-  const existingIds = new Set(existingTalents.map(i => flag(i, "chapterThreeId")));
-
-  const grantTalent = (talentId, tier) => {
-    if (!talentId || talentId === "upgrade" || existingIds.has(talentId)) return;
-    const talentEntry = TALENTS.find(t => t.id === talentId);
-    if (talentEntry) {
-      const data = sourceData(talentEntry, "talent");
-      data.flags.ak5e[SUPPORTER_TALENT_FLAG] = { sourceId: talentId, tier };
-      createItems.push(data);
-      existingIds.add(talentId);
+  // Branch features: each level-gated subclass feature of the chosen branch, once (Ch. 3 L6623).
+  const branchKey = SUPPORTER_BRANCH_IDS[selectedBranchId] ?? null;
+  if (branchKey) {
+    writes["flags.ak5e.supporter.branch"] = branchKey;
+    for (const featureId of supporterBranchFeatureIds(branchKey, level)) {
+      const owned = entries(actor.items).some(i => flag(i, "chapterThreeId") === featureId);
+      const inCreates = createItems.some(i => flag(i, "chapterThreeId") === featureId);
+      const entry = CHAPTER_THREE_CLASSES.find(e => e.id === featureId);
+      if (!owned && !inCreates && entry) createItems.push(sourceData(entry, "branchFeature"));
     }
+  }
+
+  // Talents: a slot is granted once. Picking a talent already owned, or the same talent for the Level 8 / 13
+  // Module slot as the one it upgrades, is warned and not granted again.
+  const appliedTalents = state.choices?.talents ?? {};
+  const existingIds = new Set(entries(actor.items).filter(i => flag(i, "classContentKind") === "class-option").map(i => flag(i, "chapterThreeId")));
+
+  const grantTalent = (slot, talentId, tier) => {
+    if (!talentId || talentId === "upgrade") return;
+    if (appliedTalents[slot] === talentId) return;
+    const talentEntry = TALENTS.find(t => t.id === talentId);
+    if (!talentEntry) return;
+    if (existingIds.has(talentId)) {
+      warnings.push(`${talentEntry.name} is already one of your talents; choose a different talent.`);
+      return;
+    }
+    const data = sourceData(talentEntry, "talent");
+    const rule = SUPPORTER_TALENT_RULES[talentId];
+    data.flags.ak5e[SUPPORTER_TALENT_FLAG] = {
+      sourceId: talentId,
+      tier,
+      mode: rule?.mode ?? "manual",
+      ...(rule?.ruling ? { ruling: rule.ruling } : {})
+    };
+    if (SUPPORTER_TALENT_RULES[talentId]?.mode === "ae") data.effects = supporterTalentEffects(talentId);
+    createItems.push(data);
+    existingIds.add(talentId);
   };
 
-  if (choices.talents?.basic) grantTalent(choices.talents.basic, "basic");
-  if (choices.talents?.basicModule && choices.talents.basicModule !== "upgrade") grantTalent(choices.talents.basicModule, "basic");
-  if (choices.talents?.advanced) grantTalent(choices.talents.advanced, "advanced");
-  if (choices.talents?.advancedModule && choices.talents.advancedModule !== "upgrade") grantTalent(choices.talents.advancedModule, "advanced");
+  if (choices.talents?.basic) grantTalent("basic", choices.talents.basic, "basic");
+  if (choices.talents?.basicModule && choices.talents.basicModule !== "upgrade") {
+    if (choices.talents.basicModule === choices.talents.basic) {
+      warnings.push("The Level 8 Basic Talent must differ from the Basic Talent chosen at Level 3.");
+    } else {
+      grantTalent("basicModule", choices.talents.basicModule, "basic");
+    }
+  }
+  if (choices.talents?.advanced) grantTalent("advanced", choices.talents.advanced, "advanced");
+  if (choices.talents?.advancedModule && choices.talents.advancedModule !== "upgrade") {
+    if (choices.talents.advancedModule === choices.talents.advanced) {
+      warnings.push("The Level 13 Advanced Talent must differ from the Advanced Talent chosen at Level 9.");
+    } else {
+      grantTalent("advancedModule", choices.talents.advancedModule, "advanced");
+    }
+  }
+
+  // Module upgrades (Level 8 Basic, Level 13 Advanced): record the Module on the Actor (idempotent).
+  for (const [slot, tier] of [["basicModule", "basic"], ["advancedModule", "advanced"]]) {
+    if (choices.talents?.[slot] !== "upgrade") continue;
+    const target = (tier === "basic" ? choices.talents?.basic : choices.talents?.advanced) ?? ownedTalentIdForTier(actor, tier);
+    if (!target) {
+      warnings.push(`Choose the ${tier === "basic" ? "Basic" : "Advanced"} Talent to upgrade before choosing its Module.`);
+      continue;
+    }
+    writes[`flags.ak5e.${SUPPORTER_TALENT_FLAG}.modules.${target}`] = true;
+  }
 
   // Save chosen aidAbility under flags.ak5e.supporter
   if (["int", "wis", "cha"].includes(choices.aidAbility)) {

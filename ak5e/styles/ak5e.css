@@ -207,3 +207,74 @@
   margin-top: 0.25rem;
 }
 
+/* Supporter sheet panel and controls (U2). Colours come from the Foundry theme variables. */
+.ak5e-supporter-sheet-panel {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: var(--color-cool-5, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--color-border-light-2, #555);
+  border-radius: 4px;
+  color: var(--color-text-primary, inherit);
+}
+
+.ak5e-supporter-sheet-panel h3 {
+  margin: 0 0 0.4rem;
+  font-size: var(--font-size-14, 0.875rem);
+  font-weight: bold;
+}
+
+.ak5e-supporter-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+}
+
+.ak5e-supporter-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  background: var(--color-cool-4, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border-light-2, #555);
+  border-radius: 3px;
+  font-size: var(--font-size-12, 0.75rem);
+  line-height: 1.3;
+}
+
+.ak5e-supporter-warning {
+  flex-basis: 100%;
+  padding: 0.2rem 0.45rem;
+  border-left: 3px solid var(--color-warning, #c9a227);
+  font-size: var(--font-size-12, 0.75rem);
+  font-weight: bold;
+}
+
+.ak5e-supporter-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+}
+
+.ak5e-supporter-controls-dialog .ak5e-supporter-action-group {
+  margin-bottom: 0.75rem;
+}
+
+.ak5e-supporter-branch-slot {
+  margin-top: 0.4rem;
+}
+
+.ak5e-supporter-details label,
+.ak5e-supporter-confirm p {
+  display: block;
+  margin: 0.3rem 0;
+  font-size: var(--font-size-13, 0.8125rem);
+}
+
+.ak5e-supporter-note,
+.ak5e-supporter-notes {
+  font-size: var(--font-size-11, 0.7rem);
+  font-style: italic;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
