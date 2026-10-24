@@ -4,3 +4,4 @@
  * for example: import "./hexer-features.mjs";
  */
 import "./hexer-branch.mjs";
+import "./artificer-branch.mjs";
