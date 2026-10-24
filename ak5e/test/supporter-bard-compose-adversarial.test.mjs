@@ -162,7 +162,14 @@ function bard({ level = 1, cha = 2, intMod = 3, prf = 5, aidAbility = "cha", bra
 }
 
 /** A Bard whose Aid Dice pool is 6 (INT mod 6, Aid Ability INT), so the CHA cap is the only limit under test. */
-const composer = ({ level = 1, cha = 2 } = {}) => bard({ level, cha, intMod: 6, aidAbility: "int" });
+// bard-compose.mjs reads the rest window from flags.ak5e.bardRest ({open, type, at}) and the proficient Instrument
+// from flags.ak5e.bardSetup.instruments (Soul of the Bard, C3 L7137-7140). rest:false and instruments:false remove them.
+const composer = ({ level = 1, cha = 2, rest = true, instruments = true } = {}) => {
+  const actor = bard({ level, cha, intMod: 6, aidAbility: "int" });
+  if (rest) actor.flags.ak5e.bardRest = { open: true, type: "long", at: "2026-10-24T00:00:00.000Z" };
+  if (instruments) actor.flags.ak5e.bardSetup = { done: true, instruments: ["Lute", "Flute", "Drum"], performance: "proficient" };
+  return actor;
+};
 
 /** A Supporter with no Supporter class and no branch: refused by the engine. */
 function nonSupporter() {
@@ -339,6 +346,22 @@ test("A manual Art (Pyrotechnics, ruling 7) can be composed and is stored with m
   assert.equal(stored?.name, "Pyrotechnics");
   assert.equal(stored?.muse, 1, "Pyrotechnics costs 1 Muse");
   assert.equal(stored?.manual, true, "stored as manual");
+});
+
+test("Timing (C3 L7099): composing with no finished rest recorded warns timing; Use anyway is still allowed", async () => {
+  await ready();
+  const actor = composer({ rest: false });
+  const ws = await planWarnings(actor, "composePerformances", compose(1, CAP_LINE));
+  assert.equal(ws.some(w => w.id === "timing"), true, "no open rest window is a timing warning");
+  const accepted = await settle(() => Uses.supporterUses.plan(actor, "composePerformances", compose(1, CAP_LINE, { overrides: ws.map(w => w.id) })));
+  assert.equal(accepted.threw, false, "overridable, not blocked");
+});
+
+test("Timing: with a finished rest recorded, composing raises no timing warning", async () => {
+  await ready();
+  const actor = composer();
+  const ws = await planWarnings(actor, "composePerformances", compose(1, CAP_LINE));
+  assert.equal(ws.some(w => w.id === "timing"), false);
 });
 
 test("A Performance of exactly 3 Arts raises no warning", async () => {
@@ -678,6 +701,15 @@ test("Emergency Improv below 13th level warns (level), and the warning is overri
   assert.equal(accepted.threw, false, "Use anyway passes the plan");
 });
 
+test("Emergency Improv warns when no proficient Instrument is noted (Soul of the Bard, C3 L7137-7140)", async () => {
+  await ready();
+  const actor = composer({ level: 13, instruments: false });
+  const ws = await planWarnings(actor, "emergencyImprov", {});
+  assert.equal(hasWarning(ws, /instrument/i), true, "an Instrument warning is raised");
+  const accepted = await settle(() => Uses.supporterUses.plan(actor, "emergencyImprov", { overrides: ws.map(w => w.id) }));
+  assert.equal(accepted.threw, false, "overridable with Use anyway");
+});
+
 test("Emergency Improv at 13th level has no level warning", async () => {
   await ready();
   const actor = composer({ level: 13 });
@@ -722,13 +754,18 @@ test("Emergency Improv insert: an Art repeating its neighbour warns; a non-repea
     active: { performanceId: "p-live", arts: [{ name: "Bane", muse: 1, manual: false }, { name: "Mage Armour", muse: 1, manual: false }] },
     museTHP: 0
   };
-  // ASSUMPTION: insert data {option, performanceId, artName, index}. Inserting "Mage Armour" at index 1 gives
+  // Step 1: the DC 17 check, rolled on the click. A total of 20 succeeds (the check must succeed before step 2).
+  rollWith(20);
+  await run(actor, "emergencyImprov", {}, "imp-chk-ins");
+  await click(actor, "imp-chk-ins");
+  // Step 2 (emergencyImprovAid, mode insert, C3 L7152-7158). Inserting "Mage Armour" at index 1 gives
   // [Bane, Mage Armour, Mage Armour]: a consecutive repeat, which must warn.
-  const repeat = await planWarnings(actor, "emergencyImprov", { option: "insert", performanceId: "p-live", artName: "Mage Armour", index: 1 });
-  assert.ok(repeat.length > 0, "a consecutive repeat on insert is a warning");
+  const aid = { mode: "insert", performanceId: "p-live", checkUseId: "imp-chk-ins", index: 1 };
+  const repeat = await planWarnings(actor, "emergencyImprovAid", { ...aid, art: "Mage Armour" });
+  assert.equal(repeat.some(w => w.id === "consecutive"), true, "a consecutive repeat on insert is a warning");
   // Inserting "Bless" at index 1 gives [Bane, Bless, Mage Armour]: no consecutive repeat.
-  const clean = await planWarnings(actor, "emergencyImprov", { option: "insert", performanceId: "p-live", artName: "Bless", index: 1 });
-  assert.equal(clean.some(w => /consecutive|same|twice|in a row/i.test(`${w.id} ${w.text}`)), false, "no consecutive warning for a clean insert");
+  const clean = await planWarnings(actor, "emergencyImprovAid", { ...aid, art: "Bless" });
+  assert.equal(clean.some(w => w.id === "consecutive"), false, "no consecutive warning for a clean insert");
 });
 
 /* ==========================================================================
