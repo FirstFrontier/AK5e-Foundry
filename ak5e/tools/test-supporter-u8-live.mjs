@@ -91,25 +91,28 @@ try {
     };
   }, id);
   /** Confirms the topmost dialog that is not a cancel: used for the native Art usage dialog and AK5e prompts. */
-  /** Confirms the dialog window that shows `needle` (an Art name). Dialog windows only: sheets and configs carry a document. */
-  const confirmDialog = async (label, needle) => {
+  /**
+   * Clicks a button in the dialog window showing `needle` (an Art name). `pick` selects the button (default: the confirm
+   * words). `screenshot` names a PNG taken while the dialog is open, before the click. Dialog windows only.
+   */
+  const confirmDialog = async (label, needle, { pick = /cast|use|post|confirm|continue|ok/i, screenshot: shot = null } = {}) => {
     await closeStrayDialogs();
-    // Only dialog windows (DialogV2 or a dialog/usage class): never the sidebar, a sheet, or a configuration window.
-    const isDialog = app => app instanceof foundry.applications.api.DialogV2 || /Dialog|Usage|Prompt/.test(app.constructor?.name ?? "");
-    await page.waitForFunction(text => [...foundry.applications.instances.values()].some(app => app.element?.offsetParent && !app.document
+    const pattern = pick.source, flags = pick.flags;
+    await page.waitForFunction(([text, src, fl]) => [...foundry.applications.instances.values()].some(app => app.element?.offsetParent && !app.document
       && (app instanceof foundry.applications.api.DialogV2 || /Dialog|Usage|Prompt/.test(app.constructor?.name ?? ""))
-      && app.element.textContent.includes(text) && [...app.element.querySelectorAll("button")].some(b => !b.disabled && /cast|use|post|confirm|continue|ok/i.test(`${b.dataset.action ?? ""} ${b.textContent}`))),
-      needle, { timeout: 30000 });
-    const clicked = await page.evaluate(text => {
+      && app.element.textContent.includes(text) && [...app.element.querySelectorAll("button")].some(b => !b.disabled && new RegExp(src, fl).test(`${b.dataset.action ?? ""} ${b.textContent}`))),
+      [needle, pattern, flags], { timeout: 30000 });
+    if (shot) await screenshot(shot);
+    const clicked = await page.evaluate(([text, src, fl]) => {
       const candidates = [...foundry.applications.instances.values()].filter(a => a.element?.offsetParent && !a.document && a.element.textContent.includes(text)
         && (a instanceof foundry.applications.api.DialogV2 || /Dialog|Usage|Prompt/.test(a.constructor?.name ?? "")));
       for (const app of candidates.reverse()) {
-        const pick = [...app.element.querySelectorAll("button")].filter(b => !b.disabled && !/cancel|close|later/i.test(`${b.dataset.action ?? ""} ${b.textContent}`))
-          .find(b => /cast|use|post|confirm|continue|ok/i.test(`${b.dataset.action ?? ""} ${b.textContent}`));
-        if (pick) { pick.click(); return pick.dataset.action ?? pick.textContent.trim(); }
+        const button = [...app.element.querySelectorAll("button")].filter(b => !b.disabled && !/cancel|close|later/i.test(`${b.dataset.action ?? ""} ${b.textContent}`))
+          .find(b => new RegExp(src, fl).test(`${b.dataset.action ?? ""} ${b.textContent}`));
+        if (button) { button.click(); return button.dataset.action ?? button.textContent.trim(); }
       }
       return null;
-    }, needle);
+    }, [needle, pattern, flags]);
     if (!clicked) throw new Error(`no enabled button to ${label} in the dialog showing ${needle}`);
     await page.waitForTimeout(800);
     return clicked;
@@ -152,7 +155,7 @@ try {
     ]);
     const spell = (name, level) => {
       const activityId = foundry.utils.randomID(16);
-      return { name, type: "spell", system: { level, activities: { [activityId]: { _id: activityId, type: "utility",
+      return { name, type: "spell", system: { level, properties: name === "Bless" ? ["concentration"] : [], activities: { [activityId]: { _id: activityId, type: "utility",
         activation: { type: "action", value: 1 }, duration: { units: "inst" }, range: { units: "self" }, target: { affects: { type: "self" } } } } },
         flags: { ak5e: { chapterFiveId: `u8-${name.toLowerCase().replace(/\W+/g, "-")}` } } };
     };
@@ -187,6 +190,7 @@ try {
     await closeStrayDialogs();
     await page.evaluate(id => { globalThis.__u8MsgBase = game.messages.contents.length; globalThis.__u8.B.bardPerformCommand(game.actors.get(id), "bardStartPerformance").catch(e => console.error("AK5e U8", e)); }, ids.id);
     await confirmDialog("choose the Performance", "Put on a Performance");
+    await confirmDialog("put on the Performance (confirm)", "Performance P-U8", { screenshot: "u8-01b-put-on-confirm.png" });
     await confirmDialog("cast Bless", "Bless");
     await page.waitForFunction(id => game.actors?.get(id)?.getFlag("ak5e", "bard")?.active?.index === 1, ids.id, { timeout: 30000 });
     const s = await state(ids.id);
@@ -202,6 +206,7 @@ try {
     await turn("turnEnd", ids.id);
     await turn("turnStart", ids.id);
     await page.evaluate(async id => { globalThis.__u8.B.bardPerformCommand(game.actors.get(id), "bardCastNextArt").catch(e => console.error("AK5e U8", e)); }, ids.id);
+    await confirmDialog("confirm the mid-Performance cast", "Cast Healing Word", { screenshot: "u8-03a-mid-cast-confirm.png" });
     await confirmDialog("cast Healing Word", "Healing Word");
     await page.waitForFunction(id => game.actors?.get(id)?.getFlag("ak5e", "bard")?.active?.index === 2, ids.id, { timeout: 30000 });
     const s = await state(ids.id);
@@ -218,6 +223,7 @@ try {
     await turn("turnEnd", ids.id);
     await turn("turnStart", ids.id);
     await page.evaluate(async id => { globalThis.__u8.B.bardPerformCommand(game.actors.get(id), "bardCastNextArt").catch(e => console.error("AK5e U8", e)); }, ids.id);
+    await confirmDialog("confirm the mid-Performance cast", "Cast Heroism");
     await confirmDialog("cast Heroism", "Heroism");
     await page.waitForFunction(id => game.actors?.get(id)?.getFlag("ak5e", "bard")?.active?.index === 3, ids.id, { timeout: 30000 });
     const s = await state(ids.id);
@@ -231,7 +237,7 @@ try {
     await turn("turnEnd", ids.id);
     await turn("turnStart", ids.id);
     await page.evaluate(async id => { globalThis.__u8.B.bardPerformCommand(game.actors.get(id), "bardCastNextArt").catch(e => console.error("AK5e U8", e)); }, ids.id);
-    await confirmDialog("post the manual card", "Tasha");
+    await confirmDialog("keep prompt: Keep none", "Tasha", { pick: /keep none/i, screenshot: "u8-05a-keep-prompt-cancel.png" });
     await page.waitForFunction(() => game.messages.contents.some(m => /manual/.test(String(m.content ?? "")) && /Bard missing Arts/.test(String(m.content ?? ""))), null, { timeout: 30000 });
     await page.waitForFunction(id => game.actors?.get(id)?.getFlag("ak5e", "bard")?.active === null, ids.id, { timeout: 30000 }).catch(() => {});
     const s = await state(ids.id);
