@@ -56,26 +56,6 @@ function artItem(actor, name, { level = 1, concentration = false, id = null } = 
   return item;
 }
 
-/**
- * Test double for Foundry's array-index updates (`flags.x.performances.0.performed`). The shared fixture replaces an
- * array on a dotted write, which Foundry does not do: this wrapper writes the index in place, then delegates the rest.
- */
-function arrayAwareUpdate(actor) {
-  const original = actor.update.bind(actor);
-  const getPath = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
-  actor.update = async (changes, options = {}) => {
-    const plain = {};
-    for (const [path, value] of Object.entries(changes)) {
-      const match = path.match(/^(.*)\.(\d+)\.([^.]+)$/);
-      const list = match ? getPath(actor, match[1]) : null;
-      if (Array.isArray(list)) list[Number(match[2])][match[3]] = value;
-      else plain[path] = value;
-    }
-    return original(plain, options);
-  };
-  return actor;
-}
-
 function bard({ level = 9, performances = [PERFORMANCE], flags = {}, instrument = true, cha = 16, arts = ["Bless", "Healing Word", "Heroism"], concentrationArts = [] } = {}) {
   const sClass = createTestItem({ name: "Supporter", type: "class", system: { levels: level }, flags: { ak5e: { chapterThreeId: SUPPORTER_CLASS_ID } } });
   const branch = createTestItem({ name: "Supporter: Bard", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-supporter-bard" } } });
@@ -91,10 +71,9 @@ function bard({ level = 9, performances = [PERFORMANCE], flags = {}, instrument 
       ...flags
     } }
   });
-  arrayAwareUpdate(actor);
   docsRef.docs.set(actor.uuid, actor);
   if (instrument) {
-    const lute = createTestItem({ id: INSTRUMENT_ID, name: "Lute", type: "tool", system: { equipped: true } }, actor);
+    const lute = createTestItem({ id: INSTRUMENT_ID, name: "Lute", type: "tool", system: { equipped: true, proficient: 1 } }, actor);
     actor.items.set(lute.id, lute);
   }
   for (const name of arts) artItem(actor, name, { concentration: concentrationArts.includes(name) });
@@ -125,14 +104,14 @@ test("start sets the Performance active at index 0, marks it performed and gives
   assert.equal(actor.getFlag("ak5e", "casting").castingUnit, INSTRUMENT_ID);
 });
 
-test("start writes only the indexed performed flag, never the whole performances array", () => {
+test("start rebuilds the performances array from the current state: only the started Performance is performed", () => {
   const actor = bard({ level: 9, performances: [
     { ...PERFORMANCE, id: "P0" }, { ...PERFORMANCE, id: "P1" }, { ...PERFORMANCE, id: "P2" }] });
   const plan = bardPerformPlans.startPerformance(actor, {}, { performanceId: "P1" });
   const updates = plan.apply({}, {});
-  assert.equal(updates["flags.ak5e.bard.performances.1.performed"], true, "the indexed flag is targeted");
-  assert.equal(Object.hasOwn(updates, "flags.ak5e.bard.performances"), false, "no whole-array write");
-  assert.equal(Object.keys(updates).filter(key => key.startsWith("flags.ak5e.bard.performances")).length, 1);
+  assert.deepEqual(updates["flags.ak5e.bard.performances"].map(entry => [entry.id, entry.performed]),
+    [["P0", false], ["P1", true], ["P2", false]]);
+  assert.deepEqual(updates["flags.ak5e.bard.performances"][0].arts, PERFORMANCE.arts, "the other entries are kept whole");
 });
 
 test("starting one of several Performances marks only that one performed and leaves the others as composed", async () => {
@@ -180,8 +159,10 @@ test("a stale index is refused, and casting past the last Art is refused", async
   await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
   await bardTurnStart(actor);
   await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  // The last Art ended the Performance in that use (C3 L7108): nothing is left to cast.
+  assert.equal(isPerforming(actor), false);
   await bardTurnStart(actor);
-  await assert.rejects(run(actor, "castNextArt", { performanceId: "P1", index: 3 }), /All Arts/);
+  await assert.rejects(run(actor, "castNextArt", { performanceId: "P1", index: 3 }), /not Performing/);
 });
 
 test("a missing equipped Instrument warns and can be overridden", async () => {
@@ -207,25 +188,30 @@ test("crescendo math: +1 per Art after the first, cumulative (level 16)", async 
   const actor = bard({ level: 16, performances: [{ ...PERFORMANCE, arts: [...PERFORMANCE.arts, { name: "Bless", muse: 1, manual: false }] }], arts: ["Bless", "Healing Word", "Heroism"] });
   await run(actor, "startPerformance", startData);
   const values = [];
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 3; index += 1) {
     if (index > 0) await bardTurnStart(actor);
     await run(actor, "castNextArt", { performanceId: "P1", index });
     values.push(active(actor).crescendo);
   }
-  assert.deepEqual(values, [0, 1, 2, 3]);
+  assert.deepEqual(values, [0, 1, 2]);
+  // The fourth (last) Art ends the Performance in its own use, and the crescendo is removed with it.
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 3 });
+  assert.equal(isPerforming(actor), false);
+  assert.deepEqual(crescendoBonuses(actor), { healing: 0, extraTargets: 0, saveDC: 0, spellAttack: 0 });
 });
 
 test("crescendo math at Fortissimo (level 17): each Art after the first counts as two", async () => {
   const actor = bard({ level: 17, performances: [{ ...PERFORMANCE, arts: [...PERFORMANCE.arts, { name: "Bless", muse: 1, manual: false }] }], arts: ["Bless", "Healing Word", "Heroism"] });
   await run(actor, "startPerformance", startData);
   const values = [];
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 3; index += 1) {
     if (index > 0) await bardTurnStart(actor);
     await run(actor, "castNextArt", { performanceId: "P1", index });
     values.push(active(actor).crescendo);
   }
-  assert.deepEqual(values, [0, 2, 4, 6]);
-  assert.equal(crescendoFor(actor, 2), 4);
+  assert.deepEqual(values, [0, 2, 4]);
+  assert.equal(crescendoFor(actor, 3), 6, "the fourth Art would count as the third pair (not reached: it ends the Performance)");
 });
 
 test("crescendo is an Active Effect on the Bard for Spell Save DC and Spell Attack, removed when the Performance ends", async () => {
@@ -241,9 +227,8 @@ test("crescendo is an Active Effect on the Bard for Spell Save DC and Spell Atta
   assert.ok(effect.changes.every(change => change.value === "1" && change.mode === 2));
   assert.deepEqual(crescendoBonuses(actor), { healing: 1, extraTargets: 1, saveDC: 1, spellAttack: 1 });
   await bardTurnStart(actor);
+  // The last Art (index 2 of 3) ends the Performance in the same use: the crescendo effect is removed with it.
   await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
-  assert.equal(effectOf(actor).flags.ak5e.bardCrescendo.amount, 2, "the effect grows with each Art");
-  await run(actor, "endPerformance", { keepArt: null });
   assert.equal(effectOf(actor), null, "the effect is removed when the Performance ends");
   assert.deepEqual(crescendoBonuses(actor), { healing: 0, extraTargets: 0, saveDC: 0, spellAttack: 0 });
 });
@@ -345,10 +330,12 @@ test("the first Concentration Art ignores its own Concentration; keepArt names a
   const second = await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
   assert.equal(second.ignoreConcentration, false, "Healing Word is not a concentration Art");
   await bardTurnStart(actor);
-  await run(actor, "castNextArt", { performanceId: "P1", index: 2 }).catch(() => {});
-  await assert.rejects(run(actor, "endPerformance", { keepArt: "Not cast" }), /Keep Concentration/);
-  await run(actor, "endPerformance", { keepArt: "Bless" });
+  // The last Art takes the keep-Concentration choice in its own use (C3 L7108): an Art not cast so far is refused.
+  await assert.rejects(run(actor, "castNextArt", { performanceId: "P1", index: 2, keepArt: "Not cast" }), /Keep Concentration/);
+  assert.equal(isPerforming(actor), true, "the refused last Art changes nothing");
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2, keepArt: "Bless" });
   assert.equal(isPerforming(actor), false);
+  assert.equal(supporterUses.state(actor).undo.at(-1).command, "castNextArt");
 });
 
 /* ---------------------------------------------------------------- Font of Inspiration */
@@ -362,14 +349,14 @@ test("the Font die is gained at the start of each Turn while Performing and lost
   assert.equal(actor.getFlag("ak5e", "bard").fontDie, true, "gained at the start of the Turn while Performing");
 });
 
-test("no Font die is gained below 4th level (warn), and none is gained when not Performing", async () => {
+test("Performing is a 1st-level feature: starting below 4th level gives no warning and no Font die", async () => {
   const low = bard({ level: 3, performances: [{ ...PERFORMANCE, arts: [{ name: "Bless", muse: 1, manual: false }] }], arts: ["Bless"] });
-  await assert.rejects(run(low, "startPerformance", startData), error => isPlayWarnings(error) && error.warnings.some(w => w.id === "fontLevel"));
-  await run(low, "startPerformance", { ...startData, overrides: ["fontLevel"] });
-  assert.equal(low.getFlag("ak5e", "bard").fontDie, false);
+  await run(low, "startPerformance", startData);
+  assert.equal(isPerforming(low), true);
+  assert.equal(low.getFlag("ak5e", "bard").fontDie, false, "no Font die below 4th level");
   const idle = bard({ level: 9 });
   await bardTurnStart(idle);
-  assert.equal(idle.getFlag("ak5e", "bard").fontDie, false);
+  assert.equal(idle.getFlag("ak5e", "bard").fontDie, false, "no Font die when not Performing");
 });
 
 test("fontProvideAid gives an Aid Die to the target without spending the Aid Die pool and consumes the Font die", async () => {
@@ -416,7 +403,7 @@ test("undo of the cast restores the index, the crescendo and the crescendo effec
   const before = structuredClone(active(actor));
   await bardTurnStart(actor);
   await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
-  assert.equal(active(actor).index, 3);
+  assert.equal(active(actor), null, "the last Art ended the Performance in that use");
   await supporterUses.undo(actor, supporterUses.state(actor).undo.at(-1).id);
   assert.deepEqual(active(actor), { ...before, castsThisTurn: 0 }, "the index and turn count return to the state before the cast");
   assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 1, "the crescendo effect returns to its prior amount");
@@ -478,4 +465,89 @@ test("the turn-start and turn-end handlers are registered once and fire on the B
   assert.equal(active(actor).castsThisTurn, 0, "the turn-start handler resets the Turn's casts");
   await emitAk5eEvent("turnEnd", { eventId: "t1", actorUuid: actor.uuid, round: 2, turn: 0 });
   assert.equal(isPerforming(actor), false, "the turn-end handler ends a Performance with no Art this Turn");
+});
+
+/* ---------------------------------------------------------------- last Art ends at engine level (C3 L7108) */
+
+test("the last Art ends the Performance in the same use: active cleared, crescendo removed, Casting Unit restored", async () => {
+  const actor = bard({ level: 9, flags: { casting: { enabled: true, ability: "cha", castingUnit: "" } } });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 1);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  assert.equal(active(actor), null);
+  assert.equal(effectOf(actor), null);
+  assert.equal(actor.getFlag("ak5e", "casting").castingUnit, "", "the prior Casting Unit is restored");
+  assert.equal(actor.getFlag("ak5e", "bard").performances[0].performed, true);
+});
+
+test("undo of the last Art restores active, the crescendo effect and the Instrument as Casting Unit exactly", async () => {
+  const actor = bard({ level: 9, flags: { casting: { enabled: true, ability: "cha", castingUnit: "" } } });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  const before = structuredClone(active(actor));
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2 });
+  await supporterUses.undo(actor, supporterUses.state(actor).undo.at(-1).id);
+  assert.deepEqual(active(actor), { ...before, castsThisTurn: 0 }, "active returns to the state before the last Art");
+  assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 1, "the crescendo effect returns");
+  assert.equal(actor.getFlag("ak5e", "casting").castingUnit, INSTRUMENT_ID, "the Instrument is the Casting Unit again");
+  assert.equal(isPerforming(actor), true);
+});
+
+test("the last Art with no concentration Art takes keepArt null and ends", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 2, keepArt: null });
+  assert.equal(isPerforming(actor), false);
+});
+
+/* ---------------------------------------------------------------- Instrument proficiency (C3 L7106, D) */
+
+/** Adds a tool Item to the actor, registered like the Bard's own items. */
+function addTool(actor, name, system = {}) {
+  const tool = createTestItem({ name, type: "tool", system }, actor);
+  actor.items.set(tool.id, tool);
+  return tool;
+}
+
+test("no equipped Instrument: the start warns (overridable) and never blocks", async () => {
+  const actor = bard({ level: 9, instrument: false });
+  await assert.rejects(run(actor, "startPerformance", startData), error => isPlayWarnings(error) && error.warnings.some(w => w.id === "instrument"));
+  await run(actor, "startPerformance", { ...startData, overrides: ["instrument"] });
+  assert.equal(isPerforming(actor), true);
+});
+
+test("an equipped Instrument recorded as not proficient warns 'not Proficient' and can be used anyway", async () => {
+  const actor = bard({ level: 9, instrument: false });
+  addTool(actor, "Lute", { equipped: true, proficient: 0 });
+  await assert.rejects(run(actor, "startPerformance", startData), error => {
+    const warning = isPlayWarnings(error) ? error.warnings.find(w => w.id === "instrument") : null;
+    return Boolean(warning) && /not Proficient/.test(warning.text);
+  });
+  await run(actor, "startPerformance", { ...startData, overrides: ["instrument"] });
+  assert.equal(isPerforming(actor), true);
+});
+
+test("undeterminable proficiency warns (overridable); a recorded Soul of the Bard instrument clears it", async () => {
+  const actor = bard({ level: 9, instrument: false });
+  addTool(actor, "Lute", { equipped: true });
+  await assert.rejects(run(actor, "startPerformance", startData), error => isPlayWarnings(error) && error.warnings.some(w => w.id === "instrument"));
+  await actor.update({ "flags.ak5e.bardSetup": { done: true, instruments: ["Lute"], performance: "proficient" } });
+  await run(actor, "startPerformance", startData);
+  assert.equal(isPerforming(actor), true, "the recorded Instrument counts as proficiency: no warning");
+});
+
+test("a tool item with system.proficient >= 1 is proficient: no warning, and it is the Casting Unit", async () => {
+  const actor = bard({ level: 9, instrument: false });
+  const flute = addTool(actor, "Flute", { equipped: true, proficient: 1 });
+  await run(actor, "startPerformance", startData);
+  assert.equal(isPerforming(actor), true);
+  assert.equal(actor.getFlag("ak5e", "casting").castingUnit, flute.id);
 });

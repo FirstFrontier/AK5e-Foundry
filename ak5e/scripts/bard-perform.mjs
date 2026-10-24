@@ -46,7 +46,39 @@ const artItem = (actor, name) => values(actor.items).find(item => item.type === 
 const activityOf = item => { const all = values(item?.system?.activities); return all.find(a => a.activation?.type === "action") ?? all[0] ?? null; };
 const requiresConcentration = item => item?.requiresConcentration === true || item?.system?.properties?.has?.("concentration") === true
   || values(item?.system?.activities).some(activity => activity?.duration?.concentration === true);
-const instrumentsOf = actor => values(actor.items).filter(item => item.type === "tool" && item.system?.equipped === true && INSTRUMENT_PATTERN.test(item.name ?? ""));
+/** Instrument names recorded by Soul of the Bard setup (flags.ak5e.bardSetup.instruments, bard-compose), lower-cased. */
+const recordedInstruments = actor => (Array.isArray(flag(actor, "bardSetup")?.instruments) ? flag(actor, "bardSetup").instruments : [])
+  .map(name => String(name ?? "").trim().toLowerCase()).filter(Boolean);
+
+/**
+ * The equipped Instrument the Bard is Proficient with (C3 L7106). `instrument` is the item to use as the Casting Unit
+ * (null when none is equipped); `status` is the warning text, or null when proficiency is shown. Proficiency comes from
+ * the tool item's system.proficient, the Soul of the Bard record, the toolProf traits or the actor's tool entry.
+ */
+function instrumentCheck(actor) {
+  const recorded = recordedInstruments(actor);
+  const tools = values(actor.items).filter(item => item.type === "tool" && item.system?.equipped === true
+    && (INSTRUMENT_PATTERN.test(item.name ?? "") || recorded.includes(String(item.name ?? "").trim().toLowerCase())));
+  if (!tools.length) {
+    return { instrument: null, status: "No equipped Instrument was found. Put on a Performance needs an Instrument you are Proficient with equipped (it is your Casting Unit)." };
+  }
+  const toolProf = String(actor.system?.traits?.toolProf?.custom ?? "").toLowerCase();
+  const proficientBy = item => {
+    const name = String(item.name ?? "").trim().toLowerCase();
+    const level = Number(item.system?.proficient);
+    const toolEntry = Number(actor.system?.tools?.[name.replace(/\s+/g, "")]?.value);
+    return (Number.isFinite(level) && level >= 1) || recorded.includes(name) || toolProf.includes(name) || toolEntry >= 1;
+  };
+  const proficient = tools.find(proficientBy);
+  if (proficient) return { instrument: proficient, status: null };
+  const knownNotProficient = tools.some(item => Number(item.system?.proficient) === 0);
+  return {
+    instrument: tools[0],
+    status: knownNotProficient
+      ? `${tools[0].name} is equipped but you are not Proficient with it. Performing needs an Instrument you are Proficient with (C3 L7106).`
+      : `Proficiency with ${tools[0].name} could not be determined. Confirm you are Proficient with the Instrument you use (C3 L7106).`
+  };
+}
 const inCombatTurnOf = actor => !(game.combat?.started && game.combat.combatant?.actor && game.combat.combatant.actor.uuid !== actor.uuid);
 
 /** The Art cast in progress for each Bard: its 0-AP discount applies to that one Art only (see bardArtQuoteOptions). */
@@ -131,10 +163,10 @@ export const isPerforming = actor => Boolean(activeOf(actor));
 /* ---------------------------------------------------------------- use plans */
 
 /** Keep-Concentration choices: the Performance's Arts cast so far that require Concentration (Ch.3 L7108-7112). */
-function keepArtChoices(actor) {
+function keepArtChoices(actor, { includeCurrent = false } = {}) {
   const active = activeOf(actor), performance = active ? findPerformance(actor, active.performanceId) : null;
   if (!performance) return [];
-  const names = performance.arts.slice(0, active.index)
+  const names = performance.arts.slice(0, active.index + (includeCurrent ? 1 : 0))
     .filter(art => !art.manual && requiresConcentration(artItem(actor, art.name)))
     .map(art => art.name);
   return [...new Set(names)];
@@ -147,16 +179,12 @@ const startPerformance = (actor, _state, data = {}) => {
   need(!activeOf(actor), "This Bard is already Performing; end that Performance first.");
   const warnings = [];
   const level = levelOf(actor);
-  const instrument = instrumentsOf(actor)[0] ?? null;
-  if (!instrument) {
-    warn(warnings, "instrument", "No equipped tool named like a musical Instrument was found. Put on a Performance needs an Instrument you are Proficient with equipped (it is your Casting Unit).");
-  }
+  const { instrument, status: instrumentStatus } = instrumentCheck(actor);
+  if (instrumentStatus) warn(warnings, "instrument", instrumentStatus);
   if (performance.performed) {
     warn(warnings, "noEncore", `${performance.id} has already been performed. No Encore (Ch.3 L7114): it must be composed again.`);
   }
-  if (level < FONT_LEVEL) {
-    warn(warnings, "fontLevel", `Font of Inspiration is a 4th level feature; this Bard is level ${level}, so no Font die is gained.`);
-  }
+  // Performing is a 1st-level feature (L7106): below 4th level no Font die is gained, which is not a warning here.
   const casting = flag(actor, "casting") ?? {};
   if (casting.enabled === true && casting.ability && casting.ability !== "cha") {
     warn(warnings, "castingAbility", "Performance Arts use Charisma (Ch.3 L7112); this Bard's Arts casting ability is not Charisma.");
@@ -171,15 +199,15 @@ const startPerformance = (actor, _state, data = {}) => {
     apply(_next, receipt) {
       const castingUnit = String(casting.castingUnit ?? "");
       const changeUnit = Boolean(instrument) && castingUnit !== instrument.id;
-      // Index-targeted: only this Performance's `performed` flag is written, so a concurrent compose (bard-compose) that
-      // rewrites the array is not clobbered by a whole-array write from here.
-      const index = performancesOf(actor).findIndex(entry => entry.id === performance.id);
+      // Foundry's flag update does not address array elements by a dotted index (the key replaces the array), so the
+      // performed flag is written as the whole array, rebuilt from the state read at apply time (no stale copy is kept).
+      const performances = performancesOf(actor).map(entry => entry.id === performance.id ? { ...entry, performed: true } : entry);
       const updates = {
         "flags.ak5e.bard.active": {
           performanceId: performance.id, index: 0, crescendo: 0, castsThisTurn: 0, concentration: null,
           castingUnitChanged: changeUnit, castingUnitBefore: changeUnit ? castingUnit : null
         },
-        [`flags.ak5e.bard.performances.${index}.performed`]: true,
+        "flags.ak5e.bard.performances": performances,
         "flags.ak5e.bard.fontDie": level >= FONT_LEVEL
       };
       // The Instrument is the Casting Unit while Performing; the Arts engine reads the configured unit (restored at the end).
@@ -196,8 +224,9 @@ const startPerformance = (actor, _state, data = {}) => {
 const castNextArt = (actor, _state, data = {}) => {
   need(isBard(actor), "Performing Arts is a Bard Supporter feature.");
   const active = activeOf(actor);
-  need(active && active.performanceId === data.performanceId, "This Performance is not active.");
-  need(Number(active.index) === Number(data.index), "The Performance has moved on; refresh the panel and try again.");
+  need(active, "This Bard is not Performing.");
+  need(data.performanceId === undefined || active.performanceId === data.performanceId, "This Performance is not active.");
+  need(data.index === undefined || Number(active.index) === Number(data.index), "The Performance has moved on; refresh the panel and try again.");
   const performance = findPerformance(actor, active.performanceId);
   need(performance, "The Performance no longer exists.");
   need(active.index < performance.arts.length, "All Arts of this Performance have been cast; end the Performance.");
@@ -215,26 +244,48 @@ const castNextArt = (actor, _state, data = {}) => {
   const ignoreConcentration = Boolean(item && requiresConcentration(item) && !active.concentration);
   const before = Number(active.crescendo) || 0;
   const crescendo = crescendoFor(actor, active.index);
+  const lastArt = active.index + 1 >= performance.arts.length;
+  // The last Art ends the Performance (C3 L7108). Its keep-Concentration choice may name any Art cast so far, this one included.
+  const keepChoices = lastArt ? keepArtChoices(actor, { includeCurrent: true }) : [];
+  const keepArt = data.keepArt ?? null;
+  if (keepArt !== null) need(keepChoices.includes(keepArt), "Keep Concentration on an Art of this Performance that requires Concentration, or on none.");
+  const manual = !item;
   const next = {
     ...active, index: active.index + 1, castsThisTurn: active.castsThisTurn + 1, crescendo,
     concentration: ignoreConcentration ? { artName: art.name, index: active.index } : active.concentration ?? null
   };
-  const manual = !item;
   return {
-    title: `Cast ${art.name} (Performance)`,
+    title: lastArt ? `Cast ${art.name} (last Art: the Performance ends)` : `Cast ${art.name} (Performance)`,
     warnings,
     apply(_state2, receipt) {
-      if (crescendo !== before) {
-        receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: crescendo, before,
-          label: `Rising Crescendo +${crescendo}` }];
-      }
       const cresText = crescendo ? ` Rising Crescendo +${crescendo}: Spell Save DC and Spell Attack Bonus, Art healing and Temporary HP, and one extra Shield of Faith or Mage Armour target.` : "";
       const concText = ignoreConcentration ? ` Concentration is held by the Performance; ${art.name}'s own Concentration is ignored.` : "";
+      const manualText = manual ? ` This Art has no Chapter 5 record: its effect is not automated and no mechanics are applied (see ak5e/DECISIONS.md, "Bard missing Arts / variants").` : "";
+      let updates;
+      if (lastArt) {
+        // The end of the Performance, in this same use (L7108): the endPerformance state changes, crescendo included.
+        updates = { "flags.ak5e.bard.active": null };
+        if (active.castingUnitChanged) updates["flags.ak5e.casting.castingUnit"] = active.castingUnitBefore ?? "";
+        if (before) {
+          receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: 0, before,
+            label: "Rising Crescendo" }];
+        }
+      } else {
+        updates = { "flags.ak5e.bard.active": next };
+        if (crescendo !== before) {
+          receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: crescendo, before,
+            label: `Rising Crescendo +${crescendo}` }];
+        }
+      }
+      const endText = lastArt
+        ? ` The Performance ends after its last Art and cannot be performed again (No Encore, L7114).`
+          + (keepChoices.length ? (keepArt ? ` Concentration is kept on ${keepArt}; end the other Concentration Arts yourself.` : " No Art is kept: end any Concentration Arts yourself.") : "")
+        : "";
       receipt.summary = `${actor.name} cast ${art.name} as Art ${active.index + 1} of ${performance.arts.length} of the Performance; no Arts Points are spent.`
-        + `${manual ? " This Art has no Chapter 5 record: its effect is not automated (see the manual card)." : ""}${cresText}${concText}`;
+        + `${manualText}${cresText}${concText}${endText}`;
       receipt.result = { performanceId: performance.id, index: active.index, artName: art.name, manual, artFound: Boolean(item),
-        ignoreConcentration, crescendo, lastArt: next.index >= performance.arts.length };
-      return { "flags.ak5e.bard.active": next };
+        ignoreConcentration, crescendo, lastArt, keepArt: lastArt ? keepArt : null };
+      return updates;
     }
   };
 };
@@ -460,9 +511,15 @@ async function castFlow(actor, { startOpId = null } = {}) {
   need(performance, "The Performance no longer exists.");
   const art = performance.arts[active.index];
   need(art, "All Arts of this Performance have been cast.");
+  // The last Art ends the Performance inside its own use, so the keep-Concentration choice is asked before it (C3 L7108).
+  let keepArt = null;
+  if (active.index + 1 >= performance.arts.length) {
+    const choices = keepArtChoices(actor, { includeCurrent: true });
+    if (choices.length) keepArt = (await promptKeepArt(choices, { optional: true })) || null;
+  }
   const opId = randomId();
   const result = await confirmPlayUse(`Cast ${art.name} (Performance)`, extra => supporterUses.execute(actor, "castNextArt",
-    { performanceId: active.performanceId, index: active.index, confirmed: true, ...extra }, opId));
+    { performanceId: active.performanceId, index: active.index, keepArt, confirmed: true, ...extra }, opId));
   if (!result) {
     if (startOpId) await supporterUses.undo(actor, startOpId);
     return null;
@@ -485,7 +542,6 @@ async function castFlow(actor, { startOpId = null } = {}) {
     if (startOpId) await supporterUses.undo(actor, startOpId);
     return null;
   }
-  if (result.lastArt) await endFlow(actor, { natural: true });
   return result;
 }
 

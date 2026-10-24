@@ -148,7 +148,7 @@ try {
     await bard.createEmbeddedDocuments("Item", [
       { name: "Supporter", type: "class", system: { identifier: "supporter", levels: 17 }, flags: { ak5e: { chapterThreeId: "class-supporter" } } },
       { name: "Supporter: Bard", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-supporter-bard" } } },
-      { name: "Lute", type: "tool", system: { equipped: true }, flags: { ak5e: { tableData: { properties: "Casting Unit" } } } }
+      { name: "Lute", type: "tool", system: { equipped: true, proficient: 1 }, flags: { ak5e: { tableData: { properties: "Casting Unit" } } } }
     ]);
     const spell = (name, level) => {
       const activityId = foundry.utils.randomID(16);
@@ -241,16 +241,16 @@ try {
   await showChat();
   await screenshot("u8-05-manual-art-card.png");
 
-  const endReceipt = await step("the natural end of the Performance (endPerformance): the crescendo effect is removed", async () => {
+  const endReceipt = await step("the last Art ends the Performance in its own use (castNextArt): the crescendo effect is removed", async () => {
     const s = await state(ids.id);
     if (s.active !== null) throw new Error("the Performance did not end after its last Art");
     if (s.crescendoEffect) throw new Error("the crescendo effect is still present after the Performance ended");
-    const last = s.undo.filter(r => r.command === "endPerformance").at(-1);
-    if (!last) throw new Error("no endPerformance receipt");
+    const last = s.undo.filter(r => r.command === "castNextArt").at(-1);
+    if (!last) throw new Error("no castNextArt receipt for the last Art");
     return last;
   });
 
-  await step("undo the endPerformance: the Performance returns with its crescendo effect", async () => {
+  await step("undo the last Art: the Performance returns with its crescendo effect", async () => {
     await page.evaluate(async ({ id, useId }) => { await globalThis.__u8.B.bardPerformApi.undo(game.actors.get(id), useId); }, { id: ids.id, useId: endReceipt.id });
     const s = await state(ids.id);
     if (!s.active) throw new Error("the Performance did not return after undo");
