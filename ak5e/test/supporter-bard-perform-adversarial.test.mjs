@@ -119,6 +119,16 @@ function makeBard({ level = 1, cha = 4, performances = [], active = null, fontDi
       system: { equipped: instrument !== "unequipped", proficient: instrument === "unproficient" ? 0 : 1 }
     }));
   }
+  // Arts are looked up by name among the actor's spell items (the Bard's sheet). Every non-manual Art of the
+  // Performances seeded here gets a spell item; manual Arts are cast through the manual card (R7) and need none.
+  const seenArts = new Set();
+  for (const entry of performances) {
+    for (const art of entry.arts) {
+      if (art.manual || seenArts.has(art.name)) continue;
+      seenArts.add(art.name);
+      items.push(createTestItem({ name: art.name, type: "spell", system: { level: 1 } }));
+    }
+  }
   const toolValue = instrument === "ready" || instrument === "unequipped" ? 1 : 0;
   const bardFlags = { performances: structuredClone(performances), active: structuredClone(active), museTHP: 0 };
   if (fontDie !== undefined) bardFlags.fontDie = fontDie;
@@ -162,6 +172,8 @@ const activeOf = (performanceId, index, crescendo, castsThisTurn) => ({ performa
 const bardOf = actor => actor.flags?.ak5e?.bard ?? null;
 const apOf = actor => actor.flags?.ak5e?.artsPoints?.value;
 const effectIds = actor => Array.from(actor.effects?.values?.() ?? []).map(effect => effect.id).sort();
+const nonCrescendoEffects = actor => Array.from(actor.effects?.values?.() ?? [])
+  .filter(effect => effect.name !== "Rising Crescendo").map(effect => effect.id).sort();
 const messageCount = () => game.messages.length;
 const lastMessageText = () => String(game.messages[game.messages.length - 1]?.content ?? "");
 
@@ -219,9 +231,13 @@ async function startPerformance(actor, performanceId, overrides = []) {
   return attempt(actor, "startPerformance", { performanceId, overrides });
 }
 
-/** Cast the next Art. Overrides are the warning ids the caller accepts. */
+/**
+ * Cast the next Art. The engine checks the caller's view of the Performance: performanceId and index are read from
+ * the Bard's active state, as the Performing panel supplies them. Overrides are the warning ids the caller accepts.
+ */
 async function castNext(actor, overrides = []) {
-  return attempt(actor, "castNextArt", { overrides });
+  const active = bardOf(actor)?.active ?? {};
+  return attempt(actor, "castNextArt", { performanceId: active.performanceId, index: active.index, overrides });
 }
 
 /**
@@ -311,12 +327,17 @@ test("ST-1: no Instrument warns and does not block; the warning is overridable (
   assert.equal(B.isPerforming(actor), true);
 });
 
+// Level 4 keeps the level-1 Font warning (fontLevel) out of these checks, so only the Instrument warning can satisfy them.
 test("ST-2: an unequipped Instrument and an unproficient Instrument each warn on start (C3:7106)", async () => {
   await ready();
-  const unequipped = makeBard({ level: 1, instrument: "unequipped", performances: [P3()] });
-  assertWarned(await startPerformance(unequipped, "perf-3"), "an unequipped Instrument");
-  const unproficient = makeBard({ level: 1, instrument: "unproficient", performances: [P3()] });
-  assertWarned(await startPerformance(unproficient, "perf-3"), "an Instrument not proficient with");
+  const unequipped = makeBard({ level: 4, instrument: "unequipped", performances: [P3()] });
+  const unequippedOutcome = await startPerformance(unequipped, "perf-3");
+  assertWarned(unequippedOutcome, "an unequipped Instrument");
+  assert.ok(unequippedOutcome.warnings.some(w => w.id === "instrument"), "the warning is the Instrument warning");
+  const unproficient = makeBard({ level: 4, instrument: "unproficient", performances: [P3()] });
+  const unproficientOutcome = await startPerformance(unproficient, "perf-3");
+  assertWarned(unproficientOutcome, "an Instrument not proficient with");
+  assert.ok(unproficientOutcome.warnings.some(w => w.id === "instrument"), "the warning is the Instrument warning");
 });
 
 test("ST-3: a proficient, equipped Instrument starts with no warning, sets performed, casts the first Art and costs 0 AP (C3:7106-7108)", async () => {
@@ -324,7 +345,8 @@ test("ST-3: a proficient, equipped Instrument starts with no warning, sets perfo
   const actor = makeBard({ level: 1, performances: [P3()], artsValue: 6 });
   const before = messageCount();
   const outcome = await startPerformance(actor, "perf-3");
-  assert.equal(outcome.ok, true, "a ready Instrument must start without warnings");
+  const raised = outcome.warnings.map(w => `${w.id}: ${w.text}`).join(" | ") || outcome.error?.message;
+  assert.equal(outcome.ok, true, `a ready Instrument must start without warnings; raised: ${raised}`);
   assert.equal(bardOf(actor).performances[0].performed, true, "starting sets performed: true");
   assert.equal(bardOf(actor).active?.performanceId, "perf-3");
   // active.index advances past the first Art (C3:7106-7108: the first Art is cast immediately).
@@ -535,7 +557,10 @@ test("CR-3: boundary 16 (no Fortissimo): two Arts give 1, three Arts give 2 (C3:
   await freshBard();
   await startPerformance(actor, "perf-4");
   await turnStart(actor, 2);
-  await castNext(actor);
+  // Fortissimo below level 17 is a passive multiplier: the second Art is cast with no warning at all (accepted choice).
+  const second = await castNext(actor);
+  assert.equal(second.ok, true, "level 16: no Fortissimo warning on the second Art");
+  assert.deepEqual(second.warnings, [], "level 16: no warnings on the second Art");
   assertCrescendo(B, actor, 1, "level 16: two Arts give Crescendo 1");
   await turnStart(actor, 3);
   await castNext(actor);
@@ -635,13 +660,14 @@ test("MA-1: casting a manual Art posts a manual card with no mechanics and no ro
   await ready();
   const actor = makeBard({ level: 10, performances: [PM()] });
   await startPerformance(actor, "perf-m");
-  const before = messageCount(), effectsBefore = effectIds(actor), apBefore = apOf(actor);
+  // Rising Crescendo legitimately arrives with the second Art (C3:7118); the manual Art itself adds no effect.
+  const before = messageCount(), effectsBefore = nonCrescendoEffects(actor), apBefore = apOf(actor);
   const outcome = await castNext(actor);
   assert.equal(outcome.ok, true, "the manual Art is composed in the Performance and can be cast");
   assert.ok(messageCount() > before, "the manual Art posts a card");
   assert.match(lastMessageText(), /Cause Fear/, "the card names the manual Art");
   assert.match(lastMessageText(), /manual|Bard missing Arts/i, "the card points at the manual ruling row (R7)");
-  assert.deepEqual(effectIds(actor), effectsBefore, "a manual Art creates no effects");
+  assert.deepEqual(nonCrescendoEffects(actor), effectsBefore, "a manual Art creates no effects of its own");
   assert.equal(apOf(actor), apBefore, "a manual Art costs no AP as a Performance Art");
   assert.equal(rollCalls.length, 0, "a manual Art never rolls");
 });
@@ -649,9 +675,11 @@ test("MA-1: casting a manual Art posts a manual card with no mechanics and no ro
 test("MA-2: a manual Art as the first Art posts a manual card on start and never rolls (R7)", async () => {
   await ready();
   const actor = makeBard({ level: 1, performances: [perf("perf-manual-first", ["Cause Fear", "Bless", "Aid"])] });
+  const effectsBefore = effectIds(actor);
   const outcome = await startPerformance(actor, "perf-manual-first");
   assert.equal(outcome.ok, true);
   assert.match(lastMessageText(), /Cause Fear/);
+  assert.deepEqual(effectIds(actor), effectsBefore, "the first Art, manual or not, adds no effect (no Crescendo yet)");
   assert.equal(rollCalls.length, 0);
 });
 
