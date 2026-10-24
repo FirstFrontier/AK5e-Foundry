@@ -483,33 +483,47 @@ export function bardPerformPanel(actor) {
 
 async function promptPerformance(actor) {
   const options = performancesOf(actor).map(entry => `<option value="${esc(entry.id)}">${esc(entry.id)}: ${esc(entry.arts.map(art => art.name).join(", "))}${entry.performed ? " (performed; No Encore)" : ""}</option>`).join("");
-  return foundry.applications.api.DialogV2.prompt({
+  // Returns an object, so a closed window (null) is never mistaken for a choice.
+  const picked = await foundry.applications.api.DialogV2.prompt({
     window: { title: `Put on a Performance — ${actor.name}` }, rejectClose: false,
     content: `<label>Performance <select name="performanceId">${options}</select></label>`,
-    ok: { label: "Continue", callback: (_event, button) => button.form.elements.performanceId?.value || null }
+    ok: { label: "Continue", callback: (_event, button) => ({ performanceId: button.form.elements.performanceId?.value || "" }) }
   });
+  return picked?.performanceId || null;
 }
 
-async function promptKeepArt(choices, { optional }) {
-  const options = `<option value="">— none: all Arts end —</option>` + choices.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join("");
-  const picked = await foundry.applications.api.DialogV2.prompt({
-    window: { title: "End Performance: keep Concentration" }, rejectClose: false,
-    content: `<p>Choose one Art to maintain your Concentration on (Ch.3 L7112). All other Arts end.</p><label>Keep <select name="keepArt">${options}</select></label>`,
-    ok: { label: "Continue", callback: (_event, button) => button.form.elements.keepArt?.value ?? "" }
-  });
-  if (picked === null || picked === undefined) return optional ? "" : null;
-  return picked;
-}
-
-async function confirmManualCard(actor, art) {
-  return foundry.applications.api.DialogV2.wait({
-    window: { title: `Cast ${art.name} (manual)` }, rejectClose: false,
-    content: `<div class="ak5e-supporter-confirm"><p>${esc(art.name)} has no Chapter 5 record. Its effect is not automated: a manual card is posted and nothing is rolled. No Arts Points are spent.</p></div>`,
+/**
+ * Confirm step with Cancel (WORKFLOW 3.2: confirm before every use; Cancel changes nothing). Resolves true only on the
+ * confirm button. Cancel returns false, and closing the window (X) resolves null, which also means "not confirmed".
+ */
+async function confirmSummary({ title, lines, confirmLabel }) {
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title }, rejectClose: false,
+    content: `<div class="ak5e-supporter-confirm">${lines.map(line => `<p>${esc(line)}</p>`).join("")}</div>`,
     buttons: [
-      { action: "confirm", label: "Post manual card", default: true, callback: () => true },
+      { action: "confirm", label: confirmLabel, default: true, callback: () => true },
       { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
+  return result === true;
+}
+
+/**
+ * Keep-Concentration prompt: one "Keep: <Art>" button per Art that requires Concentration, "Keep none", and Cancel.
+ * It is also the confirm step where it appears. Returns { keepArt } (the Art or null), or null on Cancel and on X.
+ */
+async function promptKeepArt(choices, { title, lines }) {
+  const buttons = [
+    ...choices.map((name, index) => ({ action: `keep${index}`, label: `Keep: ${name}`, callback: () => ({ keepArt: name }) })),
+    { action: "none", label: "Keep none", callback: () => ({ keepArt: null }) },
+    { action: "cancel", label: "Cancel", callback: () => false }
+  ];
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title }, rejectClose: false,
+    content: `<div class="ak5e-supporter-confirm">${lines.map(line => `<p>${esc(line)}</p>`).join("")}</div>`,
+    buttons
+  });
+  return result && typeof result === "object" && "keepArt" in result ? result : null;
 }
 
 async function postManualCard(actor, art, performanceId) {
@@ -543,8 +557,10 @@ async function castArtNatively(actor, item, { ignoreConcentration }) {
 }
 
 /**
- * One Art of the Performance: the state change first (so the crescendo bonus is live during the cast), then the cast.
- * Cancelling the cast undoes the state change, so Cancel changes nothing.
+ * One Art of the Performance. Before any write: a confirm summary (with Cancel), or the keep-Concentration prompt on the
+ * last Art (which is its confirm). Then the state change (crescendo live during the cast), then the cast. A cancelled or
+ * failed cast undoes the state change. `startOpId` is set when this cast follows Put on a Performance, whose confirm
+ * already named the first Art.
  */
 async function castFlow(actor, { startOpId = null } = {}) {
   const active = activeOf(actor);
@@ -553,11 +569,29 @@ async function castFlow(actor, { startOpId = null } = {}) {
   need(performance, "The Performance no longer exists.");
   const art = performance.arts[active.index];
   need(art, "All Arts of this Performance have been cast.");
-  // The last Art ends the Performance inside its own use, so the keep-Concentration choice is asked before it (C3 L7108).
+  const lastArt = active.index + 1 >= performance.arts.length;
+  const crescendo = crescendoFor(actor, active.index);
+  const cresLine = crescendo
+    ? `Rising Crescendo after this cast: +${crescendo} (Spell Save DC and Spell Attack Bonus; Art healing and Temporary HP; an extra Shield of Faith or Mage Armour target).`
+    : "Rising Crescendo after this cast: +0 (it begins with the second Art).";
+  const artLine = `Cast ${art.name} as Art ${active.index + 1} of ${performance.arts.length}: 0 Arts Points (Performance Arts cost no AP, C3 L7108).`;
+  const manualLine = !art.manual ? null : `${art.name} has no Chapter 5 record: its effect is not automated; a manual card is posted and nothing is rolled.`;
   let keepArt = null;
-  if (active.index + 1 >= performance.arts.length) {
-    const choices = keepArtChoices(actor, { includeCurrent: true });
-    if (choices.length) keepArt = (await promptKeepArt(choices, { optional: true })) || null;
+  if (!startOpId) {
+    if (lastArt) {
+      const choices = keepArtChoices(actor, { includeCurrent: true });
+      const lines = [artLine, cresLine, "The last Art ends the Performance (C3 L7108); its Rising Crescendo applies to its own cast.", ...(manualLine ? [manualLine] : [])];
+      if (choices.length) {
+        const picked = await promptKeepArt(choices, { title: `Cast ${art.name}: last Art`,
+          lines: [...lines, "Choose one Art to maintain your Concentration on (Ch.3 L7112). All other Arts end."] });
+        if (!picked) return null;
+        keepArt = picked.keepArt;
+      } else if (!(await confirmSummary({ title: `Cast ${art.name}: last Art`, lines, confirmLabel: "Cast" }))) {
+        return null;
+      }
+    } else if (!(await confirmSummary({ title: `Cast ${art.name}`, lines: [artLine, cresLine, ...(manualLine ? [manualLine] : [])], confirmLabel: "Cast" }))) {
+      return null;
+    }
   }
   const opId = randomId();
   const result = await confirmPlayUse(`Cast ${art.name} (Performance)`, extra => supporterUses.execute(actor, "castNextArt",
@@ -569,8 +603,8 @@ async function castFlow(actor, { startOpId = null } = {}) {
   let cast = false;
   try {
     if (result.manual || !result.artFound) {
-      cast = (await confirmManualCard(actor, art)) === true;
-      if (cast) await postManualCard(actor, art, performance.id);
+      await postManualCard(actor, art, performance.id);
+      cast = true;
     } else {
       cast = await castArtNatively(actor, artItem(actor, art.name), { ignoreConcentration: result.ignoreConcentration });
     }
@@ -589,24 +623,55 @@ async function castFlow(actor, { startOpId = null } = {}) {
   return result;
 }
 
-/** Ends the active Performance. A natural end (last Art) cannot be cancelled into staying open. */
-async function endFlow(actor, { natural = false } = {}) {
+/** Put on a Performance: a confirm naming the first Art (Cancel writes nothing), then the start and the first Art's cast. */
+async function startFlow(actor, performanceId) {
+  const performance = findPerformance(actor, performanceId);
+  need(performance, "Choose a composed Performance.");
+  const level = levelOf(actor);
+  const first = performance.arts[0]?.name ?? "the first Art";
+  const confirmed = await confirmSummary({ title: `Put on ${performance.id}`, confirmLabel: "Put on",
+    lines: [`Performance ${performance.id}: ${performance.arts.map(art => art.name).join(", ")}.`,
+      `Putting it on casts the first Art, ${first} (Art 1 of ${performance.arts.length}), at 0 Arts Points.`,
+      `The Instrument you are Proficient with becomes your Casting Unit until the Performance ends.`,
+      level >= FONT_LEVEL ? "A Font of Inspiration die is gained (Provide Aid only)." : "No Font of Inspiration die (level 4 feature)."] });
+  if (!confirmed) return null;
+  const opId = randomId();
+  const started = await confirmPlayUse("Put on a Performance", extra => supporterUses.execute(actor, "startPerformance",
+    { performanceId, confirmed: true, ...extra }, opId));
+  if (!started) return null;
+  return castFlow(actor, { startOpId: opId });
+}
+
+/** Ends the active Performance. With Concentration Arts cast so far, the keep prompt is the confirm; otherwise a confirm. */
+async function endFlow(actor) {
   const active = activeOf(actor);
   need(active, "This Bard is not Performing.");
   const choices = keepArtChoices(actor);
   let keepArt = null;
   if (choices.length) {
-    keepArt = await promptKeepArt(choices, { optional: natural });
-    if (keepArt === null) return null;
+    const picked = await promptKeepArt(choices, { title: "End Performance: keep Concentration",
+      lines: ["Choose one Art to maintain your Concentration on (Ch.3 L7112). All other Arts end.",
+        "The Performance cannot be performed again afterwards (No Encore, L7114)."] });
+    if (!picked) return null;
+    keepArt = picked.keepArt;
+  } else if (!(await confirmSummary({ title: "End Performance", confirmLabel: "End Performance",
+    lines: [`End ${active.performanceId} now. It cannot be performed again (No Encore, L7114).`] }))) {
+    return null;
   }
   const opId = randomId();
   return confirmPlayUse("End Performance", extra => supporterUses.execute(actor, "endPerformance",
-    { performanceId: active.performanceId, keepArt: keepArt || null, reason: "manual", confirmed: true, ...extra }, opId));
+    { performanceId: active.performanceId, keepArt, reason: "manual", confirmed: true, ...extra }, opId));
 }
 
+/** Font of Inspiration Aid: a confirm naming the target and the die. Cancel spends nothing. */
 async function fontAidFlow(actor) {
   const target = globalThis.game?.user?.targets?.first?.()?.actor ?? null;
   need(target, "Target the creature to give the Font of Inspiration die to.");
+  const die = aidDieSize(levelOf(actor));
+  const confirmed = await confirmSummary({ title: `Font of Inspiration Aid to ${target.name}`, confirmLabel: "Give the Aid Die",
+    lines: [`Give ${target.name} a ${die} Font of Inspiration Aid Die for 10 minutes.`,
+      "This spends your Font of Inspiration die; no Aid Die pool is used."] });
+  if (!confirmed) return null;
   const opId = randomId();
   return confirmPlayUse("Font of Inspiration Aid", extra => supporterUses.execute(actor, "fontProvideAid",
     { targetUuid: target.uuid, targetName: target.name, confirmed: true, ...extra }, opId));
@@ -614,7 +679,7 @@ async function fontAidFlow(actor) {
 
 /**
  * Panel command dispatcher. Returns undefined for a command it does not own, so the branch can fall through.
- * Every step is confirmed; cancelling changes nothing.
+ * Every step confirms first; Cancel changes nothing.
  */
 export async function bardPerformCommand(actor, cmd) {
   if (!COMMANDS.includes(cmd)) return undefined;
@@ -624,11 +689,7 @@ export async function bardPerformCommand(actor, cmd) {
       if (!performancesOf(actor).length) { globalThis.ui?.notifications?.warn?.("Compose a Performance first."); return null; }
       const performanceId = await promptPerformance(actor);
       if (!performanceId) return null;
-      const opId = randomId();
-      const started = await confirmPlayUse("Put on a Performance", extra => supporterUses.execute(actor, "startPerformance",
-        { performanceId, confirmed: true, ...extra }, opId));
-      if (!started) return null;
-      return castFlow(actor, { startOpId: opId });
+      return startFlow(actor, performanceId);
     }
     case "bardCastNextArt": return castFlow(actor);
     case "bardEndPerformance": return endFlow(actor);

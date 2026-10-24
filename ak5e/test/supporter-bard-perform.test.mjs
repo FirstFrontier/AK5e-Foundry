@@ -613,3 +613,161 @@ test("the post-cast step never removes a crescendo of a running Performance", as
   assert.equal(effectOf(actor)?.flags.ak5e.bardCrescendo.amount, 1, "the running Performance keeps its crescendo");
   assert.equal(isPerforming(actor), true);
 });
+
+/* ---------------------------------------------------------------- confirm before use; Cancel changes nothing (WORKFLOW 3.2) */
+
+/**
+ * Emulating DialogV2 (Foundry resolves a click as `(await callback()) ?? action`; a closed window (X) resolves null).
+ * `answers` are consumed in order: an action name for wait(), { performanceId, keepArt } for prompt() (select values),
+ * or null for X. Every dialog title is recorded in `seen`.
+ */
+function stubDialogs(answers) {
+  const queue = [...answers];
+  const seen = [];
+  foundry.applications = { api: { DialogV2: {
+    async wait({ window, buttons }) {
+      const answer = queue.shift();
+      seen.push(window.title);
+      if (answer === null || answer === undefined) return null;
+      const button = buttons.find(entry => entry.action === answer);
+      if (!button) throw new Error(`no button ${answer} in ${window.title}`);
+      return (await button.callback?.()) ?? answer;
+    },
+    async prompt({ window, ok }) {
+      const answer = queue.shift();
+      seen.push(window.title);
+      if (answer === null || answer === undefined) return null;
+      const elements = { performanceId: { value: answer.performanceId }, keepArt: { value: answer.keepArt ?? "" } };
+      return (await ok.callback(null, { form: { elements } })) ?? "ok";
+    }
+  } } };
+  return { seen, remaining: () => queue.length };
+}
+
+/** Every observable write point of the Bard, the Arts config, the Aid Die effects and the chat log, for before/after. */
+const stateOf = actor => JSON.stringify({
+  bard: actor.getFlag("ak5e", "bard"), casting: actor.getFlag("ak5e", "casting"), ap: actor.getFlag("ak5e", "artsPoints"),
+  effects: [...actor.effects.values()].map(effect => [effect.id, effect.flags?.ak5e?.bardCrescendo ?? null]),
+  undo: (actor.getFlag("ak5e", "supporterUses")?.undo ?? []).map(entry => [entry.id, entry.status]),
+  messages: game.messages.length
+});
+
+test("a mid-Performance cast confirms first: Cancel writes nothing, confirm casts the next Art", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  const before = stateOf(actor);
+  const cancelled = stubDialogs(["cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardCastNextArt"), null);
+  assert.equal(cancelled.remaining(), 0);
+  assert.equal(stateOf(actor), before, "Cancel changes nothing");
+  stubDialogs(["confirm"]);
+  const result = await bardPerformCommand(actor, "bardCastNextArt");
+  assert.equal(result.artName, "Healing Word");
+  assert.equal(active(actor).index, 2);
+});
+
+test("the last Art's keep prompt: X and Cancel write nothing; Keep: <Art> casts and ends with that Art kept", async () => {
+  const actor = bard({ level: 9, concentrationArts: ["Bless"] });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  const before = stateOf(actor);
+  for (const answer of [null, "cancel"]) {
+    stubDialogs([answer]);
+    assert.equal(await bardPerformCommand(actor, "bardCastNextArt"), null, `answer ${answer} aborts`);
+    assert.equal(stateOf(actor), before, `answer ${answer} changes nothing`);
+  }
+  stubDialogs(["keep0"]);
+  const result = await bardPerformCommand(actor, "bardCastNextArt");
+  assert.equal(result.lastArt, true);
+  assert.equal(result.keepArt, "Bless");
+  assert.equal(isPerforming(actor), false);
+});
+
+test("the last Art's keep prompt offers Keep none, which casts and ends with no Art kept", async () => {
+  const actor = bard({ level: 9, concentrationArts: ["Bless"] });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  stubDialogs(["none"]);
+  const result = await bardPerformCommand(actor, "bardCastNextArt");
+  assert.equal(result.keepArt, null);
+  assert.equal(isPerforming(actor), false);
+});
+
+test("the last Art with no Concentration Art confirms first: Cancel writes nothing, confirm casts and ends", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  await run(actor, "castNextArt", { performanceId: "P1", index: 1 });
+  await bardTurnStart(actor);
+  const before = stateOf(actor);
+  stubDialogs(["cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardCastNextArt"), null);
+  assert.equal(stateOf(actor), before, "Cancel changes nothing");
+  stubDialogs(["confirm"]);
+  await bardPerformCommand(actor, "bardCastNextArt");
+  assert.equal(isPerforming(actor), false);
+});
+
+test("ending with a Concentration Art to keep: X and Cancel write nothing; Keep: <Art> ends it", async () => {
+  const actor = bard({ level: 9, concentrationArts: ["Bless"] });
+  await startAndFirstCast(actor);
+  await bardTurnStart(actor);
+  const before = stateOf(actor);
+  for (const answer of [null, "cancel"]) {
+    stubDialogs([answer]);
+    assert.equal(await bardPerformCommand(actor, "bardEndPerformance"), null);
+    assert.equal(stateOf(actor), before, `answer ${answer} changes nothing`);
+  }
+  stubDialogs(["keep0"]);
+  const result = await bardPerformCommand(actor, "bardEndPerformance");
+  assert.equal(result.keepArt, "Bless");
+  assert.equal(isPerforming(actor), false);
+});
+
+test("ending with no Concentration Art confirms first: Cancel writes nothing, confirm ends", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  const before = stateOf(actor);
+  stubDialogs(["cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardEndPerformance"), null);
+  assert.equal(stateOf(actor), before, "Cancel changes nothing");
+  stubDialogs(["confirm"]);
+  await bardPerformCommand(actor, "bardEndPerformance");
+  assert.equal(isPerforming(actor), false);
+});
+
+test("the Font aid confirms first, naming the target: Cancel spends nothing; confirm gives the Aid Die", async () => {
+  const actor = bard({ level: 9 });
+  await startAndFirstCast(actor);
+  const ally = createTestActor({ name: "Ally", type: "character", ownership: { default: 0 } });
+  docsRef.docs.set(ally.uuid, ally);
+  game.user.targets = { first: () => ({ actor: ally }) };
+  const before = stateOf(actor);
+  const cancelled = stubDialogs(["cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardFontAid"), null);
+  assert.match(cancelled.seen[0], /Ally/, "the confirm names the target");
+  assert.equal(stateOf(actor), before, "Cancel spends nothing");
+  assert.equal(findAidDieEffect(ally), null);
+  stubDialogs(["confirm"]);
+  const result = await bardPerformCommand(actor, "bardFontAid");
+  assert.equal(result.font, true);
+  assert.ok(findAidDieEffect(ally));
+  assert.equal(actor.getFlag("ak5e", "bard").fontDie, false);
+});
+
+test("Put on a Performance confirms first: Cancel starts nothing; confirm starts and casts the first Art", async () => {
+  const actor = bard({ level: 9 });
+  const before = stateOf(actor);
+  stubDialogs([{ performanceId: "P1" }, "cancel"]);
+  assert.equal(await bardPerformCommand(actor, "bardStartPerformance"), null);
+  assert.equal(stateOf(actor), before, "Cancel changes nothing");
+  stubDialogs([{ performanceId: "P1" }, "confirm"]);
+  const result = await bardPerformCommand(actor, "bardStartPerformance");
+  assert.equal(result.artName, "Bless");
+  assert.equal(active(actor).index, 1);
+});
