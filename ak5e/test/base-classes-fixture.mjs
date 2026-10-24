@@ -206,6 +206,26 @@ export function createTestItem(data = {}, parent = null) {
       }
       return this;
     },
+    async createEmbeddedDocuments(type, entries = []) {
+      if (type !== "ActiveEffect") return [];
+      const created = entries.map(entry => {
+        const docId = entry._id || entry.id || globalThis.foundry?.utils?.randomID?.() || `effect_${Math.random().toString(36).slice(2, 9)}`;
+        const effect = createTestItem({ ...entry, id: docId, _id: docId, documentName: "ActiveEffect", type: "effect" }, this);
+        effect.uuid = `${this.uuid}.ActiveEffect.${docId}`;
+        this.effects.set(docId, effect);
+        return effect;
+      });
+      return created;
+    },
+    async deleteEmbeddedDocuments(type, ids = []) {
+      if (type !== "ActiveEffect") return [];
+      const removed = [];
+      for (const id of ids) {
+        const effect = this.effects.get(id);
+        if (effect) { removed.push(effect); this.effects.delete(id); }
+      }
+      return removed;
+    },
     async delete(options = {}) {
       if (this.parent?.items?.has(this.id)) {
         this.parent.items.delete(this.id);
@@ -235,6 +255,13 @@ export function createTestItem(data = {}, parent = null) {
       };
     }
   };
+
+  for (const effect of data.effects ?? []) {
+    const effectId = effect.id || effect._id || globalThis.foundry?.utils?.randomID?.() || `effect_${Math.random().toString(36).slice(2, 9)}`;
+    const doc = createTestItem({ ...effect, id: effectId, _id: effectId, documentName: "ActiveEffect", type: "effect" }, item);
+    doc.uuid = `${item.uuid}.ActiveEffect.${effectId}`;
+    item.effects.set(effectId, doc);
+  }
 
   if (globalThis._ak5eTestDocs) {
     globalThis._ak5eTestDocs.set(item.uuid, item);
@@ -485,7 +512,8 @@ export function createTestActor(data = {}) {
   // Seed additional items if provided
   if (Array.isArray(data.items)) {
     for (const itemData of data.items) {
-      const it = createTestItem(itemData, actor);
+      const sourceItem = typeof itemData?.toObject === "function" ? itemData.toObject() : itemData;
+      const it = createTestItem(sourceItem, actor);
       actor.items.set(it.id, it);
     }
   }
