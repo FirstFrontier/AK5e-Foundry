@@ -9,9 +9,10 @@ import {
 } from "../scripts/supporter-rules.mjs";
 import {
   aidDieFormula, spendAidDice, rollAidDieButton, findAidDieEffect, registerSupporterHooks,
-  defineSupporterPools, onSupporterTurnStart, onSupporterTurnEnd, hasSelfSupportDie
+  defineSupporterPools, onSupporterTurnStart, onSupporterTurnEnd, hasSelfSupportDie,
+  aidCritPreRollAttack, registerAidCritRider
 } from "../scripts/supporter-features.mjs";
-import { supporterUses, registerSupporterPlans } from "../scripts/supporter-uses.mjs";
+import { supporterUses, registerSupporterPlans, renderAidCardButtons } from "../scripts/supporter-uses.mjs";
 import { getPool } from "../scripts/resource-pools.mjs";
 import { emitAk5eEvent, getReactions } from "../scripts/trigger-events.mjs";
 
@@ -248,7 +249,7 @@ test("useAidDie: no crit rider without the user's choice, and nothing is registe
   const actor = supporter(5);
   await holdAidDie(actor);
   const result = await supporterUses.execute(actor, "useAidDie", { rollType: "attack" }, "use-plain");
-  assert.equal(result.critRider, null);
+  assert.equal(result.critRider, undefined, "no crit rider key without the user choice");
   assert.equal(Object.keys(actor.flags.ak5e.triggerRiders ?? {}).length, 0);
 });
 
@@ -312,4 +313,102 @@ test("selfSupportiveDie warns when no die is held, and cannot be given to anothe
     err => err.warnings.some(w => w.id === "noSelfSupportDie"));
   const plan = supporterUses.plan(actor, "selfSupportiveDie", { rollType: "skill", overrides: ["noSelfSupportDie"] });
   assert.ok(plan.title.includes("Self-Supportive"));
+});
+
+/* ---- follow-up round: pool max (R1), self-target (PA-3), giver gating, cards, crit hook, relay ---- */
+
+const buttonsIn = html => (html.match(/<button\b/gi) ?? []).length;
+
+test("the Aid Die pool max is the chosen ability modifier, with no floor (R1)", () => {
+  assert.equal(getPool(supporter(1, { flags: { aidAbility: "int" } }), "aidDie").max, 1, "chosen INT mod 1, not the highest");
+  assert.equal(getPool(supporter(1, { flags: { aidAbility: "wis" } }), "aidDie").max, 2, "chosen WIS mod 2");
+  assert.equal(getPool(supporter(1, { abilities: { cha: { mod: -2, value: 6 } } }), "aidDie").max, 0, "negative chosen mod: max 0");
+});
+
+test("provideAid targeting yourself warns selfTarget (PA-3); use anyway allows it", () => {
+  const actor = supporter(5);
+  assert.throws(() => supporterUses.plan(actor, "provideAid", { targetUuid: actor.uuid, target: actor, distance: 10 }),
+    err => err.warnings.some(w => w.id === "selfTarget"));
+  assert.doesNotThrow(() => supporterUses.plan(actor, "provideAid", { targetUuid: actor.uuid, target: actor, distance: 10, overrides: ["selfTarget"] }));
+});
+
+test("Advanced Aid follows the GIVER's level (effect, else data), not the holder's", async () => {
+  const holder = createTestActor({ name: "Holder" });
+  docs.set(holder.uuid, holder);
+  await holdAidDie(holder, { supporterLevel: 4, dieSize: "d8", advancedAid: true });
+  const low = await supporterUses.execute(holder, "useAidDie", { rollType: "attack", rider: "crit" }, "gate-low");
+  assert.equal(low.advancedEffect, null, "giver level 4 gives no Advanced Aid");
+  assert.equal(low.critRider, undefined);
+  assert.equal(/crit/i.test(JSON.stringify(low)), false, "a level 4 record never mentions a crit rider");
+
+  const holder5 = createTestActor({ name: "Holder 5" });
+  docs.set(holder5.uuid, holder5);
+  await holdAidDie(holder5, { dieSize: "d8", supporterLevel: undefined });
+  const high = await supporterUses.execute(holder5, "useAidDie", { rollType: "attack", supporterLevel: 5 }, "gate-high");
+  assert.equal(high.advancedEffect, "attack", "data.supporterLevel 5 is the fallback giver level");
+});
+
+test("useAidDie card: level 4 has only Roll; level 5 skill adds the second roll; level 20 adds +PB", async () => {
+  const cardFor = async (level, rollType, opId) => {
+    const holder = createTestActor({ name: `H${level}` });
+    docs.set(holder.uuid, holder);
+    await holdAidDie(holder, { supporterLevel: level, dieSize: "d8", supporterPB: pbForLevel(level) });
+    const result = await supporterUses.execute(holder, "useAidDie", { rollType, supporterLevel: level }, opId);
+    return result.card;
+  };
+  assert.equal(buttonsIn(await cardFor(4, "attack", "card-4")), 1, "level 4: only Roll");
+  assert.equal(buttonsIn(await cardFor(5, "skill", "card-5s")), 2, "level 5 skill: Roll + second roll");
+  const c20 = await cardFor(20, "attack", "card-20");
+  assert.match(c20, /data-ak5e-will-into-being="6"/, "level 20: +PB button");
+  assert.match(c20, /data-ak5e-rider="crit"/, "level 20 attack: crit rider offer");
+});
+
+test("selfSupportiveDie card exposes the roll button and never rolls", async () => {
+  let rolled = false;
+  globalThis.Roll = class { constructor() { rolled = true; } evaluate() { rolled = true; return this; } };
+  const actor = supporter(18);
+  await onSupporterTurnStart(actor);
+  const result = await supporterUses.execute(actor, "selfSupportiveDie", { rollType: "skill" }, "self-card");
+  assert.match(result.card, /data-ak5e-aid-roll="1d12"/);
+  assert.equal(rolled, false);
+});
+
+test("the Advanced Aid crit rider is applied by dnd5e.preRollAttackV2 once and consumed after one attack", async () => {
+  const actor = supporter(5);
+  await registerAidCritRider(actor, "aidcrit-hook-1");
+  const config = { subject: { actor }, rolls: [{ options: {} }] };
+  aidCritPreRollAttack(config);
+  assert.equal(config.rolls[0].options.criticalSuccess, 19, "20 becomes 19 for this attack");
+  aidCritPreRollAttack(config);
+  assert.equal(config.rolls[0].options.criticalSuccess, 19, "a second run does not lower it again");
+
+  const { consumeRider } = await import("../scripts/trigger-events.mjs");
+  await consumeRider("aidcrit-hook-1", { actor, receipt: "attack-1" });
+  const after = { subject: { actor }, rolls: [{ options: {} }] };
+  aidCritPreRollAttack(after);
+  assert.equal(after.rolls[0].options.criticalSuccess, undefined, "consumed: the next attack is normal");
+});
+
+test("the card click handler binds each button once; rendering alone never rolls", () => {
+  let rolled = false;
+  globalThis.Roll = class { constructor() { rolled = true; } evaluate() { rolled = true; return this; } };
+  const listeners = [];
+  const button = { dataset: {}, addEventListener(_type, fn) { listeners.push(fn); } };
+  const html = { querySelectorAll: () => [button] };
+  const message = { flags: { ak5e: { supporterUsesUse: { useId: "u" } } } };
+  renderAidCardButtons(message, html);
+  renderAidCardButtons(message, html);
+  assert.equal(listeners.length, 1, "bound once, despite two renders");
+  assert.equal(button.dataset.useId, "u", "the use id comes from the message flags");
+  assert.equal(rolled, false, "rendering does not roll");
+});
+
+test("aidTempHP (rider temp HP) is a registered plan that applies temp HP through the engine", async () => {
+  const actor = supporter(5);
+  actor.system.attributes.hp = { value: 10, max: 20, temp: 0 };
+  const result = await supporterUses.execute(actor, "aidTempHP", { targetUuid: actor.uuid, targetName: actor.name, amount: 4 }, "temp-hp-1");
+  assert.equal(result.amount, 4);
+  assert.equal(actor.system.attributes.hp.temp, 4, "temp HP is set to the amount");
+  await supporterUses.undo(actor, "temp-hp-1");
+  assert.equal(actor.system.attributes.hp.temp ?? 0, 0, "undo restores the prior temp HP");
 });

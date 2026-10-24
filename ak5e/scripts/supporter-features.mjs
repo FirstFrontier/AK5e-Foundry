@@ -1,16 +1,17 @@
 /** Supporter runtime features and mechanical hooks (Ch. 3 L6548–6692).
  * Aid Die pool and Aid Die effects, Provide Aid helpers, Advanced Aid riders, Lighten the Load,
- * Ever Reliable, Self-Supportive and Will Into Being. Nothing here rolls dice: roll buttons only.
+ * Ever Reliable, Self-Supportive and Will Into Being. Dice are rolled only on a user's click.
  */
-import { supporterLevel, supporterEnabled, pbForLevel, flag, aidDieSize } from "./supporter-rules.mjs";
+import { supporterLevel, supporterEnabled, pbForLevel, flag, aidDieSize, aidDieMax } from "./supporter-rules.mjs";
 import { definePool, getPool, getPoolDefinition, refundPool } from "./resource-pools.mjs";
 import { need, values, esc } from "./operation-kernel.mjs";
 import { spendResource } from "./play-uses.mjs";
-import { onAk5eEvent, registerRider, removeRider } from "./trigger-events.mjs";
+import { onAk5eEvent, registerRider, removeRider, riderRecords } from "./trigger-events.mjs";
+import { renderAidCardButtons } from "./supporter-uses.mjs";
 
 /** The flag the Supporter Uses engine stamps on its Active Effects (`${ns}Effect`, ns "supporterUses"). */
 export const AID_DIE_EFFECT_FLAG = "supporterUsesEffect";
-const AID_RIDER_TRIGGER = "attack";
+const AID_CRIT_PREFIX = "aidcrit-";
 let hooksInstalled = false;
 
 export function hasProvideAid(actor) {
@@ -68,17 +69,13 @@ export function findAidDieEffect(target) {
   return values(target?.effects).find(effect => flag(effect, AID_DIE_EFFECT_FLAG)?.aidDie === true) ?? null;
 }
 
-/** Warning copy used by the plans; "Use anyway" is always allowed (WORKFLOW §3.2). */
-export const AID_DIE_HOLDER_WARNING = "already holds an Aid Die; a creature can only have one Aid Die at a time.";
-
 export function defineSupporterPools() {
   if (!getPoolDefinition("aidDie")) {
     definePool({
       id: "aidDie",
       label: "Aid Dice",
-      // R1 wants the chosen ability modifier (default CHA) with no floor of 1; a registry formula cannot
-      // select the ability per Actor, so this still uses the highest mental modifier. See the report.
-      max: "max(0, max(@abilities.int.mod, max(@abilities.wis.mod, @abilities.cha.mod)))",
+      // R1: the chosen INT/WIS/CHA modifier, no floor of 1; 0 or less warns and the GM resolves.
+      max: aidDieMax,
       initial: "max",
       classId: "class-supporter",
       levelBasis: "classLevel",
@@ -88,20 +85,25 @@ export function defineSupporterPools() {
   }
 }
 
-/** Spend Aid Dice from the aidDie pool; clamps at 0 and records any shortfall on the receipt. Returns the update. */
+/** Staging helper: spends Aid Dice from the aidDie pool, clamps at 0, records any shortfall, and returns the update. */
 export function spendAidDice(actor, amount, receipt) {
   need(Number.isInteger(amount) && amount >= 0, "Aid Dice spent must be a whole number of 0 or more.");
   return spendResource(actor, receipt, { pool: "aidDie", amount, label: "Aid Die" });
 }
 
-/** Chat-card markup with a roll button for an Aid Die roll. Never rolls: the user's click does that. */
-export function rollAidDieButton({ actor, label = "Roll Aid Die", formula = aidDieFormula(actor), extra = {} } = {}) {
-  const buttons = [`<button type="button" data-ak5e-aid-roll="${esc(formula)}" data-actor="${esc(actor?.uuid)}">${esc(label)}</button>`];
+/**
+ * Chat-card markup with the roll buttons for an Aid Die. Never rolls: each button is wired by
+ * renderAidCardButtons, and a click is the only thing that rolls.
+ */
+export function rollAidDieButton({ actor, label = "Roll Aid Die", formula = aidDieFormula(actor), rollType = "", extra = {} } = {}) {
+  // The use id is not embedded: the click handler reads it from the chat message flags (play-uses cardFlag).
+  const common = `data-actor="${esc(actor?.uuid)}"`;
+  const buttons = [`<button type="button" data-ak5e-aid-roll="${esc(formula)}" ${common}>${esc(label)}</button>`];
   if (extra.willIntoBeingPB > 0) {
-    buttons.push(`<button type="button" data-ak5e-will-into-being="${Number(extra.willIntoBeingPB)}">+${Number(extra.willIntoBeingPB)} (Will Into Being)</button>`);
+    buttons.push(`<button type="button" data-ak5e-will-into-being="${Number(extra.willIntoBeingPB)}" ${common}>+${Number(extra.willIntoBeingPB)} (Will Into Being)</button>`);
   }
   for (const rider of extra.riders ?? []) {
-    buttons.push(`<button type="button" data-ak5e-rider="${esc(rider.id)}">${esc(rider.label)}</button>`);
+    buttons.push(`<button type="button" data-ak5e-rider="${esc(rider.id)}" data-roll-type="${esc(rollType)}" data-formula="${esc(formula)}" ${common}>${esc(rider.label)}</button>`);
   }
   return `<div class="ak5e-aid-roll"><p>${esc(formula)}</p>${buttons.join("")}</div>`;
 }
@@ -121,13 +123,29 @@ export function advancedAidOffers(rollType) {
 /** One-shot attack rider: the next attack by this Actor widens its critical range by 1 (R6). */
 export async function registerAidCritRider(actor, riderId, label = "Advanced Aid: critical range +1 (this attack)") {
   return registerRider({
-    id: riderId, actor, trigger: AID_RIDER_TRIGGER, consume: "once",
+    id: riderId, actor, trigger: "attack", consume: "once",
     expiry: { trigger: "attack", actorUuid: actor.uuid }, label, sourceActorUuid: actor.uuid
   });
 }
 
 export async function removeAidRider(actor, riderId) {
   return removeRider(actor, riderId);
+}
+
+/**
+ * dnd5e.preRollAttackV2(config): an active Advanced Aid crit rider lowers this attack's critical
+ * threshold from 20 to 19 (R6). The rider is consumed by the attack event (trigger-events), not here.
+ */
+export function aidCritPreRollAttack(config) {
+  const actor = config?.subject?.actor;
+  const roll = config?.rolls?.[0];
+  if (!actor || !roll) return;
+  const pending = riderRecords(actor).find(record => String(record.id).startsWith(AID_CRIT_PREFIX) && record.status === "active");
+  if (!pending) return;
+  roll.options ??= {};
+  if (roll.options.aidCritRider) return;   // one application per roll, even if the hook runs twice
+  roll.options.criticalSuccess = Math.max(1, (roll.options.criticalSuccess ?? 20) - 1);
+  roll.options.aidCritRider = pending.id;
 }
 
 export function hasSelfSupportDie(actor) {
@@ -185,6 +203,11 @@ export function registerSupporterHooks() {
     globalThis.Hooks.on("dnd5e.restCompleted", (actor, result, config = {}) => {
       const type = config.type ?? result?.type ?? (config.longRest ? "long" : "short");
       onSupporterRest(actor, type);
+    });
+    globalThis.Hooks.on("dnd5e.preRollAttackV2", aidCritPreRollAttack);
+    globalThis.Hooks.on("renderChatMessageHTML", (message, html) => {
+      try { renderAidCardButtons(message, html); }
+      catch (error) { console.error("AK5e | Supporter Aid card", error); }
     });
   }
   onAk5eEvent("turnStart", turnEventHandler(onSupporterTurnStart));
