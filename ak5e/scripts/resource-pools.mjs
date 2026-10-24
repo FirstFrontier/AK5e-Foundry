@@ -143,6 +143,8 @@ const whole = (value, label) => { need(typeof value === "number" && Number.isInt
 
 function normalizeMax(max, id) {
   if (typeof max === "number") return { kind: "fixed", value: whole(max, `Pool ${id} max`) };
+  /** Per-actor resolver, for maxima no formula can express (e.g. an ability the player chose). */
+  if (typeof max === "function") return { kind: "function", resolve: max };
   if (typeof max === "string") {
     const formula = compileFormula(max);
     for (const name of formula.variables) need(VARIABLE.test(name), `Unknown variable @${name} in the max of pool ${id}.`);
@@ -152,7 +154,7 @@ function normalizeMax(max, id) {
     need(max.length > 0, `Pool ${id} level table is empty.`);
     return { kind: "array", table: max.map((v, i) => whole(v, `Pool ${id} level ${i + 1}`)) };
   }
-  need(max && typeof max === "object", `Pool ${id} needs a max (integer, level table or formula).`);
+  need(max && typeof max === "object", `Pool ${id} needs a max (integer, level table, formula or function).`);
   const rows = Object.entries(max).map(([level, v]) => {
     need(/^[1-9]\d*$/.test(level), `Pool ${id} level keys must be positive whole numbers.`);
     return [Number(level), whole(v, `Pool ${id} level ${level}`)];
@@ -217,6 +219,7 @@ export function resolveMax(def, actor) {
   const { max } = def;
   let result;
   if (max.kind === "fixed") result = max.value;
+  else if (max.kind === "function") result = max.resolve(actor);
   else if (max.kind === "formula") result = max.formula.evaluate(poolVariables(actor, def));
   else {
     const basis = def.levelBasis ?? (def.classId ? "classLevel" : "level");
