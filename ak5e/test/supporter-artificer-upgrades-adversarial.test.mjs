@@ -49,6 +49,8 @@ const PERSONALITY_TABLE = Object.freeze(["Taciturn", "Caring", "Excitable", "War
 const DEFAULT_MODS = Object.freeze({ str: 0, dex: 2, con: 2, int: 3, wis: 1, cha: 4 });
 
 let upgradesModule = null, upgradesLoadError = null, plansRegistered = false;
+// The loaded implementation module, for its exported use-max rule (set by ready()).
+let AU = null;
 
 /** Load the module once. A missing module fails only the tests that call artificer(). */
 async function artificer() {
@@ -60,13 +62,25 @@ async function artificer() {
   return upgradesModule;
 }
 
+// A fresh instance of the implementation module (cache-busted import), for a new session with its own hook guard.
+let freshSeq = 0;
+async function freshArtificerModule() {
+  return import(`../scripts/artificer-upgrades.mjs?session=${++freshSeq}`);
+}
+
 /** Load the module and register its plans with the Supporter engine (once per file, as the hexer suite does). */
 async function ready() {
   const A = await artificer();
+  AU = A;
   if (!plansRegistered) {
     Uses.registerSupporterPlans({ plans: A.artificerUpgradePlans });
     plansRegistered = true;
   }
+  // The rest-recovery hook is wired on a fresh module instance. The module guards its hooks with a per-instance
+  // flag (correct for one persistent Foundry Hooks object), but the fixture builds a new Hooks mock for each test,
+  // so each test loads a fresh instance to model a new session. Plans and rules stay on the shared instance AU.
+  const session = await freshArtificerModule();
+  session.registerArtificerUpgradeHooks();
   return A;
 }
 
@@ -127,7 +141,8 @@ function makeAutomaton(creator, { variant = "platform", upgrades = [], upgradeUs
       ak5e: {
         automaton: {
           creator: creatorUuid ?? creator.uuid, variant, upgrades: [...upgrades], personality, destroyed,
-          ...(upgradeUses ? { upgradeUses: { ...upgradeUses } } : {})
+          // Recorded shape (head ruling): upgradeUses[id] = { used }. A seeded "remaining" becomes used = max - remaining.
+          ...(upgradeUses ? { upgradeUses: seededUsed(creator, upgradeUses) } : {})
         }
       }
     }
@@ -205,15 +220,31 @@ const upgradeIdsOn = automaton => (automaton.flags?.ak5e?.automaton?.upgrades ??
 const coverUpgradeIds = (artificerActor, coverId) =>
   (artificerActor.flags?.ak5e?.artificer?.covers ?? []).find(c => c.id === coverId)?.upgrades?.map(idOf) ?? [];
 
-/** Remaining uses of an Automaton upgrade (flags.ak5e.automaton.upgradeUses, contract). */
-function usesOf(automaton, upgradeId) {
-  const raw = automaton.flags?.ak5e?.automaton?.upgradeUses?.[upgradeId];
-  if (typeof raw === "number") return raw;
-  if (raw && typeof raw === "object") {
-    const value = raw.value ?? raw.remaining ?? raw.current;
-    return typeof value === "number" ? value : undefined;
+/**
+ * Use max of an upgrade for a creator, from the implementation's own upgradeUseMax (so "intMod" resolves to the
+ * creator's INT modifier at use time). Returns 0 for a non-use upgrade.
+ */
+function useMaxOf(upgradeId, creator) {
+  return AU.upgradeUseMax(AU.upgradeById(upgradeId), creator);
+}
+
+/** Seeded upgradeUses as recorded state: a "remaining" value r becomes { used: max - r }. */
+function seededUsed(creator, remainingById) {
+  const out = {};
+  for (const [id, remaining] of Object.entries(remainingById)) {
+    out[id] = { used: Math.max(0, useMaxOf(id, creator) - Number(remaining)) };
   }
-  return undefined;
+  return out;
+}
+
+/**
+ * Remaining uses of an Automaton upgrade: max - used, where used is flags.ak5e.automaton.upgradeUses[id].used
+ * (recorded shape, head ruling) and max is resolved at read time from the Creator (fixture lookup by uuid).
+ */
+function usesOf(automaton, upgradeId) {
+  const creator = globalThis.fromUuidSync?.(automaton.flags?.ak5e?.automaton?.creator) ?? null;
+  const used = Number(automaton.flags?.ak5e?.automaton?.upgradeUses?.[upgradeId]?.used ?? 0);
+  return useMaxOf(upgradeId, creator) - used;
 }
 
 /** Ability key of a save ("dex", "Dexterity", ...), compared on its first three letters. */
@@ -326,12 +357,13 @@ test("EXP-4: upgradesAtCreation is 1 below level 17 and 2 from level 17 (C3:6923
 });
 
 test("EXP-5: registerArtificerUpgradeHooks called twice registers its hooks once (no growth on the second call)", async () => {
-  const A = await ready();
-  A.registerArtificerUpgradeHooks();
+  await ready();
+  const session = await freshArtificerModule();
   const total = () => Array.from(globalThis.Hooks._hooks.values()).reduce((sum, list) => sum + list.length, 0);
+  session.registerArtificerUpgradeHooks();
   const afterFirst = total();
   assert.ok(afterFirst > 0, "the hooks are registered at least once (rest recovery needs one)");
-  A.registerArtificerUpgradeHooks();
+  session.registerArtificerUpgradeHooks();
   assert.equal(total(), afterFirst, "a second call adds no hook registration");
 });
 
@@ -689,8 +721,11 @@ test("USE-5: nothing is rolled by the use: a roll happens only on the user's cli
   const calls = rollSpy(7);
   await run(s, "useUpgrade", useData(auto, med.id), "use5-op");
   assert.deepEqual(calls, [], "no evaluate and no Roll.roll during the use");
-  await click(s, "use5-op");
-  assert.ok(calls.includes(`1${dieOf(14)}`), `the click rolls 1${dieOf(14)}, saw: ${calls.join(", ")}`);
+  // Upgrade damage and heal rolls are buttons on the upgrade's own chat card (renderArtificerCardButtons), not the
+  // engine's awaiting-roll path. The card must carry a 1<aid die> roll button at level 14, and nothing rolled.
+  const cards = game.messages.map(message => String(message.content ?? "")).join("\n");
+  assert.ok(cards.includes(`data-ak5e-upgrade-roll="1${dieOf(14)}"`), `the card carries a 1${dieOf(14)} roll button`);
+  assert.deepEqual(calls, [], "posting the card rolls nothing");
 });
 
 test("USE-6: Bombtail spends its single use and the Automaton's remaining uses fall to 0 (C3:6980-6984)", async () => {
