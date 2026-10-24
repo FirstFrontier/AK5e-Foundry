@@ -269,6 +269,8 @@ test("the Hexer plan refuses a non-Hexer and needs an ability and a pool before 
   const actor = createHexer({ level: 3 });
   assert.throws(() => hexerArtsPlans.configureHexerArts(actor, {}, { poolIds: [POOL_A] }), /spellcasting ability/);
   assert.throws(() => hexerArtsPlans.configureHexerArts(actor, {}, { ability: "cha" }), /Standard Arts Pool/);
-  assert.throws(() => hexerArtsPlans.configureHexerArts(actor, {}, { ability: "cha", poolIds: [POOL_A, POOL_A] }), /different/);
+  // Warn, never block: the same pool twice is applied once with a warning (head ruling, WORKFLOW §3.2).
+  const twice = hexerArtsPlans.configureHexerArts(actor, {}, { ability: "cha", poolIds: [POOL_A, POOL_A] });
+  assert.ok(twice.warnings.some(warning => warning.id === "duplicate-pool"));
   assert.equal(standardPools.some(pool => pool.id === POOL_A), true);
 });

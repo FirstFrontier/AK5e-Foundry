@@ -83,12 +83,13 @@ export function supporterArtsSyncPlan(actor, { branch, ability, poolIds = [] } =
   const casting = flag(actor, "casting") ?? {}, stored = flag(actor, "artsPoints") ?? null, setup = flag(actor, "supporterArtsSetup") ?? null;
   const chosen = ability === undefined ? casting.ability : ability;
   const abilityKey = SUPPORTER_ARTS_ABILITIES.includes(chosen) ? chosen : null;
-  const pools = [...poolIds];
-  need(new Set(pools).size === pools.length, "Choose two different Standard Arts Pools.");
+  const pools = [...new Set(poolIds)];
   for (const id of pools) need(POOLS.has(id), `Unknown Standard Arts Pool ${id}.`);
 
   const warnings = [], pending = [];
   const add = (id, text) => warnings.push({ id, text });
+  // Warn, never block (WORKFLOW §3.2): the same pool twice is applied once.
+  if (pools.length < poolIds.length) add("duplicate-pool", "The same Standard Arts Pool was chosen twice; it is applied once.");
   if (!abilityKey) pending.push("ability");
   if (!pools.length) pending.push("pool");
   if (pools.length > poolCount) add("pool-count", `${branchLabel(branch)}: a second Standard Arts Pool is chosen at ${SECOND_POOL_LEVEL}th Level; this is a table decision.`);
