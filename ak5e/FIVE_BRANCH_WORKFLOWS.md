@@ -15,7 +15,7 @@ Requested branch records in generated Chapter 3 content: Artsblade 9, Infuser 19
 | Workstream | Source spans | State |
 |---|---|---|
 | Guard / Artsblade | C3:1740–2417 | Implementation and adversarial tests in progress |
-| Specialist / Infuser | C3:5161–5840 | B-302–306; implementation pending |
+| Specialist / Infuser | C3:5161–5840 | B-303–307 (renumbered; remote owns B-302); implementation pending |
 | Supporter / Artificer / Bard | C3:6548–7211; C6:6577–6677 | Helpers disconnected; branch implementation pending |
 | Medic / Witchcraft | C3:4560–5146 | Base helpers exist; branch implementation pending |
 

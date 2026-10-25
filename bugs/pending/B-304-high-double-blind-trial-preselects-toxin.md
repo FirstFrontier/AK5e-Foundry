@@ -1,4 +1,4 @@
-# B-303 · High · Double-Blind Trial preselects its toxin before the clicked roll
+# B-304 · High · Double-Blind Trial preselects its toxin before the clicked roll
 
 Area: Specialist / Infuser
 

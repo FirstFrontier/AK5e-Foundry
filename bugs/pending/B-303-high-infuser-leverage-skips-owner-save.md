@@ -1,4 +1,4 @@
-# B-302 · High · Infuser Leverage skips the recipient's native save
+# B-303 · High · Infuser Leverage skips the recipient's native save
 
 Area: Specialist / Infuser
 

@@ -153,7 +153,9 @@ function validResonanceTarget(_source, receipt, entry, target) {
   const tag = resonanceRider(pool, receipt?.result?.isImproved === true, false);
   return Boolean(target && entry?.kind === "effect" && entry.uuid === target.uuid
     && entry.featureId === ARTSBLADE_RESONANCE_FEATURE && entry.meta?.pool === pool
-    && entry.meta?.outcome === "failedSave" && entry.tag?.label === `Blade Art ${pool} Resonance`
+    && (entry.meta?.outcome === "failedSave" || (pool === "wind" && receipt.result?.isImproved === true
+      && receipt.result?.windDamageConfirmed?.actualDamage > 0 && entry.meta?.outcome === "damageApplied"))
+    && entry.tag?.label === `Blade Art ${pool} Resonance`
     && entry.tag?.trigger === (pool === "flame" || pool === "wind" || pool === "earth" ? "manual" : "nextTurnEnd")
     && (pool !== "frost" || entry.tag?.changes?.length === 5)
     && JSON.stringify(entry.tag) === JSON.stringify(tag));
@@ -199,7 +201,7 @@ function bladeArtManualSteps(poolKey, improved, formula, targetUuid, immuneToSav
     fluid: "On damage, target makes a CON save vs Martial DC or cannot take Reactions until end of its next Turn.",
     psychic: "On damage, target loses 1d6 HP. Roll separately; do not infer this from the damage roll.",
     light: "When cast, choose creatures within 10 feet; each takes Radiant damage equal to PB.",
-    wind: "On damage, target makes a CON save vs Martial DC or begins Bleeding.",
+    wind: improved ? "After the Cantrip actually deals damage, confirm the damage taken on this card to apply Bleeding without a save. A damage roll alone does not apply the condition." : "On damage, target makes a CON save vs Martial DC or begins Bleeding.",
     spatial: "On damage, target makes a STR save vs Martial DC or is knocked 20 feet directly away."
   }[poolKey];
   const upgraded = {
@@ -221,13 +223,14 @@ function bladeArtManualSteps(poolKey, improved, formula, targetUuid, immuneToSav
 }
 
 function spellswordResolutionSteps(art, artName, level, dc, unleash, trueSpellsword) {
-  const type = art?.system?.actionType ?? art?.system?.activation?.type ?? "unverified Art action";
-  const area = art?.system?.target?.template ?? null;
+  const activity = values(art?.system?.activities)[0];
+  const type = activity?.activation?.type ?? art?.system?.activation?.type ?? art?.system?.actionType ?? "unverified Art action";
+  const area = activity?.target?.template?.type ?? art?.system?.target?.template?.type ?? art?.system?.target?.type;
   return [
     `Make the triggering Melee Weapon Attack, then resolve ${artName} at the fixed maximum Artsblade Art level ${level}; do not spend Arts Points. Action/casting-time metadata: ${type}.`,
     `Spell Save DC is Martial DC ${dc}. On a spell attack Art use that attack roll for both effects. For a save Art, the attacked creature still saves even if the melee attack misses.`,
     "Self-targeting Arts still target you. Non-damaging creature-target Arts may target creatures within 10 feet of you (including you). Other Arts targeting areas affect only the attacked creature; lingering area effects occupy its space; creations in unoccupied spaces may be placed within 10 feet of it.",
-    ...(area && unleash ? ["Unleash: use the normal area; cubes/spheres are centered on the attacked creature, cones/lines originate from you and include it. You are immune to damage from this Art."] : []),
+    ...(["cone", "cube", "sphere", "line"].includes(area) && unleash ? ["Unleash: use the normal area; cubes/spheres are centered on the attacked creature, cones/lines originate from you and include it. You are immune to damage from this Art."] : []),
     ...(trueSpellsword ? ["True Spellsword: until your next Turn, your Melee Attacks deal Arts Damage."] : []),
     "Resolve Art dice, attack/save rolls, damage, healing, and resulting effects manually through native controls; this receipt spends only the Spellsword Point."
   ];
@@ -272,7 +275,7 @@ const ARTSBLADE_PLANS = {
       ?? String(targetUuid ?? "").split(".").reduce((value, key) => value?.[key], saveMap);
     const savedKey = lastSaved && lastSaved.combatId === combat?.id ? lastSaved.untilTurnKey : null;
     const immuneToSave = Boolean(targetUuid && savedKey && turnKey && ordinalForTurnKey(turnKey) < ordinalForTurnKey(savedKey));
-    const saveAbility = { frost: "con", flame: "dex", fluid: "con", wind: "con", spatial: "str" }[poolKey];
+    const saveAbility = { frost: "con", flame: "dex", fluid: "con", wind: isImproved ? null : "con", spatial: "str" }[poolKey];
     const hasEarthSave = poolKey === "earth" && isImproved;
     const nativeSpellDc = Number(actor.system?.attributes?.spell?.dc ?? actor.system?.attributes?.spelldc);
     const earthDcReading = data.readings?.earthResonanceDC ?? data.reading;
@@ -315,6 +318,10 @@ const ARTSBLADE_PLANS = {
         receipt.rollLabel = `Blade Art (${poolInfo.damageType})`;
         receipt.summary = `${actor.name} casts Blade Art (${poolInfo.name} / ${poolInfo.damageType}). Deals ${formula} Arts Damage.${immuneToSave ? " Target already made the applicable saving throw this Turn; exempt from repeating it." : (saveAbility || hasEarthSave) && targetUuid ? ` If the triggering attack damages the target, it makes a ${(saveAbility ?? "str").toUpperCase()} save against DC ${effectiveSaveDc}; its owner resolves through the card.` : ` Target DC is ${mDC} (Martial DC).`}${isImproved ? " (Improved Resonance applied)" : ""}`;
         receipt.manualSteps = bladeArtManualSteps(poolKey, isImproved, formula, targetUuid, immuneToSave);
+        if (poolKey === "wind" && isImproved && targetUuid) receipt.actions = [{
+          id: "wind-bleeding", label: "Confirm actual Blade Art damage taken and apply Bleeding", targetUuid,
+          requiresActualDamage: true
+        }];
         receipt.summary += ` ${receipt.manualSteps.join(" ")}`;
         receipt.result = {
           pool: poolKey,
@@ -349,6 +356,19 @@ const ARTSBLADE_PLANS = {
       resolveRoll(_source, receipt) {
         receipt.result ??= {};
         receipt.result.damageRollTotal = receipt.roll;
+      },
+      resolveAction(_source, receipt, _next, action) {
+        need(poolKey === "wind" && isImproved && targetUuid && action.id === "wind-bleeding", "Choose this use's Improved Wind Resonance action.");
+        need(action.damageApplied === true && Number.isFinite(action.actualDamage) && action.actualDamage > 0,
+          "Confirm the positive damage actually taken from this Cantrip after immunity and reduction; a damage roll is not applied damage.");
+        need(!action.targetUuid || action.targetUuid === targetUuid, "Choose the recorded Blade Art target.");
+        if (receipt.result?.windDamageConfirmed) return;
+        receipt.result.windDamageConfirmed = { targetUuid, actualDamage: action.actualDamage };
+        receipt.targets.push({ uuid: targetUuid, name: data.targetName ?? targetUuid, kind: "effect",
+          featureId: ARTSBLADE_RESONANCE_FEATURE, tag: resonanceRider("wind", true, false), ready: true,
+          meta: { pool: "wind", outcome: "damageApplied" } });
+        receipt.result.riderApplied = "wind";
+        receipt.summary += ` The owner confirmed ${action.actualDamage} damage actually taken by the target; Improved Wind Resonance applies Bleeding without a save.`;
       },
       validateTarget: validResonanceTarget
     };
@@ -448,7 +468,7 @@ const ARTSBLADE_PLANS = {
         if (isTrueSpellsword) next.data.trueSpellswordUntilTurn = nextTurnKey(actor);
 
         receipt.summary = `${actor.name} ${spCost ? "expends 1 Spellsword Point" : "casts Blade Art without a Spellsword Point"} to infuse ${artName} at maximum Artsblade level ${castingLevel} into a Melee Weapon Attack. Spell Save DC is ${mDC} (Martial DC).${isTrueSpellsword ? " True Spellsword: Melee Attacks deal Arts Damage until beginning of your next Turn." : ""}`;
-        receipt.manualSteps = spellswordResolutionSteps(null, artName, castingLevel, mDC, unleash && isAugmented && level >= 13, isTrueSpellsword);
+        receipt.manualSteps = spellswordResolutionSteps(selectedArt, artName, castingLevel, mDC, unleash && isAugmented && level >= 13, isTrueSpellsword);
         receipt.summary += ` ${receipt.manualSteps.join(" ")}`;
         receipt.result = {
           artName,
@@ -481,21 +501,27 @@ const ARTSBLADE_PLANS = {
     const level = guardLevel(actor) ?? 1;
     const hasClearPath = level >= 13;
 
-    const attackAbility = ["str", "dex"].includes(data.attackAbility) ? data.attackAbility : "str";
-    const attackFormula = `1d20 + @abilities.${attackAbility}.mod + @attributes.prof`;
+    const weapon = values(actor.items).find(item => item.type === "weapon" && item.uuid === data.weaponUuid);
+    const activities = values(weapon?.system?.activities);
+    const activity = activities.find(entry => entry.id === data.activityId)
+      ?? activities.find(entry => entry.type === "attack" && (entry.actionType === "mwak" || entry.attack?.type?.value === "melee"));
+    if (mode !== "reactionArt") {
+      if (!weapon) warn(warnings, "weapon", "Select the equipped melee weapon used for this Reaction. Its native Attack control preserves its own ability, proficiency, magic and other modifiers; no generic attack roll will be substituted.");
+      else {
+        if (!weapon.system?.equipped) warn(warnings, "weaponEquipped", `${weapon.name} is not equipped.`);
+        if (!activity || !(activity.actionType === "mwak" || activity.attack?.type?.value === "melee")) warn(warnings, "meleeWeapon", `${weapon.name} has no selected native melee Attack activity; resolve the melee Attack manually.`);
+      }
+    }
+    const nativeAttack = weapon && activity ? { weaponUuid: weapon.uuid, activityId: activity.id } : null;
     return {
       warnings,
       title: "Cut Through Chaos",
       costs: [{ label: "Cut Through Chaos", amount: 1, pool: "cutThroughChaos" }],
       targets: data.targetUuid ? [{ uuid: data.targetUuid, name: data.targetName ?? data.targetUuid }] : [],
-      ...(mode === "reactionArt" ? {} : { formula: `1d20 + @abilities.${attackAbility}.mod + @attributes.prof`, rollLabel: "Cut Through Chaos Melee Attack Roll" }),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "cutThroughChaos", amount: 1, label: "Cut Through Chaos" });
         receipt.reaction = { requested: true, triggerId: `${receipt.id}-cutThroughChaos`, receiptId: receipt.id };
-        if (mode !== "reactionArt") {
-          receipt.formula = attackFormula;
-          receipt.rollLabel = "Cut Through Chaos Melee Attack Roll";
-        }
+        if (mode !== "reactionArt" && nativeAttack) receipt.nativeAttack = nativeAttack;
 
         let modeSummary = "";
         if (mode === "spellAttack") {

@@ -1,4 +1,4 @@
-# B-305 · High · Infuser timed states do not expire
+# B-306 · High · Infuser timed states do not expire
 
 Area: Specialist / Infuser
 

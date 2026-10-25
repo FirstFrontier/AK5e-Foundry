@@ -1,4 +1,4 @@
-# B-304 · High · Infuser target changes bypass relay and undo
+# B-305 · High · Infuser target changes bypass relay and undo
 
 Area: Specialist / Infuser
 

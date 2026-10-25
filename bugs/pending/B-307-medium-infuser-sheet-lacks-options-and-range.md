@@ -1,4 +1,4 @@
-# B-306 · Medium · Infuser sheet lacks Infusion choices and range measurement
+# B-307 · Medium · Infuser sheet lacks Infusion choices and range measurement
 
 Area: Specialist / Infuser sheet
 

@@ -173,13 +173,23 @@ function manualArtsItem(member, pools) {
 }
 
 function artsbladePoolItems(actor, choices, level) {
-  const selected = [...new Set([...(choices.artPools ?? []), ...(choices.additionalArtPools ?? [])])];
-  const pools = selected.map(key => standardPools.find(pool => pool.id.includes(`-${key}-arts-`))).filter(Boolean);
+  // Sword and Sorcery grants levelled Arts through fifth level; Sharpened
+  // Mind's two additional pools grant only levelled Arts through third level.
+  // Keep each pool's legitimate ceiling before deduplicating shared members.
+  const ceilings = new Map();
+  for (const key of choices.artPools ?? []) ceilings.set(String(key).toLowerCase(), 5);
+  if (level >= 10) for (const key of choices.additionalArtPools ?? []) {
+    const poolKey = String(key).toLowerCase();
+    ceilings.set(poolKey, Math.max(ceilings.get(poolKey) ?? 0, 3));
+  }
+  const pools = [...ceilings].map(([key, ceiling]) => ({
+    pool: standardPools.find(pool => pool.id.includes(`-${key}-arts-`)), ceiling
+  })).filter(entry => entry.pool);
   const sourceIds = new Set(entries(actor.items).map(item => flag(item, "chapterFiveId")).filter(Boolean));
   const names = new Set(entries(actor.items).filter(item => item.type === "spell").map(item => item.name?.toLowerCase()));
   const members = new Map();
-  for (const pool of pools) for (const member of pool.members) {
-    if (Number(member.level) < 1 || Number(member.level) > 5) continue;
+  for (const { pool, ceiling } of pools) for (const member of pool.members) {
+    if (Number(member.level) < 1 || Number(member.level) > ceiling) continue;
     const key = member.sourceId ? `source:${member.sourceId}` : `manual:${member.name.toLowerCase()}`;
     const current = members.get(key) ?? { member, pools: [] };
     current.pools.push(pool);
