@@ -330,8 +330,10 @@ function cursemarkPlan(actor, state, data) {
       if (!primary || placed) return {};
       const record = { id: markId, point: { x: Number(point.x), y: Number(point.y), ...(point.sceneId ? { sceneId: String(point.sceneId) } : {}) },
         kind: data.kind, radius: CURSEMARK_RADIUS_FT, excluded: levelOf(actor) >= HEXER_GATES.controlledCruelty ? excluded : [],
-        gridSize: Number(data.gridSize ?? 100), expires: worldTime() + HEX_DURATION_SECONDS };
-      return { [`flags.ak5e.${HEXER_FLAG}.cursemarks`]: [...(hexerState(actor).cursemarks ?? []), record] };
+        gridSize: Number(data.gridSize ?? 100), gridDistance: gridDistanceOf(data.gridDistance), expires: worldTime() + HEX_DURATION_SECONDS };
+      // Expired marks are pruned whenever a new one is written (they have no effect once expired).
+      const live = (hexerState(actor).cursemarks ?? []).filter(entry => !(Number.isFinite(Number(entry.expires)) && Number(entry.expires) <= worldTime()));
+      return { [`flags.ak5e.${HEXER_FLAG}.cursemarks`]: [...live, record] };
     }
   });
   if (distance > CURSEMARK_RANGE_FT) warn(plan.warnings, "range", `The Cursemark point is ${distance} ft away; Cursemark reaches 100 ft.`);
@@ -382,8 +384,9 @@ function saveButtonHtml(target, ability, dc) {
 }
 
 /** A roll button for the Hexer's Force rider or burst. Nothing rolls until the owner clicks. */
-export function hexerRollButton({ actor, label, formula, flavor = label }) {
-  return `<div class="ak5e-hexer-roll"><p>${esc(formula)}</p><button type="button" data-ak5e-hexer-roll="${esc(formula)}" data-flavor="${esc(flavor)}" data-actor="${esc(actor.uuid)}">${esc(label)}</button></div>`;
+export function hexerRollButton({ actor, label, formula, flavor = label, once = null }) {
+  const onceAttr = once ? ` data-ak5e-hexer-once="${esc(once)}"` : "";
+  return `<div class="ak5e-hexer-roll"><p>${esc(formula)}</p><button type="button" data-ak5e-hexer-roll="${esc(formula)}" data-flavor="${esc(flavor)}" data-actor="${esc(actor.uuid)}"${onceAttr}>${esc(label)}</button></div>`;
 }
 
 /**
@@ -441,8 +444,38 @@ function targetedPoint() {
   return {
     point: { x: token.center?.x ?? token.x, y: token.center?.y ?? token.y, sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id ?? null },
     gridSize: globalThis.canvas?.grid?.size ?? 100,
+    gridDistance: gridDistanceOf(globalThis.canvas?.scene?.grid?.distance),
     targetUuid: token.actor?.uuid ?? null
   };
+}
+
+/** Actor-backed tokens on the canvas, in the pure shape cursemarkTargets reads. */
+function canvasCreatureTokens() {
+  return (globalThis.canvas?.tokens?.placeables ?? []).map(token => ({
+    uuid: token.actor?.uuid, x: token.center?.x ?? token.x, y: token.center?.y ?? token.y,
+    sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id ?? null, name: token.name
+  })).filter(token => token.uuid);
+}
+
+/**
+ * Spare the Rod (L7307, Controlled Cruelty): tick the creatures within 10 ft of the Cursemark point that are
+ * unaffected by it. Resolves to the excluded actor uuids, or null when the dialog is cancelled (nothing changes).
+ */
+async function pickSpareTheRod(actor, placed) {
+  const candidates = tokensInCursemarkArea({ point: placed.point, gridSize: placed.gridSize, gridDistance: placed.gridDistance,
+    radius: CURSEMARK_RADIUS_FT, excluded: [] }, actor, canvasCreatureTokens());
+  const rows = candidates.map(token => `<label class="ak5e-hexer-spare"><input type="checkbox" name="excluded" value="${esc(token.uuid)}"> ${esc(token.name ?? token.uuid)}</label>`).join("");
+  const content = `<div class="ak5e-hexer-spare"><p>Spare the Rod: tick any creature that is unaffected by this Cursemark.</p>`
+    + `${rows || "<p>No other creature is within 10 ft of the point.</p>"}</div>`;
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title: "Spare the Rod" }, position: { width: 420 }, rejectClose: false, content,
+    buttons: [
+      { action: "apply", label: "Confirm", default: true,
+        callback: (_event, button) => [...button.form.querySelectorAll('input[name="excluded"]:checked')].map(input => input.value) },
+      { action: "cancel", label: "Cancel", callback: () => false }
+    ]
+  });
+  return Array.isArray(choice) ? choice : null;
 }
 
 /**
@@ -453,11 +486,7 @@ export async function applyCursemarkArea(actor, markId) {
   need(isHexer(actor), "Cursemark requires the Hexer branch.");
   const mark = (hexerState(actor).cursemarks ?? []).find(entry => entry.id === markId);
   need(mark, "Place the Cursemark first.");
-  const tokens = (globalThis.canvas?.tokens?.placeables ?? []).map(token => ({
-    uuid: token.actor?.uuid, x: token.center?.x ?? token.x, y: token.center?.y ?? token.y,
-    sceneId: token.scene?.id ?? globalThis.canvas?.scene?.id ?? null, name: token.name
-  })).filter(token => token.uuid);
-  const areaTokens = cursemarkTargets(actor, markId, tokens);
+  const areaTokens = cursemarkTargets(actor, markId, canvasCreatureTokens());
   need(areaTokens.length, "No creature is within 10 ft of the Cursemark point.");
   const names = areaTokens.map(token => token.name ?? token.uuid).join(", ");
   const { DialogV2 } = foundry.applications.api;
@@ -466,7 +495,7 @@ export async function applyCursemarkArea(actor, markId) {
     content: `<p>Apply the Cursemark Hex to: ${esc(names)}.</p><p>Each creature is a separate use you can undo.</p>`,
     rejectClose: false
   });
-  if (!confirmed) return null;
+  if (confirmed !== true) return null;
   const results = [];
   for (const token of areaTokens) {
     results.push(await confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
@@ -503,8 +532,17 @@ export async function hexerCommand(actor, name) {
     const choice = await pickHex(actor, "Cursemark (Bonus Action; spends one Potent Hex use)");
     if (!choice) return null;
     const placed = targetedPoint();
+    // Spare the Rod (Controlled Cruelty, level 10+) is asked here; below level 10 there is no prompt and no exclusions.
+    let excluded = [];
+    if (levelOf(actor) >= HEXER_GATES.controlledCruelty) {
+      const spared = await pickSpareTheRod(actor, placed);
+      if (!spared) return null;
+      excluded = spared;
+    }
+    // A spared point creature is not hexed by this use; the mark still records it as excluded from the area.
+    const targetUuid = excluded.includes(placed.targetUuid) ? null : placed.targetUuid;
     return confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
-      { kind: choice.kind, ability: choice.ability, markId: foundry.utils.randomID(), ...placed, ...extra }, foundry.utils.randomID()));
+      { kind: choice.kind, ability: choice.ability, markId: foundry.utils.randomID(), ...placed, targetUuid, excluded, ...extra }, foundry.utils.randomID()));
   }
   if (name === "cursemarkArea") {
     const mark = (hexerState(actor).cursemarks ?? []).at(-1);
@@ -514,17 +552,19 @@ export async function hexerCommand(actor, name) {
   throw new Error(`Unknown Hexer command ${name}.`);
 }
 
+/** Feet per grid cell recorded on a Cursemark (the scene's grid distance; 5 ft when none is recorded). */
+const gridDistanceOf = value => {
+  const feet = Number(value);
+  return Number.isFinite(feet) && feet > 0 ? feet : 5;
+};
+
 /**
- * Cursemark area: the creatures within 10 ft of the mark (Spare the Rod exclusions and the Hexer removed).
- * Pure: tokens are { uuid, x, y, sceneId, actor?, center? }. Distance uses 5 ft per grid cell (gridSize pixels).
- * Returns the matching tokens.
+ * Pure area test for one Cursemark record: the tokens within its radius of its point, excluding the Hexer and any
+ * Spare the Rod exclusions. Tokens are { uuid, x, y, sceneId, actor?, center? }.
  */
-export function cursemarkTargets(actor, markId, tokens = []) {
-  const mark = (hexerState(actor).cursemarks ?? []).find(entry => entry.id === markId);
-  if (!mark) return [];
-  if (Number.isFinite(Number(mark.expires)) && Number(mark.expires) <= worldTime()) return [];
+export function tokensInCursemarkArea(mark, actor, tokens = []) {
   const excluded = new Set(mark.excluded ?? []);
-  const pixelsPerFoot = Number(mark.gridSize ?? 100) / 5;
+  const pixelsPerFoot = Number(mark.gridSize ?? 100) / gridDistanceOf(mark.gridDistance);
   return tokens.filter(token => {
     const actorUuid = token?.actor?.uuid ?? token?.uuid;
     if (!actorUuid || actorUuid === actor.uuid || excluded.has(actorUuid) || excluded.has(token.uuid)) return false;
@@ -532,6 +572,18 @@ export function cursemarkTargets(actor, markId, tokens = []) {
     const cx = Number(token.center?.x ?? token.x), cy = Number(token.center?.y ?? token.y);
     return Math.hypot(cx - mark.point.x, cy - mark.point.y) / pixelsPerFoot <= (mark.radius ?? CURSEMARK_RADIUS_FT);
   });
+}
+
+/**
+ * Cursemark area: the creatures within 10 ft of the mark (Spare the Rod exclusions and the Hexer removed).
+ * Pure: tokens are { uuid, x, y, sceneId, actor?, center? }. Distance uses the scene's grid distance per cell
+ * (recorded on the mark; 5 ft when absent) over gridSize pixels. Returns the matching tokens.
+ */
+export function cursemarkTargets(actor, markId, tokens = []) {
+  const mark = (hexerState(actor).cursemarks ?? []).find(entry => entry.id === markId);
+  if (!mark) return [];
+  if (Number.isFinite(Number(mark.expires)) && Number(mark.expires) <= worldTime()) return [];
+  return tokensInCursemarkArea(mark, actor, tokens);
 }
 
 /* -------------------------------------------------------------- hooks and events */
@@ -544,20 +596,27 @@ export function cursemarkTargets(actor, markId, tokens = []) {
 async function handleHit(event) {
   const target = actorFromUuid(event?.targetUuid);
   if (!target) return;
+  // One rider per (Hexer, creature): the target's Hexes are grouped by source first, so three Hexes from one Hexer
+  // post one card and one relay. The group is Rupturing if any of that Hexer's Hexes on the target is Ultimate.
+  const bySource = new Map();
   for (const hex of hexesOn(target)) {
-    const hexer = actorFromUuid(hex.source);
-    if (!hexer || !isHexer(hexer) || hex.source !== hexer.uuid) continue;
+    if (!hex.source) continue;
+    bySource.set(hex.source, (bySource.get(hex.source) === true) || hex.ultimate === true);
+  }
+  for (const [sourceUuid, ultimate] of bySource) {
+    const hexer = actorFromUuid(sourceUuid);
+    if (!hexer || !isHexer(hexer) || sourceUuid !== hexer.uuid) continue;
     const taken = hexerState(hexer).riderTaken ?? {};
     if (taken[uuidKey(target.uuid)]) continue;                 // one card per hexed creature until the Hexer's next Turn
     const sides = sidesFor(levelOf(hexer));
     const formula = `1d${sides}`;
-    const text = hex.ultimate === true
+    const text = ultimate === true
       ? `Rupturing Hex: ${esc(target.name)} was hit. Instead of Force on ${esc(target.name)}, every hostile creature within ${RUPTURE_RADIUS_FT} ft takes Force damage equal to one roll of your Aid Die.`
       : `Hex rider: ${esc(target.name)} was hit. Force damage equal to one roll of your Aid Die is available now (once until your next Turn).`;
-    const empathic = levelOf(hexer) >= HEXER_GATES.controlledCruelty && hex.ultimate !== true
+    const empathic = levelOf(hexer) >= HEXER_GATES.controlledCruelty && ultimate !== true
       ? `<p>Empathic Pain: you may deal this Force to a different creature you can see within ${EMPATHIC_PAIN_RADIUS_FT} ft of ${esc(target.name)}.</p>` : "";
     const content = `<h3>Hex rider</h3><p>${text}</p>${empathic}`
-      + hexerRollButton({ actor: hexer, label: `Roll Force ${formula}`, formula, flavor: hex.ultimate === true ? "Rupturing Hex (Force)" : "Hex rider (Force)" });
+      + hexerRollButton({ actor: hexer, label: `Roll Force ${formula}`, formula, flavor: ultimate === true ? "Rupturing Hex (Force)" : "Hex rider (Force)" });
     await globalThis.ChatMessage?.implementation?.create?.({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor: hexer }), content });
     await recordRiderTaken(hexer, target);
   }
@@ -603,14 +662,17 @@ export async function handleRiderRelayMessage(message) {
 async function handleKill(event) {
   const target = actorFromUuid(event?.actorUuid);
   if (!target) return;
-  for (const hex of hexesOn(target).filter(entry => entry.ultimate)) {
-    const hexer = actorFromUuid(hex.source);
+  // One burst card per (Hexer, creature): an Ultimate Hex is several effects (one per plain option), so the Hexers
+  // are grouped first. Two different Hexers each get their own card.
+  const sources = [...new Set(hexesOn(target).filter(hex => hex.ultimate && hex.source).map(hex => hex.source))];
+  for (const sourceUuid of sources) {
+    const hexer = actorFromUuid(sourceUuid);
     if (!hexer || !isHexer(hexer)) continue;
     const sides = sidesFor(levelOf(hexer));
     const dc = hexerSpellSaveDC(hexer);
     const formula = `4d${sides}`;
     const content = `<h3>Rupturing Hex</h3><p>${esc(target.name)} is reduced to 0 Hit Points. Creatures of ${esc(hexer.name)}'s choice within ${DEATH_BURST_RADIUS_FT} ft make a DEX Saving Throw vs DC ${esc(dc)}: fail = Force damage ${esc(formula)}; success = half.</p>`
-      + hexerRollButton({ actor: hexer, label: `Roll burst ${formula}`, formula, flavor: "Rupturing Hex burst (Force, half on a save)" });
+      + hexerRollButton({ actor: hexer, label: `Roll burst ${formula}`, formula, flavor: "Rupturing Hex burst (Force, half on a save)", once: foundry.utils.randomID() });
     await globalThis.ChatMessage?.implementation?.create?.({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor: hexer }), content });
   }
 }
@@ -636,7 +698,15 @@ async function handleArtCast(event) {
   if (!actor || !isHexer(actor) || !actor.isOwner) return;
   const left = getPool(actor, "hexerPotentHex").value;
   if (left < 1) return;
-  const content = `<h3>Potent Hex</h3><p>You dealt Damage with an Art. You may apply a Hex to one creature (${left} use${left === 1 ? "" : "s"} left). This is optional.</p>`
+  // The cast event says whether it dealt Damage when it can. Damage is claimed only when the event carries it; an
+  // explicit "no Damage" posts nothing; otherwise the wording stays neutral.
+  const dealt = event?.damage;
+  if (dealt === false || (typeof dealt === "number" && dealt <= 0)) return;
+  const claimed = dealt === true || (typeof dealt === "number" && dealt > 0);
+  const lead = claimed
+    ? "You dealt Damage with an Art. You may apply a Hex to one creature"
+    : "Art cast: if the Art damaged a creature, you may apply a Hex.";
+  const content = `<h3>Potent Hex</h3><p>${lead} (${left} use${left === 1 ? "" : "s"} left). This is optional.</p>`
     + `<button type="button" data-ak5e-hexer-apply="potentHex" data-actor="${esc(actor.uuid)}">Apply Potent Hex</button>`;
   await globalThis.ChatMessage?.implementation?.create?.({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }), content });
 }
@@ -644,6 +714,19 @@ async function handleArtCast(event) {
 async function clickRoll(button) {
   const actor = actorFromUuid(button.dataset.actor);
   need(actor?.isOwner, "Only the Hexer's owner may roll this.");
+  // A once-only roll (the Rupturing burst) is recorded when rolled. A repeat click warns and rolls only if confirmed.
+  const once = button.dataset.ak5eHexerOnce;
+  if (once) {
+    const rolled = Boolean((hexerState(actor).burstRolled ?? {})[once]);
+    if (rolled) {
+      const again = await foundry.applications.api.DialogV2.confirm({
+        window: { title: "Already rolled" }, rejectClose: false,
+        content: "<p>Already rolled: this burst was already rolled for this creature. Roll it again?</p>"
+      });
+      if (again !== true) return null;
+    }
+    await actor.update({ [`flags.ak5e.${HEXER_FLAG}.burstRolled.${once}`]: true });
+  }
   const roll = await new globalThis.Roll(button.dataset.ak5eHexerRoll ?? button.dataset.formula, actor.getRollData?.() ?? {}).evaluate();
   await roll.toMessage({ speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }), flavor: button.dataset.flavor ?? "Hex roll" });
 }

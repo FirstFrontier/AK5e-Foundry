@@ -365,7 +365,8 @@ const fontProvideAid = (actor, _state, data = {}) => {
       receipt.targets = [{
         uuid: targetUuid, name: targetName, kind: "effect", featureId: FONT_FEATURE_ID, ready: true,
         tag: {
-          label: `Aid Die (${die})`, trigger: "turnStart", expiryActor: "source", duration: 600,
+          // A normal Aid Die once granted: "Once within the next ten minutes" (C3:6635), so a 600 s time expiry.
+          label: `Aid Die (${die})`, trigger: "time", seconds: 600, expiryActor: "source",
           data: { supporterUuid: actor.uuid, dieSize: die, supporterLevel: level, supporterPB: pb,
             advancedAid: level >= 5, willIntoBeing: level >= 20, font: true }
         },
@@ -375,8 +376,17 @@ const fontProvideAid = (actor, _state, data = {}) => {
     }
   };
 };
-fontProvideAid.validateTarget = (_source, receipt, entry, target) => entry.kind === "effect" && entry.meta?.aidDie === true
-  && target?.uuid === entry.uuid && receipt.result?.dieSize === entry.tag?.data?.dieSize;
+/** The only tag keys a Font of Inspiration Aid Die may carry (no changes, conditions or benefits are relayed). */
+const FONT_TAG_KEYS = Object.freeze(["label", "trigger", "seconds", "expiryActor", "data", "instructions"]);
+/** Relay check (H2): the Aid Die tag must be the Bard's real Font die, with no extra content. */
+fontProvideAid.validateTarget = (source, receipt, entry, target) => {
+  if (entry.kind !== "effect" || entry.meta?.aidDie !== true || target?.uuid !== entry.uuid) return false;
+  const tag = entry.tag ?? {};
+  if (Object.keys(tag).some(key => !FONT_TAG_KEYS.includes(key))) return false;
+  if (entry.standardBenefit) return false;
+  const die = aidDieSize(levelOf(source));
+  return tag.data?.dieSize === die && receipt.result?.dieSize === die && tag.data?.supporterUuid === source.uuid;
+};
 
 /**
  * Post-cast step after the last Art's native cast: removes the expiring Rising Crescendo effect (undoable). It removes
