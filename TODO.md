@@ -14,6 +14,7 @@
 Claude Code resumed this batch on 2026-10-25 on integration branch `feat/five-branches`. It contains Codex's uncommitted snapshot, merged with `origin/feat/supporter-base` (Supporter, Hexer, Artificer and Bard, PRs #8–#36) and the newer Codex Artsblade corrections. The Infuser bugs are renumbered B-303–B-307. Units U0–U5 run as Sonnet implementer and Haiku challenger pairs, with PRs into `feat/five-branches`. Publishing and release packs remain separate.
 - [x] U0: confirmPlayUse up-front confirm reconciled (one confirm per use; `confirmed: true` for callers with their own form); fortress `useRoll` regression fixed (#37).
 - [ ] U1 Guard/Artsblade · U2 Specialist/Infuser · U3 Medic casting + Witchcraft · U4 Supporter/Artificer · U5 Bard.
+- Checkpoint 2026-10-25 (session limit). The W1 workers were stopped mid-work, and their uncommitted edits remain in the `.claude/worktrees/agent-*` worktrees on branches `five/u1-guard`, `five/u1-guard-adversarial`, `five/u2-infuser` and `five/u2-infuser-adversarial`. Resume from the plan at `~/.claude/plans/scan-these-subclasses-and-groovy-puddle.md`. The W0 bug-hunt findings are in its unit specs, and the repros are in the session scratchpad `hunt-*`. U3 rulings are in DECISIONS (five-branch batch). The private Foundry seed is in the session scratchpad `foundry-seed`, ports 30191–30195.
 
 ### Vanguard, Agent, Charger and Pioneer workflows (2026-10-24)
 
