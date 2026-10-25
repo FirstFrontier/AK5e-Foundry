@@ -135,6 +135,12 @@ test("Not Today spends Resilience once per Turn, waits for the next Art, and und
   assert.match(game.messages.at(-1).content, /Resilience short by 1/);
   await use(actor, "undoUse", { useId: "nt2" }, "undo-nt2");
   assert.equal(actor.flags.ak5e.resourcePools.resilience.value, 1);
+  // Undo restores only what nt2 changed (shared changed-leaf undo): the discount it replaced is waiting again, because
+  // nt1's Resilience is still spent. Undoing nt1 as well then leaves no discount and returns all the Resilience.
+  assert.equal(pendingNotToday(actor).useId, "nt1");
+  assert.equal(pendingNotToday(actor).amount, 2);
+  await use(actor, "undoUse", { useId: "nt1" }, "undo-nt1");
+  assert.equal(actor.flags.ak5e.resourcePools.resilience.value, 3);
   assert.equal(pendingNotToday(actor), null);
 });
 

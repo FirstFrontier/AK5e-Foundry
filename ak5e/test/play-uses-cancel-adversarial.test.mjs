@@ -268,7 +268,7 @@ test("confirmPlayUse [bug-proving]: Cancel on the Use anyway warnings dialog ret
   const before = stateOf(...docs);
   scripted = [CANCEL];
   const result = await L.playUses.confirmPlayUse("Provide Aid", extra => L.uses.supporterUses.execute(giver, "provideAid", {
-    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId));
+    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId), { confirmed: true });
   assert.equal(shown.length, 1, "one warnings dialog was shown");
   assert.deepEqual(shown[0].actions, ["anyway", "cancel"]);
   assert.equal(result, null, "Cancel resolves null");
@@ -280,7 +280,7 @@ test("confirmPlayUse: Use anyway applies the use with the warnings overridden", 
   const { giver, recipient, opId } = await emptyPoolProvideAid(L);
   scripted = [pick("anyway")];
   const result = await L.playUses.confirmPlayUse("Provide Aid", extra => L.uses.supporterUses.execute(giver, "provideAid", {
-    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId));
+    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId), { confirmed: true });
   assert.equal(shown.length, 1, "one warnings dialog was shown");
   assert.notEqual(result, null, "the use resolved");
   assert.equal(L.uses.supporterUses.uses(giver).length, 1, "the use is recorded once");
@@ -296,7 +296,7 @@ test("confirmPlayUse: dismissing the warnings dialog with X returns null and wri
   const before = stateOf(...docs);
   scripted = [CLOSE];
   const result = await L.playUses.confirmPlayUse("Provide Aid", extra => L.uses.supporterUses.execute(giver, "provideAid", {
-    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId));
+    targetUuid: recipient.uuid, targetName: recipient.name, distance: 0, ...extra }, opId), { confirmed: true });
   assert.equal(result, null);
   assertNothingWritten("X on warnings", { before, docs, uses: 0, actor: giver, supporterUses: L.uses.supporterUses });
 });
@@ -315,7 +315,7 @@ test("confirmPlayUse [bug-proving]: Cancel on the readings dialog returns null, 
   const docs = [art];
   const before = stateOf(...docs);
   scripted = [CANCEL];
-  const outcome = await outcomeOf(() => L.playUses.confirmPlayUse("Build Automaton", extra => run(extra)));
+  const outcome = await outcomeOf(() => L.playUses.confirmPlayUse("Build Automaton", extra => run(extra), { confirmed: true }));
   assert.equal(shown.length, 1, "one readings dialog was shown (a second means Cancel was read as a reading)");
   assert.match(shown[0].title, /no GM ruling/);
   assert.equal(outcome.error, undefined, `no error: ${outcome.error?.message}`);
@@ -329,7 +329,7 @@ test("confirmPlayUse: choosing the intMod reading proceeds with that reading", a
   const L = await ready();
   const { art, run, opId } = await unruledBuild(L);
   scripted = [pick("read", { reading: "intMod" })];
-  const result = await L.playUses.confirmPlayUse("Build Automaton", extra => run(extra));
+  const result = await L.playUses.confirmPlayUse("Build Automaton", extra => run(extra), { confirmed: true });
   assert.equal(shown.length, 1, "one readings dialog was shown");
   assert.notEqual(result, null);
   const receipt = L.uses.supporterUses.receipt(art, opId);
@@ -345,7 +345,7 @@ test("confirmPlayUse: dismissing the readings dialog with X returns null and wri
   const docs = [art];
   const before = stateOf(...docs);
   scripted = [CLOSE];
-  const result = await L.playUses.confirmPlayUse("Build Automaton", extra => run(extra));
+  const result = await L.playUses.confirmPlayUse("Build Automaton", extra => run(extra), { confirmed: true });
   assert.equal(result, null);
   assertNothingWritten("X on readings", { before, docs, uses: 0, actor: art, supporterUses: L.uses.supporterUses });
 });

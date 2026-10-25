@@ -610,7 +610,8 @@ test("Area 7: Sheet UI Controls & Badge Rendering", async () => {
   globalThis.foundry.applications.api.DialogV2 = {
     wait: async options => {
       lastDialogTitle = options?.window?.title;
-      return true;
+      // The up-front confirm (a "use" button) resolves its callback's object; the warnings dialog resolves true.
+      return options?.buttons?.some(button => button.action === "use") ? { readings: {} } : true;
     },
     confirm: async () => true
   };

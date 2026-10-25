@@ -140,7 +140,7 @@ export async function runHexerArtsCommand(actor, cmd) {
   if (confirmed !== true) return null;
   const opId = foundry.utils.randomID();
   return confirmPlayUse("Configure Hexer Arts", extra => supporterUses.command(actor, "configureHexerArts",
-    { confirmed: true, ability: picked.ability, poolIds: picked.poolIds, ...extra }, opId));
+    { confirmed: true, ability: picked.ability, poolIds: picked.poolIds, ...extra }, opId), { confirmed: true });
 }
 
 /** Frozen API for the Hexer branch. Apply is direct (no undo receipt); the sheet uses the play-uses plan instead. */

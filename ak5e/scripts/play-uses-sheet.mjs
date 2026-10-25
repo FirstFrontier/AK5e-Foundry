@@ -13,25 +13,42 @@ async function dialog(title, content, buttons) {
 }
 
 /**
- * Warnings are listed with "Use anyway"; a missing GM ruling offers its readings for this use only. Each answer
- * resubmits the same attempt with `overrides` / `reading`; cancelling returns null and changes nothing.
+ * The up-front confirm: stated cost, targets, preview warnings ("Use anyway") and the readings to pick from. Resolves
+ * the updated attempt options, or null when the user pressed Cancel or closed the dialog (nothing has been written).
  */
-export async function confirmPlayUse(title, attempt, { preview } = {}) {
-  let extra = {};
+async function upfrontConfirm(title, preview, extra) {
+  const plan = preview ? await preview(extra) : { title, costs: [], targets: [], warnings: [], readings: [] };
+  const costs = (plan.costs ?? []).map(cost => typeof cost === "string" ? cost : `${cost.amount ?? ""} ${cost.label ?? cost.pool ?? "resource"}`);
+  const targets = (plan.targets ?? []).map(target => typeof target === "string" ? target : target.name ?? target.uuid ?? "Target");
+  const readings = (plan.readings ?? []).filter(reading => reading.source !== "ruling");
+  const fields = readings.map(reading => `<fieldset><legend>${esc(reading.label)}</legend>${reading.options.map((option, index) => `<label><input type="radio" name="${esc(reading.key)}" value="${esc(option.value)}"${index === 0 ? " checked" : ""}> ${esc(option.label)}</label>`).join("")}</fieldset>`).join("");
+  const warnings = plan.warnings ?? [];
+  const answer = await dialog(plan.title ?? title,
+    `<p>${esc(title)}</p>${costs.length ? `<p><strong>Cost:</strong> ${costs.map(esc).join(", ")}</p>` : "<p>Review this feature's stated cost before using it.</p>"}${targets.length ? `<p><strong>Targets:</strong> ${targets.map(esc).join(", ")}</p>` : ""}${warnings.length ? `<ul>${warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul>` : ""}${fields}`,
+    [{ action: "use", label: warnings.length ? "Use anyway" : "Use", callback: (_event, button) => ({ readings: Object.fromEntries(readings.map(reading => [reading.key, button.form.elements[reading.key]?.value])) }) },
+      // DialogV2 resolves `callback() ?? action`: a nullish Cancel callback would resolve to the truthy "cancel".
+      { action: "cancel", label: "Cancel", default: true, callback: () => false }]);
+  if (!answer || typeof answer !== "object") return null;
+  return { ...extra, confirmed: true, overrides: [...new Set([...(extra.overrides ?? []), ...warnings.map(warning => warning.id)])], readings: { ...(extra.readings ?? {}), ...(answer.readings ?? {}) } };
+}
+
+/**
+ * Every use is confirmed exactly once before anything is committed (WORKFLOW §3.2). The up-front confirm lists the
+ * stated cost, targets and warnings; a caller that has already shown its own confirm for this use passes
+ * `confirmed: true` to skip it. Afterwards, warnings the engine raises are listed with "Use anyway" and a missing GM
+ * ruling offers its readings for this use only. Each answer resubmits the same attempt with `overrides` / `reading`;
+ * cancelling (Cancel or closing the dialog) returns null, never runs the attempt and changes nothing.
+ */
+export async function confirmPlayUse(title, attempt, { preview, confirmed = false } = {}) {
+  let extra = confirmed === true ? { confirmed: true } : {};
+  let asked = confirmed === true;
   while (true) {
     try {
-      const plan = preview ? await preview(extra) : { title, costs: [], targets: [], warnings: [], readings: [] };
-      const costs = (plan.costs ?? []).map(cost => typeof cost === "string" ? cost : `${cost.amount ?? ""} ${cost.label ?? cost.pool ?? "resource"}`);
-      const targets = (plan.targets ?? []).map(target => typeof target === "string" ? target : target.name ?? target.uuid ?? "Target");
-      const readings = (plan.readings ?? []).filter(reading => reading.source !== "ruling");
-      const fields = readings.map(reading => `<fieldset><legend>${esc(reading.label)}</legend>${reading.options.map((option, index) => `<label><input type="radio" name="${esc(reading.key)}" value="${esc(option.value)}"${index === 0 ? " checked" : ""}> ${esc(option.label)}</label>`).join("")}</fieldset>`).join("");
-      const warnings = plan.warnings ?? [];
-      const answer = await dialog(plan.title ?? title,
-        `<p>${esc(title)}</p>${costs.length ? `<p><strong>Cost:</strong> ${costs.map(esc).join(", ")}</p>` : "<p>Review this feature's stated cost before using it.</p>"}${targets.length ? `<p><strong>Targets:</strong> ${targets.map(esc).join(", ")}</p>` : ""}${warnings.length ? `<ul>${warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul>` : ""}${fields}`,
-        [{ action: "use", label: warnings.length ? "Use anyway" : "Use", callback: (_event, button) => ({ readings: Object.fromEntries(readings.map(reading => [reading.key, button.form.elements[reading.key]?.value])) }) },
-          { action: "cancel", label: "Cancel", default: true, callback: () => false }]);
-      if (!answer || typeof answer !== "object") return null;
-      extra = { ...extra, confirmed: true, overrides: [...new Set([...(extra.overrides ?? []), ...warnings.map(warning => warning.id)])], readings: { ...(extra.readings ?? {}), ...(answer.readings ?? {}) } };
+      if (!asked) {
+        const next = await upfrontConfirm(title, preview, extra);
+        if (!next) return null;
+        extra = next; asked = true;
+      }
       return await attempt(extra);
     }
     catch (error) {

@@ -498,6 +498,9 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       const beforeData = clone(state.data);
       receipt.saves = clone(plan.saves ?? []);
       receipt.manualSteps = clone(plan.manualSteps ?? []);
+      // Remembered so useRoll rebuilds the plan only for a use that resolves its roll: a plan's validation (for example
+      // "has loaded Munitions to fire") must not be re-run against state the use itself has already consumed.
+      if (typeof plan.resolveRoll === "function") receipt.resolvesRoll = true;
       const updates = await plan.apply(state, receipt, reading?.value) ?? {};
       rememberData(receipt, beforeData, state.data);
       prepareFlagChanges(actor, receipt, updates);
@@ -537,7 +540,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     // Temporary HP roll). The callback lives in the registered plan, never in
     // serialized Actor state. Replaying an interrupted resolution is safe because
     // the callback is pure and its marker is saved with the transformed receipt.
-    const resolver = PLANS[receipt.command]?.(actor, state, receipt.data, receipt.id)?.resolveRoll;
+    const resolver = receipt.resolvesRoll ? PLANS[receipt.command]?.(actor, state, receipt.data, receipt.id)?.resolveRoll : undefined;
     if (!receipt.rollResolved && typeof resolver === "function") {
       const beforeData = clone(state.data);
       await resolver(actor, receipt, state);

@@ -621,7 +621,7 @@ async function runBardCommand(actor, cmd) {
   if (cmd === "speakToTheSoul" || cmd === "emergencyImprov") {
     const title = cmd === "speakToTheSoul" ? "Speak to the Soul" : "Emergency Improv";
     if (!await confirmBard(title, `${actor.name} uses ${title}.`)) return null;
-    return confirmPlayUse(title, extra => supporterUses.command(actor, cmd, { confirmed: true, ...extra }, opId()));
+    return confirmPlayUse(title, extra => supporterUses.command(actor, cmd, { confirmed: true, ...extra }, opId()), { confirmed: true });
   }
   if (cmd === "composePerformances") {
     const picked = await dialogApi().prompt({
@@ -636,7 +636,7 @@ async function runBardCommand(actor, cmd) {
     if (!picked) return null;
     if (!await confirmBard("Compose Performances", `${actor.name} expends ${picked.aidDice} Aid Di${picked.aidDice === 1 ? "e" : "ce"} to gain Muse and composes ${picked.performances.length} Performance(s).`)) return null;
     return confirmPlayUse("Compose Performances", extra => supporterUses.command(actor, "composePerformances",
-      { confirmed: true, aidDice: picked.aidDice, performances: picked.performances, ...extra }, opId()));
+      { confirmed: true, aidDice: picked.aidDice, performances: picked.performances, ...extra }, opId()), { confirmed: true });
   }
   if (cmd === "bardSetup") {
     const picked = await dialogApi().prompt({
@@ -647,7 +647,7 @@ async function runBardCommand(actor, cmd) {
     if (!picked) return null;
     if (!await confirmBard("Soul of the Bard", `${actor.name} gains proficiency in ${picked.join(", ")} and Performance proficiency (or Expertise).`)) return null;
     return confirmPlayUse("Soul of the Bard", extra => supporterUses.command(actor, "bardSetup",
-      { confirmed: true, instruments: picked, ...extra }, opId()));
+      { confirmed: true, instruments: picked, ...extra }, opId()), { confirmed: true });
   }
   // emergencyImprovAid
   const picked = await dialogApi().prompt({
@@ -665,7 +665,7 @@ async function runBardCommand(actor, cmd) {
   if (!picked) return null;
   if (!await confirmBard("Emergency Improv: Aid Die", `${actor.name} expends an Aid Die for Muse after the check.`)) return null;
   return confirmPlayUse("Emergency Improv: Aid Die", extra => supporterUses.command(actor, "emergencyImprovAid",
-    { confirmed: true, mode: picked.mode, arts: picked.arts, art: picked.art, ...extra }, opId()));
+    { confirmed: true, mode: picked.mode, arts: picked.arts, art: picked.art, ...extra }, opId()), { confirmed: true });
 }
 
 /**

@@ -436,7 +436,7 @@ const targetedUuid = () => globalThis.game?.user?.targets?.first?.()?.actor?.uui
 /** Confirmed Potent Hex: the usual warnings, then the Hex on the chosen creature. */
 export async function applyPotentHex(actor, { kind, ability, targetUuid } = {}) {
   const opId = foundry.utils.randomID();
-  return confirmPlayUse("Potent Hex", extra => supporterUses.execute(actor, "potentHex", { targetUuid, kind, ability, ...extra }, opId));
+  return confirmPlayUse("Potent Hex", extra => supporterUses.execute(actor, "potentHex", { targetUuid, kind, ability, ...extra }, opId), { confirmed: true });
 }
 
 /** The point of a Cursemark: the first targeted token (the Hexer places it by targeting until canvas placement exists). */
@@ -501,7 +501,7 @@ export async function applyCursemarkArea(actor, markId) {
   const results = [];
   for (const token of areaTokens) {
     results.push(await confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
-      { markId, kind: mark.kind, targetUuid: token.uuid, primary: false, ...extra }, foundry.utils.randomID())));
+      { markId, kind: mark.kind, targetUuid: token.uuid, primary: false, ...extra }, foundry.utils.randomID()), { confirmed: true }));
   }
   return results;
 }
@@ -522,11 +522,11 @@ export async function hexerCommand(actor, name) {
     if (!choice) return null;
     const targetUuid = targetedUuid();
     const opId = foundry.utils.randomID();
-    const first = await confirmPlayUse("Ultimate Hex", extra => supporterUses.execute(actor, "ultimateHex", { targetUuid, ability: choice.ability, ...extra }, opId));
+    const first = await confirmPlayUse("Ultimate Hex", extra => supporterUses.execute(actor, "ultimateHex", { targetUuid, ability: choice.ability, ...extra }, opId), { confirmed: true });
     if (!first) return null;
     for (const kind of ROLL_KINDS) {
       await confirmPlayUse(`Ultimate Hex (${HEX_LABELS[kind]})`, extra => supporterUses.execute(actor, "ultimateHexPart",
-        { targetUuid, kind, ability: choice.ability, ultimateUseId: opId, ...extra }, foundry.utils.randomID()));
+        { targetUuid, kind, ability: choice.ability, ultimateUseId: opId, ...extra }, foundry.utils.randomID()), { confirmed: true });
     }
     return first;
   }
@@ -544,7 +544,7 @@ export async function hexerCommand(actor, name) {
     // A spared point creature is not hexed by this use; the mark still records it as excluded from the area.
     const targetUuid = excluded.includes(placed.targetUuid) ? null : placed.targetUuid;
     return confirmPlayUse("Cursemark", extra => supporterUses.execute(actor, "cursemark",
-      { kind: choice.kind, ability: choice.ability, markId: foundry.utils.randomID(), ...placed, targetUuid, excluded, ...extra }, foundry.utils.randomID()));
+      { kind: choice.kind, ability: choice.ability, markId: foundry.utils.randomID(), ...placed, targetUuid, excluded, ...extra }, foundry.utils.randomID()), { confirmed: true });
   }
   if (name === "cursemarkArea") {
     const mark = (hexerState(actor).cursemarks ?? []).at(-1);
