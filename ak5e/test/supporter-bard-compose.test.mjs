@@ -321,8 +321,17 @@ test("Emergency Improv, follow-up: a successful check spends an Aid Die and comp
   assert.deepEqual(armsOf(composed), ["Bane", "Aid", "Bolster"]);
   assert.equal(typeof composed.composedAt, "string");
   assert.equal(bardOf(actor).museTHP, 2, "Muse 8 less costs 6 leaves 2");
-  await assert.rejects(() => supporterUses.command(actor, "emergencyImprovAid", { confirmed: true, mode: "compose", arts: ["Bane", "Aid", "Bolster"] }, "ei-again"),
-    error => /No Performance check is waiting/.test(error.message));
+  // F-R5: with no recorded check it is a warning (the GM rules the result), not a block. Use anyway composes.
+  const again = { confirmed: true, mode: "compose", arts: ["Bane", "Aid", "Bolster"] };
+  const before = performancesOf(actor).length;
+  await assert.rejects(() => supporterUses.command(actor, "emergencyImprovAid", again, "ei-again"),
+    error => error.name === "AK5eWarnings" && error.warnings.some(warning => warning.id === "noCheck"));
+  assert.equal(performancesOf(actor).length, before, "a refused warning changes nothing");
+  await supporterUses.command(actor, "emergencyImprovAid", { ...again, overrides: ["noCheck"] }, "ei-again");
+  // Composition happens when the Aid Die roll is clicked (the use is pending until then).
+  stubRoll(8);
+  await rollUse(actor, "ei-again");
+  assert.equal(performancesOf(actor).length, before + 1, "the overridden use composes the Performance after its roll");
 });
 
 test("Emergency Improv, follow-up: a failed check warns, and an insertion that repeats the neighbouring Art warns", async () => {

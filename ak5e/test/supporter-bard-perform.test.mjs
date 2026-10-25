@@ -799,3 +799,34 @@ test("the picker's Continue reaches the start confirm, which names the first Art
   assert.equal(dialogs.seen.length, 2, "picker, then the start confirm");
   assert.match(dialogs.seen[1], /Put on P1/);
 });
+
+test("R1 Font die: the granted Aid Die is a time expiry of 600 seconds, not a turn-start one", async () => {
+  const actor = bard({ level: 9 });
+  const ally = createTestActor({ name: "Ally", type: "character", ownership: { default: 0 } });
+  docsRef.docs.set(ally.uuid, ally);
+  await startAndFirstCast(actor);
+  await run(actor, "fontProvideAid", { targetUuid: ally.uuid, targetName: "Ally" });
+  const effect = findAidDieEffect(ally);
+  const tag = effect.flags.ak5e.featureTag;
+  assert.equal(tag.trigger, "time", "time expiry");
+  assert.equal(tag.seconds, 600, "a 600 s tag");
+  // The Active Effect duration comes from supporter-uses.mjs (another pair) when the Font feature item is present; the
+  // fallback path there writes no duration. The 600 s duration is asserted on the tag, and in the live e2e test.
+  assert.notEqual(tag.trigger, "turnStart", "not a turn-start expiry");
+});
+
+test("R1/H2 Font relay: the real Font tag relays; a tampered tag, a standardBenefit or a foreign supporter is refused", async () => {
+  const actor = bard({ level: 9 });
+  const ally = createTestActor({ name: "Ally", type: "character", ownership: { default: 0 } });
+  docsRef.docs.set(ally.uuid, ally);
+  await startAndFirstCast(actor);
+  await run(actor, "fontProvideAid", { targetUuid: ally.uuid, targetName: "Ally" });
+  const receipt = supporterUses.state(actor).undo.at(-1);
+  const entry = structuredClone(receipt.targets[0]);
+  const validate = bardPerformPlans.fontProvideAid.validateTarget;
+  assert.equal(validate(actor, receipt, entry, ally), true, "the real Font tag relays");
+  assert.equal(validate(actor, receipt, { ...entry, tag: { ...entry.tag, changes: [{ key: "system.x", value: "1" }] } }, ally), false, "extra changes refused");
+  assert.equal(validate(actor, receipt, { ...entry, standardBenefit: { kind: "x" } }, ally), false, "a standardBenefit refused");
+  assert.equal(validate(actor, receipt, { ...entry, tag: { ...entry.tag, data: { ...entry.tag.data, supporterUuid: "Actor.other" } } }, ally), false, "a foreign supporter refused");
+  assert.equal(validate(actor, receipt, { ...entry, tag: { ...entry.tag, data: { ...entry.tag.data, dieSize: "d12" } } }, ally), false, "a die size other than the Supporter's refused");
+});

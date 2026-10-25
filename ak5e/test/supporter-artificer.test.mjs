@@ -456,3 +456,32 @@ test("missing, unknown, or non-Automaton UUIDs are still hard errors", () => {
   docs.set(plain.uuid, plain);
   assert.throws(() => artificerPlans.concussiveMaintenance(a, supporterUses.state(a), { automatonUuid: plain.uuid }), /not an Automaton/);
 });
+
+/* ---- R1 relay: validators are reachable from the plan function the relay reads (PLANS[command]) ---- */
+
+test("R1 relay: a legitimate setup field change relays, a non-whitelisted path is refused, and the validator sits on the plan function", async () => {
+  const a = artificer(13);
+  const receipt = { id: "relay-setup" };
+  const validate = artificerPlans.artificerSetup.validateTarget;
+  assert.equal(typeof validate, "function", "validator is on the plan function the relay reads");
+  assert.equal(artificerPlans.artificerSetup(a, supporterUses.state(a), {}).validateTarget, undefined, "no dead validator on the returned plan");
+  const entry = { kind: "artificerFields", uuid: a.uuid, name: a.name, ready: true,
+    set: { "system.traits.toolProf.custom": "Vehicles (Drones)" }, before: { "system.traits.toolProf.custom": "" } };
+  assert.equal(validate(a, receipt, entry, a), true, "legitimate setup field relays");
+  const tampered = { ...entry, set: { "system.currency.cp": 999999 }, before: { "system.currency.cp": 0 } };
+  assert.equal(validate(a, receipt, tampered, a), false, "a non-whitelisted path is refused");
+});
+
+test("R1 relay: a build's Automaton relays only when its ID derives from this use and its creator is this Artificer", async () => {
+  const { automatonIdFor } = await import("../scripts/artificer-features.mjs");
+  const a = artificer(13);
+  const receipt = { id: "relay-build" };
+  const validate = artificerPlans.buildAutomaton.validateTarget;
+  assert.equal(typeof validate, "function");
+  const uuid = `Actor.${automatonIdFor(receipt.id)}`;
+  const entry = { kind: "artificerAutomaton", uuid, name: "Automaton", ready: true };
+  const good = { uuid, id: automatonIdFor(receipt.id), flags: { ak5e: { automaton: { creator: a.uuid } } } };
+  assert.equal(validate(a, receipt, entry, good), true, "the Automaton this use built relays");
+  const foreign = { uuid: "Actor.wrong", id: "wrong", flags: { ak5e: { automaton: { creator: a.uuid } } } };
+  assert.equal(validate(a, receipt, { ...entry, uuid: "Actor.wrong" }, foreign), false, "an Actor with the wrong ID is refused");
+});
