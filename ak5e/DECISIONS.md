@@ -2466,3 +2466,24 @@ The final review of `feat/supporter-base` found the defects below. They were fix
   - `game.ak5e.supporter.branches` is a ready-time snapshot.
   - Target-kind collisions in `play-uses.register` are unguarded. Fixing this needs play-uses.mjs.
   - Burst once-keys accumulate on the Hexer.
+
+## Five-branch batch rulings: Medic casting and Witchcraft (2026-10-25)
+
+Head rulings for unit U3. They rest on the cited Chapter 3 text and the existing Arts quote engine (`arts-rules.mjs` applies `grant.reduction` before `discounts` and floors at 0).
+
+1. **Confirm contract.** `confirmPlayUse` confirms every use once. A caller that has already shown its own confirm dialog passes `confirmed: true`. Warnings and readings dialogs still follow.
+2. **Medic Arts setup.** The Medic writes the native `artsPoints` / casting flags the Arts engine needs, modelled on `applyGuardianArts` (`guardian-features.mjs:96`). Until it does, no Medic cast reaches `arts-casting.mjs`.
+3. **Urgency of Treatment (C3:4656).** This is an `arts-casting` quote discount on Healing Arts Pool Arts only: 1 AP per 10 Life Support, floored at 0. If the discount exceeds the remaining cost, the player gets a warning that the excess Life Support is wasted.
+4. **Self-Defence Protocol (C3:4698) and Halfway House (C3:5099).**
+   - Each grants a chosen Standard Arts Pool. Self-Defence Protocol grants levelled Arts up to 5th plus cantrips. Halfway House grants the whole pool, bounded by the Medic's maximum Art level.
+   - The cost reduction is a grant `reduction`: Self-Defence 1, or 2 from level 11; Halfway House 0 below level 5, 1 from level 5, 2 from level 11.
+   - An Art in both pools takes the larger reduction; the two do not stack.
+   - Choosing the same pool for both features gets a warning, not a block.
+   - Urgency of Treatment stacks on top of either reduction (applied last), and the total floors at 0.
+5. **Healing through Harm (C3:5103).** The trigger is the player's own rolled Art damage total before target mitigation, including flat modifiers. The player gains floor(total / 2) Life Support, which may exceed the maximum; the excess is lost on a Long Rest. The feature costs a Reaction and recovers on a Short Rest. It is offered as a prompt and never applied automatically.
+6. **Improved Life Support (C3:5110).** Base Life Support healing is Touch (C3:4650). Witchdoctor raises it to 60 ft. Range is a warning only.
+7. **Witchcurse (C3:5131).** Only one curse is active per Medic; placing a new one replaces the old. "First time each Turn" counts once per combat turn, keyed by combat:round:turn, including damage taken on other creatures' turns. Several damage parts of one Art count as one instance. Outside combat, each hit is offered with a warning. The 2d6 is clicked by the Medic. The Psychic damage equals the HP actually restored.
+8. **Efficient Life Support (C3:5137).** Only levelled Arts count, so cantrips and 0-AP casts give nothing. The Medic gains 2 × the AP actually spent, written in the cast's own Actor update so that undoing the cast reverses it. Life Support healing as an Action or Bonus Action applies for that turn only.
+9. **Witch's Boon (C3:5139).** Counts HP actually restored after clamping to the target's maximum; temporary HP does not count. The +1d10 Force applies to every Attack the target makes until the end of its next turn, rolled by the attacker's own damage roll.
+10. **Life through Death (C3:5143).** "The amount rolled" is the maximum damage total dealt by that roll, including flat modifiers, before target mitigation. This is an uncertain reading. The HP is divided among chosen creatures within 60 ft, and a remainder may be left unspent. It is once per Long Rest and is mutually exclusive with Healing through Harm on the same roll.
+11. **Out of scope:** Revivify remains unresolved (C3:4712; see the Revivify entry above), so Resuscitation is not a real cast.
