@@ -167,6 +167,8 @@ const ARTIFICER_KINDS = Object.freeze({
       return { applied: true };
     },
     async revert(_source, _useId, entry, target) {
+      // The engine checks validateTarget only on apply, so a tampered record is refused again here before any write.
+      need(fieldRecordShapeOk(entry), "The recorded field changes are not on the Artificer whitelist; nothing is restored.");
       await target.update(structuredClone(entry.before));
       return { restored: true };
     },
@@ -181,7 +183,10 @@ const ARTIFICER_KINDS = Object.freeze({
       need(target, "The Automaton does not exist yet; the GM must create it.");
       return { exists: true };
     },
-    async revert(_source, _useId, _entry, target) {
+    // Deletes the Automaton only when its ID is derived from this use's opId and it is flagged as built by this source.
+    async revert(source, useId, _entry, target) {
+      need(Boolean(target) && target.id === automatonIdFor(useId) && automatonFlag(target).creator === source.uuid,
+        "This Automaton was not built by this use; it is not deleted.");
       await target.delete();
       return { removed: true };
     },
@@ -192,7 +197,41 @@ const ARTIFICER_KINDS = Object.freeze({
 });
 supporterUses.register({ targetKinds: ARTIFICER_KINDS });
 
-const fieldsValidate = (_source, _receipt, entry, target) => entry.kind === "artificerFields" && target?.uuid === entry.uuid;
+/*
+ * Relay whitelist for artificerFields (F-R7). Only the paths the Artificer plans write may be relayed:
+ *  - setup (setupPlan) writes the Artificer's own Actor: Heavy Melee, Vehicles (Drones) and Tech skill;
+ *  - Automaton plans (Rebuild, Advanced Personality Matrix) write one Automaton made by this Artificer.
+ */
+const SOURCE_FIELD_PATHS = Object.freeze(["system.traits.weaponProf.custom", "system.traits.toolProf.custom", "system.skills.ak5etech.value"]);
+const AUTOMATON_FIELD_PATHS = Object.freeze(["flags.ak5e.automaton.destroyed", "system.attributes.hp.value"]);
+const ABILITY_FIELD_PATH = /^system\.abilities\.(str|dex|con|int|wis|cha)\.(value|proficient)$/;
+const plainFieldValue = value => ["number", "string", "boolean"].includes(typeof value);
+const isPlainRecord = value => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+const isWhitelistedPath = path => SOURCE_FIELD_PATHS.includes(path) || AUTOMATON_FIELD_PATHS.includes(path) || ABILITY_FIELD_PATH.test(path);
+
+/** Shape of a field record: same non-empty path set in `set` and `before`, all whitelisted, primitive values only. */
+const fieldRecordShapeOk = entry => {
+  if (!isPlainRecord(entry?.set) || !isPlainRecord(entry?.before)) return false;
+  const setPaths = Object.keys(entry.set), beforePaths = Object.keys(entry.before);
+  if (!setPaths.length || [...setPaths].sort().join("\n") !== [...beforePaths].sort().join("\n")) return false;
+  if (![...Object.values(entry.set), ...Object.values(entry.before)].every(plainFieldValue)) return false;
+  return setPaths.every(isWhitelistedPath);
+};
+
+/** A relayed artificerFields entry: a whitelisted path set, primitive values, and a target that matches its paths. */
+const fieldsValidate = (source, _receipt, entry, target) => {
+  if (entry?.kind !== "artificerFields" || !target || target.uuid !== entry.uuid) return false;
+  if (!fieldRecordShapeOk(entry)) return false;
+  const setPaths = Object.keys(entry.set);
+  // Setup fields belong to the Artificer itself; Automaton fields belong to an Automaton this Artificer built.
+  // An Automaton listed in the Artificer's records is accepted even when its creator flag does not match.
+  if (setPaths.every(path => SOURCE_FIELD_PATHS.includes(path))) return target.uuid === source.uuid;
+  if (setPaths.every(path => !SOURCE_FIELD_PATHS.includes(path))) {
+    return target.uuid !== source.uuid
+      && (automatonFlag(target).creator === source.uuid || (artificerState(source).automatons ?? []).includes(target.uuid));
+  }
+  return false;
+};
 
 /* ------------------------------------------------------------------ Automaton actor data (Ch. 6 template) */
 
@@ -324,9 +363,10 @@ function setupPlan(actor, state, data = {}) {
       if (expertTouch) updates["flags.ak5e.artificer.setup"] = { ...setup, expertTouch: true };
       return updates;
     },
-    validateTarget: fieldsValidate
   };
 }
+// The relay reads validateTarget from the plan function (PLANS[command]), not from the plan it returns.
+setupPlan.validateTarget = fieldsValidate;
 
 /** As One (L1): each Automaton may take an Action when you take the Attack Action; it cannot repeat that Action until your next Turn. */
 function asOnePlan(actor, state, data = {}) {
@@ -403,12 +443,16 @@ function buildAutomatonPlan(actor, state, data = {}) {
       need(Number.isFinite(intMod), "Review your Intelligence modifier before creating the Automaton.");
       const automatonId = automatonIdFor(receipt.id), uuid = `Actor.${automatonId}`;
       const stats = { hpMax: Math.max(1, AUTOMATON_BASE_HP + techMod), pb, attackBonus: intMod + pb, technologyModifier: choice };
-      await artificerRelay.submit(actor, "createAutomaton", { confirmation: true, variant, automatonId, stats }, `${receipt.id}-create`);
       const name = `${AUTOMATON_VARIANTS[variant].label} Automaton (${actor.name})`;
-      receipt.targets = [{ kind: "artificerAutomaton", uuid, name, ready: true }];
-      receipt.summary = `${actor.name} built ${name}: ${stats.hpMax} HP (${AUTOMATON_BASE_HP} + Technology ${techMod} via ${choice === "techTotal" ? "the Technology total" : "Intelligence modifier"}), Proficiency Bonus ${pb}, attack +${stats.attackBonus} (Intelligence + PB).`;
-      receipt.result = { automatonUuid: uuid, ...stats, variant };
+      const summary = `${actor.name} built ${name}: ${stats.hpMax} HP (${AUTOMATON_BASE_HP} + Technology ${techMod} via ${choice === "techTotal" ? "the Technology total" : "Intelligence modifier"}), Proficiency Bonus ${pb}, attack +${stats.attackBonus} (Intelligence + PB).`;
+      // F-R8: every fallible step is done before the world Actor exists. The relay is idempotent per opId (the Actor ID
+      // derives from it), so a retry with the same opId adopts the Automaton and never creates a second one.
       const list = artificerState(actor).automatons ?? [];
+      await artificerRelay.submit(actor, "createAutomaton", { confirmation: true, variant, automatonId, stats }, `${receipt.id}-create`);
+      // attempted: the create ran, so undo of this receipt (even one left pending by a later failed write) deletes it.
+      receipt.targets = [{ kind: "artificerAutomaton", uuid, name, ready: true, attempted: true }];
+      receipt.summary = summary;
+      receipt.result = { automatonUuid: uuid, ...stats, variant };
       return { "flags.ak5e.artificer.automatons": [...list, uuid] };
     }
   };
@@ -483,7 +527,6 @@ function rebuildPlan(actor, state, data = {}) {
   return {
     title: `Rebuild ${automaton.name} (${data.method === "lmd" ? `${REBUILD_LMD} LMD` : "Long Rest"})`,
     warnings,
-    validateTarget: fieldsValidate,
     apply(_next, receipt) {
       const set = { "flags.ak5e.automaton.destroyed": false, "system.attributes.hp.value": max };
       const before = { "flags.ak5e.automaton.destroyed": automatonFlag(automaton).destroyed === true, "system.attributes.hp.value": hpOf(automaton) };
@@ -541,7 +584,6 @@ function advancedMatrixPlan(actor, state, data = {}) {
   return {
     title: "Advanced Personality Matrix",
     warnings,
-    validateTarget: fieldsValidate,
     apply(_next, receipt) {
       receipt.targets = automatons.map(automaton => {
         const set = {}, prior = {};
@@ -561,6 +603,13 @@ function advancedMatrixPlan(actor, state, data = {}) {
     }
   };
 }
+
+// The relay reads validateTarget from the plan function (PLANS[command]), so each relayable plan carries its check here.
+rebuildPlan.validateTarget = fieldsValidate;
+advancedMatrixPlan.validateTarget = fieldsValidate;
+// The Automaton a build created: its ID derives from this use's opId, and it is flagged as built by this source.
+buildAutomatonPlan.validateTarget = (source, receipt, entry, target) => entry?.kind === "artificerAutomaton"
+  && target?.uuid === entry.uuid && target.id === automatonIdFor(receipt.id) && automatonFlag(target).creator === source.uuid;
 
 export const artificerPlans = Object.freeze({
   artificerSetup: setupPlan,

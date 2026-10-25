@@ -454,10 +454,12 @@ function emergencyImprovAid(actor, state, data = {}) {
   const mode = data.mode ?? "compose";
   need(mode === "compose" || mode === "insert", "Emergency Improv composes a Performance or inserts an Art.");
   const check = findCheck(state, data.checkUseId);
-  need(check, "No Performance check is waiting for its Aid Die. Roll Emergency Improv first.");
-  const checkEntry = check.targets.find(item => item.kind === "bardCheck");
+  const checkEntry = check?.targets.find(item => item.kind === "bardCheck") ?? null;
   const warnings = [];
-  if (!checkEntry.success) {
+  // No recorded check is a warning, not a block: the GM rules the result. A failed check is a warning too.
+  if (!check) {
+    warn(warnings, "noCheck", "No recorded Emergency Improv check; the GM rules the result.");
+  } else if (!checkEntry?.success) {
     warn(warnings, "checkFailed", `The Performance check did not reach DC ${EMERGENCY_IMPROV_DC}; Emergency Improv gives nothing on a failure.`);
   }
   const level = levelOf(actor);
@@ -499,12 +501,14 @@ function emergencyImprovAid(actor, state, data = {}) {
         const formula = `1${size}`;
         receipt.formula = formula;
         receipt.rollLabel = "Muse (1 Aid Die)";
-        receipt.summary = `${esc(actor.name)} expends an Aid Die (${size}) for Muse after a successful Emergency Improv check.`
-          + (mode === "compose" ? " The new Performance is lost unless begun within a minute." : "");
+        receipt.summary = check
+          ? `${esc(actor.name)} expends an Aid Die (${size}) for Muse after a successful Emergency Improv check.`
+          : `${esc(actor.name)} expends an Aid Die (${size}) for Muse; no Emergency Improv check was recorded, so the GM rules the result.`;
+        receipt.summary += mode === "compose" ? " The new Performance is lost unless begun within a minute." : "";
       } else {
         receipt.summary = `${esc(actor.name)} has no Aid Die left; Emergency Improv gains no Muse.`;
       }
-      receipt.result = { mode, checkUseId: check.id };
+      receipt.result = { mode, checkUseId: check?.id ?? null };
       return update;
     }
   };
@@ -514,7 +518,8 @@ function emergencyImprovAid(actor, state, data = {}) {
 function findCheck(state, checkUseId) {
   const usable = receipt => receipt.command === "emergencyImprov" && receipt.status !== "undone"
     && receipt.targets?.some(item => item.kind === "bardCheck" && item.success !== undefined)
-    && !state.undo.some(other => other.command === "emergencyImprovAid" && other.status !== "undone" && other.data?.checkUseId === receipt.id);
+    && !state.undo.some(other => other.command === "emergencyImprovAid" && other.status !== "undone"
+      && (other.data?.checkUseId === receipt.id || other.result?.checkUseId === receipt.id));
   const candidates = state.undo.filter(usable);
   if (checkUseId) return candidates.find(receipt => receipt.id === checkUseId) ?? null;
   return candidates.at(-1) ?? null;
