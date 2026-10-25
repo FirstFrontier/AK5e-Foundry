@@ -2,16 +2,16 @@
  * Guard sheet UI: header control and Features-tab panel that open guided dialogs.
  * Opening the panel or dialogs never writes to Actor state (WORKFLOW.md §3.2: confirm before use).
  */
-import { guardProfile, guardLevel, guardBranch, guardState, martialDC, centurionDC, flag } from "./guard-rules.mjs";
+import { guardProfile, guardLevel, guardBranch, guardState, martialDC, martialDCChoice, centurionDC, flag } from "./guard-rules.mjs";
 import { getGuardView } from "./guard-features.mjs";
 import { previewGuardSetup, applyGuardSetup } from "./guard-setup.mjs";
 import { previewGuardProgression, applyGuardProgression, inspectGuardFields } from "./guard-progression.mjs";
 import { guardUses } from "./guard-uses.mjs";
-import { confirmPlayUse, openPlayUndoList, retryPlayUse, renderPlayUseCard } from "./play-uses-sheet.mjs";
+import { confirmPlayUse, openPlayUndoList, renderPlayUseCard } from "./play-uses-sheet.mjs";
 import { isCenturion } from "./centurion-features.mjs";
 import { isCrusher } from "./crusher-features.mjs";
 import { isInstructor, INSTRUCTIONS } from "./instructor-features.mjs";
-import { isArtsblade, ARTS_POOLS, getArtsbladePoolChoices, maxArtLevel } from "./artsblade-features.mjs";
+import { isArtsblade, isMeleeWeaponItem, ARTS_POOLS, getArtsbladePoolChoices, maxArtLevel } from "./artsblade-features.mjs";
 import { isBrawler, bobAndWeaveAC, isUnarmoredOrLight } from "./brawler-features.mjs";
 import { isDuellist } from "./duellist-features.mjs";
 import { isLiberator, guideTheMassesBonus } from "./liberator-features.mjs";
@@ -40,6 +40,7 @@ export async function openGuardControls(actor) {
   const branch = profile.branch;
   const state = guardState(actor);
   const mDC = martialDC(actor);
+  const martialAbility = martialDCChoice(actor);
 
   const sections = [];
 
@@ -47,7 +48,7 @@ export async function openGuardControls(actor) {
   sections.push(`
     <div class="ak5e-guard-status">
       <h4>${esc(actor.name)} — Guard Level ${level}${branch ? ` (${branch.toUpperCase()})` : ""}</h4>
-      <p><strong>Martial DC:</strong> ${mDC}${branch === "centurion" ? ` · <strong>Centurion DC:</strong> ${centurionDC(actor)}` : ""}</p>
+      <p><strong>Martial DC:</strong> ${mDC} (${martialAbility ? martialAbility.toUpperCase() : "higher of STR/DEX until you choose"})${branch === "centurion" ? ` · <strong>Centurion DC:</strong> ${centurionDC(actor)}` : ""}</p>
       <div class="ak5e-guard-pools-summary">
         ${view.aggression ? `<span class="ak5e-pool-badge">Aggression: ${view.aggression.value} / ${view.aggression.max}</span>` : ""}
         ${view.unrelenting ? `<span class="ak5e-pool-badge">Unrelenting: ${view.unrelenting.value} / ${view.unrelenting.max}</span>` : ""}
@@ -79,6 +80,7 @@ export async function openGuardControls(actor) {
           <button type="button" data-guard-cmd="forestall">Forestall (1-3 Aggression, Reaction)</button>
           <button type="button" data-guard-cmd="smite">Smite (1-3 Aggression)</button>
           <button type="button" data-guard-cmd="strikeTrue">Strike True (1-3 Aggression)</button>
+          <button type="button" data-guard-cmd="chooseMartialDC">Choose Martial DC ability (STR or DEX)</button>
         </div>
         ${level >= 3 ? `
           <div class="ak5e-button-row">
@@ -387,31 +389,71 @@ export async function openGuardControls(actor) {
   });
 }
 
-async function askMartialAbility(actor, feature) {
-  return foundry.applications.api.DialogV2.prompt({
-    window: { title: `${feature}: choose Martial DC ability` },
-    rejectClose: false,
-    content: `<label>Choose Strength or Dexterity for your Martial DC: <select name="ability"><option value="" selected disabled>Choose an ability</option><option value="str">Strength (${Number(actor.system?.abilities?.str?.mod ?? 0)})</option><option value="dex">Dexterity (${Number(actor.system?.abilities?.dex?.mod ?? 0)})</option></select></label>`,
-    ok: { label: "Continue", callback: (_event, target) => (target.form ?? target.closest("form"))?.elements?.ability?.value || null }
+/**
+ * A DialogV2 form with an explicit Cancel (B-302). `DialogV2` resolves `(await callback()) ?? action`, so a callback that
+ * returns null/undefined resolves to the truthy action name ("ok", "cancel") and callers carry on as if they had an
+ * answer. Here the answer is wrapped in an object (never nullish), Cancel returns `false`, and closing the window
+ * rejects to null. Resolves the reader's value (which may be false, for an unchecked box) or null on Cancel/close.
+ */
+export async function askPrompt({ window, content, ok, position, rejectClose = false }) {
+  const answer = await foundry.applications.api.DialogV2.wait({
+    window, ...(position ? { position } : {}), rejectClose, content,
+    buttons: [
+      { action: "ok", label: ok?.label ?? "Review use", default: true, callback: (event, button, dialog) => ({ answer: ok?.callback ? ok.callback(event, button, dialog) : true }) },
+      { action: "cancel", label: "Cancel", callback: () => false }
+    ]
   });
+  return answer && typeof answer === "object" && "answer" in answer ? (answer.answer ?? null) : null;
 }
 
-async function executeGuardDialog(actor, cmd) {
+/** Choose the Martial DC ability for one use (Ch.1 L211-212: Strength or Dexterity, the character's choice).
+ * Starts on the stored choice, else the higher modifier. Resolves "str", "dex", or false on Cancel or an empty answer. */
+export async function askMartialAbility(actor, feature) {
+  const str = Number(actor.system?.abilities?.str?.mod ?? 0), dex = Number(actor.system?.abilities?.dex?.mod ?? 0);
+  const preset = martialDCChoice(actor) ?? (dex > str ? "dex" : "str");
+  const answer = await askPrompt({
+    window: { title: `${feature}: choose Martial DC ability` },
+    content: `<label>Choose Strength or Dexterity for your Martial DC: <select name="ability"><option value="str"${preset === "str" ? " selected" : ""}>Strength (${str})</option><option value="dex"${preset === "dex" ? " selected" : ""}>Dexterity (${dex})</option></select></label>`,
+    ok: { label: "Continue", callback: (_event, target) => (target.form ?? target.closest("form"))?.elements?.ability?.value }
+  });
+  return answer === "str" || answer === "dex" ? answer : false;
+}
+
+/**
+ * Run one Guard use through the confirm loop: the up-front dialog shows the plan's real preview (cost, targets,
+ * warnings, readings), warnings and missing rulings are handled there, and Cancel changes nothing. One operation id is
+ * kept for the whole attempt so a retry resumes the same receipt. A form that already showed this preview passes
+ * `confirmed: true`. Resolves the use's result, or null when cancelled.
+ */
+export async function runGuardUse(actor, title, command, data = {}, { confirmed = false } = {}) {
+  const useId = operationId();
+  const result = await confirmPlayUse(title, extra => guardUses.command(actor, command, { ...data, confirmed: true, ...extra }, useId),
+    { preview: extra => guardUses.preview(actor, command, { ...data, ...extra }), confirmed });
+  return result === null ? null : (result ?? true);
+}
+
+export async function executeGuardDialog(actor, cmd) {
   const level = guardLevel(actor) ?? 1;
 
   if (cmd === "forestall" || cmd === "smite" || cmd === "strikeTrue") {
-    const amount = await foundry.applications.api.DialogV2.prompt({
+    const amount = await askPrompt({
       window: { title: `Press the Attack: ${cmd}` },
       rejectClose: false,
       content: `<label>Aggression to spend: <input type="number" name="amount" min="1" max="3" value="1"></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => Number((target.form ?? target.closest("form"))?.elements?.amount?.value ?? 1) }
+      ok: { label: "Review use", callback: (_e, target) => Number((target.form ?? target.closest("form"))?.elements?.amount?.value ?? 1) }
     });
     if (!amount) return;
-    return confirmPlayUse(`Press the Attack: ${cmd}`, extra => guardUses.command(actor, cmd, { amount, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, `Press the Attack: ${cmd}`, cmd, { amount });
+  }
+
+  if (cmd === "chooseMartialDC") {
+    const ability = await askMartialAbility(actor, "Martial DC");
+    if (!ability) return;
+    return runGuardUse(actor, "Choose Martial DC ability", "chooseMartialDC", { ability });
   }
 
   if (cmd === "foecrusher") {
-    const rider = await foundry.applications.api.DialogV2.prompt({
+    const rider = await askPrompt({
       window: { title: "Foecrusher Strike" },
       rejectClose: false,
       content: `
@@ -423,14 +465,14 @@ async function executeGuardDialog(actor, cmd) {
             <option value="smashing">Smashing Strike (Push 15 ft + advance)</option>
           </select>
         </label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.rider?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.rider?.value }
     });
     if (!rider) return;
-    return confirmPlayUse("Foecrusher", extra => guardUses.command(actor, "foecrusher", { rider, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Foecrusher", "foecrusher", { rider });
   }
 
   if (cmd === "overbear") {
-    const riders = await foundry.applications.api.DialogV2.prompt({
+    const riders = await askPrompt({
       window: { title: "Press the Attack: Overbear (2 Aggression)" },
       rejectClose: false,
       content: `
@@ -452,7 +494,7 @@ async function executeGuardDialog(actor, cmd) {
           </select>
         </label>`,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return { primaryRider: form.elements.primaryRider.value, secondaryRider: form.elements.secondaryRider.value };
@@ -460,12 +502,12 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!riders) return;
-    return confirmPlayUse("Overbear", extra => guardUses.command(actor, "overbear", { ...riders, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Overbear", "overbear", { ...riders });
   }
 
   if (cmd === "instruction") {
     const optionsHtml = Object.entries(INSTRUCTIONS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Issue Instruction (1 Instruction Die)" },
       rejectClose: false,
       content: `
@@ -475,7 +517,7 @@ async function executeGuardDialog(actor, cmd) {
         <label><input type="checkbox" name="cooperativeCombat"> Cooperative Combat (1 Aggression, Instructor also benefits)</label>
         ${level >= 10 ? `<label><input type="checkbox" name="isKingmaker"> Kingmaker (Second ally, free, fixed d6)</label>` : ""}`,
       ok: {
-        label: "Issue Instruction",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -487,19 +529,19 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Instruction", extra => guardUses.command(actor, "instruction", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Instruction", "instruction", { ...data });
   }
 
   if (cmd === "teachFromExperience") {
     const optionsHtml = Object.entries(INSTRUCTIONS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
-    const instruction = await foundry.applications.api.DialogV2.prompt({
+    const instruction = await askPrompt({
       window: { title: "Teach from Experience (Turn Start, Self)" },
       rejectClose: false,
       content: `<label>Choose Instruction: <select name="instruction">${optionsHtml}</select></label>`,
-      ok: { label: "Apply to Self", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.instruction?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.instruction?.value }
     });
     if (!instruction) return;
-    return confirmPlayUse("Teach from Experience", extra => guardUses.command(actor, "teachFromExperience", { instruction, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Teach from Experience", "teachFromExperience", { instruction });
   }
 
   // Artsblade commands
@@ -508,19 +550,18 @@ async function executeGuardDialog(actor, cmd) {
     const availablePools = selectedPools.length ? selectedPools : Object.keys(ARTS_POOLS);
     const poolsHtml = availablePools.map(k => `<option value="${k}">${ARTS_POOLS[k].name} (${ARTS_POOLS[k].damageType})</option>`).join("");
     const target = Array.from(game.user.targets ?? [])[0];
-    const artPool = await foundry.applications.api.DialogV2.prompt({
+    const artPool = await askPrompt({
       window: { title: "Blade Art" },
       rejectClose: false,
       content: `<label>Select Arts Pool: <select name="artPool">${poolsHtml}</select></label><p>Target: ${esc(target?.name ?? "No token targeted; resolve target manually")}</p>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.artPool?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.artPool?.value }
     });
     if (!artPool) return;
     const targeted = Array.from(game.user.targets ?? [])[0];
     const ability = await askMartialAbility(actor, "Blade Art");
     if (!ability) return;
     const data = { artPool, martialDcAbility: ability, targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null };
-    const useId = operationId();
-    return confirmPlayUse(`Blade Art (${ARTS_POOLS[artPool]?.name ?? artPool})`, extra => guardUses.command(actor, "bladeArt", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "bladeArt", { ...data, ...extra }) });
+    return runGuardUse(actor, `Blade Art (${ARTS_POOLS[artPool]?.name ?? artPool})`, "bladeArt", data);
   }
 
   if (cmd === "castSpellswordArt") {
@@ -529,7 +570,7 @@ async function executeGuardDialog(actor, cmd) {
     const knownArts = Array.from(actor.items ?? []).filter(item => item.type === "spell").map(item => item.name);
     const selectedPools = getArtsbladePoolChoices(actor);
     const poolOptions = selectedPools.map(key => `<option value="${key}">${ARTS_POOLS[key].name}</option>`).join("");
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Cast Spellsword Art (1 SP)" },
       rejectClose: false,
       content: `
@@ -541,7 +582,7 @@ async function executeGuardDialog(actor, cmd) {
         ${level >= 13 ? `<label><input type="checkbox" name="unleash"> High Fantasy: Unleash (only while Augmented Assault is active)</label>` : ""}
       `,
       ok: {
-        label: "Cast",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -556,15 +597,17 @@ async function executeGuardDialog(actor, cmd) {
     if (!data) return;
     const targeted = Array.from(game.user.targets ?? [])[0];
     const useData = { ...data, targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null };
-    const useId = operationId();
     const ability = await askMartialAbility(actor, "Spellsword Art");
     if (!ability) return;
     useData.martialDcAbility = ability;
-    return confirmPlayUse(`Spellsword Art: ${data.artName}`, extra => guardUses.command(actor, "castSpellswordArt", { ...useData, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "castSpellswordArt", { ...useData, ...extra }) });
+    return runGuardUse(actor, `Spellsword Art: ${data.artName}`, "castSpellswordArt", useData);
   }
 
   if (cmd === "cutThroughChaos") {
-    const data = await foundry.applications.api.DialogV2.prompt({
+    // Cut Through Chaos is rolled with the weapon's own native Attack control, so a melee weapon must be selected.
+    const weapons = Array.from(actor.items ?? []).filter(isMeleeWeaponItem).sort((a, b) => Number(b.system?.equipped === true) - Number(a.system?.equipped === true));
+    const weaponOptions = weapons.map(item => `<option value="${esc(item.uuid)}">${esc(item.name)}${item.system?.equipped === true ? " (equipped)" : " (not equipped)"}</option>`).join("");
+    const data = await askPrompt({
       window: { title: "Cut Through Chaos (Reaction)" },
       rejectClose: false,
       content: `
@@ -575,21 +618,20 @@ async function executeGuardDialog(actor, cmd) {
             <option value="reactionArt">Reaction Art (Free Blade Art reaction)</option>
           </select>
         </label>
-        <label>Melee Attack ability: <select name="attackAbility"><option value="str">Strength</option><option value="dex">Dexterity</option></select></label>
+        <label>Melee weapon (its own Attack control is rolled; nothing is rolled for you): <select name="weaponUuid"><option value="">None selected</option>${weaponOptions}</select></label>
         <label>Incoming Spell Attack total (first mode): <input type="number" name="incomingTotal"></label>
         <label>Art Save DC (second mode): <input type="number" name="incomingDC"></label>
       `,
-      ok: { label: "Review use", callback: (_e, target) => { const form = target.form ?? target.closest("form"); return { mode: form.elements.mode.value, attackAbility: form.elements.attackAbility.value, incomingTotal: form.elements.incomingTotal.value === "" ? null : Number(form.elements.incomingTotal.value), incomingDC: form.elements.incomingDC.value === "" ? null : Number(form.elements.incomingDC.value) }; } }
+      ok: { label: "Review use", callback: (_e, target) => { const form = target.form ?? target.closest("form"); return { mode: form.elements.mode.value, weaponUuid: form.elements.weaponUuid.value || undefined, incomingTotal: form.elements.incomingTotal.value === "" ? null : Number(form.elements.incomingTotal.value), incomingDC: form.elements.incomingDC.value === "" ? null : Number(form.elements.incomingDC.value) }; } }
     });
     if (!data) return;
     const targeted = Array.from(game.user.targets ?? [])[0];
     Object.assign(data, { targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null });
-    const useId = operationId();
-    return confirmPlayUse("Cut Through Chaos", extra => guardUses.command(actor, "cutThroughChaos", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "cutThroughChaos", { ...data, ...extra }) });
+    return runGuardUse(actor, "Cut Through Chaos", "cutThroughChaos", data);
   }
 
   if (cmd === "augmentedAssault") {
-    const unleash = level >= 13 ? await foundry.applications.api.DialogV2.prompt({
+    const unleash = level >= 13 ? await askPrompt({
       window: { title: "Augmented Assault (2 Aggression)" },
       rejectClose: false,
       content: `
@@ -597,19 +639,18 @@ async function executeGuardDialog(actor, cmd) {
         <label><input type="checkbox" name="unleash"> High Fantasy: Unleash as standard Area of Effect</label>
       `,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => Boolean((target.form ?? target.closest("form"))?.elements?.unleash?.checked)
       }
     }) : false;
     if (level >= 13 && unleash === null) return;
     const data = { unleash };
-    const useId = operationId();
-    return confirmPlayUse("Augmented Assault", extra => guardUses.command(actor, "augmentedAssault", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "augmentedAssault", { ...data, ...extra }) });
+    return runGuardUse(actor, "Augmented Assault", "augmentedAssault", data);
   }
 
   // Brawler commands
   if (cmd === "chokehold") {
-    const ability = await foundry.applications.api.DialogV2.prompt({
+    const ability = await askPrompt({
       window: { title: "Chokehold (2 Aggression)" },
       rejectClose: false,
       content: `
@@ -620,14 +661,14 @@ async function executeGuardDialog(actor, cmd) {
           </select>
         </label>
       `,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.ability?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.ability?.value }
     });
     if (!ability) return;
-    return confirmPlayUse("Chokehold", extra => guardUses.command(actor, "chokehold", { ability, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Chokehold", "chokehold", { ability });
   }
 
   if (cmd === "mountainbreaker") {
-    const mode = await foundry.applications.api.DialogV2.prompt({
+    const mode = await askPrompt({
       window: { title: "Mountainbreaker (1/Long Rest)" },
       rejectClose: false,
       content: `
@@ -638,15 +679,15 @@ async function executeGuardDialog(actor, cmd) {
           </select>
         </label>
       `,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value }
     });
     if (!mode) return;
-    return confirmPlayUse("Mountainbreaker", extra => guardUses.command(actor, "mountainbreaker", { mode, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Mountainbreaker", "mountainbreaker", { mode });
   }
 
   // Duellist commands
   if (cmd === "openEngagement") {
-    const engagement = await foundry.applications.api.DialogV2.prompt({
+    const engagement = await askPrompt({
       window: { title: "Duellist Engagements" },
       rejectClose: false,
       content: `
@@ -663,7 +704,7 @@ async function executeGuardDialog(actor, cmd) {
             <option value="score">Score (1 Point, no Action)</option>
           </select>
         </label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.engagement?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.engagement?.value }
     });
     if (!engagement) return;
     const names = {
@@ -677,18 +718,18 @@ async function executeGuardDialog(actor, cmd) {
       redoublement: "Redoublement",
       score: "Score"
     };
-    return confirmPlayUse(`Engagement: ${names[engagement] ?? engagement}`, extra => guardUses.command(actor, engagement, { confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, `Engagement: ${names[engagement] ?? engagement}`, engagement, {});
   }
 
   if (cmd === "declareOpponent") {
-    const targetName = await foundry.applications.api.DialogV2.prompt({
+    const targetName = await askPrompt({
       window: { title: "Rules of Engagement: Declare Opponent" },
       rejectClose: false,
       content: `<label>Opponent Name: <input type="text" name="targetName" value="Opponent"></label>`,
-      ok: { label: "Declare", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Opponent" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Opponent" }
     });
     if (!targetName) return;
-    return confirmPlayUse("Declare Opponent", extra => guardUses.command(actor, "declareOpponent", { targetName, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Declare Opponent", "declareOpponent", { targetName });
   }
 
   // Liberator commands
@@ -699,7 +740,7 @@ async function executeGuardDialog(actor, cmd) {
     const empBonus = typeof guideTheMassesBonus === "function" ? guideTheMassesBonus(actor, "empower") : Math.max(pb, lib);
     const uplBonus = typeof guideTheMassesBonus === "function" ? guideTheMassesBonus(actor, "uplift") : Math.max(pb, lib);
 
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Guide the Masses" },
       rejectClose: false,
       content: `
@@ -725,7 +766,7 @@ async function executeGuardDialog(actor, cmd) {
           </label>
         ` : ""}`,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -737,7 +778,7 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse(`Guide the Masses (${data.mode})`, extra => guardUses.command(actor, "guideTheMasses", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, `Guide the Masses (${data.mode})`, "guideTheMasses", { ...data });
   }
 
   if (cmd === "flashOfAnger") {
@@ -745,7 +786,7 @@ async function executeGuardDialog(actor, cmd) {
     const dieSize = level >= 10 ? 10 : 6;
     const isSplash = level >= 13;
 
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Flash of Anger" },
       rejectClose: false,
       content: `
@@ -773,7 +814,7 @@ async function executeGuardDialog(actor, cmd) {
           </label>
         ` : ""}`,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -786,12 +827,12 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Flash of Anger", extra => guardUses.command(actor, "flashOfAnger", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Flash of Anger", "flashOfAnger", { ...data });
   }
 
   // Lord commands
   if (cmd === "manifestWill") {
-    const mode = await foundry.applications.api.DialogV2.prompt({
+    const mode = await askPrompt({
       window: { title: "Manifest Will" },
       rejectClose: false,
       content: `
@@ -802,10 +843,10 @@ async function executeGuardDialog(actor, cmd) {
             <option value="pursuit">Pursuit of Power (hit grants full movement without AoO, 2x jump)</option>
           </select>
         </label>`,
-      ok: { label: "Manifest Will", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value || "castle" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value || "castle" }
     });
     if (!mode) return;
-    return confirmPlayUse("Manifest Will", extra => guardUses.command(actor, "manifestWill", { mode, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Manifest Will", "manifestWill", { mode });
   }
 
   if (cmd === "makeItSo") {
@@ -817,7 +858,7 @@ async function executeGuardDialog(actor, cmd) {
       ? `CHA (+${chaMod}) + Expertise (+${2 * pb}) = +${bonus}`
       : `CHA (+${chaMod}) + PB (+${pb}) = +${bonus}`;
 
-    const rollType = await foundry.applications.api.DialogV2.prompt({
+    const rollType = await askPrompt({
       window: { title: "By Lordly Decree: Make It So" },
       rejectClose: false,
       content: `
@@ -830,16 +871,16 @@ async function executeGuardDialog(actor, cmd) {
             <option value="save">Saving Throw</option>
           </select>
         </label>`,
-      ok: { label: "Make It So", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.rollType?.value || "check" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.rollType?.value || "check" }
     });
     if (!rollType) return;
-    return confirmPlayUse("Make It So", extra => guardUses.command(actor, "makeItSo", { rollType, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Make It So", "makeItSo", { rollType });
   }
 
   if (cmd === "forceOfWill") {
     const mDC = martialDC(actor);
     const curType = manifestationDamageType(actor);
-    const group = await foundry.applications.api.DialogV2.prompt({
+    const group = await askPrompt({
       window: { title: "Force of Will (13th Level)" },
       rejectClose: false,
       content: `
@@ -851,20 +892,22 @@ async function executeGuardDialog(actor, cmd) {
             <option value="group3">Group 3 (Acid, Cold, Lightning, Necrotic, Poison) — Melee Hit rider, 6d6 CON save (DC ${mDC})</option>
           </select>
         </label>`,
-      ok: { label: "Unleash Force of Will", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.group?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.group?.value }
     });
     if (!group) return;
     const defaultTypes = { group1: "force", group2: "radiant", group3: "lightning" };
     const curCat = forceOfWillCategory(curType);
     if (`group${curCat.group}` !== group) {
-      await guardUses.command(actor, "willAttunement", { damageType: defaultTypes[group], confirmed: true }, operationId());
+      // Re-attuning is itself a use that changes the Actor: it is confirmed (and undoable) before Force of Will goes ahead.
+      const attuned = await runGuardUse(actor, `Will Attunement (${defaultTypes[group]})`, "willAttunement", { damageType: defaultTypes[group] });
+      if (!attuned) return;
     }
-    return confirmPlayUse("Force of Will", extra => guardUses.command(actor, "forceOfWill", { confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Force of Will", "forceOfWill", {});
   }
 
   if (cmd === "toggleAuthority") {
     const curAuth = hasAuthority(actor);
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Authority: Gain or Loss Trigger" },
       rejectClose: false,
       content: `
@@ -887,7 +930,7 @@ async function executeGuardDialog(actor, cmd) {
           </select>
         </label>`,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const val = (target.form ?? target.closest("form"))?.elements?.trigger?.value || "gain:Manual";
           const [mode, reason] = val.split(":");
@@ -896,11 +939,11 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse(data.active ? "Gain Authority" : "Lose Authority", extra => guardUses.command(actor, "toggleAuthority", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, data.active ? "Gain Authority" : "Lose Authority", "toggleAuthority", { ...data });
   }
 
   if (cmd === "willAttunement") {
-    const damageType = await foundry.applications.api.DialogV2.prompt({
+    const damageType = await askPrompt({
       window: { title: "Will Attunement (10-minute Ritual)" },
       rejectClose: false,
       content: `
@@ -921,15 +964,15 @@ async function executeGuardDialog(actor, cmd) {
             <option value="poison">Poison</option>
           </select>
         </label>`,
-      ok: { label: "Attune", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.damageType?.value }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.damageType?.value }
     });
     if (!damageType) return;
-    return confirmPlayUse(`Will Attunement (${damageType})`, extra => guardUses.command(actor, "willAttunement", { damageType, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, `Will Attunement (${damageType})`, "willAttunement", { damageType });
   }
 
   if (cmd === "aLeaderLeads") {
     const aggPool = getPool(actor, "aggression")?.value ?? 1;
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Press the Attack: A Leader Leads" },
       rejectClose: false,
       content: `
@@ -940,7 +983,7 @@ async function executeGuardDialog(actor, cmd) {
           <input type="text" name="targetName" value="Ally">
         </label>`,
       ok: {
-        label: "Inspire",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -951,24 +994,24 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("A Leader Leads", extra => guardUses.command(actor, "aLeaderLeads", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "A Leader Leads", "aLeaderLeads", { ...data });
   }
 
   // Musha: Soloblade
   if (cmd === "mushaSoloblade") {
-    const targetName = await foundry.applications.api.DialogV2.prompt({
+    const targetName = await askPrompt({
       window: { title: "Soloblade — Strike Target" },
       rejectClose: false,
       content: `<label>Target creature struck: <input type="text" name="targetName" value="Hostile Creature"></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Creature" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Creature" }
     });
     if (!targetName) return;
-    return confirmPlayUse("Soloblade", extra => guardUses.command(actor, "mushaSoloblade", { targetName, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Soloblade", "mushaSoloblade", { targetName });
   }
 
   // Musha: Blood Price
   if (cmd === "mushaBloodPrice") {
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Blood Price (2d8 / 4d8 Unreducible HP)" },
       rejectClose: false,
       content: `
@@ -987,7 +1030,7 @@ async function executeGuardDialog(actor, cmd) {
         ` : ""}
       `,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -998,12 +1041,12 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Blood Price", extra => guardUses.command(actor, "mushaBloodPrice", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Blood Price", "mushaBloodPrice", { ...data });
   }
 
   // Reaper: Reap
   if (cmd === "reaperReap") {
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Death's Design: Reap" },
       rejectClose: false,
       content: `
@@ -1018,7 +1061,7 @@ async function executeGuardDialog(actor, cmd) {
         ` : ""}
       `,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -1029,36 +1072,36 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Reap", extra => guardUses.command(actor, "reaperReap", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Reap", "reaperReap", { ...data });
   }
 
   // Reaper: Curtainfall
   if (cmd === "reaperCurtainfall") {
-    const targetName = await foundry.applications.api.DialogV2.prompt({
+    const targetName = await askPrompt({
       window: { title: "Death's Design: Curtainfall" },
       rejectClose: false,
       content: `<label>Target Creature: <input type="text" name="targetName" value="Hostile Creature"></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Hostile Creature" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Hostile Creature" }
     });
     if (!targetName) return;
-    return confirmPlayUse("Curtainfall", extra => guardUses.command(actor, "reaperCurtainfall", { targetName, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Curtainfall", "reaperCurtainfall", { targetName });
   }
 
   // Reaper: Fear the Reaper
   if (cmd === "reaperFearTheReaper") {
-    const targetName = await foundry.applications.api.DialogV2.prompt({
+    const targetName = await askPrompt({
       window: { title: "Fear the Reaper (1/LR)" },
       rejectClose: false,
       content: `<label>Target to Mark: <input type="text" name="targetName" value="Hostile Creature"></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Hostile Creature" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Hostile Creature" }
     });
     if (!targetName) return;
-    return confirmPlayUse("Fear the Reaper", extra => guardUses.command(actor, "reaperFearTheReaper", { targetName, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Fear the Reaper", "reaperFearTheReaper", { targetName });
   }
 
   // Reaper: Memento Mori
   if (cmd === "reaperMementoMori") {
-    const mode = await foundry.applications.api.DialogV2.prompt({
+    const mode = await askPrompt({
       window: { title: "Memento Mori (17th Level)" },
       rejectClose: false,
       content: `
@@ -1068,27 +1111,27 @@ async function executeGuardDialog(actor, cmd) {
             <option value="splash">10-ft Splash (1d6 Psychic to other hostiles)</option>
           </select>
         </label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value || "vulnerability" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value || "vulnerability" }
     });
     if (!mode) return;
-    return confirmPlayUse("Memento Mori", extra => guardUses.command(actor, "reaperMementoMori", { mode, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Memento Mori", "reaperMementoMori", { mode });
   }
 
   // Weaponmaster: Judgement Cut Mark
   if (cmd === "weaponmasterJudgementCut") {
-    const targetName = await foundry.applications.api.DialogV2.prompt({
+    const targetName = await askPrompt({
       window: { title: "Judgement Cut: Mark Target" },
       rejectClose: false,
       content: `<label>Target struck: <input type="text" name="targetName" value="Hostile Creature"></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Creature" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.targetName?.value || "Creature" }
     });
     if (!targetName) return;
-    return confirmPlayUse("Judgement Cut", extra => guardUses.command(actor, "weaponmasterJudgementCut", { targetName, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Judgement Cut", "weaponmasterJudgementCut", { targetName });
   }
 
   // Weaponmaster: Detonate Judgement Cut
   if (cmd === "weaponmasterDetonateJudgementCut") {
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Judgement Cut: Detonate" },
       rejectClose: false,
       content: `
@@ -1098,7 +1141,7 @@ async function executeGuardDialog(actor, cmd) {
         </label>
       `,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           return {
@@ -1109,14 +1152,14 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Detonate Judgement Cut", extra => guardUses.command(actor, "weaponmasterDetonateJudgementCut", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Detonate Judgement Cut", "weaponmasterDetonateJudgementCut", { ...data });
   }
 
   // Weaponmaster: Designate Signature Weapon
   if (cmd === "weaponmasterSetSignatureWeapon") {
     const weapons = Array.from(actor.items.values()).filter(i => i.type === "weapon");
     const optionsHtml = weapons.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join("");
-    const data = await foundry.applications.api.DialogV2.prompt({
+    const data = await askPrompt({
       window: { title: "Designate Signature Weapon" },
       rejectClose: false,
       content: `
@@ -1126,7 +1169,7 @@ async function executeGuardDialog(actor, cmd) {
           </select>
         </label>`,
       ok: {
-        label: "Confirm",
+        label: "Review use",
         callback: (_e, target) => {
           const form = target.form ?? target.closest("form");
           const weaponId = form.elements.weaponId?.value;
@@ -1139,12 +1182,12 @@ async function executeGuardDialog(actor, cmd) {
       }
     });
     if (!data) return;
-    return confirmPlayUse("Designate Signature Weapon", extra => guardUses.command(actor, "weaponmasterSetSignatureWeapon", { ...data, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Designate Signature Weapon", "weaponmasterSetSignatureWeapon", { ...data });
   }
 
   // Weaponmaster: Every Part of the Weapon
   if (cmd === "weaponmasterEveryPartOfTheWeapon") {
-    const propertyKey = await foundry.applications.api.DialogV2.prompt({
+    const propertyKey = await askPrompt({
       window: { title: "Every Part of the Weapon" },
       rejectClose: false,
       content: `
@@ -1158,27 +1201,27 @@ async function executeGuardDialog(actor, cmd) {
             <option value="lethality">Lethality (+1d6 vs no Physical DR)</option>
           </select>
         </label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.propertyKey?.value || "canOpener" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.propertyKey?.value || "canOpener" }
     });
     if (!propertyKey) return;
-    return confirmPlayUse("Every Part of the Weapon", extra => guardUses.command(actor, "weaponmasterEveryPartOfTheWeapon", { propertyKey, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Every Part of the Weapon", "weaponmasterEveryPartOfTheWeapon", { propertyKey });
   }
 
   // Weaponmaster: Swap Fighting Style
   if (cmd === "weaponmasterSwapFightingStyle") {
     const styleOptions = Object.entries(WEAPONMASTER_FIGHTING_STYLES).map(([k, s]) => `<option value="${k}">${esc(s.name)}: ${esc(s.description)}</option>`).join("");
-    const styleKey = await foundry.applications.api.DialogV2.prompt({
+    const styleKey = await askPrompt({
       window: { title: "Art of War: Exchange Fighting Style" },
       rejectClose: false,
       content: `<label>Choose New Fighting Style: <select name="styleKey">${styleOptions}</select></label>`,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.styleKey?.value || "brawler" }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.styleKey?.value || "brawler" }
     });
     if (!styleKey) return;
-    return confirmPlayUse("Swap Fighting Style", extra => guardUses.command(actor, "weaponmasterSwapFightingStyle", { styleKey, confirmed: true, ...extra }, operationId()));
+    return runGuardUse(actor, "Swap Fighting Style", "weaponmasterSwapFightingStyle", { styleKey });
   }
 
   // Default simple execution for other commands
-  return confirmPlayUse(cmd, extra => guardUses.command(actor, cmd, { confirmed: true, ...extra }, operationId()));
+  return runGuardUse(actor, cmd, cmd, {});
 }
 
 const eligible = actor => actor?.type === "character" && guardProfile(actor).applicable;

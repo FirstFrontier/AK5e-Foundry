@@ -24,6 +24,16 @@ function configuredWorld(combat = null) {
   return { game, documents };
 }
 
+/** Cut Through Chaos needs a selected, equipped native melee weapon (its own Attack control is what is rolled). */
+function giveMeleeWeapon(actor, id = "longsword") {
+  const weapon = { id, uuid: `${actor.uuid}.Item.${id}`, type: "weapon", name: "Longsword",
+    system: { equipped: true, type: { value: "martialM" }, activities: new Map([
+      ["melee", { id: "melee", type: "attack", attack: { type: { value: "melee", classification: "weapon" } } }]
+    ]) } };
+  actor.items.set(id, weapon);
+  return { weaponUuid: weapon.uuid, activityId: "melee" };
+}
+
 function selectedEquipment(actor) {
   const choices = { startingEquipment: { mode: "items" } };
   const fields = inspectGuardFields(actor, choices);
@@ -192,7 +202,7 @@ test("Augmented Assault warns after its two Blade Arts and does not permit a non
   );
 });
 
-test("Cut Through Chaos persists a player-clicked attack roll for its spell-attack mode", async () => {
+test("Cut Through Chaos never rolls for the player: it records the selected native melee attack and waits for the owner", async () => {
   configuredWorld({ started: true, id: "combat-artsblade-cut-roll", round: 1, turn: 0 });
   const actor = guardFixture({ level: 5, branch: "artsblade" });
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
@@ -202,26 +212,29 @@ test("Cut Through Chaos persists a player-clicked attack roll for its spell-atta
     async evaluate() { evaluations++; this.total = 17; return this; }
     async toMessage() { return this; }
   };
-  const result = await use(actor, "cutThroughChaos", { mode: "spellAttack" }, "cut-through-roll");
+  const weapon = giveMeleeWeapon(actor);
+  const result = await use(actor, "cutThroughChaos", { mode: "spellAttack", incomingTotal: 15, ...weapon }, "cut-through-roll");
   const receipt = guardUses.receipt(actor, "cut-through-roll");
-  assert.equal(receipt.status, "awaitingRoll", "the feature must wait for its required melee attack roll");
-  assert.ok(receipt.formula || receipt.rolls?.some(roll => roll.id === "cutAttack"), "the player has a roll control to click");
-  assert.equal(receipt.roll, undefined, "no attack result is computed before the owner clicks the roll");
-  assert.equal(evaluations, 0, "the confirmed use does not evaluate the attack roll for the player");
-  assert.equal(result.mode, "spellAttack", "the pre-roll result contains only the selected mode and instructions");
-  await guardUses.command(actor, "useRoll", { useId: receipt.id }, "cut-through-roll-click");
-  assert.equal(evaluations, 1, "only the explicit chat-card Roll button evaluates the feature attack");
-  assert.equal(guardUses.receipt(actor, receipt.id).result.attackTotal, 17);
+  // The Codex correction replaced the generic 1d20 + STR + PB formula with the weapon's own native Attack control, so the
+  // module has no formula to roll: the player rolls that native attack and compares it as the manual step says.
+  assert.deepEqual(receipt.nativeAttack, weapon, "the selected native melee weapon and Attack activity are recorded");
+  assert.equal(receipt.formula, undefined, "no generic attack formula is substituted for the weapon's own modifiers");
+  assert.equal(receipt.roll, undefined, "no attack result is computed for the player");
+  assert.equal(evaluations, 0, "the confirmed use does not evaluate any attack roll for the player");
+  assert.equal(result.mode, "spellAttack");
+  assert.match(receipt.manualSteps.join(" "), /Make a Melee Attack with your chosen weapon and compare its native roll total to the incoming Spell Attack total 15/);
 });
 
-test("Cut Through Chaos offers its comparison roll for a save but no attack roll for Reaction Art mode", async () => {
+test("Cut Through Chaos records a native melee attack for a save and none for Reaction Art mode", async () => {
   configuredWorld({ started: true, id: "combat-artsblade-cut-modes", round: 1, turn: 0 });
   const actor = guardFixture({ level: 5, branch: "artsblade" });
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
-  await use(actor, "cutThroughChaos", { mode: "savingThrow" }, "cut-through-save-roll");
+  const weapon = giveMeleeWeapon(actor);
+  await use(actor, "cutThroughChaos", { mode: "savingThrow", incomingDC: 14, ...weapon }, "cut-through-save-roll");
   const saveReceipt = guardUses.receipt(actor, "cut-through-save-roll");
-  assert.equal(saveReceipt.status, "awaitingRoll");
-  assert.ok(saveReceipt.formula || saveReceipt.rolls?.some(roll => roll.id === "cutAttack"));
+  assert.deepEqual(saveReceipt.nativeAttack, weapon);
+  assert.equal(saveReceipt.formula, undefined);
+  assert.match(saveReceipt.manualSteps.join(" "), /compare its native roll total to the Art's Save DC 14/);
 
   const other = guardFixture({ level: 5, branch: "artsblade" });
   other.id = "guard2";
@@ -231,6 +244,7 @@ test("Cut Through Chaos offers its comparison roll for a save but no attack roll
   const artReceipt = guardUses.receipt(other, "cut-through-reaction-art");
   assert.equal(artReceipt.status, "complete", "Reaction Art casts the known Art and has no comparison attack roll");
   assert.equal(artReceipt.formula, undefined);
+  assert.equal(artReceipt.nativeAttack, undefined);
 });
 
 test("a failed receipt write cannot strand Cut Through Chaos's Reaction", async () => {
@@ -243,7 +257,7 @@ test("a failed receipt write cannot strand Cut Through Chaos's Reaction", async 
     if (fail && changes["flags.ak5e.guardUses"]) { fail = false; throw new Error("injected receipt write failure"); }
     return update(changes);
   };
-  await assert.rejects(use(actor, "cutThroughChaos", { mode: "spellAttack" }, "cut-through-write-fault"), /injected receipt write failure/);
+  await assert.rejects(use(actor, "cutThroughChaos", { mode: "spellAttack", ...giveMeleeWeapon(actor) }, "cut-through-write-fault"), /injected receipt write failure/);
   assert.equal(getReactions(actor).available, 1, "persisted intent and retry safety must precede the Reaction side effect");
   assert.equal(guardUses.receipt(actor, "cut-through-write-fault"), null, "a failed first receipt write leaves no phantom use");
 });
@@ -362,7 +376,7 @@ test("undo restores the Artsblade use ledger and its Reaction receipt", async ()
   configuredWorld({ started: true, id: "combat-artsblade-undo", round: 1, turn: 0 });
   const actor = guardFixture({ level: 5, branch: "artsblade" });
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
-  const result = await use(actor, "cutThroughChaos", { mode: "spellAttack" }, "cut-through-undo");
+  const result = await use(actor, "cutThroughChaos", { mode: "spellAttack", ...giveMeleeWeapon(actor) }, "cut-through-undo");
   assert.equal(result.useSpent, 1);
   assert.equal(actor.flags.ak5e.resourcePools.cutThroughChaos.value, 2);
   assert.equal(guardUses.receipt(actor, "cut-through-undo").reaction.spent, true);
@@ -390,11 +404,11 @@ test("player undo remains available within its encounter epoch and locks after t
   game.settings.get = () => epoch;
   const actor = guardFixture({ level: 5, branch: "artsblade" });
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
-  await use(actor, "cutThroughChaos", { mode: "spellAttack" }, "cut-through-epoch-lock");
+  await use(actor, "cutThroughChaos", { mode: "spellAttack", ...giveMeleeWeapon(actor) }, "cut-through-epoch-lock");
   await guardUses.command(actor, "undoUse", { useId: "cut-through-epoch-lock" }, "undo-before-window-lock");
   assert.equal(actor.flags.ak5e.resourcePools.cutThroughChaos.value, 3, "the player can undo during the current encounter window");
 
-  await use(actor, "cutThroughChaos", { mode: "spellAttack" }, "cut-through-after-reuse");
+  await use(actor, "cutThroughChaos", { mode: "spellAttack", ...giveMeleeWeapon(actor) }, "cut-through-after-reuse");
   epoch++;
   await assert.rejects(
     guardUses.command(actor, "undoUse", { useId: "cut-through-after-reuse" }, "undo-after-window-lock"),
