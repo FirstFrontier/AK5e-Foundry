@@ -1,1136 +1,639 @@
 /**
- * Live Foundry V13 browser validation for Guard class and all subclasses
- * (Centurion, Crusher, Instructor, Artsblade, Brawler, Duellist, Liberator, Lord).
- * Uses launchTestBrowser() from ./test-browser.mjs per WORKFLOW.md §5.3.
+ * Live Foundry V13 + D&D5e browser validation for the Guard class and the Artsblade branch (B-153).
+ * Joins as the Gamemaster and as a non-GM player and exercises, for each workflow that changes something:
+ * confirm -> (Cancel writes nothing) -> Use -> owner-clicked roll / target-owner save -> relayed target change -> undo.
+ * Uses launchTestBrowser() from ./test-browser.mjs per WORKFLOW.md §5.3 and closes the browser in `finally`.
+ *
+ * Usage (a disposable Foundry V13 server with the standard-test World, AK5e installed and enabled):
+ *   AK5E_TEST_PORT=30191 [AK5E_TEST_OUTPUT=<dir>] [AK5E_PLAYWRIGHT=<path to playwright/index.mjs>] node ak5e/tools/test-guard-live.mjs
+ * Writes <dir>/browser-report.json and the screenshots listed in it. It never views or judges the images.
+ *
+ * Covered: Martial DC ability chooser (confirm, Cancel, undo); Press the Attack: Smite with a real cost preview, Cancel
+ * and undo; Unrelenting with Eternal Aggression (the 1d4 waits for the clicked Roll; undo); Guard setup/progression
+ * idempotency and the granted Artsblade source Features; Augmented Assault; Blade Art (selected pool, native NPC save by
+ * the GM, "already made" preview, expiry at the next Turn, relayed effect, undo); Cut Through Chaos with a selected
+ * native melee weapon (Reaction spent, undone); Spellsword Art at the fixed maximum level; a level-13 chooser Cancel;
+ * an overridden shortfall that clamps at 0; encounter lock after combat end; every branch's control panel opens
+ * without writing. The run fails on any console or page error.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { launchTestBrowser } from "./test-browser.mjs";
 
-const { chromium } = await import(process.env.AK5E_PLAYWRIGHT ?? "playwright");
-const port = process.env.AK5E_PORT ?? "30171";
-const base = `http://127.0.0.1:${port}/join`;
-const outputDir = process.env.AK5E_GUARD_OUTPUT ?? "/tmp/ak5e-guard-live";
+let chromium;
+for (const candidate of [process.env.AK5E_PLAYWRIGHT, "playwright", "/tmp/frontier-browser-check/node_modules/playwright/index.mjs"].filter(Boolean)) {
+  try {
+    const mod = await import(candidate);
+    if (mod.chromium) { chromium = mod.chromium; break; }
+  } catch {
+    // try the next candidate
+  }
+}
+if (!chromium) throw new Error("Could not load Playwright chromium module (set AK5E_PLAYWRIGHT).");
 
+const port = process.env.AK5E_TEST_PORT ?? process.env.AK5E_PORT ?? "30191";
+const outputDir = process.env.AK5E_TEST_OUTPUT ?? process.env.AK5E_GUARD_OUTPUT ?? "/tmp/ak5e-guard-live";
+const joinUrl = `http://127.0.0.1:${port}/join`;
+const PLAYER_NAME = "AK5e U1 Player";
+const report = { world: "standard-test", port, steps: [], checks: [], errors: [], screenshots: [], renderer: null, passed: false };
 await mkdir(outputDir, { recursive: true });
 
-const report = {
-  world: "standard-test",
-  port,
-  errors: [],
-  screenshots: []
-};
-
-const browser = await launchTestBrowser(chromium, {
-  ...(process.env.AK5E_CHROMIUM ? { executablePath: process.env.AK5E_CHROMIUM } : {})
-});
-
+const browser = await launchTestBrowser(chromium, process.env.AK5E_CHROMIUM ? { executablePath: process.env.AK5E_CHROMIUM } : {});
 const contexts = [];
 
 async function join(name) {
   const context = await browser.newContext({ viewport: { width: 1600, height: 1050 } });
   contexts.push(context);
   const page = await context.newPage();
+  page.setDefaultTimeout(20000);
   page.on("pageerror", error => report.errors.push(`${name}: ${error.stack ?? error.message}`));
   page.on("console", message => {
-    if (message.type() === "error") report.errors.push(`${name}: ${message.text()}`);
+    if (message.type() === "error") report.errors.push(`${name}: ${message.text()} @ ${JSON.stringify(message.location())}`);
   });
-  await page.goto(base);
-  await page.selectOption('select[name="userid"]', { label: name, timeout: 15000 });
+  await page.goto(joinUrl);
+  await page.selectOption('select[name="userid"]', { label: name, timeout: 20000 });
   await page.click('button[name="join"]');
-  await page.waitForFunction(() => globalThis.game?.ready && globalThis.canvas?.ready, null, { timeout: 60000 });
-  // Close initial user config windows if present
-  await page.evaluate(async () => {
-    for (const app of [...foundry.applications.instances.values()]) {
-      if (app.constructor.name === "UserConfig") await app.close();
-    }
+  await page.waitForFunction(() => globalThis.game?.ready && globalThis.canvas?.ready, null, { timeout: 90000 });
+  await page.evaluate(() => {
+    for (const app of foundry.applications.instances.values()) if (/UserConfig/.test(app.constructor.name)) void app.close();
   });
+  const safety = await page.evaluate(() => ({ world: game.world.id, system: game.system.id, isGM: game.user.isGM }));
+  if (safety.world !== "standard-test" || safety.system !== "dnd5e") throw new Error(`Refusing non-test runtime: ${JSON.stringify(safety)}`);
   return page;
 }
 
-async function screenshot(page, filename) {
-  const fullPath = `${outputDir}/${filename}`;
-  await page.screenshot({ path: fullPath, fullPage: false });
-  report.screenshots.push(fullPath);
-  console.log(`Saved screenshot: ${fullPath}`);
+async function shot(page, filename) {
+  const path = `${outputDir}/${filename}`;
+  await page.screenshot({ path, fullPage: false });
+  report.screenshots.push(path);
+  return path;
+}
+
+function check(name, pass, detail = null) {
+  report.checks.push({ name, result: pass ? "PASS" : "FAIL", detail });
+  console.log(`${pass ? "PASS" : "FAIL"} ${name}`);
+  if (!pass) throw new Error(`${name}: ${typeof detail === "string" ? detail : JSON.stringify(detail) ?? "assertion failed"}`);
+}
+
+const snapshot = (page, actorId) => page.evaluate(id => {
+  const actor = game.actors.get(id);
+  const pool = name => { try { return game.ak5e.resourcePools.getPool(actor, name)?.value ?? null; } catch { return null; } };
+  return {
+    aggression: pool("aggression"), unrelenting: pool("unrelenting"), sp: pool("spellswordPoints"), cut: pool("cutThroughChaos"),
+    receipts: actor.getFlag("ak5e", "guardUses")?.undo?.length ?? 0, martialDC: actor.getFlag("ak5e", "guard")?.martialDCAbility ?? null,
+    messages: game.messages.size
+  };
+}, actorId);
+const lastReceipt = (page, actorId, command) => page.evaluate(({ id, command }) => [...(game.actors.get(id).getFlag("ak5e", "guardUses")?.undo ?? [])].reverse()
+  .find(entry => !command || entry.command === command) ?? null, { id: actorId, command });
+const receiptById = (page, actorId, useId) => page.evaluate(({ id, useId }) => game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.find(entry => entry.id === useId) ?? null, { id: actorId, useId });
+
+async function closeGuardDialogs(page) {
+  await page.evaluate(async () => {
+    for (const app of [...foundry.applications.instances.values()]) {
+      if (app.element?.querySelector?.(".ak5e-guard-dialog")) await app.close();
+    }
+  });
+  await page.waitForTimeout(200);
+}
+async function openControls(page, actorId) {
+  await closeGuardDialogs(page);
+  await page.evaluate(id => { void game.ak5e.guard.open(game.actors.get(id)); }, actorId);
+  await page.locator(".ak5e-guard-dialog").last().waitFor({ state: "visible" });
+}
+const reactionsAvailable = (page, actorId) => page.evaluate(async id => (await import("/modules/ak5e/scripts/trigger-events.mjs")).getReactions(game.actors.get(id))?.available ?? null, actorId);
+const guardButton = (page, command) => page.locator(`.ak5e-guard-dialog button[data-guard-cmd="${command}"]`).last();
+const promptWith = (page, selector) => page.locator(`dialog:has(${selector})`).last();
+const useButton = page => page.getByRole("button", { name: /^Use( anyway)?$/ }).last();
+const confirmText = page => page.locator("dialog").last().innerText();
+async function showChat(page) {
+  await page.evaluate(async () => { ui.sidebar.changeTab("chat", "primary"); ui.sidebar.expand(); await ui.chat.scrollBottom({ waitImages: true }); });
+}
+/** Click the "Roll ..." control on the newest use card for this Actor. The card control opens the confirm; Use rolls. */
+async function clickCardRoll(page, pattern) {
+  await showChat(page);
+  const roll = page.locator(".ak5e-play-use-controls button").filter({ hasText: pattern }).last();
+  await roll.waitFor({ state: "visible" });
+  await roll.evaluate(el => el.scrollIntoView({ block: "center", inline: "center" }));
+  await roll.evaluate(el => el.click());
+}
+async function undoFromList(page, actorId, useId) {
+  await openControls(page, actorId);
+  await page.locator('.ak5e-guard-dialog button[data-guard-act="__undo"]').last().click();
+  const list = promptWith(page, 'input[name="useId"]');
+  await list.waitFor({ state: "visible" });
+  await list.locator(`input[name="useId"][value="${useId}"]`).check();
+  await list.getByRole("button", { name: "Review undo", exact: true }).click();
+  const confirm = page.getByRole("button", { name: "Undo this use", exact: true }).last();
+  await confirm.waitFor({ state: "visible" });
+  const text = await confirmText(page);
+  await confirm.click();
+  await page.waitForFunction(({ id, useId }) => game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.find(entry => entry.id === useId)?.status === "undone",
+    { id: actorId, useId }, { timeout: 20000 });
+  await closeGuardDialogs(page);
+  return text;
+}
+async function answerAbility(page, ability) {
+  const prompt = promptWith(page, 'select[name="ability"]');
+  await prompt.waitFor({ state: "visible" });
+  await page.selectOption('select[name="ability"]', ability);
+  await prompt.locator('button[data-action="ok"]').click();
 }
 
 try {
-  console.log("Connecting to Foundry as Gamemaster...");
-  const page = await join("Gamemaster");
+  const gm = await join("Gamemaster");
+  check("GM role", await gm.evaluate(() => game.user.isGM));
+  check("AK5e active with the Guard API", await gm.evaluate(() => game.modules.get("ak5e")?.active === true && Boolean(game.ak5e?.guard?.open && game.ak5e?.guard?.use && game.ak5e?.guard?.previewUse)));
+  report.environment = await gm.evaluate(() => ({
+    foundry: game.version, dnd5e: game.system.version, module: game.modules.get("ak5e")?.version, world: game.world.id,
+    renderer: (() => { const ext = canvas?.app?.renderer?.gl?.getExtension("WEBGL_debug_renderer_info"); return ext ? canvas.app.renderer.gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "unavailable"; })()
+  }));
+  report.renderer = report.environment.renderer;
+  await shot(gm, "guard-01-gm-world.png");
 
-  // Ensure ak5e module is active
-  const isActive = await page.evaluate(() => Boolean(game.modules.get("ak5e")?.active));
-  console.log("ak5e active status:", isActive);
-  if (!isActive) {
-    console.log("Activating ak5e module and reloading...");
-    await page.evaluate(async () => {
-      await game.settings.set("core", "moduleConfiguration", { ak5e: true });
-    });
-    await page.reload();
-    await page.waitForFunction(() => globalThis.game?.ready && globalThis.canvas?.ready, null, { timeout: 60000 });
-  }
-
-  await page.waitForFunction(() => Boolean(globalThis.game?.ready && globalThis.game.ak5e?.guard), null, { timeout: 30000 });
-  console.log("ak5e module verified active with game.ak5e.guard available.");
-
-  // Setup test Guard actors
-  const actorIds = await page.evaluate(async () => {
-    // 1. Crusher Guard
-    let crusher = game.actors.find(a => a.name === "Hoederer (Crusher)");
-    if (!crusher) {
-      crusher = await Actor.create({
-        name: "Hoederer (Crusher)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 18 }, con: { value: 16 } },
-          attributes: { hp: { value: 50, max: 50 } }
-        }
-      });
-      await crusher.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Crusher", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-crusher" } } }
-      ]);
-    }
-    // Initialize guard state
-    await crusher.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.foecrusher": { value: 3, max: 3 }
-    });
-
-    // 2. Centurion Guard
-    let centurion = game.actors.find(a => a.name === "Gavial (Centurion)");
-    if (!centurion) {
-      centurion = await Actor.create({
-        name: "Gavial (Centurion)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 16 }, cha: { value: 14 } },
-          skills: { itm: { value: 1, total: 4, mod: 4 } }
-        }
-      });
-      await centurion.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Centurion", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-centurion" } } }
-      ]);
-    }
-    await centurion.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.ferociousFling": { value: 1, max: 1 }
-    });
-
-    // 3. Instructor Guard
-    let instructor = game.actors.find(a => a.name === "Dobermann (Instructor)");
-    if (!instructor) {
-      instructor = await Actor.create({
-        name: "Dobermann (Instructor)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 14 }, cha: { value: 16 } }
-        }
-      });
-      await instructor.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Instructor", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-instructor" } } }
-      ]);
-    }
-    await instructor.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.instructionDice": { value: 4, max: 4 }
-    });
-
-    // 4. Artsblade Guard
-    let artsblade = game.actors.find(a => a.name === "Ch'en (Artsblade)");
-    if (!artsblade) {
-      artsblade = await Actor.create({
-        name: "Ch'en (Artsblade)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 16 }, dex: { value: 14 }, int: { value: 12 }, con: { value: 14 } },
-          attributes: { hp: { value: 45, max: 45 } }
-        }
-      });
-      await artsblade.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Artsblade", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-artsblade" } } }
-      ]);
-    }
-    await artsblade.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.spellswordPoints": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.cutThroughChaos": { value: 3, max: 3 }
-    });
-
-    // 5. Brawler Guard
-    let brawler = game.actors.find(a => a.name === "Mountain (Brawler)");
-    if (!brawler) {
-      brawler = await Actor.create({
-        name: "Mountain (Brawler)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 18 }, dex: { value: 14 }, con: { value: 16 } },
-          attributes: { hp: { value: 55, max: 55 } }
-        }
-      });
-      await brawler.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Brawler", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-brawler" } } }
-      ]);
-    }
-    await brawler.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 }
-    });
-
-    // 6. Duellist Guard
-    let duellist = game.actors.find(a => a.name === "Irene (Duellist)");
-    if (!duellist) {
-      duellist = await Actor.create({
-        name: "Irene (Duellist)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 12 }, dex: { value: 18 }, con: { value: 14 } },
-          attributes: { hp: { value: 45, max: 45 } }
-        }
-      });
-      await duellist.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Duellist", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-duellist" } } },
-        { name: "Rapier", type: "weapon", system: { equipped: true, actionType: "mwak", weaponType: "martialM", properties: ["fin"] } },
-        { name: "Greatsword", type: "weapon", system: { equipped: false, actionType: "mwak", weaponType: "martialM", properties: ["hvy", "two"] } }
-      ]);
-    }
-    await duellist.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.duellistPoints": { value: 3, max: 10 }
-    });
-
-    // 7. Liberator Guard
-    let liberator = game.actors.find(a => a.name === "Tequila (Liberator)");
-    if (!liberator) {
-      liberator = await Actor.create({
-        name: "Tequila (Liberator)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 16 }, con: { value: 14 }, cha: { value: 16 } },
-          attributes: { hp: { value: 45, max: 45 } }
-        }
-      });
-      await liberator.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Liberator", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-liberator" } } }
-      ]);
-    }
-    await liberator.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.liberty": { value: 3, max: 6 }
-    });
-
-    // 8. Lord Guard
-    let lord = game.actors.find(a => a.name === "SilverAsh (Lord)");
-    if (!lord) {
-      lord = await Actor.create({
-        name: "SilverAsh (Lord)",
-        type: "character",
-        system: {
-          abilities: { str: { value: 18 }, con: { value: 14 }, cha: { value: 16 } },
-          attributes: { hp: { value: 50, max: 50 } }
-        }
-      });
-      await lord.createEmbeddedDocuments("Item", [
-        { name: "Guard", type: "class", system: { levels: 5 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-        { name: "Guard: Lord", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-lord" } } }
-      ]);
-    }
-    await lord.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.lord.hasAuthority": true,
-      "flags.ak5e.guard.lord.hasAuthority": true,
-      "flags.ak5e.resourcePools.aggression": { value: 4, max: 4 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.manifestation": { value: 3, max: 3 }
-    });
-
-    // 9. Musha Guard
-    let musha = game.actors.find(a => a.name === "Hellagur (Musha)");
-    if (musha) await musha.delete();
-    musha = await Actor.create({
-      name: "Hellagur (Musha)",
-      type: "character",
-      system: {
-        abilities: { str: { value: 16 }, dex: { value: 14 }, con: { value: 16 }, wis: { value: 14 } },
-        attributes: { hp: { value: 30, max: 70 } }
-      }
-    });
-    await musha.createEmbeddedDocuments("Item", [
-      { name: "Guard", type: "class", system: { levels: 13 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-      { name: "Guard: Musha", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-musha" } } },
-      { name: "Katana", type: "weapon", system: { equipped: true, actionType: "mwak", weaponType: "martialM" } }
-    ]);
-    await musha.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 5, max: 5 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 2, max: 2 },
-      "flags.ak5e.guard.musha.notYetDC": 10
-    });
-
-    // 10. Reaper Guard
-    let reaper = game.actors.find(a => a.name === "La Pluma (Reaper)");
-    if (reaper) await reaper.delete();
-    reaper = await Actor.create({
-      name: "La Pluma (Reaper)",
-      type: "character",
-      system: {
-        abilities: { str: { value: 14 }, dex: { value: 18 }, con: { value: 14 } },
-        attributes: { hp: { value: 60, max: 60 } }
-      }
-    });
-    await reaper.createEmbeddedDocuments("Item", [
-      { name: "Guard", type: "class", system: { levels: 13 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-      { name: "Guard: Reaper", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-reaper" } } },
-      { name: "Scythe", type: "weapon", system: { equipped: true, actionType: "mwak", weaponType: "martialM" } }
-    ]);
-    await reaper.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 5, max: 5 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 2, max: 2 },
-      "flags.ak5e.resourcePools.reaperRuin": { value: 4, max: 10 }
-    });
-
-    // 11. Weaponmaster Guard
-    let weaponmaster = game.actors.find(a => a.name === "Degenbrecher (Weaponmaster)");
-    if (weaponmaster) await weaponmaster.delete();
-    weaponmaster = await Actor.create({
-      name: "Degenbrecher (Weaponmaster)",
-      type: "character",
-      system: {
-        abilities: { str: { value: 18 }, dex: { value: 14 }, con: { value: 16 } },
-        attributes: { hp: { value: 65, max: 65 } }
-      }
-    });
-    const createdItems = await weaponmaster.createEmbeddedDocuments("Item", [
-      { name: "Guard", type: "class", system: { levels: 13 }, flags: { ak5e: { chapterThreeId: "class-guard" } } },
-      { name: "Guard: Weaponmaster", type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-guard-weaponmaster" } } },
-      { name: "Longsword", type: "weapon", system: { equipped: true, actionType: "mwak", weaponType: "martialM", properties: ["ver"] } },
-      { name: "Greatsword", type: "weapon", system: { equipped: false, actionType: "mwak", weaponType: "martialM", properties: ["hvy", "two"] } }
-    ]);
-    const sword = createdItems.find(i => i.name === "Longsword");
-    await weaponmaster.update({
-      "flags.ak5e.guard": { enabled: true, version: 1 },
-      "flags.ak5e.resourcePools.aggression": { value: 5, max: 5 },
-      "flags.ak5e.resourcePools.unrelenting": { value: 2, max: 2 },
-      "flags.ak5e.resourcePools.judgementCut": { value: 1, max: 1 },
-      "flags.ak5e.resourcePools.untouchable": { value: 2, max: 2 },
-      "flags.ak5e.weaponmaster.signatureWeaponUuid": sword?.uuid,
-      "flags.ak5e.weaponmaster.signatureWeaponName": "Longsword"
-    });
-
-    return {
-      crusherId: crusher.id,
-      centurionId: centurion.id,
-      instructorId: instructor.id,
-      artsbladeId: artsblade.id,
-      brawlerId: brawler.id,
-      duellistId: duellist.id,
-      liberatorId: liberator.id,
-      lordId: lord.id,
-      mushaId: musha.id,
-      reaperId: reaper.id,
-      weaponmasterId: weaponmaster.id
+  /* ------------------------------------------------------------------ fixture (GM) */
+  const fixture = await gm.evaluate(async playerName => {
+    const suffix = foundry.utils.randomID();
+    const player = game.users.getName(playerName) ?? await User.implementation.create({ name: playerName, role: 1, password: "" });
+    const { CHAPTER_THREE_CLASSES } = await import("/modules/ak5e/scripts/chapter-three-content.mjs");
+    const { CHAPTER_FIVE_ARTS } = await import("/modules/ak5e/scripts/chapter-five-content.mjs");
+    const { sourceEntryData } = await import("/modules/ak5e/scripts/caster-setup.mjs");
+    const classEntry = CHAPTER_THREE_CLASSES.find(entry => entry.id === "class-guard");
+    const branchEntry = CHAPTER_THREE_CLASSES.find(entry => entry.id === "subclass-guard-artsblade");
+    const iceSheet = CHAPTER_FIVE_ARTS.find(entry => entry.name === "Ice Sheet");
+    if (!classEntry || !branchEntry || iceSheet?.level !== 2) throw new Error("Missing source-backed Guard, Artsblade, or level-2 Frost Art record.");
+    const scene = await Scene.implementation.create({ name: `AK5e U1 Arena ${suffix}`, width: 2200, height: 1200, padding: 0,
+      tokenVision: false, grid: { type: 1, size: 100, distance: 5, units: "ft" }, flags: { ak5e: { u1Disposable: suffix } } });
+    const character = async (name, level, x, { branch = true, extra = {} } = {}) => {
+      const actor = await Actor.implementation.create({ name: `${name} ${suffix}`, type: "character", ownership: { default: 0, [player.id]: 3 },
+        system: { abilities: { str: { value: 18 }, dex: { value: 14 }, con: { value: 16 }, int: { value: 12 }, wis: { value: 12 }, cha: { value: 10 } },
+          details: { level }, attributes: { prof: level >= 9 ? 4 : 3, hp: { value: 73, max: 81, temp: 5 }, movement: { walk: 30 } },
+          currency: { cp: 417, sp: 0, ep: 0, gp: 2, pp: 0 } },
+        flags: { ak5e: { u1Disposable: suffix, ...extra } } });
+      const classData = sourceEntryData(classEntry); classData.system.levels = level;
+      await actor.createEmbeddedDocuments("Item", [classData, ...(branch ? [sourceEntryData(branchEntry)] : []),
+        { name: "Acceptance Longsword", type: "weapon", system: { equipped: true, proficient: 1, quantity: 1, type: { value: "martialM" } }, flags: { ak5e: { u1Disposable: suffix } } }]);
+      const tokenData = await actor.getTokenDocument({ x, y: 300 });
+      tokenData.updateSource({ name: actor.name, actorLink: true, disposition: 1 });
+      const token = (await scene.createEmbeddedDocuments("Token", [tokenData.toObject()]))[0];
+      return { actor, token };
     };
-  });
-
-  console.log("Actors configured:", actorIds);
-
-  async function closeAllGuardDialogs() {
-    await page.evaluate(async () => {
-      for (const app of [...foundry.applications.instances.values()]) {
-        if (app.element?.querySelector?.(".ak5e-guard-dialog") || app.title?.includes?.("Guard Controls")) {
-          await app.close();
-        }
-      }
+    const artsblade = await character("Frost Artsblade", 5, 300);
+    const advanced = await character("Level 13 Artsblade", 13, 800);
+    const eternal = await character("Level 18 Guard", 18, 1100, { branch: false, extra: { guard: { enabled: true } } });
+    const npc = await Actor.implementation.create({ name: `NPC Save Target ${suffix}`, type: "npc", ownership: { default: 0 },
+      system: { abilities: { con: { value: 1 } }, attributes: { hp: { value: 40, max: 40 } } }, flags: { ak5e: { u1Disposable: suffix } } });
+    const npcTokenData = await npc.getTokenDocument({ x: 500, y: 300 });
+    npcTokenData.updateSource({ name: npc.name, actorLink: true, disposition: -1 });
+    const npcToken = (await scene.createEmbeddedDocuments("Token", [npcTokenData.toObject()]))[0];
+    await artsblade.actor.createEmbeddedDocuments("Item", [sourceEntryData(iceSheet)]);
+    await advanced.actor.update({
+      "flags.ak5e.guard.enabled": true, "flags.ak5e.guardProgression.choices.artPools": ["frost"],
+      "flags.ak5e.guardProgression.choices.additionalArtPools": ["crude", "flame"],
+      "flags.ak5e.resourcePools.aggression": { value: 4, max: 6 }, "flags.ak5e.resourcePools.spellswordPoints": { value: 2, max: 2 }
     });
-    await page.waitForTimeout(300);
-  }
-
-  async function closeAllActorSheets() {
-    await page.evaluate(async () => {
-      for (const app of [...foundry.applications.instances.values()]) {
-        if (app.document?.documentName === "Actor") {
-          await app.close();
-        }
-      }
+    await eternal.actor.update({
+      "flags.ak5e.resourcePools.aggression": { value: 2, max: 8 }, "flags.ak5e.resourcePools.unrelenting": { value: 2, max: 2 }
     });
-    await page.waitForTimeout(300);
-  }
+    await scene.activate();
+    return { suffix, playerId: player.id, sceneId: scene.id,
+      artsbladeId: artsblade.actor.id, artsbladeTokenId: artsblade.token.id, weaponId: artsblade.actor.items.find(item => item.type === "weapon").id,
+      weaponUuid: artsblade.actor.items.find(item => item.type === "weapon").uuid,
+      advancedId: advanced.actor.id, eternalId: eternal.actor.id, npcId: npc.id, npcTokenId: npcToken.id };
+  }, PLAYER_NAME);
+  report.fixture = fixture;
 
-  // 1. Open Crusher sheet and verify panel
-  console.log("Opening Crusher sheet...");
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.crusherId);
+  const player = await join(PLAYER_NAME);
+  check("player is non-GM", !await player.evaluate(() => game.user.isGM));
+  check("Artsblade and Guard are owned by the player, the NPC is not", await player.evaluate(({ a, e, n }) => game.actors.get(a)?.isOwner && game.actors.get(e)?.isOwner && !game.actors.get(n)?.isOwner,
+    { a: fixture.artsbladeId, e: fixture.eternalId, n: fixture.npcId }));
 
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  // Navigate to features tab if available
-  const featuresTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await featuresTab.isVisible()) {
-    await featuresTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "01-crusher-sheet-features-tab.png");
+  /* ------------------------------------------------------------------ progression and setup (player) */
+  const progressionChoices = {
+    saves: ["con"], skills: ["ath", "acr", "ins"], fightingStyle: "defensive", startingEquipment: { mode: "cash" }, artPools: ["frost"],
+    hp: Object.fromEntries(Array.from({ length: 5 }, (_, index) => [String(index + 1), { mode: "existing" }])), asi: { 4: { mode: "existing" } }
+  };
+  const progression = await player.evaluate(async ({ actorId, choices }) => {
+    const actor = game.actors.get(actorId), api = game.ak5e.guard;
+    const plan = await api.previewProgression(actor, choices);
+    if (plan.pending.length) throw new Error(`Guard progression pending: ${plan.pending.join(", ")}`);
+    await api.applyProgression(actor, { ...choices, confirmed: true, contextKey: plan.contextKey });
+    const snap = () => ({ hp: { ...actor.system.attributes.hp }, str: actor.system.abilities.str.value, currency: { ...actor.system.currency }, items: actor.items.map(item => item.id).sort() });
+    const before = snap();
+    const repeat = await api.previewProgression(actor, choices);
+    await api.applyProgression(actor, { ...choices, confirmed: true, contextKey: repeat.contextKey });
+    const featureNames = actor.items.filter(item => item.flags?.ak5e?.chapterThreeId?.startsWith("subclass-feature-guard-artsblade")).map(item => item.name);
+    let rejected = null;
+    try { await api.previewProgression(actor, { ...choices, asi: { 4: { increases: [{ ability: "str", amount: 2 }, { ability: "dex", amount: 1 }] } } }); }
+    catch (error) { rejected = error.message; }
+    return { unchanged: JSON.stringify(before) === JSON.stringify(snap()), pools: actor.getFlag("ak5e", "guardProgression")?.choices?.artPools ?? [], featureNames, rejected,
+      hpLevels: actor.getFlag("ak5e", "guardProgression")?.hpLevels };
+  }, { actorId: fixture.artsbladeId, choices: progressionChoices });
+  report.progression = progression;
+  check("Frost-only progression is idempotent", progression.unchanged && progression.pools.length === 1 && progression.pools[0] === "frost", progression);
+  check("explicitly supplied levels are recorded as granted", progression.hpLevels?.length === 5, progression.hpLevels);
+  check("progression grants the Artsblade source Features at their levels (L1, L4)", ["Sword and Sorcery", "Resonance", "Blade Art", "Cut Through Chaos"].every(name => progression.featureNames.some(entry => entry.includes(name)))
+    && !progression.featureNames.some(entry => entry.includes("Sharpened Mind")), progression.featureNames);
+  check("an impossible Ability Score Improvement is rejected before anything is written", /must be \+2 to one ability or \+1 to two/.test(progression.rejected ?? ""), progression.rejected);
 
-  // 2. Open Guard Controls Dialog on Crusher
-  console.log("Opening Guard Controls dialog on Crusher...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.crusherId);
+  const setup = await player.evaluate(async actorId => {
+    const actor = game.actors.get(actorId), api = game.ak5e.guard;
+    const stale = await api.preview(actor);
+    const probe = await actor.createEmbeddedDocuments("Item", [{ name: "1st Level: Guard Branch", type: "feat", flags: { ak5e: { chapterThreeId: "class-feature-guard-1st-level-guard-branch-2128", u1SetupProbe: true } } }]);
+    let staleRejected = false;
+    try { await api.apply(actor, { confirmed: true, contextKey: stale.contextKey }); } catch (error) { staleRejected = /changed since the preview/.test(error.message); }
+    await actor.deleteEmbeddedDocuments("Item", probe.map(item => item.id));
+    const current = await api.preview(actor);
+    await api.apply(actor, { confirmed: true, contextKey: current.contextKey });
+    const first = actor.items.map(item => item.id).sort();
+    const repeat = await api.preview(actor);
+    await api.apply(actor, { confirmed: true, contextKey: repeat.contextKey });
+    return { staleRejected, idempotent: JSON.stringify(first) === JSON.stringify(actor.items.map(item => item.id).sort()) };
+  }, fixture.artsbladeId);
+  check("Guard setup rejects a stale contextKey and is idempotent", setup.staleRejected && setup.idempotent, setup);
 
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "02-crusher-guard-controls-dialog.png");
+  /* ------------------------------------------------------------------ Martial DC chooser */
+  await player.evaluate(({ actorId, tokenId }) => { canvas.tokens.setTargets([tokenId]); game.actors.get(actorId).sheet.render(true); }, { actorId: fixture.artsbladeId, tokenId: fixture.npcTokenId });
+  await player.locator(".sheet.actor").waitFor({ state: "visible", timeout: 20000 });
+  await player.locator('.sheet.actor .tabs [data-tab="features"]').last().click();
+  await player.locator(".ak5e-guard-sheet-panel button").filter({ hasText: "Open Guard Controls" }).click();
+  await player.locator(".ak5e-guard-dialog").waitFor({ state: "visible" });
+  check("Guard Controls opens with the Martial DC line and no stored choice yet",
+    /Martial DC:\s*\d+ \(higher of STR\/DEX until you choose\)/.test(await player.locator(".ak5e-guard-dialog").last().innerText()));
+  await shot(player, "guard-02-player-controls.png");
+  await player.keyboard.press("Escape");
+  await player.evaluate(id => game.actors.get(id)?.sheet?.close(), fixture.artsbladeId);
 
-  // 3. Open Foecrusher strike prompt
-  console.log("Clicking Foecrusher button...");
-  await page.click('button[data-guard-cmd="foecrusher"]');
-  await page.waitForSelector('select[name="rider"]', { timeout: 10000 });
-  await screenshot(page, "03-foecrusher-rider-prompt.png");
+  const dcBefore = await snapshot(player, fixture.artsbladeId);
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "chooseMartialDC").click();
+  const preselected = await promptWith(player, 'select[name="ability"]').locator('select[name="ability"]').inputValue();
+  check("the Martial DC prompt starts on the higher modifier (STR)", preselected === "str", preselected);
+  await promptWith(player, 'select[name="ability"]').getByRole("button", { name: "Cancel", exact: true }).click();
+  await player.waitForTimeout(250);
+  check("Cancel on the Martial DC prompt writes nothing", JSON.stringify(await snapshot(player, fixture.artsbladeId)) === JSON.stringify(dcBefore), dcBefore);
+  await guardButton(player, "chooseMartialDC").click();
+  await answerAbility(player, "dex");
+  await useButton(player).waitFor({ state: "visible" });
+  check("the Martial DC confirm names the choice use", /Choose Martial DC ability/.test(await confirmText(player)));
+  await shot(player, "guard-03-martial-dc-confirm.png");
+  await player.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  await player.waitForTimeout(250);
+  check("Cancel on the Martial DC confirm writes nothing", JSON.stringify(await snapshot(player, fixture.artsbladeId)) === JSON.stringify(dcBefore));
+  await guardButton(player, "chooseMartialDC").click();
+  await answerAbility(player, "dex");
+  await useButton(player).click();
+  await player.waitForFunction(id => game.actors.get(id).getFlag("ak5e", "guard")?.martialDCAbility === "dex", fixture.artsbladeId);
+  const dexUse = await lastReceipt(player, fixture.artsbladeId, "chooseMartialDC");
+  check("the Martial DC choice is stored and recorded in the ledger", dexUse.result?.martialDCAbility === "dex" && dexUse.result.martialDC === 13, dexUse.result);
+  await undoFromList(player, fixture.artsbladeId, dexUse.id);
+  check("undo removes the stored Martial DC choice", (await snapshot(player, fixture.artsbladeId)).martialDC === null);
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "chooseMartialDC").click();
+  await answerAbility(player, "str");
+  await useButton(player).click();
+  await player.waitForFunction(id => game.actors.get(id).getFlag("ak5e", "guard")?.martialDCAbility === "str", fixture.artsbladeId);
+  check("STR is stored as this character's Martial DC ability", (await snapshot(player, fixture.artsbladeId)).martialDC === "str");
+  await closeGuardDialogs(player);
 
-  // Select Renewing strike and confirm
-  await page.selectOption('select[name="rider"]', "renewing");
-  await page.locator('dialog:has(select[name="rider"]) button[data-action="ok"]').click();
-  await page.waitForTimeout(1000);
+  /* ------------------------------------------------------------------ Smite: real preview, Cancel, Use, undo */
+  const smiteBefore = await snapshot(player, fixture.artsbladeId);
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "smite").click();
+  const amountPrompt = promptWith(player, 'input[name="amount"]');
+  await amountPrompt.waitFor({ state: "visible" });
+  await amountPrompt.locator('button[data-action="ok"]').click();
+  await useButton(player).waitFor({ state: "visible" });
+  const smiteText = await confirmText(player);
+  check("Smite's confirm states its cost and nothing has been spent yet", /Cost:\s*1 Aggression/.test(smiteText) && (await snapshot(player, fixture.artsbladeId)).aggression === smiteBefore.aggression, smiteText);
+  await shot(player, "guard-04-smite-preview.png");
+  await player.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  await player.waitForTimeout(250);
+  const smiteCancelled = await snapshot(player, fixture.artsbladeId);
+  check("Cancel on Smite's confirm writes nothing", smiteCancelled.aggression === smiteBefore.aggression && smiteCancelled.receipts === smiteBefore.receipts && smiteCancelled.messages === smiteBefore.messages, smiteCancelled);
+  await guardButton(player, "smite").click();
+  await amountPrompt.waitFor({ state: "visible" });
+  await amountPrompt.locator('button[data-action="ok"]').click();
+  await useButton(player).click();
+  await player.waitForFunction(({ id, receipts }) => (game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.length ?? 0) > receipts, { id: fixture.artsbladeId, receipts: smiteBefore.receipts });
+  const smiteUse = await lastReceipt(player, fixture.artsbladeId, "smite");
+  check("Smite spends 1 Aggression once confirmed", (await snapshot(player, fixture.artsbladeId)).aggression === smiteBefore.aggression - 1 && smiteUse.result?.damageBonus === 3, smiteUse.result);
+  await undoFromList(player, fixture.artsbladeId, smiteUse.id);
+  check("undo restores the Aggression Smite spent", (await snapshot(player, fixture.artsbladeId)).aggression === smiteBefore.aggression);
 
-  // Switch to chat tab and ensure sidebar is expanded and scrolled
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
+  /* ------------------------------------------------------------------ Eternal Aggression: the 1d4 waits for the clicked Roll */
+  const eternalBefore = await snapshot(player, fixture.eternalId);
+  await openControls(player, fixture.eternalId);
+  await guardButton(player, "unrelenting").click();
+  await useButton(player).waitFor({ state: "visible" });
+  check("Unrelenting's confirm states its cost", /Cost:\s*1 Unrelenting/.test(await confirmText(player)));
+  await useButton(player).click();
+  await player.waitForFunction(({ id, receipts }) => (game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.length ?? 0) > receipts, { id: fixture.eternalId, receipts: eternalBefore.receipts });
+  const eternalUse = await lastReceipt(player, fixture.eternalId, "unrelenting");
+  const waiting = await snapshot(player, fixture.eternalId);
+  check("Eternal Aggression waits for the player's Roll: nothing is rolled or recovered yet",
+    eternalUse.status === "awaitingRoll" && eternalUse.formula === "1d4" && eternalUse.roll === undefined && waiting.aggression === eternalBefore.aggression && waiting.unrelenting === eternalBefore.unrelenting - 1, { eternalUse: eternalUse.status, waiting });
+  await closeGuardDialogs(player);
+  await clickCardRoll(player, /^Roll 1d4/);
+  await useButton(player).waitFor({ state: "visible" });
+  await useButton(player).click();
+  await player.waitForFunction(({ id, useId }) => game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.find(entry => entry.id === useId)?.roll !== undefined, { id: fixture.eternalId, useId: eternalUse.id });
+  const rolled = await receiptById(player, fixture.eternalId, eternalUse.id);
+  const afterRoll = await snapshot(player, fixture.eternalId);
+  check("the clicked d4 is added to Aggression (capped at the maximum)", rolled.roll >= 1 && rolled.roll <= 4 && afterRoll.aggression === Math.min(8, eternalBefore.aggression + rolled.roll), { roll: rolled.roll, afterRoll });
+  await shot(player, "guard-05-eternal-aggression-rolled.png");
+  await undoFromList(player, fixture.eternalId, eternalUse.id);
+  const eternalUndone = await snapshot(player, fixture.eternalId);
+  check("undo returns the Unrelenting use and the recovered Aggression", eternalUndone.aggression === eternalBefore.aggression && eternalUndone.unrelenting === eternalBefore.unrelenting, eternalUndone);
+
+  /* ------------------------------------------------------------------ Artsblade, in combat */
+  const combatId = await gm.evaluate(async ({ sceneId, actorToken, npcToken }) => {
+    const combat = await Combat.implementation.create({ scene: sceneId, active: true, flags: { ak5e: { u1Disposable: true } } });
+    await combat.createEmbeddedDocuments("Combatant", [
+      { actorId: game.scenes.get(sceneId).tokens.get(actorToken).actorId, tokenId: actorToken, sceneId, initiative: 30 },
+      { actorId: game.scenes.get(sceneId).tokens.get(npcToken).actorId, tokenId: npcToken, sceneId, initiative: 10 }
+    ]);
+    await combat.startCombat();
+    await combat.update({ round: 1, turn: 0 });
+    return combat.id;
+  }, { sceneId: fixture.sceneId, actorToken: fixture.artsbladeTokenId, npcToken: fixture.npcTokenId });
+  report.combatId = combatId;
+  await player.evaluate(id => canvas.tokens.setTargets([id]), fixture.npcTokenId);
+
+  // Augmented Assault: a confirmed use whose cost is shown first.
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "augmentedAssault").click();
+  await useButton(player).waitFor({ state: "visible" });
+  check("Augmented Assault's confirmation shows its cost", /2\s+Aggression/i.test(await confirmText(player)));
+  await shot(player, "guard-06-augmented-confirm.png");
+  await useButton(player).click();
+  await player.waitForTimeout(500);
+
+  // First Frost Blade Art against the unowned NPC.
+  const bladeBefore = await snapshot(player, fixture.artsbladeId);
+  await guardButton(player, "bladeArt").click();
+  const poolPrompt = promptWith(player, 'select[name="artPool"]');
+  await poolPrompt.waitFor({ state: "visible" });
+  const poolOptions = await player.locator('select[name="artPool"] option').allTextContents();
+  check("unselected Standard Pools are absent", poolOptions.length === 1 && /Frost/.test(poolOptions[0]), poolOptions);
+  await player.selectOption('select[name="artPool"]', "frost");
+  await poolPrompt.locator('button[data-action="ok"]').click();
+  const dcPrompt = promptWith(player, 'select[name="ability"]');
+  await dcPrompt.waitFor({ state: "visible" });
+  check("the Martial DC prompt starts on the stored STR choice", await dcPrompt.locator('select[name="ability"]').inputValue() === "str");
+  await answerAbility(player, "str");
+  await useButton(player).waitFor({ state: "visible" });
+  const frostText = await confirmText(player);
+  check("Frost's confirm identifies the targeted NPC", frostText.includes("NPC Save Target") && /Blade Art/i.test(frostText), frostText);
+  await shot(player, "guard-07-frost-confirm.png");
+  await useButton(player).click();
+  await player.waitForFunction(({ id, receipts }) => (game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.length ?? 0) > receipts, { id: fixture.artsbladeId, receipts: bladeBefore.receipts });
+  const bladeUse = await lastReceipt(player, fixture.artsbladeId, "bladeArt");
+  const bladeUseId = bladeUse.id;
+  check("Frost Blade Art is 2d6 cold with an owner-rolled CON save pending and no dice rolled",
+    bladeUse.formula === "2d6" && bladeUse.result?.damageType === "cold" && bladeUse.saves?.[0]?.ability === "con" && bladeUse.saves[0].dc === 15 && bladeUse.saves[0].resolved !== true && bladeUse.roll === undefined, bladeUse.result);
+  check("the card tells the player which wielded weapon is the Casting Unit (Resonance)", /Casting Unit \(Resonance\): Acceptance Longsword counts as a Casting Unit while wielded/.test(bladeUse.manualSteps.join(" ")), bladeUse.manualSteps);
+  await shot(player, "guard-08-blade-art-awaiting-roll.png");
+
+  await showChat(gm);
+  const saveName = /NPC Save Target .* CON save DC 15/i;
+  check("the target save is not offered before the damage is rolled", !await gm.getByRole("button", { name: saveName }).last().isVisible({ timeout: 2000 }).catch(() => false));
+  await closeGuardDialogs(player);
+  await clickCardRoll(player, /^Roll 2d6/);
+  await useButton(player).waitFor({ state: "visible" });
+  await useButton(player).click();
+  await player.waitForFunction(({ id, useId }) => game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.find(entry => entry.id === useId)?.roll !== undefined, { id: fixture.artsbladeId, useId: bladeUseId }, { timeout: 20000 });
+  await shot(player, "guard-09-blade-art-rolled.png");
+
+  // The NPC's owner (the GM) rolls the native save; the bridge records it and relays the Resonance effect.
+  await showChat(gm);
+  const saveButton = gm.getByRole("button", { name: saveName }).last();
+  await saveButton.waitFor({ state: "visible", timeout: 20000 });
+  check("the NPC save button is absent for the non-owner player", await player.getByRole("button", { name: saveName }).count() === 0);
+  await saveButton.click();
+  await gm.getByRole("button", { name: /^Normal$/ }).last().waitFor({ state: "visible", timeout: 10000 });
+  await shot(gm, "guard-10-gm-native-save-dialog.png");
+  await gm.getByRole("button", { name: /^Normal$/ }).last().click();
+  await gm.waitForFunction(({ id, useId }) => game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.find(entry => entry.id === useId)?.saves?.[0]?.resolved === true, { id: fixture.artsbladeId, useId: bladeUseId }, { timeout: 20000 });
+  const afterSave = await gm.evaluate(async ({ actorId, npcId, useId }) => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    const source = game.actors.get(actorId), target = game.actors.get(npcId);
+    const state = source.getFlag("ak5e", "guardUses"), receipt = state.undo.find(entry => entry.id === useId);
+    const message = game.messages.find(entry => entry.uuid === receipt.saves[0].messageUuid);
+    return { resolved: receipt.saves[0].resolved, save: receipt.result.saveResolved, author: message?.author?.name, type: message?.flags?.dnd5e?.roll?.type, ability: message?.flags?.dnd5e?.roll?.ability,
+      immunity: Object.values(state.data?.bladeArtSaves ?? {}).find(entry => entry?.targetUuid === target.uuid) ?? null,
+      effects: target.effects.filter(effect => effect.flags?.ak5e?.guardUsesEffect?.opId === useId || effect.flags?.ak5e?.guardUsesEffect).map(effect => effect.name) };
+  }, { actorId: fixture.artsbladeId, npcId: fixture.npcId, useId: bladeUseId });
+  report.nativeSave = afterSave;
+  check("the bridge accepts the target owner's matching native CON save", afterSave.resolved && afterSave.type === "save" && afterSave.ability === "con" && afterSave.author === "Gamemaster", afterSave);
+  check("the verified save records the single-save exemption for this Turn", Boolean(afterSave.immunity) && afterSave.immunity.combatId === combatId, afterSave.immunity);
+  check("a failed save relays the Resonance effect to the NPC (a passed one adds none)", afterSave.save?.success ? afterSave.effects.length === 0 : afterSave.effects.length > 0, afterSave);
+
+  // A second Blade Art this Turn: the confirm says the NPC already made its save, and no second save is offered.
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "bladeArt").click();
+  await promptWith(player, 'select[name="artPool"]').waitFor({ state: "visible" });
+  await player.selectOption('select[name="artPool"]', "frost");
+  await promptWith(player, 'select[name="artPool"]').locator('button[data-action="ok"]').click();
+  await answerAbility(player, "str");
+  await useButton(player).waitFor({ state: "visible" });
+  const secondText = await confirmText(player);
+  check("a same-Turn second Blade Art says the save was already made", /already made this Cantrip's saving throw/i.test(secondText) && /exempt from repeating it/i.test(secondText), secondText);
+  await shot(player, "guard-11-repeat-save-exemption.png");
+  await useButton(player).click();
+  await player.waitForTimeout(500);
+  const secondUse = await lastReceipt(player, fixture.artsbladeId, "bladeArt");
+  check("the repeat card posts no second save", secondUse.id !== bladeUseId && (secondUse.saves ?? []).length === 0 && secondUse.result?.immuneToSave === true, secondUse.result);
+
+  // The exemption ends when the Artsblade's next Turn begins.
+  await gm.evaluate(async id => { const combat = game.combats.get(id); await combat.nextTurn(); await combat.nextTurn(); }, combatId);
+  await gm.waitForFunction(id => game.combats.get(id)?.round === 2 && game.combats.get(id)?.turn === 0, combatId);
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "bladeArt").click();
+  await promptWith(player, 'select[name="artPool"]').waitFor({ state: "visible" });
+  await player.selectOption('select[name="artPool"]', "frost");
+  await promptWith(player, 'select[name="artPool"]').locator('button[data-action="ok"]').click();
+  await answerAbility(player, "str");
+  await useButton(player).waitFor({ state: "visible" });
+  check("the exemption has ended at the source's next Turn", !/already made this Cantrip/i.test(await confirmText(player)));
+  await shot(player, "guard-12-next-turn-save.png");
+  await useButton(player).click();
+  await player.waitForTimeout(500);
+  const thirdUse = await lastReceipt(player, fixture.artsbladeId, "bladeArt");
+  check("a fresh damage-triggered native save is requested", thirdUse.saves?.length === 1 && thirdUse.saves[0].ability === "con" && thirdUse.saves[0].afterRoll === true && thirdUse.saves[0].resolved !== true, thirdUse.saves);
+
+  // Cut Through Chaos: the selected native melee weapon, the Reaction, and undo.
+  const cutBefore = await snapshot(player, fixture.artsbladeId);
+  const reactionsBefore = await reactionsAvailable(player, fixture.artsbladeId);
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "cutThroughChaos").click();
+  const cutPrompt = promptWith(player, 'select[name="weaponUuid"]');
+  await cutPrompt.waitFor({ state: "visible" });
+  const weaponOptions = await cutPrompt.locator('select[name="weaponUuid"] option').allTextContents();
+  check("the Cut Through Chaos form lists the equipped melee weapon", weaponOptions.some(text => /Acceptance Longsword \(equipped\)/.test(text)), weaponOptions);
+  await cutPrompt.locator('select[name="mode"]').selectOption("savingThrow");
+  await cutPrompt.locator('select[name="weaponUuid"]').selectOption(fixture.weaponUuid);
+  await cutPrompt.locator('input[name="incomingDC"]').fill("14");
+  await cutPrompt.locator('button[data-action="ok"]').click();
+  await useButton(player).waitFor({ state: "visible" });
+  const cutText = await confirmText(player);
+  check("Cut Through Chaos's confirm states its cost and has no missing-weapon warning", /Cost:\s*1 Cut Through Chaos/.test(cutText) && !/Select the equipped melee weapon/.test(cutText), cutText);
+  await shot(player, "guard-13-cut-through-chaos-confirm.png");
+  await player.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  await player.waitForTimeout(250);
+  check("Cancel on Cut Through Chaos writes nothing", JSON.stringify(await snapshot(player, fixture.artsbladeId)) === JSON.stringify(cutBefore));
+  await guardButton(player, "cutThroughChaos").click();
+  await cutPrompt.waitFor({ state: "visible" });
+  await cutPrompt.locator('select[name="mode"]').selectOption("savingThrow");
+  await cutPrompt.locator('select[name="weaponUuid"]').selectOption(fixture.weaponUuid);
+  await cutPrompt.locator('input[name="incomingDC"]').fill("14");
+  await cutPrompt.locator('button[data-action="ok"]').click();
+  await useButton(player).click();
+  await player.waitForFunction(({ id, receipts }) => (game.actors.get(id).getFlag("ak5e", "guardUses")?.undo?.length ?? 0) > receipts, { id: fixture.artsbladeId, receipts: cutBefore.receipts });
+  const cutUse = await lastReceipt(player, fixture.artsbladeId, "cutThroughChaos");
+  const cutAfter = await snapshot(player, fixture.artsbladeId);
+  check("Cut Through Chaos records the native weapon attack, spends a use and the Reaction, and rolls nothing",
+    cutUse.nativeAttack?.weaponUuid === fixture.weaponUuid && cutUse.formula === undefined && cutUse.roll === undefined && cutAfter.cut === cutBefore.cut - 1 && cutUse.reaction?.spent === true, { nativeAttack: cutUse.nativeAttack, cutAfter });
+  await undoFromList(player, fixture.artsbladeId, cutUse.id);
+  const cutUndone = await snapshot(player, fixture.artsbladeId);
+  const reactionsAfter = await reactionsAvailable(player, fixture.artsbladeId);
+  check("undo returns the Cut Through Chaos use and the Reaction", cutUndone.cut === cutBefore.cut && reactionsAfter === reactionsBefore, { cutUndone, reactionsBefore, reactionsAfter });
+
+  // Undo of the first save-bearing Blade Art restores Artsblade tracking and removes the relayed effect from the NPC.
+  await undoFromList(player, fixture.artsbladeId, bladeUseId);
+  const undoResult = await gm.evaluate(async ({ npcId, useId }) => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    return game.actors.get(npcId).effects.filter(effect => effect.flags.ak5e?.guardUsesEffect?.opId === useId).map(effect => effect.name);
+  }, { npcId: fixture.npcId, useId: bladeUseId });
+  check("undo removes the relayed Resonance effect inside the encounter window", undoResult.length === 0, undoResult);
+  await shot(player, "guard-14-undo-blade-art.png");
+
+  /* ------------------------------------------------------------------ level 13: chooser Cancel, shortfall override */
+  const advBefore = await snapshot(player, fixture.advancedId);
+  await openControls(player, fixture.advancedId);
+  await guardButton(player, "augmentedAssault").click();
+  await promptWith(player, 'input[name="unleash"]').waitFor({ state: "visible" });
+  await shot(player, "guard-15-level13-unleash-prompt.png");
+  await player.keyboard.press("Escape");
+  await player.waitForTimeout(250);
+  check("closing the Unleash chooser writes nothing", JSON.stringify(await snapshot(player, fixture.advancedId)) === JSON.stringify(advBefore));
+  await guardButton(player, "augmentedAssault").click();
+  await promptWith(player, 'input[name="unleash"]').locator('button[data-action="cancel"]').click();
+  await player.waitForTimeout(250);
+  check("Cancel on the Unleash chooser writes nothing (B-130)", JSON.stringify(await snapshot(player, fixture.advancedId)) === JSON.stringify(advBefore));
+  await guardButton(player, "augmentedAssault").click();
+  await promptWith(player, 'input[name="unleash"]').locator('button[data-action="ok"]').click();
+  await useButton(player).waitFor({ state: "visible" });
+  await player.getByRole("button", { name: "Cancel", exact: true }).last().click();
+  await player.waitForTimeout(250);
+  check("Cancel on the confirm after the chooser writes nothing", JSON.stringify(await snapshot(player, fixture.advancedId)) === JSON.stringify(advBefore));
+
+  await player.evaluate(id => game.actors.get(id).update({ "flags.ak5e.resourcePools.aggression.value": 1 }), fixture.advancedId);
+  await guardButton(player, "augmentedAssault").click();
+  await promptWith(player, 'input[name="unleash"]').locator('button[data-action="ok"]').click();
+  const anyway = player.getByRole("button", { name: "Use anyway", exact: true }).last();
+  await anyway.waitFor({ state: "visible" });
+  check("a resource shortfall is a warning with Use anyway", /2 Aggression needed and 1 remain/i.test(await confirmText(player)));
+  await shot(player, "guard-16-resource-warning.png");
+  await anyway.click();
+  await player.waitForTimeout(600);
+  const spent = await player.evaluate(id => ({ aggression: game.actors.get(id).getFlag("ak5e", "resourcePools")?.aggression?.value,
+    overridden: [...(game.actors.get(id).getFlag("ak5e", "guardUses")?.undo ?? [])].at(-1)?.overridden,
+    card: [...game.messages].reverse().find(message => message.flags.ak5e?.guardUsesUse?.actorUuid === game.actors.get(id).uuid)?.content ?? "" }), fixture.advancedId);
+  check("the overspent Aggression clamps at 0 and the public card records the override", spent.aggression === 0 && spent.overridden?.length > 0 && /Aggression needed and 1 remain/i.test(spent.card) && /short by 1/i.test(spent.card), spent);
+  await closeGuardDialogs(player);
+
+  /* ------------------------------------------------------------------ Spellsword Art at the fixed maximum level */
+  await openControls(player, fixture.artsbladeId);
+  await guardButton(player, "castSpellswordArt").click();
+  const artPrompt = promptWith(player, 'input[name="artName"]');
+  await artPrompt.waitFor({ state: "visible" });
+  await artPrompt.locator('input[name="artName"]').fill("Ice Sheet");
+  const levelText = await artPrompt.innerText();
+  check("the Spellsword dialog fixes level 2 and shows the Frost pool", /maximum level for this Guard level:\s*2/i.test(levelText) && /Frost/i.test(levelText), levelText);
+  await shot(player, "guard-17-spellsword-level2-prompt.png");
+  await artPrompt.locator('button[data-action="ok"]').click();
+  await answerAbility(player, "str");
+  await useButton(player).waitFor({ state: "visible" });
+  await useButton(player).click();
+  await player.waitForTimeout(600);
+  const spellsword = await lastReceipt(player, fixture.artsbladeId, "castSpellswordArt");
+  check("Ice Sheet is recorded at fixed level 2 and spends one Spellsword Point", spellsword?.result?.castingLevel === 2 && spellsword.result.spSpent === 1 && spellsword.result.artName === "Ice Sheet", spellsword?.result);
+  check("the Spellsword card names the Casting Unit weapon", /Casting Unit \(Resonance\)/.test(spellsword.manualSteps.join(" ")));
+  await closeGuardDialogs(player);
+
+  // Ending the combat locks every receipt from it.
+  // Combat#endCombat() opens a confirm dialog on the GM client and would wait for a click; deleting the Combat is what it does.
+  await gm.evaluate(async id => { await game.combats.get(id)?.delete(); }, combatId);
+  await player.waitForTimeout(600);
+  const locked = await player.evaluate(({ id, useId }) => game.ak5e.guard.uses(game.actors.get(id)).find(entry => entry.id === useId)?.locked, { id: fixture.artsbladeId, useId: spellsword?.id });
+  check("ending the combat locks that encounter's receipts", locked === true, { useId: spellsword?.id, locked });
+
+  /* ------------------------------------------------------------------ B-131: the sheet's setup button previews, confirms, passes the key */
+  const setupId = await gm.evaluate(async ({ playerId, suffix }) => {
+    const { CHAPTER_THREE_CLASSES } = await import("/modules/ak5e/scripts/chapter-three-content.mjs");
+    const { sourceEntryData } = await import("/modules/ak5e/scripts/caster-setup.mjs");
+    const actor = await Actor.implementation.create({ name: `AK5e U1 Unconfigured Guard ${suffix}`, type: "character", ownership: { default: 0, [playerId]: 3 }, system: { details: { level: 3 } } });
+    const classData = sourceEntryData(CHAPTER_THREE_CLASSES.find(entry => entry.id === "class-guard")); classData.system.levels = 3;
+    await actor.createEmbeddedDocuments("Item", [classData]);
+    return actor.id;
+  }, { playerId: fixture.playerId, suffix: fixture.suffix });
+  const itemCount = id => player.evaluate(actorId => game.actors.get(actorId).items.size, id);
+  await player.waitForFunction(id => Boolean(game.actors.get(id)), setupId);
+  await openControls(player, setupId);
+  const setupBefore = await itemCount(setupId);
+  await player.locator('.ak5e-guard-dialog button[data-guard-act="__setup"]').last().click();
+  await player.locator('dialog button[data-action="no"]').last().waitFor({ state: "visible" });
+  await shot(player, "guard-18-setup-confirm.png");
+  await player.locator('dialog button[data-action="no"]').last().click();
+  await player.waitForTimeout(300);
+  check("Cancel on the Guard setup confirm grants nothing", await itemCount(setupId) === setupBefore);
+  await player.locator('.ak5e-guard-dialog button[data-guard-act="__setup"]').last().click();
+  await player.locator('dialog button[data-action="yes"]').last().click();
+  await player.waitForFunction(({ id, before }) => game.actors.get(id).items.size > before, { id: setupId, before: setupBefore }, { timeout: 20000 });
+  check("the setup button grants the core Guard Features with the preview key", await player.evaluate(id => game.actors.get(id).items.some(item => /Press the Attack/.test(item.name)) && game.actors.get(id).getFlag("ak5e", "guard")?.enabled === true, setupId));
+
+  /* ------------------------------------------------------------------ every branch's panel opens without writing */
+  const panels = await gm.evaluate(async () => {
+    const branches = ["artsblade", "brawler", "centurion", "crusher", "duellist", "instructor", "liberator", "lord", "musha", "reaper", "weaponmaster"];
+    const { CHAPTER_THREE_CLASSES } = await import("/modules/ak5e/scripts/chapter-three-content.mjs");
+    const { sourceEntryData } = await import("/modules/ak5e/scripts/caster-setup.mjs");
+    const results = [];
+    for (const branch of branches) {
+      const actor = await Actor.implementation.create({ name: `AK5e U1 Panel ${branch}`, type: "character", system: { details: { level: 13 }, attributes: { prof: 5 } },
+        flags: { ak5e: { guard: { enabled: true } } } });
+      const classData = sourceEntryData(CHAPTER_THREE_CLASSES.find(entry => entry.id === "class-guard")); classData.system.levels = 13;
+      await actor.createEmbeddedDocuments("Item", [classData, sourceEntryData(CHAPTER_THREE_CLASSES.find(entry => entry.id === `subclass-guard-${branch}`))]);
+      // Item-creation hooks (for example the Operator Skills prompt key) write shortly after creation; let them settle first.
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const before = JSON.stringify([actor.flags.ak5e, actor.system.attributes.hp]);
+      void game.ak5e.guard.open(actor);
+      await new Promise(resolve => setTimeout(resolve, 900));
+      const dialog = [...document.querySelectorAll(".ak5e-guard-dialog")].at(-1);
+      results.push({ branch, commands: dialog ? dialog.querySelectorAll("[data-guard-cmd]").length : 0, unchanged: JSON.stringify([actor.flags.ak5e, actor.system.attributes.hp]) === before });
+      for (const app of [...foundry.applications.instances.values()]) if (app.element?.querySelector?.(".ak5e-guard-dialog")) await app.close();
+      await actor.delete();
+    }
+    return results;
   });
-
-  // 4. Inspect Chat message card for Foecrusher (Renewing Strike)
-  await screenshot(page, "04-foecrusher-chat-card-awaiting-roll.png");
-
-  // Click Roll button on the chat card
-  console.log("Clicking Roll button on Foecrusher card...");
-  const rollBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Roll" }).last();
-  await rollBtn.waitFor({ state: "attached", timeout: 10000 });
-  await rollBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "05-foecrusher-card-rolled.png");
-
-  // 5. Open Centurion Guard Controls Dialog
-  console.log("Opening Centurion Controls dialog...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.centurionId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "06-centurion-guard-controls-dialog.png");
-
-  // 6. Open Instructor Guard Controls Dialog
-  console.log("Opening Instructor Controls dialog...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.instructorId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "07-instructor-guard-controls-dialog.png");
-
-  // Click Issue Instruction button
-  console.log("Clicking Issue Instruction button...");
-  await page.locator('button[data-guard-cmd="instruction"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="instruction"]', { timeout: 10000 });
-  await screenshot(page, "08-issue-instruction-prompt.png");
-
-  // Submit Instruction (Defend Yourself)
-  await page.locator('dialog:has(select[name="instruction"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "09-instruction-chat-card.png");
-
-  // 7. Open Artsblade sheet and verify panel
-  console.log("Opening Artsblade sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.artsbladeId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const artsbladeFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await artsbladeFeaturesTab.isVisible()) {
-    await artsbladeFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "10-artsblade-sheet-features-tab.png");
-
-  // 8. Open Guard Controls on Artsblade
-  console.log("Opening Artsblade Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.artsbladeId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "11-artsblade-guard-controls-dialog.png");
-
-  // Click Blade Art button
-  console.log("Clicking Blade Art button...");
-  await page.locator('button[data-guard-cmd="bladeArt"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="artPool"]', { timeout: 10000 });
-  await screenshot(page, "12-artsblade-blade-art-prompt.png");
-
-  // Select Flame and confirm
-  await page.selectOption('select[name="artPool"]', "flame");
-  await page.locator('dialog:has(select[name="artPool"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "13-artsblade-blade-art-card-awaiting-roll.png");
-
-  // Roll Blade Art damage
-  console.log("Rolling Blade Art damage...");
-  const bladeArtRollBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Roll" }).last();
-  await bladeArtRollBtn.waitFor({ state: "attached", timeout: 10000 });
-  await bladeArtRollBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "14-artsblade-blade-art-card-rolled.png");
-
-  // Click Cast Spellsword Art
-  console.log("Clicking Cast Spellsword Art button...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.artsbladeId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await page.locator('button[data-guard-cmd="castSpellswordArt"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="artName"]', { timeout: 10000 });
-  await screenshot(page, "15-artsblade-cast-spellsword-art-prompt.png");
-
-  // Submit Spellsword Art
-  await page.locator('dialog:has(input[name="artName"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "16-artsblade-spellsword-art-chat-card.png");
-
-  // 9. Open Brawler sheet and verify panel
-  console.log("Opening Brawler sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.brawlerId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const brawlerFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await brawlerFeaturesTab.isVisible()) {
-    await brawlerFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "17-brawler-sheet-features-tab.png");
-
-  // 10. Open Guard Controls on Brawler
-  console.log("Opening Brawler Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.brawlerId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "18-brawler-guard-controls-dialog.png");
-
-  // Click Body Check
-  console.log("Clicking Body Check...");
-  await page.locator('button[data-guard-cmd="bodyCheck"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "19-brawler-body-check-card.png");
-
-  // Click Cross Counter
-  console.log("Clicking Cross Counter...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.brawlerId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await page.locator('button[data-guard-cmd="crossCounter"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "20-brawler-cross-counter-card.png");
-
-  // 11. Test Undo Flow on Crusher
-  console.log("Testing Undo flow...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.crusherId);
-  await page.waitForSelector('button[data-guard-act="__undo"]', { timeout: 10000 });
-  await page.locator('button[data-guard-act="__undo"]').evaluate(b => b.click());
-  await page.waitForSelector(".ak5e-play-use-choice", { timeout: 10000 });
-  await screenshot(page, "21-undo-list-dialog.png");
-
-  // Review and confirm undo
-  await page.locator('dialog:has(.ak5e-play-use-choice) button[data-action="choose"]').evaluate(b => b.click());
-  await page.waitForTimeout(500);
-  await screenshot(page, "22-undo-review-dialog.png");
-
-  const undoConfirmBtn = page.locator('dialog button[data-action="undo"]');
-  await undoConfirmBtn.waitFor({ state: "attached", timeout: 10000 });
-  await undoConfirmBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "23-undo-completed-card.png");
-
-  // 12. Open Duellist sheet and verify Features tab
-  console.log("Opening Duellist sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.duellistId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const duellistFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await duellistFeaturesTab.isVisible()) {
-    await duellistFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "24-duellist-sheet-features-tab.png");
-
-  // 13. Open Guard Controls on Duellist
-  console.log("Opening Duellist Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.duellistId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "25-duellist-guard-controls-dialog.png");
-
-  // Click Engagement button
-  console.log("Clicking Engagement button...");
-  await page.locator('button[data-guard-cmd="openEngagement"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="engagement"]', { timeout: 10000 });
-  await screenshot(page, "26-duellist-engagement-prompt.png");
-
-  // Confirm Engagement (Balestra)
-  console.log("Confirming Balestra engagement...");
-  await page.selectOption('select[name="engagement"]', "balestra");
-  await page.locator('dialog:has(select[name="engagement"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  // Switch to chat tab and ensure sidebar is expanded and scrolled
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "27-duellist-engagement-chat-card.png");
-
-  // 14. Open Liberator sheet and verify Features tab
-  console.log("Opening Liberator sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.liberatorId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const liberatorFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await liberatorFeaturesTab.isVisible()) {
-    await liberatorFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "28-liberator-sheet-features-tab.png");
-
-  // 15. Open Guard Controls on Liberator
-  console.log("Opening Liberator Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.liberatorId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "29-liberator-guard-controls-dialog.png");
-
-  // Click Guide the Masses
-  console.log("Clicking Guide the Masses button...");
-  await page.locator('button[data-guard-cmd="guideTheMasses"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="mode"]', { timeout: 10000 });
-  await screenshot(page, "30-liberator-guide-the-masses-prompt.png");
-
-  // Confirm Guide the Masses
-  console.log("Confirming Guide the Masses (Advocate)...");
-  await page.locator('dialog:has(select[name="mode"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "31-liberator-guide-the-masses-chat-card.png");
-
-  // Trigger Flash of Anger
-  console.log("Opening Guard Controls on Liberator for Flash of Anger...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.liberatorId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Flash of Anger button...");
-  await page.locator('button[data-guard-cmd="flashOfAnger"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="liberty"]', { timeout: 10000 });
-  await page.locator('dialog:has(input[name="liberty"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "32-liberator-flash-of-anger-card-awaiting-roll.png");
-
-  // Click Roll button on Flash of Anger card
-  console.log("Rolling Flash of Anger damage...");
-  const flashRollBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Roll" }).last();
-  await flashRollBtn.waitFor({ state: "attached", timeout: 10000 });
-  await flashRollBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "33-liberator-flash-of-anger-card-rolled.png");
-
-  // 16. Open Lord sheet and verify Features tab
-  console.log("Opening Lord sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.lordId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const lordFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await lordFeaturesTab.isVisible()) {
-    await lordFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "34-lord-sheet-features-tab.png");
-
-  // 17. Open Guard Controls on Lord
-  console.log("Opening Lord Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.lordId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "35-lord-guard-controls-dialog.png");
-
-  // Trigger Manifest Will dialog (King's Domain mode prompt)
-  console.log("Clicking Manifest Will button...");
-  await page.locator('button[data-guard-cmd="manifestWill"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="mode"]', { timeout: 10000 });
-  await screenshot(page, "36-lord-manifest-will-dialog.png");
-
-  // Confirm Manifest Will (Castle Doctrine)
-  console.log("Confirming Manifest Will (Castle Doctrine)...");
-  await page.locator('dialog:has(select[name="mode"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "37-lord-manifest-will-chat-card.png");
-
-  // Trigger Make It So
-  console.log("Opening Guard Controls on Lord for Make It So...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.lordId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Make It So button...");
-  await page.locator('button[data-guard-cmd="makeItSo"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="rollType"]', { timeout: 10000 });
-  await screenshot(page, "38-lord-make-it-so-prompt.png");
-
-  // Confirm Make It So
-  console.log("Confirming Make It So...");
-  await page.locator('dialog:has(select[name="rollType"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(500);
-
-  // If warning prompt appears due to level 5 ("Make It So is a Lord level 10 feature"), accept "Use anyway" per WORKFLOW §3.2 table-play philosophy
-  const anywayBtn = page.locator('dialog button[data-action="anyway"]');
-  if (await anywayBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    console.log("Accepting level warning for Make It So (Use anyway)...");
-    await anywayBtn.evaluate(b => b.click());
-  }
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "39-lord-make-it-so-chat-card.png");
-
-  // 18. Subclasses Undo Flow
-  console.log("Testing Subclasses Undo flow on Lord Make It So card...");
-  const undoCardBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Undo" }).last();
-  await undoCardBtn.waitFor({ state: "attached", timeout: 10000 });
-  await undoCardBtn.evaluate(b => b.click());
-  await page.waitForSelector('dialog button[data-action="undo"]', { timeout: 10000 });
-
-  // Confirm undo
-  console.log("Confirming undo in dialog...");
-  await page.locator('dialog button[data-action="undo"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  // Verify state reverted
-  const undoVerification = await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    const uses = game.ak5e.guard.uses(actor);
-    const makeItSoUse = uses.find(u => u.title === "Make It So") ?? uses[0];
-    const pool = game.ak5e.resourcePools.getPool(actor, "manifestation");
-    return {
-      title: makeItSoUse?.title,
-      status: makeItSoUse?.status,
-      manifestationValue: pool?.value
-    };
-  }, actorIds.lordId);
-  console.log("Undo verified on Lord:", undoVerification);
-  if (undoVerification.status !== "undone") {
-    throw new Error(`Undo verification failed: expected status undone, got ${JSON.stringify(undoVerification)}`);
-  }
-
-  await page.evaluate(() => {
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "40-guard-subclasses-undo-flow.png");
-
-  // ==========================================
-  // BATCH 2: Musha, Reaper, Weaponmaster
-  // ==========================================
-
-  // 19. Open Musha sheet and verify Features tab
-  console.log("Opening Musha sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.mushaId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const mushaFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await mushaFeaturesTab.isVisible()) {
-    await mushaFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "41-musha-sheet-features-tab.png");
-
-  // 20. Open Guard Controls on Musha
-  console.log("Opening Musha Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.mushaId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "42-musha-guard-controls-dialog.png");
-
-  // 21. Musha Blood Price prompt
-  console.log("Clicking Blood Price button...");
-  const bloodPriceBtn = page.locator('button[data-guard-cmd="mushaBloodPrice"]');
-  await bloodPriceBtn.waitFor({ state: "attached", timeout: 10000 });
-  await bloodPriceBtn.evaluate(b => b.click());
-  await page.waitForSelector('select[name="option"]', { timeout: 10000 });
-  await screenshot(page, "43-musha-blood-price-prompt.png");
-
-  // Confirm Blood Price (Center Oneself)
-  console.log("Confirming Blood Price...");
-  const bpOkBtn = page.locator('dialog:has(select[name="option"]) button[data-action="ok"]');
-  await bpOkBtn.waitFor({ state: "attached", timeout: 10000 });
-  await bpOkBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "44-musha-blood-price-card.png");
-
-  // 22. Musha Soloblade
-  console.log("Opening Guard Controls on Musha for Soloblade...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.mushaId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Soloblade button...");
-  await page.locator('button[data-guard-cmd="mushaSoloblade"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="targetName"]', { timeout: 10000 });
-  await page.locator('dialog:has(input[name="targetName"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-
-  // Soloblade chat card awaits manual roll per WORKFLOW §3.2 table-play philosophy
-  console.log("Rolling Soloblade healing on chat card...");
-  const solobladeRollBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Roll" }).last();
-  await solobladeRollBtn.waitFor({ state: "attached", timeout: 10000 });
-  await solobladeRollBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "45-musha-soloblade-card.png");
-
-  // 23. Open Reaper sheet and verify Features tab
-  console.log("Opening Reaper sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.reaperId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const reaperFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await reaperFeaturesTab.isVisible()) {
-    await reaperFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "46-reaper-sheet-features-tab.png");
-
-  // 24. Open Guard Controls on Reaper
-  console.log("Opening Reaper Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.reaperId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "47-reaper-guard-controls-dialog.png");
-
-  // 25. Reaper Reap prompt
-  console.log("Clicking Reap button...");
-  await page.locator('button[data-guard-cmd="reaperReap"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="weaponName"]', { timeout: 10000 });
-  await screenshot(page, "48-reaper-reap-prompt.png");
-
-  // Confirm Reap
-  console.log("Confirming Reap...");
-  await page.locator('dialog:has(input[name="weaponName"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "49-reaper-reap-card.png");
-
-  // 26. Reaper Curtainfall
-  console.log("Opening Guard Controls on Reaper for Curtainfall...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.reaperId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Curtainfall button...");
-  await page.locator('button[data-guard-cmd="reaperCurtainfall"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="targetName"]', { timeout: 10000 });
-  await page.locator('dialog:has(input[name="targetName"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-
-  // Curtainfall chat card awaits manual roll (+4d6 Ruin damage)
-  console.log("Rolling Curtainfall damage on chat card...");
-  const curtainfallRollBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Roll" }).last();
-  await curtainfallRollBtn.waitFor({ state: "attached", timeout: 10000 });
-  await curtainfallRollBtn.evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-  await screenshot(page, "50-reaper-curtainfall-card.png");
-
-  // 27. Open Weaponmaster sheet and verify Features tab
-  console.log("Opening Weaponmaster sheet...");
-  await closeAllGuardDialogs();
-  await closeAllActorSheets();
-  await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    actor.sheet.render(true);
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".sheet.actor", { timeout: 15000 });
-  const weaponmasterFeaturesTab = page.locator('.sheet.actor .tabs [data-tab="features"]').last();
-  if (await weaponmasterFeaturesTab.isVisible()) {
-    await weaponmasterFeaturesTab.click();
-    await page.waitForTimeout(500);
-  }
-  await screenshot(page, "51-weaponmaster-sheet-features-tab.png");
-
-  // 28. Open Guard Controls on Weaponmaster
-  console.log("Opening Weaponmaster Controls dialog...");
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-  await screenshot(page, "52-weaponmaster-guard-controls-dialog.png");
-
-  // 29. Weaponmaster Judgement Cut
-  console.log("Clicking Judgement Cut button...");
-  await page.locator('button[data-guard-cmd="weaponmasterJudgementCut"]').evaluate(b => b.click());
-  await page.waitForSelector('input[name="targetName"]', { timeout: 10000 });
-  await page.locator('dialog:has(input[name="targetName"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "53-weaponmaster-judgement-cut-card.png");
-
-  // 30. Weaponmaster Every Part of the Weapon
-  console.log("Opening Guard Controls on Weaponmaster for Every Part of the Weapon...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Every Part of the Weapon button...");
-  await page.locator('button[data-guard-cmd="weaponmasterEveryPartOfTheWeapon"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="propertyKey"]', { timeout: 10000 });
-  await page.selectOption('select[name="propertyKey"]', "executioner");
-  await page.locator('dialog:has(select[name="propertyKey"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "54-weaponmaster-every-part-card.png");
-
-  // 31. Weaponmaster Untouchable
-  console.log("Opening Guard Controls on Weaponmaster for Untouchable...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Untouchable button...");
-  await page.locator('button[data-guard-cmd="weaponmasterUntouchable"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    if (ui.sidebar?._collapsed) ui.sidebar.expand();
-    ui.sidebar?.activateTab?.("chat");
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "55-weaponmaster-untouchable-card.png");
-
-  // 32. Batch 2 Undo Flow
-  console.log("Testing Batch 2 Undo flow on Untouchable card...");
-  const batch2UndoBtn = page.locator(".ak5e-play-use-controls button", { hasText: "Undo" }).last();
-  await batch2UndoBtn.waitFor({ state: "attached", timeout: 10000 });
-  await batch2UndoBtn.evaluate(b => b.click());
-  await page.waitForSelector('dialog button[data-action="undo"]', { timeout: 10000 });
-
-  // Confirm undo
-  console.log("Confirming Batch 2 undo in dialog...");
-  await page.locator('dialog button[data-action="undo"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  // Verify state reverted
-  const batch2UndoVerification = await page.evaluate(id => {
-    const actor = game.actors.get(id);
-    const uses = game.ak5e.guard.uses(actor);
-    const untouchableUse = uses.find(u => u.title === "Untouchable") ?? uses[0];
-    const pool = game.ak5e.resourcePools.getPool(actor, "untouchable");
-    return {
-      title: untouchableUse?.title,
-      status: untouchableUse?.status,
-      untouchableValue: pool?.value
-    };
-  }, actorIds.weaponmasterId);
-  console.log("Undo verified on Weaponmaster:", batch2UndoVerification);
-  if (batch2UndoVerification.status !== "undone") {
-    throw new Error(`Batch 2 undo verification failed: expected status undone, got ${JSON.stringify(batch2UndoVerification)}`);
-  }
-
-  await page.evaluate(() => {
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "56-batch2-undo-flow.png");
-
-  // 33. Weaponmaster Steelwind (Dualstrike)
-  console.log("Opening Guard Controls on Weaponmaster for Steelwind...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Steelwind button...");
-  await page.locator('button[data-guard-cmd="weaponmasterSteelwind"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "57-weaponmaster-steelwind-card.png");
-
-  // 34. Weaponmaster Swap Fighting Style (Art of War)
-  console.log("Opening Guard Controls on Weaponmaster for Swap Fighting Style...");
-  await closeAllGuardDialogs();
-  await page.evaluate(id => {
-    game.ak5e.guard.open(game.actors.get(id));
-  }, actorIds.weaponmasterId);
-  await page.waitForSelector(".ak5e-guard-dialog", { timeout: 10000 });
-
-  console.log("Clicking Exchange Fighting Style button...");
-  await page.locator('button[data-guard-cmd="weaponmasterSwapFightingStyle"]').evaluate(b => b.click());
-  await page.waitForSelector('select[name="styleKey"]', { timeout: 10000 });
-  await page.selectOption('select[name="styleKey"]', "closeAndPersonal");
-  await page.locator('dialog:has(select[name="styleKey"]) button[data-action="ok"]').evaluate(b => b.click());
-  await page.waitForTimeout(1000);
-
-  await page.evaluate(() => {
-    const log = document.querySelector("#chat-log");
-    if (log) log.scrollTop = log.scrollHeight;
-  });
-  await screenshot(page, "58-weaponmaster-swap-style-card.png");
-
-  console.log("All live browser steps completed successfully!");
-  await writeFile(`${outputDir}/report.json`, JSON.stringify(report, null, 2));
-
-} catch (err) {
-  console.error("Test execution failed:", err);
-  report.errors.push(err.stack ?? err.message);
-  await writeFile(`${outputDir}/report.json`, JSON.stringify(report, null, 2)).catch(() => {});
-  throw err;
+  report.panels = panels;
+  check("every branch's Guard Controls opens with its commands and writes nothing", panels.every(entry => entry.commands >= 5 && entry.unchanged), panels);
+
+  /* ------------------------------------------------------------------ persistence across a reload */
+  await player.reload();
+  await player.waitForFunction(id => game.ready && game.actors.get(id), fixture.artsbladeId, { timeout: 60000 });
+  const persisted = await snapshot(player, fixture.artsbladeId);
+  check("the stored Martial DC choice and the ledger survive a reload", persisted.martialDC === "str" && persisted.receipts >= 4, persisted);
+  await shot(player, "guard-19-after-reload.png");
+
+  check("no console or page errors in any client", report.errors.length === 0, report.errors);
+  report.passed = true;
+} catch (error) {
+  report.failure = error?.stack ?? String(error);
+  throw error;
 } finally {
+  await Promise.allSettled(contexts.map(context => context.close()));
   await browser.close();
+  report.passed ||= false;
+  await writeFile(`${outputDir}/browser-report.json`, `${JSON.stringify(report, null, 2)}\n`);
+  console.log(`Wrote ${outputDir}/browser-report.json (passed: ${report.passed}, console/page errors: ${report.errors.length})`);
 }
-
