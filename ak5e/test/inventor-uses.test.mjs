@@ -607,11 +607,15 @@ test("Area 7: Sheet UI Controls & Badge Rendering", async () => {
 
   // Test handleSpecialistCommand dispatching
   let lastDialogTitle = null;
+  const dialogTitles = [];
   globalThis.foundry.applications.api.DialogV2 = {
+    // Faithful to Foundry: the affirmative button (the first one that is not Cancel) is clicked and the dialog resolves
+    // `(await callback()) ?? action`, so the up-front confirm yields its { readings } object and a warnings dialog true.
     wait: async options => {
       lastDialogTitle = options?.window?.title;
-      // The up-front confirm (a "use" button) resolves its callback's object; the warnings dialog resolves true.
-      return options?.buttons?.some(button => button.action === "use") ? { readings: {} } : true;
+      dialogTitles.push(lastDialogTitle);
+      const button = (options?.buttons ?? []).find(candidate => candidate.action !== "cancel");
+      return (await button?.callback?.(null, { form: { elements: {} } }, null)) ?? button?.action;
     },
     confirm: async () => true
   };
@@ -632,7 +636,9 @@ test("Area 7: Sheet UI Controls & Badge Rendering", async () => {
   assert.ok(contraptionRes, "strangeContraption dispatches and completes through confirmPlayUse");
 
   // theBigOne emits level warning on lv5 character, triggering DialogV2 prompt
+  const shownBefore = dialogTitles.length;
   const bigOneRes = await handleSpecialistCommand(inventor, "theBigOne");
   assert.ok(bigOneRes, "theBigOne dispatches and completes through confirmPlayUse");
+  assert.deepEqual(dialogTitles.slice(shownBefore), ["The Big One", "The Big One: check before use"], "confirmed once, then the warnings; the up-front confirm does not return");
   assert.equal(lastDialogTitle, "The Big One: check before use", "DialogV2 confirms warning with 'check before use'");
 });
