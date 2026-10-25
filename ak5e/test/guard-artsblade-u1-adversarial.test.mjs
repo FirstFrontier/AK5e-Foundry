@@ -18,8 +18,9 @@
  * Interpretation notes (for the head to confirm):
  *   - Spec 9 "warned/rejected": an invalid ASI or skill pick passes only if it is rejected (throws) or warned and
  *     writes nothing. An illegal value that is warned and then applied fails here.
- *   - Spec 12 "forms with their own Confirm pass confirmed: true": a Guard form whose own Confirm is pressed must not be
- *     followed by a second up-front "use" confirmation. The Martial DC choice is an input, not a use confirmation.
+ *   - Spec 12 "exactly one confirm per use": the single up-front preview (with cost) is the use confirmation. Input
+ *     forms (Blade Art, Cast Spellsword Art, Cut Through Chaos, Augmented Assault) and the Martial DC prompt collect
+ *     input only and must not be labelled "Confirm" or "Use".
  *   - Spec 7 "stored choice": the stored key is not fixed by the spec. The stored-choice test sets the Vanguard/Marksman
  *     convention key (flags.ak5e.guard.martialDCAbility) and is marked KEY-ASSUMED.
  */
@@ -30,7 +31,7 @@ import { guardFixture, world } from "./guard-fixture.mjs";
 import { martialDC } from "../scripts/guard-rules.mjs";
 import { previewGuardProgression, applyGuardProgression } from "../scripts/guard-progression.mjs";
 import { guardUses } from "../scripts/guard-uses.mjs";
-import { guardPreRollAttack, registerGuardFeatureHooks } from "../scripts/guard-features.mjs";
+import { guardPreRollAttack, guardPostRollAttack, registerGuardFeatureHooks, resetDeadlyFighterLedger } from "../scripts/guard-features.mjs";
 import { registerArtsbladeHooks, artsbladePreRollAttack, maxArtLevel } from "../scripts/artsblade-features.mjs";
 import { emitAk5eEvent, getReactions, setReactionStore } from "../scripts/trigger-events.mjs";
 import { getPool } from "../scripts/resource-pools.mjs";
@@ -118,7 +119,7 @@ async function flush() {
  * Every shown dialog's title and body are recorded in `titles` and `bodies`.
  */
 function installDialogs(answers, fallback = []) {
-  const dialogs = { titles: [], bodies: [], mismatches: [], unexpected: [], errors: [], root: null, queue: answers.map(answer => ({ ...answer })) };
+  const dialogs = { titles: [], bodies: [], labels: [], mismatches: [], unexpected: [], errors: [], root: null, queue: answers.map(answer => ({ ...answer })) };
   globalThis.ui = { ...globalThis.ui, notifications: { ...globalThis.ui?.notifications, error: message => dialogs.errors.push(String(message)) } };
   const pick = title => {
     const scripted = dialogs.queue.shift();
@@ -135,6 +136,7 @@ function installDialogs(answers, fallback = []) {
     const title = options.window?.title ?? "";
     dialogs.titles.push(title);
     dialogs.bodies.push(String(options.content ?? ""));
+    dialogs.labels.push(buttons.map(button => button.label ?? button.action));
     const answer = pick(title);
     if (!answer || answer.click === null || answer.click === undefined) return null;
     const clicks = Array.isArray(answer.click) ? answer.click : [answer.click];
@@ -164,6 +166,21 @@ async function openSheet(actor, answers, fallback = []) {
   await openGuardControls(actor);
   assert.ok(dialogs.root, "the Guard panel rendered");
   return dialogs;
+}
+
+/** Input forms and the Martial DC prompt: they collect input only and are never a use confirmation. */
+const INPUT_FORMS = /^(Blade Art|Cast Spellsword Art \(1 SP\)|Cut Through Chaos \(Reaction\)|Augmented Assault \(2 Aggression\)|.*: choose Martial DC ability)$/;
+/** Shown dialogs that are use confirmations: not an input form and not a warnings list. */
+function useConfirmations(dialogs) {
+  return dialogs.titles.map((title, index) => ({ title, index })).filter(({ title }) => !INPUT_FORMS.test(title) && !/check before use/.test(title));
+}
+/** Every input form and the Martial DC prompt must not be labelled as a use confirm ("Confirm" or "Use"). */
+function assertInputsAreNotConfirms(dialogs) {
+  dialogs.titles.forEach((title, index) => {
+    if (!INPUT_FORMS.test(title)) return;
+    const labels = dialogs.labels[index] ?? [];
+    assert.ok(!labels.includes("Confirm") && !labels.includes("Use"), `input "${title}" must not be labelled as a use confirm (labels: ${labels.join(", ")})`);
+  });
 }
 
 /** A Cancel test only proves something if its prompt was really shown and no error was swallowed by the sheet. */
@@ -287,6 +304,7 @@ function deadlyGuard() {
 }
 
 test("B1 [spec 8 | Ch.3 L1844] The first Deadly attack in a Turn raises its Critical Range by 1", () => {
+  resetDeadlyFighterLedger();
   const actor = deadlyGuard();
   configuredWorld(combatFor(actor));
   const first = deadlyAttack(actor);
@@ -294,17 +312,33 @@ test("B1 [spec 8 | Ch.3 L1844] The first Deadly attack in a Turn raises its Crit
   assert.equal(first.roll.options.criticalSuccess, 19);
 });
 
-test("B2 [spec 8 | Ch.3 L1844 \"the first time each Turn\"] A second Deadly attack in the same Turn is not widened", () => {
+test("B2 [spec 8 | Ch.3 L1844 'the first time each Turn'] A second Deadly attack in the same Turn is not widened", () => {
+  // Real hook order: preRoll widens the attack, postRoll marks the Turn's benefit used because the roll was made.
+  resetDeadlyFighterLedger();
   const actor = deadlyGuard();
   configuredWorld(combatFor(actor, { round: 1 }));
-  guardPreRollAttack(deadlyAttack(actor).config);
+  const first = deadlyAttack(actor);
+  guardPreRollAttack(first.config);
+  guardPostRollAttack([first.roll], { subject: first.config.subject });
   const second = deadlyAttack(actor);
   guardPreRollAttack(second.config);
   assert.equal(second.roll.options.criticalSuccess, undefined, "the second attack in the same Turn must not be widened");
 });
 
+test("B2b [spec 8 | Ch.3 L1844 | postRoll ledger] A Deadly attack whose roll was cancelled (preRoll with no postRoll) leaves the Turn's benefit for the next attack", () => {
+  resetDeadlyFighterLedger();
+  const actor = deadlyGuard();
+  configuredWorld(combatFor(actor, { round: 1 }));
+  const cancelled = deadlyAttack(actor);
+  guardPreRollAttack(cancelled.config);   // no postRoll: the roll dialog was cancelled
+  const next = deadlyAttack(actor);
+  guardPreRollAttack(next.config);
+  assert.equal(next.roll.options.criticalSuccess, 19, "the cancelled attack did not use the Turn's benefit");
+});
+
 test("B3 [spec 8 | Ch.3 L1844] A non-Deadly attack first does not use up the Turn's Deadly benefit", () => {
   // \"The first time each Turn you make an Attack Roll using a Weapon with the Deadly Property\": only Deadly attacks count.
+  resetDeadlyFighterLedger();
   const actor = deadlyGuard();
   configuredWorld(combatFor(actor, { round: 1 }));
   guardPreRollAttack(deadlyAttack(actor, { deadly: false }).config);
@@ -313,11 +347,14 @@ test("B3 [spec 8 | Ch.3 L1844] A non-Deadly attack first does not use up the Tur
   assert.equal(deadly.roll.options.criticalSuccess, 19);
 });
 
-test("B4 [spec 8 | Ch.3 L1844 \"each Turn\"] The Deadly benefit returns on the first Deadly attack of the next Turn", () => {
+test("B4 [spec 8 | Ch.3 L1844 'each Turn'] The Deadly benefit returns on the first Deadly attack of the next Turn", () => {
+  resetDeadlyFighterLedger();
   const actor = deadlyGuard();
   const combat = combatFor(actor, { round: 1 });
   configuredWorld(combat);
-  guardPreRollAttack(deadlyAttack(actor).config);
+  const first = deadlyAttack(actor);
+  guardPreRollAttack(first.config);
+  guardPostRollAttack([first.roll], { subject: first.config.subject });
   combat.round = 2;
   const nextTurn = deadlyAttack(actor);
   guardPreRollAttack(nextTurn.config);
@@ -325,6 +362,7 @@ test("B4 [spec 8 | Ch.3 L1844 \"each Turn\"] The Deadly benefit returns on the f
 });
 
 test("B5 [Ch.3 L1844] A non-Deadly weapon never gets the Deadly Critical Range increase", () => {
+  resetDeadlyFighterLedger();
   const actor = deadlyGuard();
   configuredWorld(combatFor(actor));
   const plain = deadlyAttack(actor, { deadly: false });
@@ -334,12 +372,15 @@ test("B5 [Ch.3 L1844] A non-Deadly weapon never gets the Deadly Critical Range i
 
 /* ---------------------------------------------------------------- C. Casting Unit (Ch.3 L2272) and Resonance (spec 3) */
 
-test("C1 [spec 3 | Ch.3 L2272] Blade Art with no wielded melee weapon (no Casting Unit) raises a non-blocking warning", async () => {
-  // L2272: "Melee Weapons being wielded by you are considered to have the Casting Unit Property."
+test("C1 [spec 3 | Ch.3 L2272; Ch.4 Casting Unit] Blade Art with no weapon at all resolves with no warning, and its card does not waive Somatic Components", async () => {
+  // Source (Ch.4 Casting Unit): wielding a Weapon with the Property lets you ignore Somatic Components. Nothing requires a Casting Unit.
   configuredWorld();
   const actor = artsblade({ level: 5, weapon: false });
-  await rejectsWithAnyWarning(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-none"),
-    "Blade Art needs a wielded melee weapon (Casting Unit)");
+  await assert.doesNotReject(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-none"),
+    "no Casting Unit warning may be raised");
+  const step = guardUses.receipt(actor, "cu-none").manualSteps[0];
+  assert.match(step, /No melee weapon is equipped/, "the card states that no wielded melee weapon is a Casting Unit");
+  assert.doesNotMatch(step, /ignore the Somatic/, "the Somatic Components are not waived");
 });
 
 test("C2 [spec 3 | Ch.3 L2272] Blade Art with a wielded melee weapon raises no Casting Unit warning", async () => {
@@ -349,26 +390,35 @@ test("C2 [spec 3 | Ch.3 L2272] Blade Art with a wielded melee weapon raises no C
   assert.equal(result.formula, "2d6", "level 5 Blade Art cantrip is 2d6");
 });
 
-test("C3 [spec 3 | Ch.3 L2272] An unequipped melee weapon is not a Casting Unit: Blade Art warns", async () => {
+test("C3 [spec 3 | Ch.3 L2272; Ch.4 Casting Unit] An unequipped melee weapon resolves with no warning and does not waive Somatic Components", async () => {
   configuredWorld();
   const actor = artsblade({ level: 5, equipped: false });
-  await rejectsWithAnyWarning(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-unequipped"),
-    "an unequipped melee weapon is not a Casting Unit");
+  await assert.doesNotReject(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-unequipped"),
+    "no Casting Unit warning may be raised");
+  const step = guardUses.receipt(actor, "cu-unequipped").manualSteps[0];
+  assert.match(step, /No melee weapon is equipped/);
+  assert.doesNotMatch(step, /ignore the Somatic/, "an unequipped weapon is not a Casting Unit");
 });
 
-test("C4 [spec 3 | Ch.3 L2272] A wielded ranged weapon is not a melee Casting Unit: Blade Art warns", async () => {
+test("C4 [spec 3 | Ch.3 L2272; Ch.4 Casting Unit] A wielded ranged weapon resolves with no warning and does not waive Somatic Components", async () => {
   configuredWorld();
   const actor = artsblade({ level: 5, weapon: false });
   addWeapon(actor, { id: "w-bow", name: "Longbow", actionType: "rwak", activityId: "shoot", equipped: true });
-  await rejectsWithAnyWarning(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-ranged"),
-    "a wielded ranged weapon is not a melee Casting Unit");
+  await assert.doesNotReject(use(actor, "bladeArt", { pool: "frost", targetUuid: null, martialDcAbility: "str" }, "cu-ranged"),
+    "no Casting Unit warning may be raised");
+  const step = guardUses.receipt(actor, "cu-ranged").manualSteps[0];
+  assert.match(step, /No melee weapon is equipped/, "a ranged weapon is not a melee Casting Unit");
+  assert.doesNotMatch(step, /ignore the Somatic/);
 });
 
-test("C5 [spec 3 | Ch.3 L2249, L2272] A Blade Art cast as a Spellsword Art with no wielded melee weapon warns", async () => {
+test("C5 [spec 3 | Ch.3 L2249; Ch.4 Casting Unit] A Blade Art cast as a Spellsword Art with no wielded melee weapon resolves with no warning and does not waive Somatic Components", async () => {
   configuredWorld(combatFor(artsblade({ level: 5 })));
   const actor = artsblade({ level: 5, weapon: false });
-  await rejectsWithAnyWarning(use(actor, "castSpellswordArt", { artName: "Blade Art", martialDcAbility: "str" }, "cu-spell-none"),
-    "a Spellsword Art needs a wielded melee weapon (Casting Unit)");
+  await assert.doesNotReject(use(actor, "castSpellswordArt", { artName: "Blade Art", martialDcAbility: "str" }, "cu-spell-none"),
+    "no Casting Unit warning may be raised");
+  const step = guardUses.receipt(actor, "cu-spell-none").manualSteps[0];
+  assert.match(step, /No melee weapon is equipped/);
+  assert.doesNotMatch(step, /ignore the Somatic/);
 });
 
 test("C6 [spec 3 | Ch.3 L2249, L2272] A Blade Art cast as a Spellsword Art with a wielded melee weapon does not warn", async () => {
@@ -816,33 +866,39 @@ test("G8 [spec 12 | WORKFLOW §3.2 | B-129/B-130 probes] Augmented Assault at 13
   assert.equal(guardUses.state(actor).undo.length, 0);
 });
 
-test("G9 [spec 12] Blade Art from the panel: the Arts Pool form's own Confirm is the only use confirmation (no second \"Blade Art (Frost)\" dialog)", async () => {
+test("G9 [spec 12 | exactly one use confirm] Blade Art from the panel: the Arts Pool form and the Martial DC prompt are inputs; one preview confirms the use", async () => {
   configuredWorld();
   const actor = artsblade({ level: 5 });
   const dialogs = await openSheet(actor, [
     { title: /^Blade Art$/, click: "ok", elements: { artPool: { value: "frost" } } },
     { title: /choose Martial DC ability/, click: "ok", elements: { ability: { value: "str" } } }
-  ], [{ title: /^Blade Art \(Frost\)/, click: "use" }]);
+  ], [{ title: /^Blade Art \(Frost\)/, click: ["use", "anyway"] }, { title: /check before use/, click: "anyway" }]);
   await clickGuardCommand(dialogs, "bladeArt");
   assert.equal(dialogs.mismatches.length, 0, dialogs.mismatches.join("; "));
-  assert.equal(dialogs.titles.filter(title => /^Blade Art \(Frost\)/.test(title)).length, 0,
-    `a form with its own Confirm passes confirmed: true (titles: ${dialogs.titles.join(" | ")})`);
+  assert.deepEqual(dialogs.errors, [], "the sheet must not swallow an error");
+  const previews = useConfirmations(dialogs);
+  assert.equal(previews.length, 1, `exactly one use confirmation (titles: ${dialogs.titles.join(" | ")})`);
+  assert.match(previews[0].title, /^Blade Art \(Frost\)/, "the single confirmation is the use's preview");
+  assertInputsAreNotConfirms(dialogs);
   assert.equal(guardUses.state(actor).undo.length, 1, "the Blade Art runs once");
 });
 
-test("G10 [spec 12] Cut Through Chaos from the panel: its \"Review use\" form is the only confirmation", async () => {
+test("G10 [spec 12 | exactly one use confirm; spec 1] Cut Through Chaos from the panel: the Review use form is an input; one preview with its cost confirms the use", async () => {
   configuredWorld();
-  const actor = artsblade({ level: 5, weapon: true });
+  const actor = artsblade({ level: 5 });
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
+  const weapon = [...actor.items.values()].find(item => item.type === "weapon");
   const dialogs = await openSheet(actor, [{
-    title: /Cut Through Chaos \(Reaction\)/, click: "ok",
-    elements: { mode: { value: "spellAttack" }, attackAbility: { value: "str" }, incomingTotal: { value: "14" }, incomingDC: { value: "" } }
-  }], [{ title: /^Cut Through Chaos$/, click: "use" }, { title: /check before use/, click: "anyway" }]);
+    title: /^Cut Through Chaos \(Reaction\)$/, click: "ok",
+    elements: { mode: { value: "spellAttack" }, weaponUuid: { value: weapon.uuid }, incomingTotal: { value: "14" }, incomingDC: { value: "" } }
+  }], [{ title: /^Cut Through Chaos$/, click: ["use", "anyway"] }, { title: /check before use/, click: "anyway" }]);
   await clickGuardCommand(dialogs, "cutThroughChaos");
   assert.equal(dialogs.mismatches.length, 0, dialogs.mismatches.join("; "));
-  // Warning dialogs ("check before use") are not confirmations; only the use's own confirm may appear once.
-  const confirms = dialogs.titles.filter(title => !/check before use/.test(title));
-  assert.equal(confirms.length, 1, `one confirmation only (titles: ${dialogs.titles.join(" | ")})`);
+  assert.deepEqual(dialogs.errors, [], "the sheet must not swallow an error");
+  const previews = useConfirmations(dialogs);
+  assert.equal(previews.length, 1, `exactly one use confirmation (titles: ${dialogs.titles.join(" | ")})`);
+  assert.match(dialogs.bodies[previews[0].index], /<strong>Cost:<\/strong>\s*1 Cut Through Chaos/, "the preview names its cost");
+  assertInputsAreNotConfirms(dialogs);
   assert.equal(guardUses.state(actor).undo.length, 1, "the use is recorded once");
 });
 
@@ -858,29 +914,75 @@ test("G16 [spec 1 | Ch.3 L2327-2331] The Guard panel's Cut Through Chaos form le
   assert.match(dialogs.bodies[index], /<select name="(weapon|weaponUuid)"/, "the form offers a weapon selection");
 });
 
-test("G11 [spec 12] Augmented Assault at 13th level: the Unleash form's own Confirm is the only confirmation", async () => {
+test("G11 [spec 12 | exactly one use confirm] Augmented Assault at 13th level: the Unleash form is an input; one preview with its cost confirms the use", async () => {
   configuredWorld();
   const actor = artsblade({ level: 13, weapon: false });
-  const dialogs = await openSheet(actor, [{ title: /Augmented Assault \(2 Aggression\)/, click: "ok", elements: { unleash: { checked: false } } }],
-    [{ title: /^Augmented Assault$/, click: "use" }]);
+  const dialogs = await openSheet(actor, [{ title: /^Augmented Assault \(2 Aggression\)$/, click: "ok", elements: { unleash: { checked: false } } }],
+    [{ title: /^(Press the Attack: )?Augmented Assault$/, click: ["use", "anyway"] }, { title: /check before use/, click: "anyway" }]);
   await clickGuardCommand(dialogs, "augmentedAssault");
-  assert.equal(dialogs.titles.length, 1, `one confirmation only (titles: ${dialogs.titles.join(" | ")})`);
+  assert.equal(dialogs.mismatches.length, 0, dialogs.mismatches.join("; "));
+  assert.deepEqual(dialogs.errors, [], "the sheet must not swallow an error");
+  const previews = useConfirmations(dialogs);
+  assert.equal(previews.length, 1, `exactly one use confirmation (titles: ${dialogs.titles.join(" | ")})`);
+  assert.match(dialogs.bodies[previews[0].index], /<strong>Cost:<\/strong>\s*2 Aggression/, "the preview names its cost");
+  assertInputsAreNotConfirms(dialogs);
   assert.equal(guardUses.state(actor).undo.length, 1);
 });
 
-test("G12 [spec 12] Cast Spellsword Art from the panel: the Cast form's own button is the only use confirmation", async () => {
+test("G12 [spec 12 | exactly one use confirm] Cast Spellsword Art from the panel: the Cast form and the Martial DC prompt are inputs; one preview with its cost confirms the use", async () => {
   configuredWorld();
   const actor = artsblade({ level: 5 });
+  actor.items.set("art-frost-nova", { id: "art-frost-nova", type: "spell", name: "Frost Nova", system: { level: 1 }, flags: { ak5e: { artsPool: "frost" } }, getFlag() { return undefined; } });
   const dialogs = await openSheet(actor, [
-    { title: /Cast Spellsword Art \(1 SP\)/, click: "ok", elements: { artName: { value: "Blade Art" }, artPool: { value: "frost" }, unleash: { checked: false } } },
+    { title: /^Cast Spellsword Art \(1 SP\)$/, click: "ok", elements: { artName: { value: "Frost Nova" }, artPool: { value: "frost" }, unleash: { checked: false } } },
     { title: /choose Martial DC ability/, click: "ok", elements: { ability: { value: "str" } } }
-  ], [{ title: /^Cast Spellsword Art: /, click: "use" }]);
+  ], [{ title: /^Cast Spellsword Art: /, click: ["use", "anyway"] }, { title: /check before use/, click: "anyway" }]);
   await clickGuardCommand(dialogs, "castSpellswordArt");
   assert.equal(dialogs.mismatches.length, 0, dialogs.mismatches.join("; "));
-  assert.equal(dialogs.titles.filter(title => /^Cast Spellsword Art: /.test(title)).length, 0,
-    `no second confirmation after the Cast form (titles: ${dialogs.titles.join(" | ")})`);
+  assert.deepEqual(dialogs.errors, [], "the sheet must not swallow an error");
+  const previews = useConfirmations(dialogs);
+  assert.equal(previews.length, 1, `exactly one use confirmation (titles: ${dialogs.titles.join(" | ")})`);
+  assert.match(dialogs.bodies[previews[0].index], /<strong>Cost:<\/strong>\s*1 Spellsword Points/, "the preview names its cost");
+  assertInputsAreNotConfirms(dialogs);
   assert.equal(guardUses.state(actor).undo.length, 1, "the Spellsword Art runs once");
 });
+
+/* Cancel on the single preview (the use confirmation) changes nothing. */
+const PREVIEW_CANCEL = [
+  { cmd: "bladeArt", level: 5, weapon: true, answers: [
+    { title: /^Blade Art$/, click: "ok", elements: { artPool: { value: "frost" } } },
+    { title: /choose Martial DC ability/, click: "ok", elements: { ability: { value: "str" } } },
+    { title: /^Blade Art \(Frost\)/, click: "cancel" }] },
+  { cmd: "cutThroughChaos", level: 5, weapon: true, ctc: true, answers: [
+    { title: /^Cut Through Chaos \(Reaction\)$/, click: "ok", elements: { mode: { value: "spellAttack" }, weaponUuid: { value: "Actor.guard1.Item.w-long" }, incomingTotal: { value: "14" }, incomingDC: { value: "" } } },
+    { title: /^Cut Through Chaos$/, click: "cancel" }] },
+  { cmd: "augmentedAssault", level: 13, weapon: false, answers: [
+    { title: /^Augmented Assault \(2 Aggression\)$/, click: "ok", elements: { unleash: { checked: false } } },
+    { title: /^(Press the Attack: )?Augmented Assault$/, click: "cancel" }] },
+  { cmd: "castSpellswordArt", level: 5, weapon: true, knownArt: true, answers: [
+    { title: /^Cast Spellsword Art \(1 SP\)$/, click: "ok", elements: { artName: { value: "Frost Nova" }, artPool: { value: "frost" }, unleash: { checked: false } } },
+    { title: /choose Martial DC ability/, click: "ok", elements: { ability: { value: "str" } } },
+    { title: /^Cast Spellsword Art: /, click: "cancel" }] }
+];
+
+for (const [index, testCase] of PREVIEW_CANCEL.entries()) {
+  test(`G17.${index + 1} [spec 12 | WORKFLOW 3.2] Cancel on the ${testCase.cmd} preview writes no flags, Items, resources or receipts`, async () => {
+    configuredWorld();
+    const actor = artsblade({ level: testCase.level, weapon: testCase.weapon });
+    if (testCase.ctc) actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
+    if (testCase.knownArt) actor.items.set("art-frost-nova", { id: "art-frost-nova", type: "spell", name: "Frost Nova", system: { level: 1 }, flags: { ak5e: { artsPool: "frost" } }, getFlag() { return undefined; } });
+    const dialogs = await openSheet(actor, testCase.answers);
+    const before = stateSnapshot(actor);
+    const writesBefore = actor.writes.length;
+    await clickGuardCommand(dialogs, testCase.cmd);
+    assert.equal(dialogs.mismatches.length, 0, dialogs.mismatches.join("; "));
+    assert.deepEqual(dialogs.errors, [], "the sheet must not swallow an error");
+    assert.equal(useConfirmations(dialogs).length, 1, `the preview was shown as the use confirmation (titles: ${dialogs.titles.join(" | ")})`);
+    assert.equal(actor.writes.length, writesBefore, "no Actor write after Cancel");
+    assert.equal(stateSnapshot(actor), before, "no flag, Item or pool changed after Cancel");
+    assert.equal(guardUses.state(actor).undo.length, 0, "no receipt after Cancel");
+  });
+}
 
 test("G13 [spec 11 | Ch.3 L2249 | WORKFLOW §3.2] A second Blade Art from the panel: Cancel on its warning records nothing further", async () => {
   configuredWorld(combatFor(artsblade({ level: 5 })));
