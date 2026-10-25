@@ -807,12 +807,11 @@ test("R1 Font die: the granted Aid Die is a time expiry of 600 seconds, not a tu
   await startAndFirstCast(actor);
   await run(actor, "fontProvideAid", { targetUuid: ally.uuid, targetName: "Ally" });
   const effect = findAidDieEffect(ally);
-  const tag = effect.flags.ak5e.featureTag;
-  assert.equal(tag.trigger, "time", "time expiry");
-  assert.equal(tag.seconds, 600, "a 600 s tag");
-  // The Active Effect duration comes from supporter-uses.mjs (another pair) when the Font feature item is present; the
-  // fallback path there writes no duration. The 600 s duration is asserted on the tag, and in the live e2e test.
-  assert.notEqual(tag.trigger, "turnStart", "not a turn-start expiry");
+  // The tracked expiry is flags.ak5e.temporaryTag (the flag featureTags() and tagExpiry read); its expiry is a time expiry.
+  const tracked = effect.flags.ak5e.temporaryTag;
+  assert.equal(tracked.expiry.trigger, "time", "time expiry");
+  assert.notEqual(tracked.expiry.trigger, "turnStart", "not a turn-start expiry");
+  assert.equal(effect.duration.seconds, 600, "the Active Effect lasts 600 seconds");
 });
 
 test("R1/H2 Font relay: the real Font tag relays; a tampered tag, a standardBenefit or a foreign supporter is refused", async () => {
