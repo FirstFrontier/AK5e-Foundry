@@ -330,7 +330,9 @@ function cursemarkPlan(actor, state, data) {
       if (!primary || placed) return {};
       const record = { id: markId, point: { x: Number(point.x), y: Number(point.y), ...(point.sceneId ? { sceneId: String(point.sceneId) } : {}) },
         kind: data.kind, radius: CURSEMARK_RADIUS_FT, excluded: levelOf(actor) >= HEXER_GATES.controlledCruelty ? excluded : [],
-        gridSize: Number(data.gridSize ?? 100), gridDistance: gridDistanceOf(data.gridDistance), expires: worldTime() + HEX_DURATION_SECONDS };
+        // Unpassed grid values come from the scene's grid (F-R9); 100 px and 5 ft only when the scene has none.
+        gridSize: Number(data.gridSize ?? globalThis.canvas?.scene?.grid?.size ?? 100),
+        gridDistance: gridDistanceOf(data.gridDistance ?? globalThis.canvas?.scene?.grid?.distance), expires: worldTime() + HEX_DURATION_SECONDS };
       // Expired marks are pruned whenever a new one is written (they have no effect once expired).
       const live = (hexerState(actor).cursemarks ?? []).filter(entry => !(Number.isFinite(Number(entry.expires)) && Number(entry.expires) <= worldTime()));
       return { [`flags.ak5e.${HEXER_FLAG}.cursemarks`]: [...live, record] };
