@@ -201,8 +201,13 @@ export function registerSupporterHooks() {
 
   if (typeof globalThis.Hooks?.on === "function") {
     globalThis.Hooks.on("dnd5e.restCompleted", (actor, result, config = {}) => {
+      // Only the owner's client writes the refund (F-R8); a failed refund is logged and shown, never silent.
+      if (!actor?.isOwner) return;
       const type = config.type ?? result?.type ?? (config.longRest ? "long" : "short");
-      onSupporterRest(actor, type);
+      Promise.resolve().then(() => onSupporterRest(actor, type)).catch(error => {
+        console.error("AK5e | Supporter rest", error);
+        globalThis.ui?.notifications?.error?.(error?.message ?? String(error));
+      });
     });
     globalThis.Hooks.on("dnd5e.preRollAttackV2", aidCritPreRollAttack);
     globalThis.Hooks.on("renderChatMessageHTML", (message, html) => {

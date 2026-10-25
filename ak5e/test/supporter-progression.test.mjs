@@ -365,3 +365,13 @@ test("previewSupporterProgression: ASI validation rejects duplicate ability and 
   });
   assert.ok(pBad.pending.includes("asi.4"));
 });
+
+/* ---- r1-base ruling F-R6: progression keeps the effective Aid ability (no CHA over the highest) ---- */
+
+test("F-R6: progression choices default to the effective Aid ability, not a hard CHA", () => {
+  const unset = { name: "Sup", system: { abilities: { int: { mod: 5 }, wis: { mod: 1 }, cha: { mod: 2 } } }, items: [],
+    flags: { ak5e: { supporter: { enabled: true } } }, isOwner: true };
+  assert.equal(supporterChoices(unset).aidAbility, "int");
+  const chosen = { ...unset, flags: { ak5e: { supporter: { enabled: true, aidAbility: "wis" } } } };
+  assert.equal(supporterChoices(chosen).aidAbility, "wis", "a stored choice still wins");
+});

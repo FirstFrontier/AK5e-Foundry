@@ -15,6 +15,9 @@ import {
 } from "../scripts/supporter-progression.mjs";
 import { supporterActions, supporterAidDieView, supporterTalentActions, supporterPanelHtml } from "../scripts/supporter-sheet.mjs";
 import { defineSupporterPools } from "../scripts/supporter-features.mjs";
+import { recipientCandidates, aidAbilityWarningHtml } from "../scripts/supporter-sheet.mjs";
+import { revertArtItems } from "../scripts/supporter-arts.mjs";
+import { hasAidAbilityChoice } from "../scripts/supporter-rules.mjs";
 import { getPool, getPoolDefinition } from "../scripts/resource-pools.mjs";
 import { SUPPORTER_CLASS_ID } from "../scripts/supporter-rules.mjs";
 import {
@@ -353,4 +356,50 @@ test("talent grants record flags.ak5e.supporterTalent mode, and the R11 ruling o
 
   const plan = await previewSupporterProgression(createSupporterActor(3), { ...baseChoices, talents: { basic: SUPPORTER_TALENT_IDS.lucky } });
   assert.equal(plan.createItems.find(i => i.flags?.ak5e?.chapterThreeId === SUPPORTER_TALENT_IDS.lucky).flags.ak5e.supporterTalent.mode, "plan");
+});
+
+/* ---- r1-base rulings F-R4, F-R5 (warning), F-R8 (keepId, branch collision) ---- */
+
+test("F-R4: recipients include every visible actor and targeted unlinked token actors, never the giver or compendium Actors", () => {
+  const giver = { uuid: "Actor.giver", name: "Giver" };
+  const npc = { uuid: "Actor.npc", name: "NPC", type: "npc" };
+  const automaton = { uuid: "Actor.auto", name: "Automaton", type: "npc" };
+  const hidden = { uuid: "Actor.hidden", name: "Hidden", type: "character" };
+  const packed = { uuid: "Compendium.x.Actor.y", name: "Packed", pack: "x" };
+  const unlinked = { uuid: "Scene.s.Token.t.Actor.u", name: "Unlinked", type: "npc" };
+  const list = recipientCandidates(giver, {
+    actors: [giver, npc, automaton, hidden, packed],
+    targetActors: [unlinked, npc],
+    canSee: candidate => candidate !== hidden
+  });
+  assert.deepEqual(list.map(c => c.uuid), ["Actor.npc", "Actor.auto", "Scene.s.Token.t.Actor.u"]);
+});
+
+test("F-R5: the aid warning names the ability in use when no choice is stored, and offers the choice", () => {
+  const noFlag = { name: "Sup", system: { abilities: { int: { mod: 1 }, wis: { mod: 2 }, cha: { mod: 3 } } }, flags: {} };
+  const html = aidAbilityWarningHtml(noFlag, true);
+  assert.match(html, /Aid ability not chosen — using CHA/);
+  assert.match(html, /data-supporter-cmd="__aidAbility"/);
+  const withFlag = { ...noFlag, flags: { ak5e: { supporter: { aidAbility: "int" } } } };
+  assert.equal(hasAidAbilityChoice(withFlag), true);
+  assert.equal(hasAidAbilityChoice(noFlag), false);
+  assert.match(aidAbilityWarningHtml({ ...noFlag, system: { abilities: { int: { mod: 4 }, wis: { mod: 0 }, cha: { mod: 1 } } } }, false), /using INT/);
+});
+
+test("F-R8: revertArtItems restores removed Arts with keepId, so the ids are the same", async () => {
+  const calls = [];
+  const actor = {
+    items: new Map(),
+    async createEmbeddedDocuments(type, data, options) { calls.push({ type, data, options }); return data; },
+    async deleteEmbeddedDocuments() { return []; }
+  };
+  await revertArtItems(actor, { removed: [{ _id: "artId123", name: "Old Art", type: "feat" }], createdIds: [] });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].options?.keepId, true);
+  assert.equal(calls[0].data[0]._id, "artId123");
+});
+
+test("F-R8: a branch whose plan name collides leaves nothing registered", () => {
+  assert.throws(() => registerSupporterBranchModule({ id: "collide-test", branch: "collidetest", plans: { provideAid() {} } }));
+  assert.equal(SUPPORTER_BRANCH_MODULES.has("collidetest"), false, "no half-registered branch entry");
 });

@@ -79,7 +79,8 @@ test("ADV-AID-1: Provide Aid grants 10-minute effect with correct die size and m
   assert.ok(receipt, "Receipt was recorded");
   assert.equal(receipt.targets?.length, 1);
   assert.equal(receipt.targets[0].uuid, ally.uuid);
-  assert.equal(receipt.targets[0].tag.duration, 600, "Duration is 10 minutes (600s)");
+  assert.equal(receipt.targets[0].tag.trigger, "time", "Aid Die expires on world time (C3:6635)");
+  assert.equal(receipt.targets[0].tag.seconds, 600, "Duration is 10 minutes (600s)");
   assert.equal(receipt.targets[0].tag.data.dieSize, "d10");
   assert.equal(receipt.targets[0].tag.data.supporterLevel, 7);
   assert.equal(receipt.targets[0].tag.data.advancedAid, true, "Level 7 has Advanced Aid active");
