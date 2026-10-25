@@ -11,7 +11,9 @@
 - [ ] Medic casting integration and Witchcraft workflows and rendered acceptance.
 - [ ] Full regressions, source coverage/evidence report, screenshot review and restart acceptance.
 
-Implementation uses isolated copies under `/tmp/ak5e-five-branches-x6z5x8s1`; shared files have one integrating writer. Publishing and release packs remain separate.
+Claude Code resumed this batch on 2026-10-25 on integration branch `feat/five-branches`. It contains Codex's uncommitted snapshot, merged with `origin/feat/supporter-base` (Supporter, Hexer, Artificer and Bard, PRs #8–#36) and the newer Codex Artsblade corrections. The Infuser bugs are renumbered B-303–B-307. Units U0–U5 run as Sonnet implementer and Haiku challenger pairs, with PRs into `feat/five-branches`. Publishing and release packs remain separate.
+- [x] U0: confirmPlayUse up-front confirm reconciled (one confirm per use; `confirmed: true` for callers with their own form); fortress `useRoll` regression fixed (#37).
+- [ ] U1 Guard/Artsblade · U2 Specialist/Infuser · U3 Medic casting + Witchcraft · U4 Supporter/Artificer · U5 Bard.
 
 ### Vanguard, Agent, Charger and Pioneer workflows (2026-10-24)
 
