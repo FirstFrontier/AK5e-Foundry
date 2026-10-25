@@ -8,7 +8,7 @@ import { sourceEntryData } from "./caster-setup.mjs";
 import {
   SUPPORTER_CLASS_ID, SUPPORTER_BRANCH_IDS, SUPPORTER_SKILLS, SUPPORTER_SAVES,
   SUPPORTER_ARMOR_PROFS, SUPPORTER_WEAPON_PROFS, SUPPORTER_TOOL_CHOICES,
-  ASI_LEVELS, checkLevel, supporterProfile, supporterState
+  ASI_LEVELS, checkLevel, supporterProfile, supporterState, aidAbilityKey
 } from "./supporter-rules.mjs";
 import { need } from "./operation-kernel.mjs";
 import { supporterBranchFeatureIds } from "./supporter-branches.mjs";
@@ -155,7 +155,7 @@ export function supporterChoices(actor, supplied = {}) {
   }
   result.talents = { ...(saved.talents ?? {}), ...(supplied.talents ?? {}) };
   result.branch = supplied.branch ?? saved.branch ?? null;
-  result.aidAbility = supplied.aidAbility ?? saved.aidAbility ?? "cha";
+  result.aidAbility = supplied.aidAbility ?? saved.aidAbility ?? aidAbilityKey(actor);
   result.tool = supplied.tool ?? saved.tool ?? "Tool Kit";
 
   const level = levelOf(supporterClass(actor));
@@ -252,7 +252,7 @@ export function inspectSupporterFields(actor, choices = {}) {
     option("int", "Intelligence"),
     option("wis", "Wisdom"),
     option("cha", "Charisma")
-  ], 1, currentChoices.aidAbility ?? "cha"));
+  ], 1, currentChoices.aidAbility ?? aidAbilityKey(actor)));
 
   // Tool / Vehicle proficiency
   fields.push(field("tool", "Choose a Tool Kit or Vehicle proficiency", [

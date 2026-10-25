@@ -5,17 +5,21 @@
  * Damage, healing and feature dice are never rolled here; uses post roll buttons on their cards.
  */
 import {
-  supporterProfile, supporterLevel, aidDieSize, pbForLevel, flag
+  supporterProfile, supporterLevel, aidDieSize, pbForLevel, flag, aidAbilityKey, hasAidAbilityChoice
 } from "./supporter-rules.mjs";
 import { getPool, getPoolDefinition } from "./resource-pools.mjs";
-import { supporterUses } from "./supporter-uses.mjs";
+import { need } from "./operation-kernel.mjs";
+import { supporterUses, confirmSupporterUse } from "./supporter-uses.mjs";
+export { confirmSupporterUse };
 import { confirmPlayUse, openPlayUndoList, renderPlayUseCard } from "./play-uses-sheet.mjs";
 import { SUPPORTER_BRANCH_MODULES } from "./supporter-branches.mjs";
 import {
   SUPPORTER_TALENT_IDS, SUPPORTER_TALENT_RULES, ownedTalent, supporterTalentManualCard
 } from "./supporter-talents.mjs";
 import { previewSupporterSetup, applySupporterSetup } from "./supporter-setup.mjs";
-import { previewSupporterProgression, applySupporterProgression } from "./supporter-progression.mjs";
+import {
+  previewSupporterProgression, applySupporterProgression, inspectSupporterFields
+} from "./supporter-progression.mjs";
 
 let installed = false;
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -42,6 +46,13 @@ export function supporterAidDieView(actor) {
   return { value: pool.value, max: pool.max, over: pool.over, size, pb: pbForLevel(level), level };
 }
 
+/** F-R5 warning line for an Actor with no stored Aid Die ability; the owner gets the control to choose one. */
+export function aidAbilityWarningHtml(actor, withButton = false) {
+  const using = aidAbilityKey(actor).toUpperCase();
+  const button = withButton ? `<button type="button" data-supporter-cmd="__aidAbility">Choose Aid ability</button>` : "";
+  return `<div class="ak5e-supporter-warning ak5e-supporter-aid-ability">Aid ability not chosen — using ${esc(using)}. ${button}</div>`;
+}
+
 /** Which action rows are shown: each is gated by its Supporter level, and every one is confirmable. */
 export function supporterActions(actor) {
   const level = supporterLevel(actor) ?? 1;
@@ -66,21 +77,12 @@ export function supporterTalentActions(actor) {
   return result;
 }
 
-/** Confirm step for every use or setup. Resolves true only on Confirm. */
-export async function confirmSupporterUse(title, lines) {
-  const content = `<div class="ak5e-supporter-confirm">${lines.map(line => `<p>${esc(line)}</p>`).join("")}</div>`;
-  const result = await DialogV2().wait({
-    window: { title },
-    position: { width: 480 },
-    rejectClose: false,
-    content,
-    buttons: [
-      { action: "confirm", label: "Confirm", default: true, callback: () => true },
-      { action: "cancel", label: "Cancel", callback: () => false }
-    ]
-  });
-  return result === true;
-}
+const ABILITY_KEYS = Object.freeze(["int", "wis", "cha"]);
+
+/** A select of INT/WIS/CHA for the Aid Die ability, preselecting `selected`. */
+const aidAbilitySelect = selected => `<label>Aid Die ability (chosen modifier)
+  <select name="aidAbility">${ABILITY_KEYS.map(key => `<option value="${key}"${key === selected ? " selected" : ""}>${key.toUpperCase()}</option>`).join("")}</select>
+</label>`;
 
 /** A small details prompt (text, number, checkbox or select fields). Cancel resolves null and changes nothing. */
 async function detailsPrompt(title, fieldsHtml, read) {
@@ -103,13 +105,83 @@ async function promptRollType(title) {
     </label>`, elements => elements.rollType?.value ?? null);
 }
 
+/** F-R6: one control per progression field. Single choices are option indexes; a blank hp/asi choice keeps the existing one. */
+function progressionFieldHtml(field) {
+  if (field.count > 1) {
+    const chosen = Array.isArray(field.selected) ? field.selected : [];
+    const boxes = field.options.map(option => `<label><input type="checkbox" name="${esc(field.key)}" value="${esc(option.value)}"${chosen.includes(option.value) ? " checked" : ""}> ${esc(option.label)}</label>`).join("");
+    return `<fieldset><legend>${esc(field.label)}</legend>${boxes}</fieldset>`;
+  }
+  const selectedJson = JSON.stringify(field.selected ?? null);
+  const matched = field.options.some(option => JSON.stringify(option.value) === selectedJson);
+  const keepsExisting = field.key.startsWith("hp.") || field.key.startsWith("asi.");
+  const blank = `<option value=""${matched ? "" : " selected"}>${keepsExisting ? "Already included (keep)" : "Not chosen"}</option>`;
+  const options = field.options.map((option, index) => `<option value="${index}"${JSON.stringify(option.value) === selectedJson ? " selected" : ""}>${esc(option.label)}</option>`).join("");
+  return `<label class="ak5e-supporter-field">${esc(field.label)} <select name="${esc(field.key)}">${blank}${options}</select></label>`;
+}
+
+/** Writes `value` at a dotted key path ("hp.2", "startingEquipment.weapon1") of `target`. */
+function setChoicePath(target, key, value) {
+  const parts = key.split(".");
+  let node = target;
+  for (const part of parts.slice(0, -1)) node = node[part] ??= {};
+  node[parts.at(-1)] = value;
+}
+
+/** Reads the progression controls into a choices object (only fields the owner set are written). */
+function readProgressionChoices(elements, fields) {
+  const choices = {};
+  for (const field of fields) {
+    const control = elements.namedItem(field.key);
+    if (field.count > 1) {
+      const boxes = control ? (control.length !== undefined && !control.tagName ? Array.from(control) : [control]) : [];
+      setChoicePath(choices, field.key, boxes.filter(box => box.checked).map(box => box.value));
+      continue;
+    }
+    const index = control?.value ?? "";
+    if (index === "") {
+      if (field.key.startsWith("hp.") || field.key.startsWith("asi.")) setChoicePath(choices, field.key, { mode: "existing" });
+      continue;
+    }
+    setChoicePath(choices, field.key, field.options[Number(index)]?.value);
+  }
+  return choices;
+}
+
+/** The progression choice fields (the same ones the preview builds). Cancel resolves null and changes nothing. */
+async function progressionChoicesPrompt(actor, savedChoices) {
+  const fields = inspectSupporterFields(actor, savedChoices);
+  const fieldsHtml = fields.map(progressionFieldHtml).join("");
+  return detailsPrompt("Supporter progression", fieldsHtml, elements => readProgressionChoices(elements, fields));
+}
+
 const targetUuidFromUser = () => Array.from(game.user?.targets ?? [])[0]?.actor?.uuid ?? null;
 const targetNameFromUser = () => Array.from(game.user?.targets ?? [])[0]?.actor?.name ?? "";
 
+/**
+ * Every recipient the user can see (characters, NPCs, Automatons) plus the actors of the user's targeted tokens,
+ * including unlinked token actors (addressed by their own uuid). Excludes the giver, compendium Actors and duplicates.
+ */
+export function recipientCandidates(actor, { actors = [], targetActors = [], canSee = () => true } = {}) {
+  const found = new Map();
+  const add = candidate => {
+    if (!candidate?.uuid || candidate.uuid === actor?.uuid || candidate.pack || found.has(candidate.uuid)) return;
+    found.set(candidate.uuid, candidate);
+  };
+  for (const candidate of actors) if (canSee(candidate)) add(candidate);
+  for (const candidate of targetActors) add(candidate);
+  return [...found.values()];
+}
+
 async function chooseAlly(actor, title) {
-  const allies = Array.from(game.actors?.contents ?? game.actors ?? [])
-    .filter(candidate => candidate.type === "character" && candidate.id !== actor.id && !candidate.pack);
-  if (!allies.length) { ui.notifications.warn("No other character is available as the recipient."); return null; }
+  const targetActors = Array.from(game.user?.targets ?? []).map(token => token.actor).filter(Boolean);
+  const allies = recipientCandidates(actor, {
+    actors: Array.from(game.actors?.contents ?? game.actors ?? []),
+    targetActors,
+    canSee: candidate => Boolean(game.user?.isGM) || candidate.testUserPermission?.(game.user, "LIMITED") === true
+  });
+  if (!allies.length) { ui.notifications.warn("No other actor is available as the recipient."); return null; }
+  // F-R4: the first targeted creature is preselected.
   const preselect = targetUuidFromUser();
   const options = allies.map(candidate => `<option value="${esc(candidate.uuid)}"${candidate.uuid === preselect ? " selected" : ""}>${esc(candidate.name)}</option>`).join("");
   return detailsPrompt(title, `<label>Recipient <select name="target">${options}</select></label>`, elements => {
@@ -215,27 +287,51 @@ export async function handleSupporterCommand(actor, cmd) {
   if (cmd === "__open") return openSupporterControls(actor);
 
   if (cmd === "__setup") {
-    const preview = await previewSupporterSetup(actor);
+    // F-R5: the chooser defaults to the stored Aid Die ability, else the highest of INT/WIS/CHA.
+    const initial = await previewSupporterSetup(actor);
+    const aidAbility = await detailsPrompt("Set up Supporter features", aidAbilitySelect(initial.aidAbility),
+      elements => elements.aidAbility?.value ?? null);
+    if (!aidAbility) return null;
+    const preview = await previewSupporterSetup(actor, { aidAbility });
     const names = preview.creates.map(item => item.name);
     const confirmed = await confirmSupporterUse("Set up Supporter features", [
       `Grants ${names.length} core feature${names.length === 1 ? "" : "s"} for level ${preview.level}.`,
-      names.length ? names.join(", ") : "Nothing new; the features are already present."
+      names.length ? names.join(", ") : "Nothing new; the features are already present.",
+      `Aid Dice use the ${aidAbility.toUpperCase()} modifier.`
     ]);
     if (!confirmed) return null;
-    const result = await applySupporterSetup(actor, { confirmed: true, contextKey: preview.contextKey });
+    const result = await applySupporterSetup(actor, { confirmed: true, contextKey: preview.contextKey, aidAbility });
     ui.notifications.info(`Supporter features set up (${result.createdCount} added).`);
     return result;
   }
 
+  if (cmd === "__aidAbility") {
+    need(actor.isOwner, "Only the owner may choose this Supporter's Aid Die ability.");
+    const current = aidAbilityKey(actor);
+    const picked = await detailsPrompt("Aid Die ability", aidAbilitySelect(current), elements => elements.aidAbility?.value ?? null);
+    if (!ABILITY_KEYS.includes(picked)) return null;
+    await actor.update({ "flags.ak5e.supporter.aidAbility": picked });
+    ui.notifications.info(`Aid Dice now use the ${picked.toUpperCase()} modifier.`);
+    return picked;
+  }
+
   if (cmd === "__progression") {
+    // F-R6: the owner picks each choice field (the same fields the progression preview builds), then confirms.
     const preview = await previewSupporterProgression(actor);
+    const picked = await progressionChoicesPrompt(actor, preview.choices);
+    if (!picked) return null;
+    const next = await previewSupporterProgression(actor, picked);
+    if (next.pending.length) {
+      ui.notifications.warn(`Choose the remaining Supporter progression fields first: ${next.pending.join(", ")}.`);
+      return null;
+    }
     const confirmed = await confirmSupporterUse("Supporter progression", [
-      `Applies Supporter progression for level ${preview.level}.`,
-      preview.pending.length ? `Still needed: ${preview.pending.join(", ")}.` : "All required choices are present.",
-      ...preview.warnings
+      `Applies Supporter progression for level ${next.level}.`,
+      "All required choices are present.",
+      ...next.warnings
     ]);
     if (!confirmed) return null;
-    return applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices: preview.choices });
+    return applySupporterProgression(actor, { confirmed: true, contextKey: next.contextKey, choices: picked });
   }
 
   // Branch controls: the registered branch module's command() returns undefined for a control it does not own.
@@ -302,6 +398,7 @@ export function supporterPanelHtml(actor) {
   ];
   // R1: at 0 or below the sheet warns; the GM resolves.
   if (view.max !== null && view.max <= 0) parts.push(`<div class="ak5e-supporter-warning">${esc(Math.max(0, view.max))} Aid Dice — GM resolves</div>`);
+  if (profile.configured && !hasAidAbilityChoice(actor)) parts.push(aidAbilityWarningHtml(actor, actor.isOwner));
   if (actor.isOwner && profile.configured) {
     parts.push(`<div class="ak5e-supporter-button-row">${supporterActions(actor).map(action => cmdButton(action.cmd, action.label)).join("")}${cmdButton("undo", "Review / Undo Recent Uses")}</div>`);
     const talents = supporterTalentActions(actor);
@@ -323,6 +420,7 @@ export async function openSupporterControls(actor) {
       <h4>${esc(actor.name)} — Supporter Level ${profile.level ?? 1}${profile.branch ? ` (${esc(branchName(profile.branch))})` : ""}</h4>
       <p><strong>Aid Dice:</strong> ${view.max === null ? "not set up" : `${view.value} / ${view.max}`} · <strong>Die:</strong> ${esc(view.size)}</p>
       ${view.max !== null && view.max <= 0 ? `<p class="ak5e-supporter-warning">${Math.max(0, view.max)} Aid Dice — GM resolves</p>` : ""}
+      ${profile.configured && !hasAidAbilityChoice(actor) ? aidAbilityWarningHtml(actor, actor.isOwner) : ""}
     </div>`);
 
   if (!profile.configured) {

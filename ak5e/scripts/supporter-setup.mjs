@@ -1,6 +1,6 @@
 /** Supporter feature setup: preview and apply class features up to current Supporter level idempotently. */
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
-import { SUPPORTER_CLASS_ID, supporterProfile, supporterLevel } from "./supporter-rules.mjs";
+import { SUPPORTER_CLASS_ID, supporterProfile, supporterLevel, aidAbilityKey } from "./supporter-rules.mjs";
 import { sourceEntryData } from "./caster-setup.mjs";
 import { need } from "./operation-kernel.mjs";
 import { defineSupporterPools } from "./supporter-features.mjs";
@@ -65,7 +65,8 @@ export async function previewSupporterSetup(actor, options = {}) {
   const existing = list(actor.items);
   const creates = [], kept = [];
   const stored = flag(actor, "supporter") ?? {};
-  const aidAbility = ["int", "wis", "cha"].includes(options.aidAbility) ? options.aidAbility : (stored.aidAbility ?? "cha");
+  // F-R5: the stored choice, else the highest of the INT/WIS/CHA modifiers (the setup dialog lets the owner change it).
+  const aidAbility = ["int", "wis", "cha"].includes(options.aidAbility) ? options.aidAbility : aidAbilityKey(actor);
   const branch = options.branch ?? profile.branch ?? stored.branch ?? null;
 
   for (const feat of SUPPORTER_CORE_FEATURES) {

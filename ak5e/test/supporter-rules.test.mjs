@@ -6,7 +6,7 @@ import {
   SUPPORTER_TOOL_CHOICES, ASI_LEVELS, SUPPORTER_LEVEL_STEPS, STARTING_EQUIPMENT_OPTIONS,
   checkLevel, pbForLevel, hitPointsAtLevel, aidDieSize, martialDC,
   supporterProfile, supporterEnabled, supporterLevel, supporterBranch,
-  calculateSupporterProfile
+  calculateSupporterProfile, aidAbilityKey, aidDieMax, highestAidAbility, hasAidAbilityChoice
 } from "../scripts/supporter-rules.mjs";
 import { setupFoundryGlobals, teardownFoundryGlobals, createTestActor, createTestItem } from "./base-classes-fixture.mjs";
 
@@ -251,4 +251,30 @@ test("artificerDC is 8 + Intelligence modifier + Proficiency Bonus (Ch. 3 L6958)
   const { artificerDC } = await import("../scripts/supporter-rules.mjs");
   assert.equal(artificerDC({ system: { attributes: { prof: 4 }, abilities: { int: { mod: 3 } } } }), 15);
   assert.equal(artificerDC({ system: { attributes: { prof: 2 }, abilities: { int: { mod: -1 } } } }), 9);
+});
+
+/* ---- r1-base ruling F-R5: Aid ability falls back to the highest INT/WIS/CHA modifier ---- */
+
+const abilityActor = (mods, flags = {}) => ({
+  name: "Sup", system: { abilities: { int: { mod: mods.int }, wis: { mod: mods.wis }, cha: { mod: mods.cha } } },
+  items: [], flags: flags.ak5e ? flags : { ak5e: flags }
+});
+
+test("F-R5: with no stored Aid ability the highest of INT/WIS/CHA is used; ties go cha, then wis, then int", () => {
+  assert.equal(aidAbilityKey(abilityActor({ int: 5, wis: 1, cha: 2 }, {})), "int");
+  assert.equal(aidAbilityKey(abilityActor({ int: 1, wis: 4, cha: 2 }, {})), "wis");
+  assert.equal(aidAbilityKey(abilityActor({ int: 3, wis: 3, cha: 3 }, {})), "cha", "three-way tie: cha");
+  assert.equal(aidAbilityKey(abilityActor({ int: 5, wis: 5, cha: 1 }, {})), "wis", "wis beats int on a tie");
+  assert.equal(aidAbilityKey(abilityActor({ int: 5, wis: 5, cha: 5 }, {})), "cha");
+  assert.equal(highestAidAbility(abilityActor({ int: 0, wis: 0, cha: -1 }, {})), "wis", "wis and int tie at 0; wis is earlier in the order");
+});
+
+test("F-R5: an explicit stored choice wins over the highest modifier; the max follows the chosen key", () => {
+  const explicit = abilityActor({ int: 1, wis: 2, cha: 6 }, { supporter: { enabled: true, aidAbility: "int" } });
+  assert.equal(aidAbilityKey(explicit), "int");
+  assert.equal(aidDieMax(explicit), 1, "explicit INT mod, not the highest");
+  const fallback = abilityActor({ int: 5, wis: 1, cha: 2 }, { supporter: { enabled: true } });
+  assert.equal(aidDieMax(fallback), 5);
+  assert.equal(calculateSupporterProfile(fallback).resources.aidDie.maxFormula, "max(0, @abilities.int.mod)");
+  assert.equal(hasAidAbilityChoice(fallback), false);
 });

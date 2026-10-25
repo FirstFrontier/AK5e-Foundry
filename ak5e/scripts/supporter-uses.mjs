@@ -20,7 +20,7 @@ import { need, values, esc } from "./operation-kernel.mjs";
 import { getReactions } from "./trigger-events.mjs";
 import { requireOverrides } from "./play-undo.mjs";
 import { getPool } from "./resource-pools.mjs";
-import { applyFeatureTag } from "./feature-tags.mjs";
+import { applyFeatureTag, tagExpiry } from "./feature-tags.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
 
 const ROLL_TYPES = Object.freeze(["attack", "skill", "save", "damage", "healing"]);
@@ -69,8 +69,35 @@ function checkAidRoll(warnings, rollType, data) {
   }
 }
 
-/** Expended-effect and rider changes are made by the holder's own client. Only the recorded change can be relayed. */
-const relayable = (receipt, entry, target) => entry.kind === "effect" && entry.meta?.aidDie === true && target?.uuid === entry.uuid && receipt.result?.dieSize === entry.tag?.data?.dieSize;
+/** The only keys this module writes into a feature tag, its data, and a relayed entry (F-R7). */
+const AID_TAG_KEYS = Object.freeze(["label", "trigger", "seconds", "expiryActor", "data", "instructions"]);
+const AID_TAG_DATA_KEYS = Object.freeze(["supporterUuid", "dieSize", "supporterLevel", "supporterPB", "advancedAid", "willIntoBeing", "supplementary"]);
+const AID_META_KEYS = Object.freeze(["aidDie", "dieSize", "supplementary"]);
+const AID_FEATURE_IDS = Object.freeze(["class-feature-supporter-1st-level-provide-aid-2284", "class-feature-supporter-11th-level-lighten-the-load-5608"]);
+/** Aid Die duration (C3:6635): the recipient has ten minutes of world time, in and out of combat. */
+const AID_DIE_SECONDS = 600;
+const onlyKeys = (object, allowed) => Boolean(object) && typeof object === "object" && !Array.isArray(object)
+  && Object.keys(object).every(key => allowed.includes(key));
+
+/**
+ * Expended-effect and rider changes are made by the holder's own client. Only the recorded change can be relayed,
+ * and only when its content is the shape this module creates (F-R7): no changes, condition or foreign keys, the
+ * module's own feature, a 600 s time expiry and the same die size as the receipt.
+ */
+const relayable = (source, receipt, entry, target) => {
+  const tag = entry.tag ?? {}, dieSize = receipt.result?.dieSize;
+  // The receipt and its entries are owner-writable: the die size and supporter are checked against the giver's own state.
+  return entry.kind === "effect" && target?.uuid === entry.uuid && entry.standardBenefit === undefined
+    && tag.data?.supporterUuid === source?.uuid && tag.data?.dieSize === aidDieSize(supporterLevel(source) ?? 1)
+    && entry.meta?.aidDie === true && onlyKeys(entry.meta, AID_META_KEYS)
+    && AID_FEATURE_IDS.includes(entry.featureId)
+    && onlyKeys(tag, AID_TAG_KEYS) && onlyKeys(tag.data, AID_TAG_DATA_KEYS)
+    && typeof tag.label === "string" && tag.label.length <= 160
+    && tag.trigger === "time" && tag.seconds === AID_DIE_SECONDS
+    && (tag.expiryActor === undefined || tag.expiryActor === "source" || tag.expiryActor === "target")
+    && (tag.instructions === undefined || typeof tag.instructions === "string")
+    && typeof dieSize === "string" && entry.meta.dieSize === dieSize && tag.data?.dieSize === dieSize;
+};
 
 const CORE_PLANS = {
   provideAid(actor, state, data) {
@@ -128,9 +155,9 @@ const CORE_PLANS = {
             featureId: "class-feature-supporter-1st-level-provide-aid-2284",
             tag: {
               label: `Aid Die (${die})`,
-              trigger: "turnStart",
+              trigger: "time",
+              seconds: AID_DIE_SECONDS,
               expiryActor: "source",
-              duration: 600,
               data: {
                 supporterUuid: actor.uuid,
                 dieSize: die,
@@ -309,8 +336,8 @@ const CORE_PLANS = {
             featureId: "class-feature-supporter-11th-level-lighten-the-load-5608",
             tag: {
               label: `Supplementary Aid Die (${die})`,
-              trigger: "turnStart",
-              duration: 600,
+              trigger: "time",
+              seconds: AID_DIE_SECONDS,
               data: {
                 supporterUuid: actor.uuid,
                 dieSize: die,
@@ -328,8 +355,8 @@ const CORE_PLANS = {
     };
   }
 };
-CORE_PLANS.provideAid.validateTarget = (source, receipt, entry, target) => relayable(receipt, entry, target);
-CORE_PLANS.lightenTheLoad.validateTarget = (source, receipt, entry, target) => relayable(receipt, entry, target);
+CORE_PLANS.provideAid.validateTarget = (source, receipt, entry, target) => relayable(source, receipt, entry, target);
+CORE_PLANS.lightenTheLoad.validateTarget = (source, receipt, entry, target) => relayable(source, receipt, entry, target);
 
 /**
  * Rider temp HP (save, healing): a change to the clicked creature, which may be unowned, so it goes
@@ -355,6 +382,63 @@ const AID_TEMP_HP_PLAN = {
 AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) =>
   entry.kind === "tempHP" && entry.amount === receipt.result?.amount && target?.uuid === entry.uuid;
 
+/**
+ * Advanced Aid card riders (F-R3). Each click is its own recorded use, so undo removes what it added. A missing or
+ * undone Aid Die use, or a rider already recorded for it, warns (never blocks).
+ */
+/** True when a live aidSecondRoll receipt already records a second roll for this Aid Die use. */
+function aidSecondRollRecorded(state, useId) {
+  return (state.undo ?? []).some(entry => entry.command === "aidSecondRoll" && entry.status !== "undone" && entry.data?.useId === useId);
+}
+
+const AID_CARD_PLANS = {
+  aidCritRider(actor, state, data) {
+    const undo = state.undo ?? [];
+    const parent = undo.find(entry => entry.id === data.useId) ?? null;
+    const riderId = `aidcrit-${data.useId}`;
+    const label = "Advanced Aid: critical range +1 (this attack)";
+    const warnings = [];
+    if (!parent || parent.status === "undone") {
+      warn(warnings, "parentUse", "The Aid Die use this rider belongs to is missing or was undone; the rider is recorded on its own.");
+    }
+    if (undo.some(entry => entry.status !== "undone" && entry.targets?.some(target => target.riderId === riderId))) {
+      warn(warnings, "riderPresent", "The critical-range rider for this Aid Die is already recorded.");
+    }
+    return {
+      title: label,
+      warnings,
+      apply(next, receipt) {
+        receipt.targets = [{ uuid: actor.uuid, name: actor.name, kind: "aidRider", riderId, label, ready: true }];
+        // Undoing the Aid Die use also undoes this child receipt, which removes the rider.
+        if (parent && parent.status !== "undone") receipt.parentUseId = data.useId;
+        receipt.summary = `${actor.name} widens the critical range by 1 for the next attack (Advanced Aid).`;
+        receipt.result = { critRider: riderId, useId: data.useId };
+        return {};
+      }
+    };
+  },
+  /** Once per Aid Die: records the second roll; the owner then rolls the stored formula on the click. */
+  aidSecondRoll(actor, state, data) {
+    const undo = state.undo ?? [];
+    const parent = undo.find(entry => entry.id === data.useId && AID_USE_COMMANDS.includes(entry.command)) ?? null;
+    need(parent?.formula, "Choose an Aid Die use to roll again.");
+    const warnings = [];
+    if (parent.status === "undone") warn(warnings, "parentUse", "This Aid Die use was undone.");
+    if (aidSecondRollRecorded(state, data.useId)) {
+      warn(warnings, "alreadyRolled", "Already rolled: this Aid Die has been rolled again. Advanced Aid allows one second roll per Aid Die.");
+    }
+    return {
+      title: "Advanced Aid: second roll",
+      warnings,
+      apply(next, receipt) {
+        receipt.summary = `${actor.name} rolls the Aid Die again (${parent.formula}); the owner chooses which result to use.`;
+        receipt.result = { formula: parent.formula, useId: data.useId, rollType: parent.result?.rollType ?? null };
+        return {};
+      }
+    };
+  }
+};
+
 /** Plans and readings registered so far. Branch modules add theirs through registerSupporterPlans(). */
 const ALL_PLANS = { ...CORE_PLANS };
 const ALL_READINGS = {};
@@ -373,22 +457,35 @@ supporterUses.register({
           tag.trigger = "manual";
           tag.instructions = `${tag.instructions ?? ""} Outside combat, remove it manually when it ends.`.trim();
         }
+        // The Aid Die data (giver level, die size, PB) is kept on the effect's featureTag.data on both paths.
+        const updates = { [`flags.ak5e.${supporterUses.effectFlag}`]: { opId: useId, sourceUuid: source.uuid, ...(entry.meta ?? {}) } };
+        if (tag.data) updates["flags.ak5e.featureTag"] = { data: structuredClone(tag.data) };
+        if (entry.standardBenefit) {
+          updates["flags.ak5e.standardBenefit"] = entry.standardBenefit;
+        }
         if (item) {
           const effect = await applyFeatureTag(source, item, target, tag);
-          const updates = { [`flags.ak5e.${supporterUses.effectFlag}`]: { opId: useId, sourceUuid: source.uuid, ...(entry.meta ?? {}) } };
-          if (entry.standardBenefit) {
-            updates["flags.ak5e.standardBenefit"] = entry.standardBenefit;
-          }
           try { await effect.update(updates); }
           catch (error) { await effect.delete(); throw error; }
         } else {
+          // No feature Item (setup not run): a tracked effect with a computed expiry, so expireFeatureTags removes it.
+          const temporaryTag = {
+            id: foundry.utils.randomID(), sourceActorUuid: source.uuid, sourceItemUuid: null,
+            targetActorUuid: target.uuid, targetItemUuid: null, label: String(tag.label ?? "Aid Die"),
+            sourceName: source.name, sourceItemName: null, targetItemName: null, expiry: tagExpiry(source, target, tag),
+            relationship: false, sourceDeletion: "remove", preset: null, actions: [],
+            instructions: String(tag.instructions ?? ""), counters: {}
+          };
           const effectData = {
-            name: tag.label ?? "Aid Die",
+            name: temporaryTag.label,
             icon: "icons/magic/control/buff-flight-wings-runes-purple.webp",
+            ...(tag.trigger === "time" ? { duration: { seconds: Number(tag.seconds), startTime: game.time.worldTime } } : {}),
             flags: {
               ak5e: {
                 [supporterUses.effectFlag]: { opId: useId, sourceUuid: source.uuid, ...(entry.meta ?? {}) },
-                featureTag: tag
+                ...(tag.data ? { featureTag: { data: structuredClone(tag.data) } } : {}),
+                ...(entry.standardBenefit ? { standardBenefit: entry.standardBenefit } : {}),
+                temporaryTag
               }
             }
           };
@@ -471,7 +568,7 @@ export function registerSupporterPlans({ plans = {}, readings = {}, cleanup } = 
   supporterUses.register({ plans, readings, cleanup });
 }
 
-registerSupporterPlans({ plans: AID_TEMP_HP_PLAN });
+registerSupporterPlans({ plans: { ...AID_TEMP_HP_PLAN, ...AID_CARD_PLANS } });
 
 supporterUses.plan = function(actor, name, data = {}) {
   need(Object.hasOwn(ALL_PLANS, name), `Unknown Supporter plan ${name}.`);
@@ -491,25 +588,57 @@ const notify = error => {
   globalThis.ui?.notifications?.error?.(error?.message ?? String(error));
 };
 
+/** Confirm step for every Supporter use (WORKFLOW §3.2). Resolves true only on Confirm; Cancel changes nothing. */
+export async function confirmSupporterUse(title, lines) {
+  const content = `<div class="ak5e-supporter-confirm">${lines.map(line => `<p>${esc(line)}</p>`).join("")}</div>`;
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title },
+    position: { width: 480 },
+    rejectClose: false,
+    content,
+    buttons: [
+      { action: "confirm", label: "Confirm", default: true, callback: () => true },
+      { action: "cancel", label: "Cancel", callback: () => false }
+    ]
+  });
+  return result === true;
+}
+
 /** Roll the Aid Die on the user's click only: the engine's useRoll posts the result. */
 async function clickRoll(actor, useId) {
   return confirmPlayUse("Roll Aid Die", () => supporterUses.command(actor, "useRoll", { useId }, foundry.utils.randomID()));
 }
 
-/** Temp HP = the stored Aid Die roll (+PB for a save), applied to the chosen creature through the relay. */
+/** Temp HP = the stored Aid Die roll (+PB for a save), applied to the chosen creature through the relay. Always confirmed (F-R3). */
 async function clickTempHP(actor, useId) {
   const receipt = supporterUses.receipt(actor, useId);
   need(receipt?.roll !== undefined, "Roll the Aid Die first.");
   const amount = Number(receipt.roll) + (receipt.result?.rollType === "save" ? Number(receipt.result?.pb ?? 0) : 0);
   const target = globalThis.game?.user?.targets?.first?.()?.actor ?? actor;
+  const confirmed = await confirmSupporterUse("Temporary HP", [
+    `${target.name} gains ${amount} Temporary Hit Points (Advanced Aid).`,
+    "Temporary Hit Points do not stack: the higher value is kept. Undo restores the previous value."
+  ]);
+  if (!confirmed) return null;
   const opId = foundry.utils.randomID();
   return confirmPlayUse("Temporary HP", extra => supporterUses.execute(actor, "aidTempHP",
     { targetUuid: target.uuid, targetName: target.name, amount, ...extra }, opId));
 }
 
-async function clickSecondRoll(actor, formula) {
-  const roll = await new Roll(formula, actor.getRollData?.() ?? {}).evaluate();
+/** Advanced Aid second roll (once per Aid Die): recorded as a use first, then rolled on this click only. */
+async function clickSecondRoll(actor, useId) {
+  // One dialog: a repeat click's warning is the confirm itself, and the recorded override lets the use proceed.
+  const repeat = aidSecondRollRecorded(supporterUses.state(actor), useId);
+  const confirmed = await confirmSupporterUse("Advanced Aid: second roll", repeat
+    ? ["Already rolled: this Aid Die has been rolled again. Confirm to roll once more anyway.", `${actor.name} rolls the Aid Die again; you choose which result to use.`]
+    : [`${actor.name} rolls the Aid Die again; you choose which result to use.`, "Advanced Aid allows one second roll per Aid Die."]);
+  if (!confirmed) return null;
+  const result = await confirmPlayUse("Advanced Aid: second roll", extra => supporterUses.command(actor, "aidSecondRoll",
+    { useId, confirmed: true, ...extra, overrides: [...(repeat ? ["alreadyRolled"] : []), ...(extra.overrides ?? [])] }, foundry.utils.randomID()));
+  if (!result) return null;
+  const roll = await new Roll(result.formula, actor.getRollData?.() ?? {}).evaluate();
   await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: "Advanced Aid: second Aid Die roll (choose the result to use)" });
+  return roll;
 }
 
 async function clickForce(actor, useId) {
@@ -521,8 +650,15 @@ async function clickForce(actor, useId) {
     content: `<p>Advanced Aid: ${esc(receipt.roll)} Force damage to ${esc(name)} (within 10 ft of the creature damaged). Apply it with the native damage controls.</p>` });
 }
 
+/** Advanced Aid crit rider from the card: confirmed, then recorded as its own use so undo removes the rider (F-R3). */
 async function clickCrit(actor, useId) {
-  await registerAidCritRider(actor, `aidcrit-${useId}`);
+  const confirmed = await confirmSupporterUse("Advanced Aid: critical range", [
+    `${actor.name} widens the critical range by 1 (20 becomes 19) for the next attack only.`,
+    "Undoing this use removes the rider."
+  ]);
+  if (!confirmed) return null;
+  return confirmPlayUse("Advanced Aid: critical range", extra => supporterUses.command(actor, "aidCritRider",
+    { useId, confirmed: true, ...extra }, foundry.utils.randomID()));
 }
 
 async function clickWill(actor, pb) {
@@ -538,7 +674,7 @@ async function handleAidClick(button) {
   if (button.dataset.ak5eWillIntoBeing !== undefined) return clickWill(actor, button.dataset.ak5eWillIntoBeing);
   switch (button.dataset.ak5eRider) {
     case "crit": return clickCrit(actor, useId);
-    case "second": return clickSecondRoll(actor, button.dataset.formula);
+    case "second": return clickSecondRoll(actor, useId);
     case "tempHP": return clickTempHP(actor, useId);
     case "force": return clickForce(actor, useId);
     default: throw new Error(`Unknown Advanced Aid rider ${button.dataset.ak5eRider ?? ""}.`);

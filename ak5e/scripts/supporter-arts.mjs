@@ -176,7 +176,8 @@ export async function revertArtItems(actor, applied = {}) {
   const createdIds = (applied.createdIds ?? []).filter(id => actor.items.get(id));
   if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds);
   const restore = (applied.removed ?? []).filter(snapshot => !actor.items.get(snapshot._id));
-  if (restore.length) await actor.createEmbeddedDocuments("Item", restore.map(snapshot => structuredClone(snapshot)));
+  // keepId: the restored Arts keep their original ids, so later references (and undo of a later use) still resolve.
+  if (restore.length) await actor.createEmbeddedDocuments("Item", restore.map(snapshot => structuredClone(snapshot)), { keepId: true });
   return { removed: createdIds.length, restored: restore.length };
 }
 

@@ -358,8 +358,12 @@ export const SUPPORTER_TALENT_PLANS = Object.freeze({
 });
 
 let talentPlansRegistered = false;
-/** Registers the talent plans with the Supporter use engine. Idempotent: a second call is a no-op. */
+/**
+ * Registers the talent plans with the Supporter use engine and defines the talent-use pools (F-R2), so the pools
+ * exist before any talent use and again after a reload. Idempotent: repeated calls are no-ops.
+ */
 export function registerSupporterTalentPlans() {
+  defineSupporterTalentPools();
   if (talentPlansRegistered) return true;
   registerSupporterPlans({ plans: SUPPORTER_TALENT_PLANS, readings: {} });
   talentPlansRegistered = true;

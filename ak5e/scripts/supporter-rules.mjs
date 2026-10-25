@@ -138,10 +138,33 @@ export function artificerDC(actor) {
   return 8 + Number(system.attributes?.prof ?? 2) + Number(system.abilities?.int?.mod ?? 0);
 }
 
-/** The Aid Ability chosen at 1st Level: "int", "wis" or "cha" (default "cha"). */
+/** Tie order for the highest-modifier fallback: cha, then wis, then int. */
+const AID_ABILITY_TIE_ORDER = Object.freeze(["cha", "wis", "int"]);
+
+/** The highest of the INT/WIS/CHA modifiers; ties resolve cha, then wis, then int. */
+export function highestAidAbility(actor) {
+  const abilities = actor?.system?.abilities ?? {};
+  let best = null;
+  for (const key of AID_ABILITY_TIE_ORDER) {
+    const mod = Number(abilities[key]?.mod ?? 0) || 0;
+    if (best === null || mod > best.mod) best = { key, mod };
+  }
+  return best.key;
+}
+
+/**
+ * The Aid Ability: the stored "int", "wis" or "cha" choice. When none is stored, the highest of the
+ * INT/WIS/CHA modifiers is used (F-R5); the sheet tells the owner to choose.
+ */
 export function aidAbilityKey(actor) {
   const key = flag(actor, "supporter")?.aidAbility;
-  return key === "int" || key === "wis" ? key : "cha";
+  return key === "int" || key === "wis" || key === "cha" ? key : highestAidAbility(actor);
+}
+
+/** True when the owner has stored an explicit Aid Ability choice. */
+export function hasAidAbilityChoice(actor) {
+  const key = flag(actor, "supporter")?.aidAbility;
+  return key === "int" || key === "wis" || key === "cha";
 }
 
 /** Aid Die maximum (C3:6637): the chosen ability modifier, never below 0 (R1). Warn at 0; the GM resolves. */

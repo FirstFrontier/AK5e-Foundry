@@ -48,8 +48,10 @@ export function registerSupporterBranchModule(definition) {
     readings: Object.freeze({ ...(definition.readings ?? {}) }),
     progressionFeatures: normalizeProgressionFeatures(definition.progressionFeatures)
   });
-  SUPPORTER_BRANCH_MODULES.set(definition.branch, registered);
+  // F-R8: plan and reading names are checked (and registered) before the map entry is stored, so a collision
+  // leaves nothing half-registered.
   registerBranchPlans(registered);
+  SUPPORTER_BRANCH_MODULES.set(definition.branch, registered);
   return registered;
 }
 
