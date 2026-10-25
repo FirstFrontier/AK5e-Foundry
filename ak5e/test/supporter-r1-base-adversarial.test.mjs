@@ -356,6 +356,8 @@ test("F-R3 Temp HP (H5): Confirm then Cancel at the second step writes nothing",
   const buttons = renderCard(actor, "r1-temp-h5");
   await press(rollButton(buttons));
   const rolled = Number(supporterUses.receipt(actor, "r1-temp-h5").roll);
+  // The Roll button's own confirm is not the Temp HP rider's dialog: count only the rider's dialogs.
+  dialogs.length = 0;
   answers.push("confirm", "cancel");
   await press(riderButton(buttons, "tempHP"));
   assert.ok(dialogs.length >= 1, "the rider asks for confirmation before writing (F-R3)");

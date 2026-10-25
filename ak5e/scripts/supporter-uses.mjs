@@ -622,7 +622,7 @@ async function clickTempHP(actor, useId) {
   if (!confirmed) return null;
   const opId = foundry.utils.randomID();
   return confirmPlayUse("Temporary HP", extra => supporterUses.execute(actor, "aidTempHP",
-    { targetUuid: target.uuid, targetName: target.name, amount, ...extra }, opId));
+    { targetUuid: target.uuid, targetName: target.name, amount, ...extra }, opId), { confirmed: true });
 }
 
 /** Advanced Aid second roll (once per Aid Die): recorded as a use first, then rolled on this click only. */
@@ -634,7 +634,7 @@ async function clickSecondRoll(actor, useId) {
     : [`${actor.name} rolls the Aid Die again; you choose which result to use.`, "Advanced Aid allows one second roll per Aid Die."]);
   if (!confirmed) return null;
   const result = await confirmPlayUse("Advanced Aid: second roll", extra => supporterUses.command(actor, "aidSecondRoll",
-    { useId, confirmed: true, ...extra, overrides: [...(repeat ? ["alreadyRolled"] : []), ...(extra.overrides ?? [])] }, foundry.utils.randomID()));
+    { useId, confirmed: true, ...extra, overrides: [...(repeat ? ["alreadyRolled"] : []), ...(extra.overrides ?? [])] }, foundry.utils.randomID()), { confirmed: true });
   if (!result) return null;
   const roll = await new Roll(result.formula, actor.getRollData?.() ?? {}).evaluate();
   await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: "Advanced Aid: second Aid Die roll (choose the result to use)" });
@@ -658,7 +658,7 @@ async function clickCrit(actor, useId) {
   ]);
   if (!confirmed) return null;
   return confirmPlayUse("Advanced Aid: critical range", extra => supporterUses.command(actor, "aidCritRider",
-    { useId, confirmed: true, ...extra }, foundry.utils.randomID()));
+    { useId, confirmed: true, ...extra }, foundry.utils.randomID()), { confirmed: true });
 }
 
 async function clickWill(actor, pb) {

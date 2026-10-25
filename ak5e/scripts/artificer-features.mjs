@@ -684,7 +684,7 @@ function tokenDistance(actor, automaton) {
 /** Runs a confirmed use: one stable operation ID per click, so a retry resumes the same receipt. */
 function runUse(actor, title, name, data) {
   const opId = foundry.utils.randomID();
-  return confirmPlayUse(title, extra => supporterUses.execute(actor, name, { ...data, ...extra }, opId));
+  return confirmPlayUse(title, extra => supporterUses.execute(actor, name, { ...data, ...extra }, opId), { confirmed: true });
 }
 
 /** A use with no form of its own: the confirm summary comes first, and Cancel writes nothing (WORKFLOW §3.2). */

@@ -195,7 +195,7 @@ async function chooseAlly(actor, title) {
 async function runSupporterUse(actor, plan, title, data, summaryLines) {
   const confirmed = await confirmSupporterUse(title, summaryLines);
   if (!confirmed) return null;
-  return confirmPlayUse(title, extra => supporterUses.command(actor, plan, { confirmed: true, ...data, ...extra }, operationId()));
+  return confirmPlayUse(title, extra => supporterUses.command(actor, plan, { confirmed: true, ...data, ...extra }, operationId()), { confirmed: true });
 }
 
 async function postManualCard(actor, talentId) {

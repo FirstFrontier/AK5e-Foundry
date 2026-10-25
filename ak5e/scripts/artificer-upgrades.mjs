@@ -614,7 +614,7 @@ export async function artificerUpgradeCommand(actor, cmd) {
   if (!choice) return null;
   const name = { artificerInstallUpgrade: "installUpgrade", artificerUseUpgrade: "useUpgrade", artificerPersonality: "basicPersonalityMatrix" }[cmd];
   const opId = foundry.utils.randomID();
-  return confirmPlayUse(name, extra => supporterUses.execute(actor, name, { ...choice, ...extra }, opId));
+  return confirmPlayUse(name, extra => supporterUses.execute(actor, name, { ...choice, ...extra }, opId), { confirmed: true });
 }
 
 /* ---------------------------------------------------------------- hooks and API */

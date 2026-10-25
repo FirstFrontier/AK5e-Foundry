@@ -609,7 +609,7 @@ async function castFlow(actor, { startOpId = null } = {}) {
   }
   const opId = randomId();
   const result = await confirmPlayUse(`Cast ${art.name} (Performance)`, extra => supporterUses.execute(actor, "castNextArt",
-    { performanceId: active.performanceId, index: active.index, keepArt, confirmed: true, ...extra }, opId));
+    { performanceId: active.performanceId, index: active.index, keepArt, confirmed: true, ...extra }, opId), { confirmed: true });
   if (!result) {
     if (startOpId) await supporterUses.undo(actor, startOpId);
     return null;
@@ -651,7 +651,7 @@ async function startFlow(actor, performanceId) {
   if (!confirmed) return null;
   const opId = randomId();
   const started = await confirmPlayUse("Put on a Performance", extra => supporterUses.execute(actor, "startPerformance",
-    { performanceId, confirmed: true, ...extra }, opId));
+    { performanceId, confirmed: true, ...extra }, opId), { confirmed: true });
   if (!started) return null;
   return castFlow(actor, { startOpId: opId });
 }
@@ -674,7 +674,7 @@ async function endFlow(actor) {
   }
   const opId = randomId();
   return confirmPlayUse("End Performance", extra => supporterUses.execute(actor, "endPerformance",
-    { performanceId: active.performanceId, keepArt, reason: "manual", confirmed: true, ...extra }, opId));
+    { performanceId: active.performanceId, keepArt, reason: "manual", confirmed: true, ...extra }, opId), { confirmed: true });
 }
 
 /** Font of Inspiration Aid: a confirm naming the target and the die. Cancel spends nothing. */
@@ -688,7 +688,7 @@ async function fontAidFlow(actor) {
   if (!confirmed) return null;
   const opId = randomId();
   return confirmPlayUse("Font of Inspiration Aid", extra => supporterUses.execute(actor, "fontProvideAid",
-    { targetUuid: target.uuid, targetName: target.name, confirmed: true, ...extra }, opId));
+    { targetUuid: target.uuid, targetName: target.name, confirmed: true, ...extra }, opId), { confirmed: true });
 }
 
 /**

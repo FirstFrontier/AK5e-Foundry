@@ -57,7 +57,7 @@ beforeEach(() => { answers = []; dialogs.length = 0; });
 test("warnings dialog: Cancel resolves null, resubmits nothing and writes nothing", async () => {
   const attempts = [];
   answers = [{ title: /check before use/, click: "cancel" }];
-  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw warningsError(); });
+  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw warningsError(); }, { confirmed: true });
   assert.equal(result, null);
   assert.equal(attempts.length, 1, "the attempt is not resubmitted after Cancel");
   assert.equal(dialogs.length, 1);
@@ -66,7 +66,7 @@ test("warnings dialog: Cancel resolves null, resubmits nothing and writes nothin
 test("warnings dialog: closing with X resolves null and resubmits nothing", async () => {
   const attempts = [];
   answers = [{ title: /check before use/, click: null }];
-  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw warningsError(); });
+  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw warningsError(); }, { confirmed: true });
   assert.equal(result, null);
   assert.equal(attempts.length, 1);
 });
@@ -78,7 +78,7 @@ test("warnings dialog: Use anyway resubmits with the warning overrides", async (
     attempts.push(extra);
     if (!extra.overrides) throw warningsError();
     return { applied: true };
-  });
+  }, { confirmed: true });
   assert.deepEqual(result, { applied: true });
   assert.equal(attempts.length, 2);
   assert.deepEqual(attempts[1].overrides, ["shortfall"]);
@@ -87,7 +87,7 @@ test("warnings dialog: Use anyway resubmits with the warning overrides", async (
 test("readings dialog: Cancel resolves null and resubmits nothing", async () => {
   const attempts = [];
   answers = [{ title: /no GM ruling/, click: "cancel", elements: { reading: { value: "b" } } }];
-  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw readingError(); });
+  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw readingError(); }, { confirmed: true });
   assert.equal(result, null, "Cancel must not resolve to the action string \"cancel\" and continue");
   assert.equal(attempts.length, 1);
 });
@@ -99,7 +99,7 @@ test("readings dialog: a chosen reading resubmits with that reading", async () =
     attempts.push(extra);
     if (!extra.reading) throw readingError();
     return { ok: extra.reading };
-  });
+  }, { confirmed: true });
   assert.deepEqual(result, { ok: "b" });
   assert.equal(attempts[1].reading, "b");
   assert.deepEqual(attempts[1].readings, { fortRule: "b" });
@@ -108,7 +108,7 @@ test("readings dialog: a chosen reading resubmits with that reading", async () =
 test("readings dialog: Use this reading with no option picked never resubmits with the action name", async () => {
   const attempts = [];
   answers = [{ title: /no GM ruling/, click: "read", elements: {} }];
-  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw readingError(); });
+  const result = await confirmPlayUse("Test use", extra => { attempts.push(extra); throw readingError(); }, { confirmed: true });
   assert.equal(result, null);
   assert.equal(attempts.length, 1, "no resubmission with reading \"read\"");
 });
@@ -317,4 +317,92 @@ test("Fort Builder: Use anyway still applies with the overrides", async () => {
     assert.equal(spy.calls.length, 2);
     assert.deepEqual(spy.calls[1].data.overrides, ["shortfall"]);
   } finally { spy.restore(); }
+});
+
+/* ------------------------------------------------------------ the up-front confirm (every use is confirmed once) */
+
+/** An attempt that would write to the actor if it ever ran; the assertions check it never did on Cancel. */
+function writingAttempt(actor, attempts) {
+  return async extra => { attempts.push(extra); await actor.update({ "flags.ak5e.upfrontProbe": true }); return { applied: true }; };
+}
+
+test("up-front confirm: Cancel returns null, never calls the attempt and writes nothing", async () => {
+  const actor = createTestActor({ name: "Confirmer" }), attempts = [];
+  answers = [{ title: /^Test use$/, click: "cancel" }];
+  const result = await confirmPlayUse("Test use", writingAttempt(actor, attempts));
+  assert.equal(result, null, "Cancel must not resolve to the action string \"cancel\" and run the use");
+  assert.equal(attempts.length, 0);
+  assert.equal(actor.writes.length, 0);
+  assert.equal(dialogs.length, 1);
+});
+
+test("up-front confirm: closing with X returns null, never calls the attempt and writes nothing", async () => {
+  const actor = createTestActor({ name: "Confirmer" }), attempts = [];
+  answers = [{ title: /^Test use$/, click: null }];
+  const result = await confirmPlayUse("Test use", writingAttempt(actor, attempts));
+  assert.equal(result, null);
+  assert.equal(attempts.length, 0);
+  assert.equal(actor.writes.length, 0);
+});
+
+test("up-front confirm: Use runs the attempt once, confirmed", async () => {
+  const actor = createTestActor({ name: "Confirmer" }), attempts = [];
+  answers = [{ title: /^Test use$/, click: "use" }];
+  assert.deepEqual(await confirmPlayUse("Test use", writingAttempt(actor, attempts)), { applied: true });
+  assert.equal(attempts.length, 1);
+  assert.equal(attempts[0].confirmed, true);
+  assert.equal(dialogs.length, 1);
+});
+
+test("up-front confirm: a previewed warning offers Use anyway, Cancel runs nothing and the preview writes nothing", async () => {
+  const actor = createTestActor({ name: "Confirmer" }), attempts = [], previews = [];
+  const preview = extra => { previews.push(extra); return { title: "Test use", costs: [{ amount: 1, label: "Aid Die" }], targets: ["Ally"], warnings: [{ id: "range", text: "Out of range: 45 ft / 30 ft" }], readings: [] }; };
+  answers = [{ title: /^Test use$/, click: "cancel" }];
+  assert.equal(await confirmPlayUse("Test use", writingAttempt(actor, attempts), { preview }), null);
+  assert.equal(attempts.length, 0);
+  assert.equal(actor.writes.length, 0);
+  answers = [{ title: /^Test use$/, click: "use" }];
+  assert.deepEqual(await confirmPlayUse("Test use", writingAttempt(actor, attempts), { preview }), { applied: true });
+  assert.deepEqual(attempts[0].overrides, ["range"]);
+});
+
+test("up-front confirm: confirmed: true skips it, still passes confirmed to the attempt and shows no dialog", async () => {
+  const actor = createTestActor({ name: "Confirmer" }), attempts = [];
+  answers = [];
+  assert.deepEqual(await confirmPlayUse("Test use", writingAttempt(actor, attempts), { confirmed: true }), { applied: true });
+  assert.equal(dialogs.length, 0, "the caller already confirmed this use");
+  assert.equal(attempts.length, 1);
+  assert.equal(attempts[0].confirmed, true);
+});
+
+test("up-front confirm: confirmed: true still lists engine warnings with Use anyway, and Cancel there runs nothing more", async () => {
+  const attempts = [];
+  answers = [{ title: /check before use/, click: "anyway" }];
+  const result = await confirmPlayUse("Test use", extra => {
+    attempts.push(extra);
+    if (!extra.overrides) throw warningsError();
+    return { applied: true };
+  }, { confirmed: true });
+  assert.deepEqual(result, { applied: true });
+  assert.deepEqual(attempts.map(attempt => attempt.confirmed), [true, true]);
+  assert.deepEqual(attempts[1].overrides, ["shortfall"]);
+  assert.equal(dialogs.length, 1, "only the warnings dialog was shown");
+  attempts.length = 0;
+  answers = [{ title: /check before use/, click: "cancel" }];
+  assert.equal(await confirmPlayUse("Test use", extra => { attempts.push(extra); throw warningsError(); }, { confirmed: true }), null);
+  assert.equal(attempts.length, 1);
+});
+
+test("up-front confirm: the use is confirmed once, not again after its warnings dialog", async () => {
+  const attempts = [];
+  answers = [{ title: /^Test use$/, click: "use" }, { title: /check before use/, click: "anyway" }];
+  const result = await confirmPlayUse("Test use", extra => {
+    attempts.push(extra);
+    if (!extra.overrides?.length) throw warningsError();
+    return { applied: true };
+  });
+  assert.deepEqual(result, { applied: true });
+  assert.equal(attempts.length, 2);
+  assert.deepEqual(dialogs, ["Test use", "Test use: check before use"]);
+  assert.equal(answers.length, 0);
 });
