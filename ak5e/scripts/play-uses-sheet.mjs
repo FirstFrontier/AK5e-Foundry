@@ -29,22 +29,23 @@ export async function confirmPlayUse(title, attempt, { preview } = {}) {
       const answer = await dialog(plan.title ?? title,
         `<p>${esc(title)}</p>${costs.length ? `<p><strong>Cost:</strong> ${costs.map(esc).join(", ")}</p>` : "<p>Review this feature's stated cost before using it.</p>"}${targets.length ? `<p><strong>Targets:</strong> ${targets.map(esc).join(", ")}</p>` : ""}${warnings.length ? `<ul>${warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul>` : ""}${fields}`,
         [{ action: "use", label: warnings.length ? "Use anyway" : "Use", callback: (_event, button) => ({ readings: Object.fromEntries(readings.map(reading => [reading.key, button.form.elements[reading.key]?.value])) }) },
-          { action: "cancel", label: "Cancel", default: true, callback: () => null }]);
-      if (!answer) return null;
+          { action: "cancel", label: "Cancel", default: true, callback: () => false }]);
+      if (!answer || typeof answer !== "object") return null;
       extra = { ...extra, confirmed: true, overrides: [...new Set([...(extra.overrides ?? []), ...warnings.map(warning => warning.id)])], readings: { ...(extra.readings ?? {}), ...(answer.readings ?? {}) } };
       return await attempt(extra);
     }
     catch (error) {
       if (isPlayWarnings(error)) {
         const accepted = await dialog(`${title}: check before use`, `<p>The source rules flag the following:</p><ul>${error.warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul><p>If you use it anyway, these are listed on the public chat card.</p>`, [
-          { action: "anyway", label: "Use anyway", callback: () => true }, { action: "cancel", label: "Cancel", default: true, callback: () => null }]);
-        if (!accepted) return null;
+          { action: "anyway", label: "Use anyway", callback: () => true }, { action: "cancel", label: "Cancel", default: true, callback: () => false }]);
+        if (accepted !== true) return null;
         extra = { ...extra, overrides: [...new Set([...(extra.overrides ?? []), ...error.warnings.map(warning => warning.id)])] };
       } else if (isPlayReading(error)) {
         const options = error.options.map((option, index) => `<label class="ak5e-play-use-choice"><input type="radio" name="reading" value="${esc(option.value)}"${index === 0 ? " checked" : ""}> <span>${esc(option.label)}</span></label>`).join("");
+        const offered = error.options.map(option => option.value);
         const reading = await dialog(`${title}: no GM ruling`, `<p>${esc(error.label)}: the GM has not ruled on this. Choose a reading for this use only. It is shown on the chat card and is not saved as a ruling.</p><fieldset>${options}</fieldset>`, [
-          { action: "read", label: "Use this reading", default: true, callback: (_event, button) => button.form.elements.reading?.value || null }, { action: "cancel", label: "Cancel", callback: () => null }]);
-        if (!reading) return null;
+          { action: "read", label: "Use this reading", default: true, callback: (_event, button) => button.form.elements.reading?.value ?? false }, { action: "cancel", label: "Cancel", callback: () => false }]);
+        if (!offered.includes(reading)) return null;
         extra = { ...extra, reading, readings: { ...(extra.readings ?? {}), [error.key]: reading } };
       } else throw error;
     }
@@ -57,9 +58,9 @@ function refreshCards(engine, useId) {
 export async function openPlayUndo(engine, actor, useId) {
   const preview = engine.previewUndo(actor, useId);
   const accepted = await dialog(`Undo — ${actor.name}`, `<ul>${preview.lines.map(line => `<li>${esc(line)}</li>`).join("")}</ul>${preview.blocked ? "" : "<p>The undo is noted on the public chat card.</p>"}`,
-    preview.blocked ? [{ action: "close", label: "Close", default: true, callback: () => null }]
-      : [{ action: "undo", label: "Undo this use", callback: () => true }, { action: "cancel", label: "Cancel", default: true, callback: () => null }]);
-  if (!accepted) return null;
+    preview.blocked ? [{ action: "close", label: "Close", default: true, callback: () => false }]
+      : [{ action: "undo", label: "Undo this use", callback: () => true }, { action: "cancel", label: "Cancel", default: true, callback: () => false }]);
+  if (accepted !== true) return null;
   const result = await engine.command(actor, "undoUse", { useId }, operationId());
   refreshCards(engine, useId);
   return result;
@@ -68,9 +69,10 @@ export async function openPlayUndoList(engine, actor) {
   const uses = engine.uses(actor).filter(use => use.status !== "undone");
   if (!uses.length) { ui.notifications.info("There is no recorded use to undo."); return null; }
   const options = uses.map((use, index) => `<label class="ak5e-play-use-choice"><input type="radio" name="useId" value="${esc(use.id)}"${index === 0 ? " checked" : ""}${use.locked && !game.user.isGM ? " disabled" : ""}> <span>${esc(use.title)}: ${esc(use.summary ?? "")}${use.locked ? " (locked: earlier encounter window)" : ""}${use.status === "pending" ? " (not applied yet)" : ""}</span></label>`).join("");
+  const offered = uses.map(use => use.id);
   const useId = await dialog(`Undo a recent use — ${actor.name}`, `<fieldset>${options}</fieldset>`, [
-    { action: "choose", label: "Review undo", default: true, callback: (_event, button) => button.form.elements.useId?.value || null }, { action: "cancel", label: "Cancel", callback: () => null }]);
-  return useId ? openPlayUndo(engine, actor, useId) : null;
+    { action: "choose", label: "Review undo", default: true, callback: (_event, button) => button.form.elements.useId?.value ?? false }, { action: "cancel", label: "Cancel", callback: () => false }]);
+  return offered.includes(useId) ? openPlayUndo(engine, actor, useId) : null;
 }
 /** Retry a use left "Not applied yet" (for example while no GM was connected); the same receipt is resumed. */
 export function retryPlayUse(engine, actor, use) {

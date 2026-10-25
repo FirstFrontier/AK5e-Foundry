@@ -260,6 +260,8 @@ export function createTestItem(data = {}, parent = null) {
     const effectId = effect.id || effect._id || globalThis.foundry?.utils?.randomID?.() || `effect_${Math.random().toString(36).slice(2, 9)}`;
     const doc = createTestItem({ ...effect, id: effectId, _id: effectId, documentName: "ActiveEffect", type: "effect" }, item);
     doc.uuid = `${item.uuid}.ActiveEffect.${effectId}`;
+    // createTestItem keeps only Item fields; carry the Active Effect's own data across.
+    Object.assign(doc, { changes: structuredClone(effect.changes ?? []), disabled: effect.disabled === true, transfer: effect.transfer ?? true });
     item.effects.set(effectId, doc);
   }
 
@@ -406,6 +408,9 @@ export function createTestActor(data = {}) {
         if (type === "ActiveEffect") {
           doc.documentName = "ActiveEffect";
           doc.uuid = `${this.uuid}.ActiveEffect.${docId}`;
+          // createTestItem keeps only Item fields; carry the Active Effect's own data across.
+          Object.assign(doc, { changes: structuredClone(entry.changes ?? []), disabled: entry.disabled === true,
+            transfer: entry.transfer ?? true, duration: structuredClone(entry.duration ?? {}), origin: entry.origin ?? null });
         }
         if (type === "Item") {
           this.items.set(docId, doc);

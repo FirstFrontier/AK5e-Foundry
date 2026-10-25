@@ -232,9 +232,9 @@ test("LV-7: supporterLevel reads the Supporter class level", async () => {
    ========================================================================== */
 
 // R1 / C3:6637: the pool maximum is the modifier of the chosen ability, not the highest mental modifier.
-test("R1-1: default aidAbility is CHA, not the highest mental modifier (int 5, cha 2 -> max 2)", async () => {
+test("R1-1: no stored aidAbility uses the highest INT/WIS/CHA modifier (int 5, cha 2 -> max 5)", async () => {
   const s = makeSupporter({ level: 4, mods: { int: 5, wis: 1, cha: 2 } });
-  assert.equal(pool(s).max, 2);
+  assert.equal(pool(s).max, 5);
 });
 
 test("R1-2: aidAbility INT gives max = INT mod even when CHA is higher (int 2, cha 4 -> max 2)", async () => {

@@ -14,7 +14,10 @@ import {
 } from "../scripts/supporter-features.mjs";
 import { supporterUses, registerSupporterPlans, renderAidCardButtons } from "../scripts/supporter-uses.mjs";
 import { getPool } from "../scripts/resource-pools.mjs";
-import { emitAk5eEvent, getReactions } from "../scripts/trigger-events.mjs";
+import { emitAk5eEvent, getReactions, riderRecords } from "../scripts/trigger-events.mjs";
+import { tagHasExpired } from "../scripts/feature-tags.mjs";
+import { getPoolDefinition } from "../scripts/resource-pools.mjs";
+import { registerSupporterTalentPlans } from "../scripts/supporter-talents.mjs";
 
 let docs;
 
@@ -411,4 +414,92 @@ test("aidTempHP (rider temp HP) is a registered plan that applies temp HP throug
   assert.equal(actor.system.attributes.hp.temp, 4, "temp HP is set to the amount");
   await supporterUses.undo(actor, "temp-hp-1");
   assert.equal(actor.system.attributes.hp.temp ?? 0, 0, "undo restores the prior temp HP");
+});
+
+/* ---- r1-base rulings F-R1, F-R2, F-R3, F-R7 ---- */
+
+/** Writes a receipt edit back to the Actor (state is cloned on read, so the edit must be saved). */
+async function tamperReceipt(actor, useId, mutate) {
+  const state = supporterUses.state(actor);
+  mutate(state.undo.find(entry => entry.id === useId));
+  await actor.update({ "flags.ak5e.supporterUses": state });
+}
+
+async function grantAidTo(supporterActor, ally, opId) {
+  docs.set(ally.uuid, ally);
+  return supporterUses.execute(supporterActor, "provideAid", { targetUuid: ally.uuid, targetName: ally.name, distance: 0 }, opId);
+}
+
+test("F-R1: Provide Aid (no feature Item) is a 600 s time effect, the same tag the receipt records", async () => {
+  const s = supporter(7);
+  const ally = createTestActor({ name: "Ally" });
+  await grantAidTo(s, ally, "r1-grant");
+  const effect = Array.from(ally.effects.values())[0];
+  assert.equal(effect.duration?.seconds, 600, "ten minutes of world time");
+  const tag = effect.flags.ak5e.temporaryTag;
+  assert.equal(tag.expiry.trigger, "time");
+  assert.equal(tag.expiry.worldTime, 100 + 600, "fixture world time starts at 100");
+  assert.equal(tagHasExpired(tag, { kind: "time", worldTime: 699 }), false);
+  assert.equal(tagHasExpired(tag, { kind: "time", worldTime: 700 }), true, "expires at 600 s");
+  assert.equal(effect.flags.ak5e.featureTag.data.dieSize, "d10", "Aid Die data kept on the effect");
+  const receiptTag = supporterUses.receipt(s, "r1-grant").targets[0].tag;
+  assert.equal(receiptTag.trigger, "time");
+  assert.equal(receiptTag.seconds, 600);
+  assert.equal(receiptTag.duration, undefined, "no legacy duration key");
+});
+
+test("F-R2: registering the talent plans defines every talent-use pool (idempotent)", () => {
+  registerSupporterTalentPlans();
+  registerSupporterTalentPlans();
+  for (const id of ["supporterLuckBase", "supporterLuckModule", "supporterPreservingBase", "supporterPreservingModule",
+    "supporterAccelerando", "supporterIgnitionBase", "supporterIgnitionModule", "supporterMirrorMove"]) {
+    assert.ok(getPoolDefinition(id), `${id} is defined`);
+  }
+});
+
+test("F-R7: a relayed Aid Die change is applied only when its content is the module's own shape", async () => {
+  const tampers = {
+    "changes on the tag": r => { r.targets[0].tag.changes = [{ key: "system.attributes.hp.temp", mode: 2, value: "99" }]; },
+    "a condition": r => { r.targets[0].tag.condition = "blinded"; },
+    "a foreign tag key": r => { r.targets[0].tag.duration = 99999; },
+    "standardBenefit": r => { r.targets[0].standardBenefit = { source: "x" }; },
+    "another supporter": r => { r.targets[0].tag.data.supporterUuid = "Actor.someoneElse"; },
+    "a different die size": r => { r.targets[0].tag.data.dieSize = "d12"; r.targets[0].meta.dieSize = "d12"; r.result.dieSize = "d12"; },
+    "a turn expiry": r => { r.targets[0].tag.trigger = "turnStart"; }
+  };
+  // Untouched: accepted.
+  {
+    const s = supporter(7), ally = createTestActor({ name: "Ally" });
+    await grantAidTo(s, ally, "r7-clean");
+    await supporterUses.relayedTargetChange(s, "apply", { useId: "r7-clean", targetUuid: ally.uuid });
+  }
+  for (const [name, mutate] of Object.entries(tampers)) {
+    const s = supporter(7), ally = createTestActor({ name: "Ally" });
+    await grantAidTo(s, ally, "r7-tamper");
+    await tamperReceipt(s, "r7-tamper", mutate);
+    await assert.rejects(supporterUses.relayedTargetChange(s, "apply", { useId: "r7-tamper", targetUuid: ally.uuid }),
+      /not one this use can make/, `rejects ${name}`);
+  }
+});
+
+test("F-R3: an Advanced Aid crit rider is its own recorded use, and undoing the Aid Die use removes it", async () => {
+  const s = supporter(5);
+  await holdAidDie(s);
+  await supporterUses.execute(s, "useAidDie", { rollType: "attack", dieSize: "d8" }, "r3-aid");
+  await supporterUses.execute(s, "aidCritRider", { useId: "r3-aid" }, "r3-crit");
+  assert.equal(supporterUses.receipt(s, "r3-crit").parentUseId, "r3-aid", "linked to the Aid Die use");
+  assert.ok(riderRecords(s).some(record => record.id === "aidcrit-r3-aid" && record.status === "active"), "rider registered");
+  await supporterUses.undo(s, "r3-aid");
+  assert.equal(riderRecords(s).some(record => record.id === "aidcrit-r3-aid" && record.status === "active"), false, "undo removes the rider");
+});
+
+test("F-R3: a second Aid Die roll is recorded once; a repeat needs the Already rolled override", async () => {
+  const s = supporter(7);
+  await holdAidDie(s);
+  await supporterUses.execute(s, "useAidDie", { rollType: "skill", dieSize: "d10" }, "r3-skill");
+  await supporterUses.execute(s, "aidSecondRoll", { useId: "r3-skill" }, "r3-second-1");
+  await assert.rejects(supporterUses.command(s, "aidSecondRoll", { useId: "r3-skill", confirmed: true }, "r3-second-2"),
+    error => error.warnings?.some(warning => warning.id === "alreadyRolled" && warning.text.startsWith("Already rolled")));
+  const again = await supporterUses.execute(s, "aidSecondRoll", { useId: "r3-skill", overrides: ["alreadyRolled"] }, "r3-second-2");
+  assert.equal(again.useId, "r3-skill");
 });

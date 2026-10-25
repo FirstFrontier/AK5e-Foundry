@@ -505,7 +505,7 @@ tested against the relevant cross-chapter rules.
 | Aid Die minimum | C3:6631–6639 bases the maximum on the chosen ability modifier and does not state a minimum when that modifier is zero/negative. | No automatic minimum of one; GM resolves eligibility/cap. |
 | Automaton caps / Protocol | Artificer C3:6895 permits one Automaton, 6938 two; upgrades at 6925 / 6945 change separately. Protocol: Medical 4767 and Juggernaut/Soaring 6755 / 6768 explicitly exclude their constructs from the maximum. C4:425 separately excludes its turret. | Preserve explicit exemptions. Simultaneous companions, commands and interaction with upgrades remain manual; no global cap inference. |
 | Greater Slayer Constitution | C3:7806 prints `16 (+0)` in the CON column. | Preserve both printed score and modifier in the source statblock. No silent arithmetic correction or claim that a native derived modifier reproduces it. |
-| Bard missing Arts / variants | Performance Arts C3:7168–7211 includes “Chromatic Orb (Thunder only)” (7186), “Shatter (2nd Level)” (7208) and “Shatter (5th Level)” (7210). C5:283 lists Shatter at 2nd level but no higher-level definition. Ten base names are absent from C5: Pyrotechnics, Cause Fear, Colour Spray, Ray of Enfeeblement, Shield of Faith, Chromatic Orb, Crusader's Mantle, Haste, Tasha's Mind Whip, Aura of Life. | Preserve 34 performance rows and printed Muse Costs. No stock spells substituted for absent AK5e Arts, and no invented Shatter upcast or Chromatic Orb restriction implementation. |
+| Bard missing Arts / variants | Performance Arts C3:7168–7211 includes “Chromatic Orb (Thunder only)” (7186), “Shatter (2nd Level)” (7208) and “Shatter (5th Level)” (7210). C5:283 lists Shatter at 2nd level but no higher-level definition. Eleven names are absent from C5 (corrected 2026-10-24: Bless was missing from the earlier list of ten): Bless, Pyrotechnics, Cause Fear, Colour Spray, Ray of Enfeeblement, Shield of Faith, Chromatic Orb, Crusader's Mantle, Haste, Tasha's Mind Whip, Aura of Life. | Preserve 34 performance rows and printed Muse Costs. No stock spells substituted for absent AK5e Arts, and no invented Shatter upcast or Chromatic Orb restriction implementation. |
 
 ## Origin placement, resources and temporary creature tags
 
@@ -2371,3 +2371,98 @@ not re-decide them. Each one rests on the cited source text.
   player's temporary choice never becomes a persistent GM ruling.
 - **Acceptance:** helper tests and flags are not evidence of rendered play.
   See `VANGUARD_WORKFLOWS.md` for per-feature state and actual test evidence.
+
+## Supporter branch implementation rulings (2026-10-24)
+
+Rulings made by the head during adversarial-pair integration. Each rests on the cited source text, or on an existing precedent where the source is silent.
+
+**Artificer**
+- **A1 (C3:6895 / 6938).** The Automaton cap is 1, rising to 2 at Supporter level 13.
+  - Exceeding it warns and never blocks.
+  - Exempt (Ch.4 Turret, Protocol) and destroyed Automatons don't count.
+  - The Artificer's own `automatons` list decides ownership. The creator flag is only a fallback.
+- **A2.** Action economy (Attack Action, Bonus Action command, As One "cannot repeat") is tracked and warned, never enforced.
+- **A3 (C3:6893–6895).** Rebuild is a confirmable Long Rest activity or 500 LMD. LMD is stored in `system.currency.cp`, the module convention. A shortfall clamps and is recorded.
+- **A4 (C3:6925 / 6945).** The upgrade cap per Automaton is 2, or 3 at level 17. Mobile Cover takes the same cap (the source is silent). A duplicate upgrade on one target warns. Putting an upgrade on the wrong target type (cover vs Automaton) is a hard error.
+- **A5.** Upgrades that need both parties to rest recover on the creator's rest only if the Automaton is not destroyed, with a reminder. Recovery for Automatons the player doesn't own needs the GM (open item).
+- **A6.** "N rolls of your Aid Die" means N dice of the current Aid Die size, not expended. Only Concussive Maintenance expends one.
+- **Technology Modifier (C3:6887; also C3:584).** This is a reading: Tech skill total (`techTotal`) or INT modifier (`intMod`). A recorded GM ruling decides it; otherwise the player chooses per use. Same precedent as caster-drones.mjs.
+- **Calculated Strikes.** A flag plus a reminder. dnd5e 5.3.3 has no global per-weapon ability override.
+
+**Hexer**
+- **Abjuring (C3:7290).** The die is rolled by the hexed creature at each of its damage rolls, not when the Hex is applied. R9's "⌊roll/2⌋, minimum 1" applies at that damage roll.
+- **Force rider (C3:7290–7298).** "Once they have taken this Damage…" makes the limit per hexed creature per Hexer turn cycle. Only Hexes from this Hexer trigger its card.
+- **Repeat Hex.** A repeat of the same Hex kind from the same source warns. Using it anyway replaces the existing instance (one instance per kind).
+- **Ultimate Hex (C3:7326).** "All options of your Potent Hex Feature" includes the 13th-level Voicethief and Wasting.
+- **Duplicate pool.** The same Standard Arts Pool chosen twice warns and is applied once.
+
+**Bard**
+- **Muse budget (C3:7099–7104).** Checked after the Muse roll; the card notes when the player went over. Leftover Muse becomes Temporary HP when the roll is committed. Muse left over after inserting an Art (Emergency Improv) is lost.
+- **Unknown Art.** An Art name not in the 34-row table is a hard error, because it cannot be resolved.
+- **Speak to the Soul (C3:7142).** "Performance Modifier" is the Performance skill total (`system.skills.prf.total`). The card states the value and changes nothing.
+- **Emergency Improv (C3:7152–7159).** The use is consumed when attempted. Inserting an Art that breaks the no-consecutive rule warns.
+- **Casting Unit (C3:7106–7112).** The Instrument becomes the Casting Unit for the Performance and is restored afterwards. A proficient equipped Instrument is required, and its absence warns.
+- **Start flow.** Starting a Performance does not cast at the engine level. A native cast needs the dnd5e dialog, so the UI runs start and then the first cast. The last Art ends the Performance in the same use, and Rising Crescendo still applies to that last Art.
+- **Fortissimo.** No warning below level 17; it is a passive multiplier.
+- **Font of Inspiration (C3:7146–7147).** Gained only from level 4. It never gates starting a Performance.
+- **Known limitations:**
+  - Native Concentration effects of other Arts are not ended automatically.
+  - Compose and perform both write the whole `performances` array, so concurrent writes can race.
+
+**Shared**
+- **Cancel (WORKFLOW §3.2).** Foundry V13 `DialogV2` resolves a click as `callback() ?? action`, so every Cancel callback must return `false`. Fixed in play-uses-sheet.mjs and the Supporter branches. Other classes are tracked in bugs/pending/B-302.
+- **Confirm step.** Every Supporter branch control shows a confirm or choice dialog with Cancel before any write. Branch controls render only for the actor's owner.
+
+## Supporter review round R1 rulings (2026-10-25)
+The final review of `feat/supporter-base` found the defects below. They were fixed by two adversarial pairs (PRs #33–#36).
+
+**Aid Die and base class**
+- **F-R1 Aid Die duration (C3:6635, "once within the next ten minutes").** These dice now expire after 600 s of world time, in and out of combat. They do not expire at a turn start or at combat end:
+  - every granted Aid Die (Provide Aid, Lighten the Load, and the Font of Inspiration die once it is granted);
+  - the fallback effect, when there is no feature item.
+  
+  The expiry lives on `flags.ak5e.temporaryTag`, the flag feature-tags expires on. `flags.ak5e.featureTag.data` keeps the giver's die data. The held, ungranted Font die is still lost at the end of the Bard's turn (C3:7147).
+- **F-R2 Talent pools.** These are defined when the class registers, not lazily, so rests refill them after a reload.
+- **F-R3 Aid card riders.**
+  - Temp HP always confirms first, then applies through an undoable receipt.
+  - The crit rider confirms. It is a child receipt (`parentUseId`), so undoing the Aid use removes it. A parent that is missing or undone gives a warning.
+  - The second roll happens once per use. A repeat click warns "Already rolled", and the player may still confirm.
+- **F-R4 Recipients.** Any actor the user can see at LIMITED or higher (NPCs and other actor types), plus the actors of targeted tokens, including unlinked ones.
+- **F-R5 Aid ability with no flag.** It falls back to the highest of the INT, WIS and CHA modifiers (ties: CHA > WIS > INT). The sheet warns and offers a chooser. Progression no longer writes CHA over this choice. An explicit choice still applies with no floor of 1 (R1).
+- **F-R6 Progression control.** It shows the choice fields (Aid ability, branch, talents) before applying.
+- **F-R7 Relay content checks.** The GM rejects an Aid Die change that:
+  - has unknown tag keys, `changes`, `condition` or `standardBenefit`;
+  - has a die size that does not match the Supporter's level;
+  - names a different `supporterUuid`.
+  
+  The Font of Inspiration relay (H2) uses the same checks.
+- **F-R8 Smaller fixes.**
+  - Restored Arts keep their ids (`keepId`).
+  - The rest hook is owner-guarded and catches errors.
+  - A branch plan-name collision is detected before anything registers.
+
+**Branches**
+- **F-R4a Rupturing Hex.** One burst card per (Hexer, killed creature). A repeat roll of the same card confirms "Already rolled" (H1). A new kill gets a fresh card.
+- **F-R4b Hex Force rider (C3:7287).** One rider card and at most one relay whisper per (Hexer, target) per hit, however many Hexes are on the target.
+- **F-R5 Emergency Improv.** A missing recorded check is a warning, not a block.
+- **F-R6 Spare the Rod.** At Hexer level 10 and above, the Cursemark command prompts for creatures to exclude.
+- **F-R7 Artificer relay.**
+  - The validators are attached to the plan functions, which is where the relay reads them. Before this, they were unreachable and every relayed Artificer change was refused.
+  - Field paths are whitelisted on apply and on revert.
+  - Automatons in the Artificer's own list are accepted (H4).
+  - Automaton revert deletes only this source's Automaton from that op.
+- **F-R8 Orphan Automaton.** The created Automaton entry is marked attempted, so undoing a pending receipt deletes it. Retrying with the same opId reuses the same id.
+- **F-R9.**
+  - Cursemark uses the scene's grid distance and size, with a fallback of 5 ft.
+  - Expired marks are pruned.
+  - The Art-cast Hex prompt claims damage only when the event carries it.
+
+**Accepted and deferred**
+- **H3.** If the relay times out after the GM has created an Automaton but before the receipt saves, the Automaton is left orphaned unless the user retries with the same opId. This is accepted.
+- **H5.** Temp HP and the crit rider may show a confirm and then a warnings dialog. Cancel works at each step.
+- **Deferred:**
+  - The upgrade creation-limit warning needs an `eventCount` that no UI supplies.
+  - The undo history (`state.undo`) is never pruned, and Hexer Arts receipts embed item data.
+  - `game.ak5e.supporter.branches` is a ready-time snapshot.
+  - Target-kind collisions in `play-uses.register` are unguarded. Fixing this needs play-uses.mjs.
+  - Burst once-keys accumulate on the Hexer.
