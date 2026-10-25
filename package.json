@@ -28,7 +28,8 @@
     "test:supporter": "node --test ak5e/test/supporter-*.test.mjs",
     "test:specialist": "node --test ak5e/test/specialist-*.test.mjs ak5e/test/executor.test.mjs ak5e/test/executor-adversarial.test.mjs ak5e/test/hookmaster.test.mjs ak5e/test/hookmaster-adversarial.test.mjs ak5e/test/infuser.test.mjs ak5e/test/infuser-adversarial.test.mjs ak5e/test/inventor*.test.mjs",
     "test:medic": "node --test ak5e/test/medic-*.test.mjs",
+    "test:play": "node --test ak5e/test/play-*.test.mjs ak5e/test/arts-ledger*.test.mjs",
     "test:base-classes": "npm run test:vanguard && npm run test:supporter && npm run test:specialist && npm run test:medic",
-    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment && npm run test:caster && npm run test:defender && npm run test:guard && npm run test:marksman && npm run test:base-classes"
+    "test": "npm run check:files && npm run check:generated && npm run test:content && npm run test:parsers && npm run test:rules && npm run test:installers && npm run test:origins && npm run test:deployment && npm run test:play && npm run test:caster && npm run test:defender && npm run test:guard && npm run test:marksman && npm run test:base-classes"
   }
 }

@@ -1,7 +1,7 @@
 name = "worker"
-description = "Efficient implementation worker for clearly scoped code changes."
-model = "gpt-6-luna"
-model_reasoning_effort = "high"
+description = "GPT-6.1 Sol implementer for clearly scoped code changes, paired with a Luna adversarial tester."
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"
 developer_instructions = """
 Implement only the assigned files and acceptance criteria. Preserve repository conventions and unrelated edits. Run focused tests if possible. Return modified paths, commands/results, and remaining uncertainties. Ask the parent for unresolved architectural decisions. Follow WORKFLOW.md §3.2 (trust the table): no GM-approval or turn gates on players' own actions, automatic GM-client relay for unowned targets, warn-not-block with a Use anyway option, a confirm step before every use (not ability checks or saves), no auto-rolled damage/healing/attack/save/feature dice, resources clamped at 0 on overspend, and per-encounter undo receipts for every change.
 """

@@ -3,7 +3,7 @@
  * Extra Attack, Uncanny Dodge, Lightspeed, and Approaching Storm.
  */
 import {
-  vanguardLevel, vanguardEnabled, checkLevel, pbForLevel, flag,
+  vanguardLevel, vanguardEnabled, checkLevel, flag,
   approachingStormBonus, landstriderSpeedBonus
 } from "./vanguard-rules.mjs";
 import { TIP_INSTRUCTIONS } from "./standard-bearer-rules.mjs";
@@ -37,14 +37,19 @@ export function isNimbleAgainst(actor, target) {
   if (!hasLandstrider(actor)) return false;
   const targetUuid = target?.uuid ?? target?.actor?.uuid ?? String(target);
   const state = flag(actor, "vanguard") ?? {};
+  const turn = state.nimbleTurn;
+  if (turn?.combatId) {
+    const combat = globalThis.game?.combat;
+    if (!combat?.started || combat.uuid !== turn.combatId || Number(combat.round) !== Number(turn.round) || combat.combatant?.id !== turn.combatantId) return false;
+  }
   const targets = state.nimbleTargets ?? [];
   return targets.includes(targetUuid);
 }
 
 export async function clearNimbleTargets(actor) {
   const state = flag(actor, "vanguard") ?? {};
-  if (state.nimbleTargets?.length) {
-    await actor.update({ "flags.ak5e.vanguard.nimbleTargets": [] });
+  if (state.nimbleTargets?.length || state.nimbleTurn) {
+    await actor.update({ "flags.ak5e.vanguard.nimbleTargets": [], "flags.ak5e.vanguard.nimbleTurn": null });
   }
 }
 
@@ -57,8 +62,7 @@ export function hasQuickOffTheMark(actor) {
 
 export function quickOffTheMarkBonus(actor) {
   if (!hasQuickOffTheMark(actor)) return 0;
-  const lvl = vanguardLevel(actor);
-  return pbForLevel(lvl);
+  return Number(actor?.system?.attributes?.prof ?? 2);
 }
 
 export function applyQuickOffTheMark(actor, rollData = {}) {
@@ -134,13 +138,17 @@ export async function activateDirectedEngagement(actor, { receiptId = null } = {
 
 export function isDirectedEngagementActive(actor) {
   const state = flag(actor, "vanguard") ?? {};
-  return Boolean(state.directedEngagementActive);
+  if (!state.directedEngagementActive) return false;
+  const turn = state.directedEngagementTurn;
+  if (!turn?.combatId) return true; // Outside combat, use the manual expiry procedure.
+  const combat = globalThis.game?.combat, current = combat?.combatant;
+  return Boolean(combat?.started && combat.uuid === turn.combatId && Number(combat.round) === Number(turn.round) && current?.id === turn.combatantId);
 }
 
 export async function clearDirectedEngagement(actor) {
   const state = flag(actor, "vanguard") ?? {};
   if (state.directedEngagementActive) {
-    await actor.update({ "flags.ak5e.vanguard.directedEngagementActive": false });
+    await actor.update({ "flags.ak5e.vanguard.directedEngagementActive": false, "flags.ak5e.vanguard.directedEngagementTurn": null });
   }
 }
 
@@ -171,7 +179,7 @@ export function hasApproachingStorm(actor) {
 
 export function approachingStormDamageBonus(actor, combat = globalThis.game?.combat) {
   if (!hasApproachingStorm(actor)) return 0;
-  if (combat && combat.round !== 1) return 0;
+  if (!combat?.started || Number(combat.round) !== 1) return 0;
   const lvl = vanguardLevel(actor);
   return approachingStormBonus(lvl);
 }

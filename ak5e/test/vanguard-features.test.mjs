@@ -33,7 +33,7 @@ function createVanguardActor(level = 1, options = {}) {
   const actor = createTestActor({
     items: [vClass],
     system: {
-      attributes: { prof: Math.floor((level - 1) / 4) + 2 },
+      attributes: { prof: Math.floor((level - 1) / 4) + 2, hp: { value: 30, max: 30, temp: 0 } },
       abilities: {
         dex: { mod: 3 },
         con: { mod: 2 },
@@ -243,7 +243,7 @@ test("vanguardUses: table-play plan execution, warnings, overrides, and undo", a
     system: { attributes: { hp: { value: 20, max: 20, temp: 0 } } }
   });
 
-  // 1. Tip of the spear with distance > 60 ft throws PlayWarnings
+  // Caller supplied distances are not trusted without scene geometry.
   assert.throws(() => {
     vanguardUses.plan(actor, "tipOfTheSpear", {
       targetUuid: target.uuid,
@@ -252,7 +252,7 @@ test("vanguardUses: table-play plan execution, warnings, overrides, and undo", a
       choice: 1
     });
   }, (err) => {
-    return (err.name === "PlayWarnings" || err.name === "AK5eWarnings") && err.warnings.some(w => w.id === "range");
+    return (err.name === "PlayWarnings" || err.name === "AK5eWarnings") && err.warnings.some(w => w.id === "range-unverified");
   });
 
   // 2. Overriding the warning ("Use anyway") succeeds
@@ -261,21 +261,23 @@ test("vanguardUses: table-play plan execution, warnings, overrides, and undo", a
     targetName: target.name,
     distance: 75,
     choice: 1,
-    overridden: ["range"]
+    overrides: ["range-unverified", "visibility-unverified", "alliance-unverified", "level"]
   });
-  assert.equal(plan.title, "Tip of the Spear");
+  assert.equal(plan.title, "Tip of the Spear (Directed Engagement)");
 
   // 3. Execute Tip of the spear outcome 2 (additive THP)
-  const result = await vanguardUses.execute(actor, "tipOfTheSpear", {
+  const result = await vanguardUses.command(actor, "tipOfTheSpear", {
     targetUuid: target.uuid,
     targetName: target.name,
     choice: 2,
-    amount: 5,
+    overrides: ["range", "range-unverified", "visibility-unverified", "alliance-unverified"],
     directed: true,
-    confirmation: true
+    confirmed: true
   }, "tip-op-1");
   assert.equal(result.outcome, 2);
-  assert.equal(target.system.attributes.hp.temp, 5);
+  assert.equal(target.system.attributes.hp.temp, 0);
+  await vanguardUses.command(actor, "useRoll", { useId: "tip-op-1" });
+  assert.equal(target.system.attributes.hp.temp, 4);
 
   const receipt = vanguardUses.receipt(actor, "tip-op-1");
   assert.equal(receipt.status, "complete");
@@ -286,9 +288,10 @@ test("vanguardUses: table-play plan execution, warnings, overrides, and undo", a
   assert.equal(target.system.attributes.hp.temp, 0);
 
   // 5. Uncanny Dodge execution and undo
-  const dodgeResult = await vanguardUses.execute(actor, "uncannyDodge", {
+  const dodgeResult = await vanguardUses.command(actor, "uncannyDodge", {
     damage: 30,
-    confirmation: true
+    overrides: ["attack-hit", "attacker-visible", "damage-final"],
+    confirmed: true
   }, "dodge-op-1");
   assert.equal(dodgeResult.halvedDamage, 15);
 

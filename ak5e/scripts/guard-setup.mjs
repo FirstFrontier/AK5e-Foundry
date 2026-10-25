@@ -77,6 +77,18 @@ export async function previewGuardSetup(actor) {
     }
   }
 
+  if (profile.branch === "artsblade") {
+    const features = CHAPTER_THREE_CLASSES.filter(entry => entry.kind === "subclass-feature" && entry.parentBranch === "Artsblade"
+      && ((entry.level != null && entry.level <= level) || entry.id === "subclass-feature-guard-artsblade-blade-art-6708"
+        || entry.id === "subclass-feature-guard-artsblade-artsblade-table-1152"
+        || entry.id === "subclass-feature-guard-artsblade-resolving-spellsword-arts-2822"));
+    for (const entry of features) {
+      const owned = existing.find(item => flag(item, "chapterThreeId") === entry.id);
+      if (owned) kept.push(entry.name);
+      else creates.push(featureItemData({ ...entry, name: entry.name, level: entry.level ?? 1 }));
+    }
+  }
+
   const contextKey = JSON.stringify([actor.uuid, level, creates.map(c => c.name), kept]);
   return {
     level,

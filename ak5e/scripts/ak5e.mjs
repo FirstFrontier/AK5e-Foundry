@@ -9,7 +9,7 @@ import { classContentFlags, classContentUpdate } from "./class-content-installat
 import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./asset-library.mjs";
 import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
 import { registerSheetThemeHooks, openSheetTheme, resolveSheetTheme, setSheetTheme, SHEET_THEMES } from "./sheet-themes.mjs";
-import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt } from "./arts-casting.mjs";
+import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt, openArtUndoList, undoArtReceipt } from "./arts-casting.mjs";
 import { applyFeatureTag, applyTagPreset, removeFeatureTag, resolveFeatureTag, setTagCounter, featureTags, openFeatureTagSetup } from "./feature-tags.mjs";
 import { sourceTagPresets } from "./tag-presets.mjs";
 import { registerWorldRuleSettings, configureWorldConditions, registerWorldRuleHooks, refreshConditionReferences, openWorldRuleControl,
@@ -53,6 +53,11 @@ import { inspectGuardFields, previewGuardProgression, applyGuardProgression } fr
 import { getGuardView, registerGuardHooks } from "./guard-features.mjs";
 import { guardUses, recordGuardRuling } from "./guard-uses.mjs";
 import { openGuardControls, registerGuardSheetHooks } from "./guard-sheet.mjs";
+import { vanguardSheetApi, registerVanguardSheetHooks, vanguardUses, recordVanguardRuling, openVanguardProgression } from "./vanguard-sheet.mjs";
+import { previewVanguardSetup, applyVanguardSetup } from "./vanguard-setup.mjs";
+import { vanguardChoices, inspectVanguardFields, previewVanguardProgression, applyVanguardProgression } from "./vanguard-progression.mjs";
+import { vanguardProfile, calculateVanguardProfile, martialDC as vanguardMartialDC } from "./vanguard-rules.mjs";
+import { registerVanguardResolution, vanguardPreRollDamage } from "./vanguard-resolution.mjs";
 import { isCenturion, registerCenturionHooks } from "./centurion-features.mjs";
 import { isCrusher, registerCrusherHooks } from "./crusher-features.mjs";
 import { isInstructor, registerInstructorHooks } from "./instructor-features.mjs";
@@ -358,6 +363,14 @@ Hooks.once("ready", () => {
   }
 
   game.ak5e = Object.freeze({
+    vanguard: Object.freeze({
+      preview: previewVanguardSetup, apply: applyVanguardSetup,
+      choices: vanguardChoices, inspect: vanguardProfile, profile: calculateVanguardProfile,
+      open: vanguardSheetApi.open, openSetup: vanguardSheetApi.openSetup, openProgression: openVanguardProgression,
+      command: vanguardUses.command, uses: vanguardUses.uses, previewUndo: vanguardUses.previewUndo,
+      recordRuling: recordVanguardRuling, choicesForProgression: inspectVanguardFields,
+      previewProgression: previewVanguardProgression, applyProgression: applyVanguardProgression, martialDC: vanguardMartialDC, vanguardPreRollDamage
+    }),
     caster: Object.freeze({ preview: previewCasterSetup, apply: applyCasterSetup, choices: getCasterSetupChoices,
       inspect: getCasterView, open: openCasterControls, openSetup: openCasterSetup, command: casterCommand,
       cast: castCasterArt, createDrone: createCasterDrone, linkDrone: linkCasterDrone, requestDrone: requestCasterDrone, syncDrones: syncCasterDrones,
@@ -378,6 +391,7 @@ Hooks.once("ready", () => {
       applyProgression: applyGuardProgression,
       open: openGuardControls,
       use: guardUses.command,
+      previewUse: guardUses.preview,
       uses: guardUses.uses,
       previewUndo: guardUses.previewUndo,
       recordRuling: recordGuardRuling,
@@ -467,6 +481,7 @@ Hooks.once("ready", () => {
       applyProgression: applyMedicProgression,
       open: openMedicControls,
       use: medicUses.command,
+      previewUse: medicUses.preview,
       uses: medicUses.uses,
       previewUndo: medicUses.previewUndo,
       recordRuling: recordMedicRuling,
@@ -485,6 +500,7 @@ Hooks.once("ready", () => {
       applyProgression: applySpecialistProgression,
       open: openSpecialistControls,
       use: specialistUses.command,
+      previewUse: specialistUses.preview,
       uses: specialistUses.uses,
       previewUndo: specialistUses.previewUndo,
       recordRuling: recordSpecialistRuling,
@@ -728,6 +744,8 @@ Hooks.once("ready", () => {
     setActorArtsValue,
     recoverActorArts,
     undoLastArt,
+    openArtUndoList,
+    undoArtReceipt,
     conditions: Object.freeze(Object.fromEntries(STATUS_EFFECTS.map(effect => [effect.key, effect]))),
     openWorldRuleControl, previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
     previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup,
@@ -846,6 +864,8 @@ Hooks.once("ready", () => {
   ResourcePools.registerResourcePoolHooks();
   TriggerEvents.registerTriggerEventHooks();
   registerWorldRuleHooks(game.ak5e);
+  registerVanguardSheetHooks();
+  registerVanguardResolution();
 });
 
 function registerStatusEffects() {

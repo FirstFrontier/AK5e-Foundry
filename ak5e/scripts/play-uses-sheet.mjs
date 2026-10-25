@@ -16,10 +16,24 @@ async function dialog(title, content, buttons) {
  * Warnings are listed with "Use anyway"; a missing GM ruling offers its readings for this use only. Each answer
  * resubmits the same attempt with `overrides` / `reading`; cancelling returns null and changes nothing.
  */
-export async function confirmPlayUse(title, attempt) {
+export async function confirmPlayUse(title, attempt, { preview } = {}) {
   let extra = {};
   while (true) {
-    try { return await attempt(extra); }
+    try {
+      const plan = preview ? await preview(extra) : { title, costs: [], targets: [], warnings: [], readings: [] };
+      const costs = (plan.costs ?? []).map(cost => typeof cost === "string" ? cost : `${cost.amount ?? ""} ${cost.label ?? cost.pool ?? "resource"}`);
+      const targets = (plan.targets ?? []).map(target => typeof target === "string" ? target : target.name ?? target.uuid ?? "Target");
+      const readings = (plan.readings ?? []).filter(reading => reading.source !== "ruling");
+      const fields = readings.map(reading => `<fieldset><legend>${esc(reading.label)}</legend>${reading.options.map((option, index) => `<label><input type="radio" name="${esc(reading.key)}" value="${esc(option.value)}"${index === 0 ? " checked" : ""}> ${esc(option.label)}</label>`).join("")}</fieldset>`).join("");
+      const warnings = plan.warnings ?? [];
+      const answer = await dialog(plan.title ?? title,
+        `<p>${esc(title)}</p>${costs.length ? `<p><strong>Cost:</strong> ${costs.map(esc).join(", ")}</p>` : "<p>Review this feature's stated cost before using it.</p>"}${targets.length ? `<p><strong>Targets:</strong> ${targets.map(esc).join(", ")}</p>` : ""}${warnings.length ? `<ul>${warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul>` : ""}${fields}`,
+        [{ action: "use", label: warnings.length ? "Use anyway" : "Use", callback: (_event, button) => ({ readings: Object.fromEntries(readings.map(reading => [reading.key, button.form.elements[reading.key]?.value])) }) },
+          { action: "cancel", label: "Cancel", default: true, callback: () => null }]);
+      if (!answer) return null;
+      extra = { ...extra, confirmed: true, overrides: [...new Set([...(extra.overrides ?? []), ...warnings.map(warning => warning.id)])], readings: { ...(extra.readings ?? {}), ...(answer.readings ?? {}) } };
+      return await attempt(extra);
+    }
     catch (error) {
       if (isPlayWarnings(error)) {
         const accepted = await dialog(`${title}: check before use`, `<p>The source rules flag the following:</p><ul>${error.warnings.map(warning => `<li>${esc(warning.text)}</li>`).join("")}</ul><p>If you use it anyway, these are listed on the public chat card.</p>`, [
@@ -67,6 +81,24 @@ export function renderPlayUseCard(engine, message, html) {
   const use = flag(message, engine.cardFlag);
   if (!use || html.querySelector(`.ak5e-play-use-controls[data-ns="${engine.ns}"]`)) return;
   const actor = globalThis.fromUuidSync?.(use.actorUuid);
+  // Saves belong to the recipient, even when that user cannot operate the source Actor.
+  for (const save of engine.receipt(actor, use.useId)?.saves ?? use.saves ?? []) {
+    const target = globalThis.fromUuidSync?.(save.uuid);
+    if (!target?.isOwner || save.resolved || (save.afterRoll && engine.receipt(actor, use.useId)?.roll === undefined) || html.querySelector(`[data-play-save="${save.id}"]`)) continue;
+    const button = document.createElement("button");
+    button.type = "button"; button.dataset.playSave = save.id;
+    button.textContent = `${target.name}: ${save.ability.toUpperCase()} save DC ${save.dc}`;
+    button.addEventListener("click", event => {
+      event.preventDefault(); button.disabled = true;
+      safe(async () => {
+        // Keep D&D5e's native save dialog; there is no extra feature confirmation here.
+        await target.rollSavingThrow({ ability: save.ability, target: save.dc }, {}, { data: { flags: { ak5e: { playSave: {
+          ns: engine.ns, sourceUuid: use.actorUuid, useId: use.useId, targetUuid: target.uuid, saveId: save.id
+        } } } } });
+      }).finally(() => { button.disabled = false; });
+    });
+    html.querySelector(".message-content")?.append(button);
+  }
   if (!actor?.isOwner) return;
   const receipt = engine.receipt(actor, use.useId);
   if (!receipt) return;

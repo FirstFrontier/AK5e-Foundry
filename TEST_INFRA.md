@@ -156,7 +156,7 @@ node ak5e/tools/test-base-classes-live.mjs
 - [ ] **Saves & Skills:** DEX save proficiency + choice of STR or CHA; 3 skills from Acrobatics, Athletics, Perception, Persuasion, Stealth, Wilderness.
 - [ ] **Landstrider (Lv 1):** +10 ft Walking Speed, attack hit grants Nimble (prevents AoO from hit target).
 - [ ] **Tip of the Spear (Lv 1):** 1d6 roll table applied to visible ally within 60 ft; cumulative; #2 additive THP.
-- [ ] **Quick off the Mark (Lv 2):** Add Proficiency Bonus to Initiative rolls.
+- [ ] **Quick off the Mark (Lv 3):** Add Proficiency Bonus to Initiative rolls (Chapter 3, line 8016).
 - [ ] **Extra Attack (Lv 5):** 2 attacks on Attack action.
 - [ ] **Uncanny Dodge (Lv 11):** Reaction to halve damage from seen attacker.
 - [ ] **Directed Engagement (Lv 15):** Reaction to choose Tip of the Spear outcome instead of rolling.

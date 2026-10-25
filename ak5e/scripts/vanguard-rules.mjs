@@ -91,7 +91,8 @@ const DEFAULT_STATE = Object.freeze({
   rulings: {}
 });
 
-export const flag = (document, key) => document?.getFlag?.("ak5e", key) ?? document?.flags?.ak5e?.[key];
+export const flag = (document, key) => document?.getFlag?.("ak5e", key)
+  ?? String(key).split(".").reduce((value, part) => value?.[part], document?.flags?.ak5e);
 const list = collection => Array.from(collection?.values?.() ?? collection ?? []);
 
 export function checkLevel(level) {
@@ -133,13 +134,14 @@ export function landstriderSpeedBonus() {
   return 10;
 }
 
-/** Martial DC (Ch. 1 L211): 8 + PB + higher of STR or DEX modifier. */
-export function martialDC(actor) {
+/** Martial DC (Ch. 1 L211): 8 + shared PB + the character's chosen STR or DEX modifier. */
+export function martialDC(actor, ability = flag(actor, "vanguard")?.martialDCAbility) {
   const system = actor?.system ?? {};
   const pb = Number(system.attributes?.prof ?? 2);
   const str = Number(system.abilities?.str?.mod ?? 0);
   const dex = Number(system.abilities?.dex?.mod ?? 0);
-  return 8 + pb + Math.max(str, dex);
+  if (ability !== "str" && ability !== "dex") return null;
+  return 8 + pb + Number(system.abilities?.[ability]?.mod ?? (ability === "str" ? str : dex));
 }
 
 /** Vanguard DC (standard DC using Dexterity or Martial DC): 8 + PB + DEX modifier. */
@@ -170,13 +172,18 @@ export function vanguardProfile(actor) {
   const classes = items.filter(i => i.type === "class");
   const vClass = classes.find(i => flag(i, "chapterThreeId") === VANGUARD_CLASS_ID || i.name === "Vanguard");
   if (!vClass) return empty;
-  if (classes.length > 1) return { ...empty, applicable: true, blocked: ["MultipleClasses"] };
-
+  // A Vanguard may multiclass. Vanguard feature gates always use Vanguard
+  // class levels, while the Actor keeps its shared D&D5e proficiency bonus.
   const rawLevel = Number(vClass.system?.levels);
   const level = Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
   if (level === null) return { ...empty, applicable: true, blocked: ["InvalidClassLevel"] };
 
-  const branches = items.filter(i => i.type === "subclass");
+  const identifier = vClass.system?.identifier ?? vClass.system?.classIdentifier ?? "vanguard";
+  const branches = items.filter(i => i.type === "subclass" && (
+    i.system?.classIdentifier === identifier || flag(i, "parentClass") === "Vanguard" || flag(i, "classIdentifier") === identifier
+  ));
+  const uniqueBranchIds = new Set(branches.map(item => flag(item, "chapterThreeId") ?? item.system?.identifier).filter(Boolean));
+  if (uniqueBranchIds.size > 1) return { ...empty, applicable: true, level, classItem: vClass, blocked: ["ConflictingVanguardBranches"] };
   const branchItem = branches[0] ?? null;
   let branch = null, branchId = null;
   if (branchItem) {
@@ -221,7 +228,7 @@ export function vanguardBranch(actor) {
 export function calculateVanguardProfile(actor) {
   const profile = vanguardProfile(actor);
   const level = profile.level ?? 1;
-  const pb = pbForLevel(level);
+  const pb = Number(actor?.system?.attributes?.prof ?? pbForLevel(level));
   const system = actor?.system ?? {};
   const conMod = Number(system.abilities?.con?.mod ?? 0);
   const dexMod = Number(system.abilities?.dex?.mod ?? 0);
@@ -256,7 +263,7 @@ export function calculateVanguardProfile(actor) {
     features,
     dc: {
       vanguard: 8 + pb + dexMod,
-      martial: 8 + pb + Math.max(strMod, dexMod)
+      martial: martialDC(actor)
     },
     branch: profile.branch,
     branchId: profile.branchId,

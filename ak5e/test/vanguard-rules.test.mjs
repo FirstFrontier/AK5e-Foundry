@@ -91,7 +91,8 @@ test("DC calculations: martialDC and vanguardDC", () => {
       }
     }
   });
-  assert.equal(martialDC(actor1), 8 + 2 + 3); // 13
+  assert.equal(martialDC(actor1), null); // STR/DEX must be selected rather than guessed
+  assert.equal(martialDC(actor1, "str"), 8 + 2 + 3); // 13
   assert.equal(vanguardDC(actor1), 8 + 2 + 2); // 12
 
   const actor2 = createTestActor({
@@ -103,7 +104,7 @@ test("DC calculations: martialDC and vanguardDC", () => {
       }
     }
   });
-  assert.equal(martialDC(actor2), 8 + 5 + 4); // 17
+  assert.equal(martialDC(actor2, "dex"), 8 + 5 + 4); // 17
   assert.equal(vanguardDC(actor2), 8 + 5 + 4); // 17
 });
 
@@ -162,6 +163,7 @@ test("vanguardProfile: actor inspection and edge cases", () => {
   const branchItem = createTestItem({
     name: "Vanguard: Agent",
     type: "subclass",
+    system: { classIdentifier: "vanguard", identifier: "agent" },
     flags: { ak5e: { chapterThreeId: "subclass-vanguard-agent" } }
   });
   actor.items.set(branchItem.id, branchItem);
@@ -169,12 +171,12 @@ test("vanguardProfile: actor inspection and edge cases", () => {
   assert.equal(prof.branch, "agent");
   assert.equal(vanguardBranch(actor), "agent");
 
-  // Multiclass detection
+  // Vanguard remains usable on a multiclass Actor.
   const secondClass = createTestItem({ name: "Guard", type: "class", system: { levels: 2 } });
   actor.items.set(secondClass.id, secondClass);
   prof = vanguardProfile(actor);
-  assert.deepEqual(prof.blocked, ["MultipleClasses"]);
-  assert.equal(vanguardEnabled(actor), false);
+  assert.deepEqual(prof.blocked, []);
+  assert.equal(vanguardEnabled(actor), true);
 });
 
 test("calculateVanguardProfile: returns full interface contract object", () => {
@@ -205,5 +207,7 @@ test("calculateVanguardProfile: returns full interface contract object", () => {
   assert.deepEqual(fullProf.proficiencies.weapons, ["Light Melee"]);
   assert.deepEqual(fullProf.proficiencies.tools, ["Messenger Kit"]);
   assert.equal(fullProf.dc.vanguard, 8 + 2 + 3);
-  assert.equal(fullProf.dc.martial, 8 + 2 + 3);
+  assert.equal(fullProf.dc.martial, null);
+  actor.flags.ak5e.vanguard = { martialDCAbility: "dex" };
+  assert.equal(calculateVanguardProfile(actor).dc.martial, 8 + 2 + 3);
 });

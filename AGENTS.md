@@ -41,25 +41,28 @@ Don't use the top model for everyday planning, routine code, ordinary tests, tra
 
 | Tier | Preferred model | Use |
 | --- | --- | --- |
-| Primary code writer | **Claude Haiku 5.5** (`haiku`) | **Default for producing code**: bulk implementation, boilerplate, mechanical refactors, test authoring/execution, adversarial bug hunting, repository lookup, and simple verification. Always give it concrete file scope and acceptance criteria; never hand it undefined architecture. Agents: `implementer`, `tester`, `bug-hunter`, `explorer`. |
-| Reviewer and escalation solver | **Claude Sonnet 5.5** (`sonnet`) | Routine code review, test-adequacy review, rendered UI validation, harder debugging, and taking over tasks Haiku failed after its 2nd retry (§3.4). Agents: `routine-reviewer`, `problem-solver`. |
-| System architect | **Claude Opus 5.5** (`opus`) | **Default parent**: requirements, architecture, decomposing work into Haiku-sized units, acceptance criteria, integration, and final validation. Last-resort solver after Sonnet fails its 2nd retry; high-risk independent review via `critical-reviewer`. |
+| Primary code writer | **Claude Sonnet 5.5** (`sonnet`, high effort) | **Default for producing code**: bounded implementation, refactors and the implementer's own tests. Always give it concrete file scope and acceptance criteria; never hand it undefined architecture. Agent: `implementer`. |
+| Adversarial challenger and lookup | **Claude Haiku 5.5** (`haiku`, high effort) | Adversarial test suites written against the spec in parallel with the implementer, bug hunting, repository lookup, and simple verification. Agents: `tester`, `bug-hunter`, `explorer`. |
+| Reviewer and escalation solver | **Claude Opus 5.5** (`opus`) | Routine code and test-adequacy review at medium effort (`routine-reviewer`); taking over tasks the Sonnet implementer failed after its 2nd retry at high effort (`problem-solver`). |
+| System architect and final bug squasher | **Claude Opus 5.5** (`opus`) | **Default parent**: requirements, architecture, decomposing work into worker-sized units, acceptance criteria, integration, and final validation. Last-resort bug squashing and high-risk independent review at max effort via `critical-reviewer`. |
 | Exceptional escalation | **Claude Fable 5.1** (`fable`, if accessible) | Rare, long-horizon, highly complex or unusually consequential tasks that Sonnet and Opus cannot resolve adequately. Requires explicit user authorization before deliberate escalation. |
 
-- Run the Claude Code parent on `opus` as the architect. The architect writes specs, acceptance criteria and integration glue, **not bulk code**: delegate code volume to Haiku workers. Trivial edits (a few lines) may still be done inline when that costs less than briefing a worker.
+- Run the Claude Code parent on `opus` as the architect. The architect writes specs, acceptance criteria and integration glue, **not bulk code**: delegate code volume to Sonnet implementers, each paired with a Haiku challenger. Trivial edits (a few lines) may still be done inline when that costs less than briefing a worker.
 - Never request `fable` merely because an ordinary worker failed once or a test is red.
 - Full model names may be pinned by the runtime; aliases can resolve differently by provider or version. Check the resolved model before asserting a specific release performed work.
-- Claude Code's built-in agents may inherit the parent model; they **do not automatically become Haiku workers**. To enforce predictable routing, use explicit native subagent definitions (`.claude/agents/*.md`) or supported per-invocation choices.
+- Claude Code's built-in agents may inherit the parent model; they **do not automatically become Sonnet or Haiku workers**. To enforce predictable routing, use explicit native subagent definitions (`.claude/agents/*.md`) or supported per-invocation choices.
 
 ### 4.2 OpenAI Codex
 
 | Tier | Model | Work |
 | --- | --- | --- |
-| Efficient worker | **GPT-6 Luna** (`gpt-6-luna`) | Bounded implementation, source inventory, pack generation from reviewed mappings, exploration, tests, first-pass review. |
-| Default parent / strong reviewer | **GPT-6.1 Sol** (`gpt-6.1-sol`) | Orchestration and integration; at high effort, hard planning/debugging, Foundry API review, rules fidelity, final approval. |
+| Implementer | **GPT-6.1 Sol** (`gpt-6.1-sol`, medium effort) | Bounded implementation, refactors and the implementer's own tests. Pair with an independent Luna tester. |
+| Adversarial tester / discovery | **GPT-6 Luna** (`gpt-6-luna`, high effort) | Independent adversarial tests, source inventory, exploration and Foundry validation. |
+| Mid-level reviewer | **GPT-6.1 Sol** (`gpt-6.1-sol`, high effort) | Routine code and test-adequacy review, integration and Foundry API review. |
+| Critical reviewer | **GPT-6.1 Sol** (`gpt-6.1-sol`, xhigh effort) | High-risk correctness, rules fidelity, security and release-blocking review. |
 | Exceptional | **GPT-6 Astra** (`gpt-6-astra`, if available) | Extreme reasoning problems; needs user authorization. |
 
-Start substantive sessions on Sol (low/medium effort normally, high for real complexity) with Luna children for bounded tasks. Repo agent config sets child models but does **not** switch the parent. Never silently substitute an older model.
+Start substantive parent sessions on Sol (low/medium effort normally, high for real complexity). Use Sol medium implementers paired with Luna high adversarial testers; use Sol high for mid-level review and Sol xhigh for critical review. Repo agent config sets child models but does **not** switch the parent or existing agents. If the active harness still advertises an older fixed worker role, start a fresh generic agent with the requested model/effort explicitly rather than claiming a hot reload. Never silently substitute an older model.
 
 ### 4.3 Google Antigravity / Gemini
 
@@ -87,11 +90,13 @@ Shipped definition files are authoritative. Read-only agents never edit.
 | --- | --- | --- | --- |
 | Repository discovery | `explorer` (haiku) | `explorer` (gpt-6-luna) | Read-only |
 | Source inventory / rules mapping | `rules-mapper` (sonnet) | `rules_mapper` (gpt-6-luna) | Read-only |
-| Bounded implementation | `implementer` (sonnet) | `worker` (gpt-6-luna) | Edit |
-| Tests | `tester` (sonnet) | `tester` (gpt-6-luna) | Tests; production only if authorized |
+| Bounded implementation | `implementer` (sonnet, high) | `worker` (gpt-6.1-sol, medium) | Edit |
+| Tests / adversarial challenger | `tester` (haiku, high) | `tester` (gpt-6-luna, high) | Tests; production only if authorized |
+| Adversarial bug hunting | `bug-hunter` (haiku, high) | — | Read-only |
 | Foundry V13 / pack / UUID / browser validation | `foundry-validator` (sonnet) | `foundry_validator` (gpt-6-luna) | Read-only |
-| Ordinary review | `routine-reviewer` (sonnet) | `reviewer` (gpt-6.1-sol, high) | Read-only |
-| High-risk review | `critical-reviewer` (opus, high) | same `reviewer` | Read-only |
+| Ordinary review | `routine-reviewer` (opus, medium) | `reviewer` (gpt-6.1-sol, high) | Read-only |
+| Escalation solver | `problem-solver` (opus, high) | — | Edit |
+| High-risk review / final bug squasher | `critical-reviewer` (opus, max) | `critical_reviewer` (gpt-6.1-sol, xhigh) | Read-only |
 
 ### 5.1 Antigravity routing
 
@@ -161,7 +166,7 @@ For nontrivial changes the parent defines expected behavior, edge and negative c
 ## 8. Review, safeguards and efficiency
 
 - Substantial/high-risk review covers correctness, error handling, broken imports/UUIDs, stable-ID loss, GM gating, player-agency regressions (WORKFLOW §3.2), overwrite risk, concurrency, compatibility, security, performance, regressions and coverage, each finding with path/line, severity and a reproduction or reasoning chain.
-- Claude: Sonnet for ordinary review, Opus for consequential review. Codex: Luna for preliminary feedback, Sol for final review. Antigravity: Gemini Flash, more effort for hard cases; report the actual reviewer model. Never use Fable/Astra for routine review.
+- Claude: Opus at medium effort for ordinary review (cross-model against Sonnet implementers), Opus at max effort for consequential review. Codex: Sol high for mid-level review, Sol xhigh for critical review; pair Sol medium implementers with Luna high adversarial testers. Antigravity: Gemini Flash, more effort for hard cases; report the actual reviewer model. Never use Fable/Astra for routine review.
 - Keep Git changes scoped; don't overwrite unexpected edits. Don't reset, delete, commit, merge, push, publish, deploy, install unneeded dependencies or mutate real Foundry worlds without authorization.
 - Prefer `apply_patch` or a native targeted edit tool; never rewrite whole files just because the preferred tool is missing.
 - Prefer targeted reads and test runs over full-repo sweeps; send agents small relevant excerpts.

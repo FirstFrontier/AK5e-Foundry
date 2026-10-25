@@ -3,11 +3,14 @@ import { worldRulesEnabled } from "./world-rule-state.mjs";
 import { registerArtsSheetHooks } from "./arts-sheet.mjs";
 import { casterGrant, casterQuoteOptions, prepareCasterActivity, casterConsumption, completeCasterConsumption, completeCasterUse, markCasterCastFailure } from "./caster-casting.mjs";
 import { casterStateSerial } from "./caster-primal-splash.mjs";
+import { artReceiptUndoAllowed, artReceiptWindow, appendArtReceipt, captureArtChanges, previewArtUndo, undoArtChanges } from "./arts-ledger.mjs";
+import { isLocked } from "./play-undo.mjs";
 export { renderArtsControls } from "./arts-sheet.mjs";
 
 const sessions = new Map();
 const busy = new Set();
 const patched = new WeakSet();
+const wiredArtCards = new WeakSet();
 let installed = false;
 let available = false;
 const flags = document => document?.getFlag?.("ak5e", "art") ?? {};
@@ -23,10 +26,25 @@ export const artsErrorText = error => error?.key ? artsText(error.key, error.dat
  * consumed in the same Actor update as its AP. `options(actor, item, usage)` returns quote options; `consume(activity,
  * usage, updates, receipt)` may add `updates.actor` entries. Both must be pure apart from those updates.
  */
-const quoteSources = [], consumers = [];
+const quoteSources = [], grantSources = [], consumers = [];
 export function registerArtQuoteOptions(source) { if (!quoteSources.includes(source)) quoteSources.push(source); }
+/** Register a transient source-backed grant. Return no grant unless its feature is valid for this exact use. */
+export function registerArtGrant(source) { if (typeof source !== "function") throw new TypeError("Art grant source must be a function."); if (!grantSources.includes(source)) grantSources.push(source); }
 export function registerArtConsumption(consumer) { if (!consumers.includes(consumer)) consumers.push(consumer); }
-function extraQuoteOptions(actor, item, usage) { return Object.assign({}, ...quoteSources.map(source => source(actor, item, usage) ?? {})); }
+function combinedQuoteOptions(...sources) {
+  const options = Object.assign({}, ...sources), discounts = [];
+  for (const source of sources) {
+    discounts.push(...(source?.discounts ?? []));
+    if (source?.discount) discounts.push({ amount: source.discount, source: source.discountSource });
+  }
+  delete options.discount; delete options.discountSource;
+  if (discounts.length) options.discounts = discounts;
+  return options;
+}
+function quoteOptions(actor, item, usage) {
+  return combinedQuoteOptions(casterQuoteOptions(actor, item, usage),
+    ...quoteSources.map(source => source(actor, item, usage) ?? {}), usage);
+}
 
 export function registerArtsConfig() {
   if (!CONFIG.DND5E) return;
@@ -63,9 +81,12 @@ function idle(actor) {
   if (busy.has(actor.uuid)) throw new Error("Finish the current Arts operation for this actor first.");
 }
 
-export function grantFor(item, actor = item.actor) {
+export function grantFor(item, actor = item.actor, usage = {}) {
   const grant = flags(item);
-  return casterGrant(actor, item, { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined });
+  let result = casterGrant(actor, item, { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined });
+  for (const source of grantSources) result = { ...result, ...(source(actor, item, usage) ?? {}) };
+  if (result.free && result.free.spent === undefined) result.free = { ...result.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 };
+  return result;
 }
 
 function checkFocus(actor, item) {
@@ -92,7 +113,7 @@ function checkFocus(actor, item) {
 export function artAvailability(actor, item, selection = {}) {
   let blocker;
   try { checkFocus(actor, item); } catch (error) { blocker = error; }
-  return artsChoices(artsState(actor), item.system.level, grantFor(item, actor), { ...casterQuoteOptions(actor, item, selection), ...extraQuoteOptions(actor, item, selection), ...selection, blocker });
+  return artsChoices(artsState(actor), item.system.level, grantFor(item, actor, selection), { ...quoteOptions(actor, item, selection), blocker });
 }
 
 /** Review data only. No World/Actor writes until configureActorArts is explicitly invoked. */
@@ -217,25 +238,116 @@ export async function configureArt(item, options) {
   finally { busy.delete(item.actor.uuid); }
 }
 
-/** Guarded undo: only the most recent cast, before intervening resource edits/rests. */
-export async function undoLastArt(actor) {
-  own(actor); idle(actor);
-  if (!game.user.isGM) throw new Error("Only the GM can undo a cast.");
-  const receipt = actor.getFlag("ak5e", "lastArtCast");
-  if (!receipt) throw new Error("There is no cast to undo.");
-  const state = artsState(actor);
-  if (state.value !== receipt.after || state.ninthLevelCast !== receipt.ninthAfter) throw new Error("Arts resources changed after this cast; adjust them manually.");
-  const item = receipt.freeSpent === null ? null : actor.items.get(receipt.itemId);
-  if (receipt.freeSpent !== null && (!item || actor.getFlag("ak5e", "artFreeUses")?.[item.id] !== receipt.freeSpent + 1)) {
-    throw new Error("Free uses changed after this cast; adjust them manually.");
+function artReceipts(actor) { return actor.getFlag("ak5e", "artReceipts") ?? []; }
+function receiptWindowCurrent(_actor, receipt) { return Boolean(receipt) && !isLocked(receipt); }
+function actorByUuid(uuid) { return globalThis.fromUuidSync?.(uuid) ?? list(game.actors).find(actor => actor.uuid === uuid); }
+function receiptFromMessage(actor, message) {
+  const data = message?.data ?? message;
+  const receipt = data?.flags?.ak5e?.artCast ?? message?.getFlag?.("ak5e", "artCast");
+  if (!receipt || data?.speaker?.actor !== actor.id || receipt.actorUuid !== actor.uuid) throw new Error("This cast card does not belong to the selected Actor.");
+  return receipt;
+}
+
+export async function undoArtReceipt(actor, receiptId, { message } = {}) {
+  if (!actor || actor.documentName !== "Actor") throw new Error("Select the Actor that made this cast.");
+  if (!(game.user.isGM || actor.isOwner)) throw new Error("You must own this Actor or be a GM to undo its cast.");
+  idle(actor);
+  const entry = artReceipts(actor).find(receipt => receipt.id === receiptId);
+  if (!entry || !artReceiptUndoAllowed(actor, entry)) throw new Error("This cast receipt is missing, already undone, or locked.");
+  if (!receiptWindowCurrent(actor, entry)) throw new Error("This cast belongs to a previous encounter window and is locked.");
+  if (message) {
+    const cardReceipt = receiptFromMessage(actor, message);
+    if (cardReceipt.id !== entry.id) throw new Error("The chat card receipt does not match this cast.");
+  }
+  const preview = previewArtUndo(actor, entry);
+  const update = undoArtChanges(actor, preview);
+  const receipts = artReceipts(actor).map(receipt => receipt.id === entry.id
+    ? { ...receipt, status: "undone", undoneBy: game.user.id, undoneAt: Date.now(), conflicts: preview.conflicts.map(c => c.path), restored: preview.restore.map(c => c.path) }
+    : receipt);
+  if (actor.getFlag("ak5e", "lastArtCast")?.id === entry.id) {
+    const prior = [...receipts].reverse().find(receipt => receipt.id !== entry.id && receipt.status === "available" && !isLocked(receipt));
+    update["flags.ak5e.lastArtCast"] = prior ?? null;
   }
   busy.add(actor.uuid);
   try {
-    await actor.update({ "flags.ak5e.artsPoints.value": receipt.before,
-      "flags.ak5e.artsPoints.ninthLevelCast": receipt.ninthBefore, "flags.ak5e.lastArtCast": null,
-      ...(item ? { [`flags.ak5e.artFreeUses.${item.id}`]: receipt.freeSpent } : {}) });
-    ui.notifications.info("Arts resources restored. Remove any resulting effects or chat cards separately.");
+    await actor.update({ ...update, "flags.ak5e.artReceipts": receipts });
+    const castCard = message ?? list(game.messages).find(candidate => {
+      const data = candidate?.data ?? candidate;
+      const cardReceipt = data?.flags?.ak5e?.artCast ?? candidate?.getFlag?.("ak5e", "artCast");
+      return cardReceipt?.id === entry.id && cardReceipt?.actorUuid === actor.uuid;
+    });
+    if (castCard?.update) {
+      try { await castCard.update({ "flags.ak5e.artCast.status": "undone", "flags.ak5e.artCast.undoneBy": game.user.id }); }
+      catch {
+        await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }),
+          content: `<p>${escape(entry.name)} cast undone by ${escape(game.user.name ?? game.user.id)}. Restored ${preview.safeCount} fields; preserved ${preview.conflictCount} changed fields.</p>` });
+      }
+    }
+    ui.notifications.info(`Cast undone: restored ${preview.safeCount} field${preview.safeCount === 1 ? "" : "s"}; preserved ${preview.conflictCount} changed field${preview.conflictCount === 1 ? "" : "s"}.`);
+    return { ...preview, receipt: entry };
   } finally { busy.delete(actor.uuid); }
+}
+
+/** Backwards-compatible entry point: now presents all current-window casts, with ownership checks. */
+export async function undoLastArt(actor) {
+  return openArtUndoList(actor);
+}
+
+function recentArtReceipts(actor) {
+  return [...artReceipts(actor)].reverse().map(receipt => ({ receipt, current: receiptWindowCurrent(actor, receipt) }));
+}
+
+export async function openArtUndoList(actor) {
+  if (!(game.user.isGM || actor?.isOwner)) throw new Error("You must own this Actor or be a GM to review its casts.");
+  const entries = recentArtReceipts(actor);
+  if (!entries.length) throw new Error("This Actor has no recorded Art casts.");
+  const content = "<ul>" + entries.map(({ receipt, current }) => `<li>${escape(receipt.name)} — ${escape(receipt.status)}${current ? " (current window)" : " (locked)"}: ${escape(receipt.cost)} AP</li>`).join("") + "</ul>";
+  const choice = await dialogPage("Arts cast receipts", content + '<label>Cast <select name="receipt">' + entries.map(({ receipt, current }) => `<option value="${escape(receipt.id)}" ${receipt.status !== "available" || !current ? "disabled" : ""}>${escape(receipt.name)} — ${escape(receipt.id)}</option>`).join("") + "</select></label>", [
+    { action: "undo", label: "Review undo", default: true, callback: (_event, button) => button.form.elements.receipt.value },
+    { action: "cancel", label: "Close" }
+  ]);
+  if (!choice || choice === "cancel") return;
+  const entry = artReceipts(actor).find(receipt => receipt.id === choice);
+  if (!entry || entry.status !== "available" || !receiptWindowCurrent(actor, entry)) return;
+  const preview = previewArtUndo(actor, entry);
+  const detail = `<p>Will restore ${preview.safeCount} fields: ${preview.restore.map(c => escape(c.path)).join(", ") || "none"}.</p>` +
+    `<p>Will preserve ${preview.conflictCount} changed fields: ${preview.conflicts.map(c => escape(c.path)).join(", ") || "none"}.</p>`;
+  const confirmed = await dialogPage("Confirm cast undo", detail, [
+    { action: "restore", label: "Restore safe changes", default: true, callback: () => true },
+    { action: "cancel", label: "Cancel" }
+  ]);
+  if (confirmed === true) return undoArtReceipt(actor, choice);
+}
+
+export async function renderArtReceiptControls(message, html) {
+  const data = message?.data ?? message, receipt = data?.flags?.ak5e?.artCast;
+  if (!receipt?.actorUuid || !receipt?.id) return;
+  const actor = actorByUuid(receipt.actorUuid);
+  if (!actor || !(game.user.isGM || actor.isOwner)) return;
+  const locked = !artReceipts(actor).some(entry => entry.id === receipt.id && entry.status === "available" && receiptWindowCurrent(actor, entry));
+  const shortfall = Number(receipt.shortfall ?? 0);
+  const warning = shortfall ? `<p role="alert">AP short by ${shortfall}; resource was clamped at 0.</p>` : "";
+  const entry = artReceipts(actor).find(candidate => candidate.id === receipt.id);
+  const button = entry?.status === "undone" ? `<span class="ak5e-art-receipt-undone">Cast undone by ${escape(entry.undoneBy ?? "a user")}</span>`
+    : locked ? '<span class="ak5e-art-receipt-locked">Cast undo locked</span>'
+    : `<button type="button" data-ak5e-art-undo="${escape(receipt.id)}">Undo this cast</button>`;
+  const root = html;
+  if (!root?.querySelector || wiredArtCards.has(root)) return;
+  wiredArtCards.add(root);
+  root?.querySelector?.(".message-content")?.insertAdjacentHTML("beforeend", `<div class="ak5e-art-receipt-controls">${warning}${button}</div>`);
+  root.addEventListener("click", async event => {
+    const undoButton = event.target?.closest?.("[data-ak5e-art-undo]");
+    if (!undoButton || !root.contains(undoButton)) return;
+    event.preventDefault();
+    try {
+      const preview = previewArtUndo(actor, artReceipts(actor).find(entry => entry.id === receipt.id));
+      const confirmed = await dialogPage("Confirm cast undo", `<p>Restore ${preview.safeCount} fields.</p><p>Preserve ${preview.conflictCount} changed fields: ${preview.conflicts.map(c => escape(c.path)).join(", ") || "none"}.</p>`, [
+        { action: "restore", label: "Restore safe changes", default: true, callback: () => true },
+        { action: "cancel", label: "Cancel" }
+      ]);
+      if (confirmed === true) await undoArtReceipt(actor, undoButton.dataset.ak5eArtUndo, { message });
+    } catch (error) { ui.notifications.warn(error.message); }
+  });
 }
 
 export function prepareArtUse(activity, usage, dialog, message) {
@@ -265,14 +377,15 @@ export function consumeArt(activity, usage, message, updates) {
     if (!session || session.committed) throw new Error("This cast has already been processed or is no longer active.");
     own(activity.actor); checkFocus(activity.actor, activity.item);
     const state = artsState(activity.actor);
-    const quote = quoteArt(state, session.baseLevel, usage.ak5eLevel, grantFor(activity.item), { ...casterQuoteOptions(activity.actor, activity.item, usage), ...extraQuoteOptions(activity.actor, activity.item, usage), mode: usage.ak5eMode });
+    const quote = quoteArt(state, session.baseLevel, usage.ak5eLevel, grantFor(activity.item, activity.actor, usage), { ...quoteOptions(activity.actor, activity.item, usage), mode: usage.ak5eMode });
     const freeSpent = quote.mode === "free" && quote.freeRemaining !== null
       ? (activity.actor.getFlag("ak5e", "artFreeUses")?.[activity.item.id] ?? 0) : null;
     const receipt = {
       id: usage.ak5eCastId, itemId: activity.item.id, name: activity.item.name,
       level: quote.level, cost: quote.cost, mode: quote.mode,
-      before: state.value, after: state.value - quote.cost,
-      ninthBefore: state.ninthLevelCast, ninthAfter: quote.ninthLevelCast, freeSpent
+      before: state.value, after: Math.max(0, state.value - quote.cost), shortfall: quote.shortfall,
+      ninthBefore: state.ninthLevelCast, ninthAfter: quote.ninthLevelCast, freeSpent,
+      previousLastArtCastId: activity.actor.getFlag("ak5e", "lastArtCast")?.id ?? null
     };
     updates.actor ??= {};
     // Fail on unexpected explicit slot targets, rather than silently charging both systems.
@@ -289,9 +402,14 @@ export function consumeArt(activity, usage, message, updates) {
     }
     casterConsumption(activity, usage, updates, receipt);
     for (const consumer of consumers) consumer(activity, usage, updates, receipt, quote);
+    const changes = captureArtChanges(activity.actor, updates.actor);
+    receipt.actorUuid = activity.actor.uuid;
+    receipt.windowId = artReceiptWindow(activity.actor).id;
+    receipt.changes = changes;
+    updates.actor["flags.ak5e.artReceipts"] = appendArtReceipt(activity.actor, receipt, changes);
     message.data ??= {};
     message.data.flags ??= {};
-    message.data.flags.ak5e = { ...message.data.flags.ak5e, artCast: receipt };
+    message.data.flags.ak5e = { ...message.data.flags.ak5e, artCast: structuredClone(receipt) };
     message.data.system ??= {};
     message.data.system.spellLevel = quote.level;
     session.receipt = receipt;
@@ -314,8 +432,9 @@ export function artsDialogClass(Base) {
   class ArtsUsageDialog extends Base {
     async _prepareScalingContext(context) {
       const state = artsState(this.actor);
-      const grant = grantFor(this.item);
-      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const usage = { ...this.config };
+      const grant = grantFor(this.item, this.actor, usage);
+      const choices = artAvailability(this.actor, this.item, usage);
       this.config.ak5eMode = choices.mode;
       this.config.ak5eLevel = choices.level;
       const modes = choices.modes.map(m => ({ value: m.value, label: artsText(`Mode.${m.value}`) }));
@@ -324,9 +443,9 @@ export function artsDialogClass(Base) {
         ak5eArts: { modes, mode: choices.mode, options, level: String(choices.level),
           modeLabel: artsText(`Mode.${choices.mode}`), levelLabel: options.find(o => Number(o.value) === choices.level)?.label,
           chooseMode: modes.length > 1, chooseLevel: options.length > 1,
-          cost: choices.quote?.cost, remaining: choices.quote ? state.value - choices.quote.cost : null,
+          cost: choices.quote?.cost, shortfall: choices.quote?.shortfall ?? 0, remaining: choices.quote?.remaining ?? null,
           modifiers: choices.quote?.modifiers ?? [], origin: choices.quote?.origin ?? null,
-          value: state.value, maximum: state.maximum, source: grant.source ?? "",
+          value: state.value, maximum: state.maximum, source: [grant.source, choices.quote?.shortfall ? `Warning: AP short by ${choices.quote.shortfall}; Use anyway clamps AP to 0.` : ""].filter(Boolean).join(" — "),
           ritual: choices.mode === "ritual", unavailable: !choices.quote,
           reason: choices.error ? artsErrorText(choices.error) : "" } };
     }
@@ -334,7 +453,7 @@ export function artsDialogClass(Base) {
     async _prepareSubmitData(event, formData) {
       const data = await super._prepareSubmitData(event, formData);
       const base = sessions.get(this.config.ak5eCastId)?.baseLevel ?? this.item.system.level;
-      const selected = { ak5eCaster: this.config.ak5eCaster, mode: data.ak5eMode ?? this.config.ak5eMode, level: data.ak5eLevel ?? this.config.ak5eLevel };
+      const selected = { ...this.config, ...data, mode: data.ak5eMode ?? this.config.ak5eMode, level: data.ak5eLevel ?? this.config.ak5eLevel };
       // Native change events recalculate choices. Confirmation retains the requested cast:
       // consumption must reject a stale selection rather than silently cast at a lower level.
       const choices = event?.type === "click"
@@ -358,9 +477,9 @@ export function artsDialogClass(Base) {
 
     async _prepareFooterContext(context, options) {
       const result = await super._prepareFooterContext(context, options);
-      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const choices = artAvailability(this.actor, this.item, this.config);
       for (const button of result.buttons ?? []) if (button.action === "use") {
-        button.label = artsText("Cast");
+        button.label = choices.quote?.shortfall ? "Use anyway" : artsText("Cast");
         button.disabled = !choices.quote;
       }
       return result;
@@ -368,7 +487,7 @@ export function artsDialogClass(Base) {
 
     async _onRender(context, options) {
       await super._onRender(context, options);
-      const choices = artAvailability(this.actor, this.item, { ak5eCaster: this.config.ak5eCaster, mode: this.config.ak5eMode, level: this.config.ak5eLevel });
+      const choices = artAvailability(this.actor, this.item, this.config);
       const button = this.element.querySelector('[data-action="use"]');
       if (button) button.disabled = !choices.quote;
     }
@@ -399,7 +518,8 @@ export function wrapActivityUse(prototype) {
       // The native activity owns the confirmation dialog and commits resources inside `use`.
       // Serialize that boundary with external Caster receipts/links; release before AP/cast
       // event handlers run because those handlers acquire the same queue themselves.
-      const result = await casterStateSerial(this.actor, () => original.call(this, { ...usage, ak5eCastId: id }, dialog, message));
+      const result = await casterStateSerial(this.actor, () => original.call(this,
+        { ...usage, ak5eCastId: id, subsequentActions: false }, { ...dialog, configure: true }, message));
       if (session.receipt) {
         await completeCasterConsumption(this.actor, session.receipt);
         if (result) await completeCasterUse(this.actor, session.receipt);
@@ -443,6 +563,7 @@ export function registerArtsHooks() {
   Hooks.on("dnd5e.preUseActivity", prepareArtUse);
   Hooks.on("dnd5e.activityConsumption", consumeArt);
   Hooks.on("dnd5e.preRestCompleted", completeArtsRest);
+  Hooks.on("renderChatMessageHTML", (message, html) => safely(renderArtReceiptControls(message, html)));
   for (const hook of ["dnd5e.preShortRest", "dnd5e.preLongRest"]) Hooks.on(hook, actor => {
     if (isArtsActor(actor) && busy.has(actor.uuid)) { ui.notifications.warn("Finish the current Arts operation before resting."); return false; }
   });
@@ -486,6 +607,7 @@ export async function openArtsSetup(actor, { adopt = true } = {}) {
   const initial = !state.enabled || actor.getFlag("ak5e", "artsSetup")?.status === "pending";
   const units = list(actor.items).filter(item => ["weapon", "equipment", "tool"].includes(item.type));
   const receipt = actor.getFlag("ak5e", "lastArtCast");
+  const hasUndoableCast = (game.user.isGM || actor.isOwner) && artReceipts(actor).some(entry => entry.status === "available" && receiptWindowCurrent(actor, entry));
   const content = '<p>' + escape(artsText("ConfigurationHint")) + '</p>' +
     field("Ability", select("ability", state.ability, ["int", "wis", "cha"].map(key => [key, CONFIG.DND5E.abilities?.[key]?.label ?? key]))) +
     '<p>' + escape(artsText("AbilityHint")) + '</p>' +
@@ -508,9 +630,9 @@ export async function openArtsSetup(actor, { adopt = true } = {}) {
         kind: "adjust", amount: button.form.elements.adjustment.value, overflow: button.form.elements.overflow.checked
       }) },
       ...(game.user.isGM ? [
-        { action: "rules", label: artsText("CastingRules"), callback: () => ({ kind: "rules" }) },
-        ...(receipt ? [{ action: "undo", label: artsText("Undo"), callback: () => ({ kind: "undo" }) }] : [])
-      ] : [])
+        { action: "rules", label: artsText("CastingRules"), callback: () => ({ kind: "rules" }) }
+      ] : []),
+      ...(hasUndoableCast ? [{ action: "undo", label: "Undo a recent use", callback: () => ({ kind: "undo" }) }] : [])
     ] : []),
     { action: "cancel", label: artsText("Cancel") }
   ]);

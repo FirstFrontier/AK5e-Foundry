@@ -6,7 +6,7 @@
 import { createPlayUses, warn, spendResource, resourceValue } from "./play-uses.mjs";
 import { guardEnabled, guardLevel, guardBranch, guardState, checkLevel } from "./guard-rules.mjs";
 import { need } from "./operation-kernel.mjs";
-import { spendReaction, getReactions } from "./trigger-events.mjs";
+import { getReactions } from "./trigger-events.mjs";
 
 const isDuellist = actor => Boolean(guardEnabled(actor) && guardBranch(actor) === "duellist");
 
@@ -90,15 +90,15 @@ const CORE_PLANS = {
     return {
       warnings,
       title: isParry ? "Press the Attack: Forestall (Parry)" : "Press the Attack: Forestall",
-      async apply(next, receipt) {
+      costs: aggressionCost ? [{ label: "Aggression", amount: aggressionCost, pool: "aggression" }] : [],
+      apply(next, receipt) {
         receipt.roundKey = roundKey;
         receipt.isParry = isParry;
         receipt.newRound = data.newRound === true;
 
         const updates = spendResource(actor, receipt, { pool: "aggression", amount: aggressionCost, label: "Aggression" });
         if (!isParry) {
-          const rx = await spendReaction(actor, { triggerId: `${receipt.id}-forestall`, receipt: receipt.id });
-          receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+          receipt.reaction = { requested: true, triggerId: `${receipt.id}-forestall`, receiptId: receipt.id };
         } else {
           receipt.reaction = { requested: false, spent: false, receiptId: receipt.id, parry: true };
         }
@@ -124,6 +124,7 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Press the Attack: Smite",
+      costs: [{ label: "Aggression", amount, pool: "aggression" }],
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount, label: "Aggression" });
         const bonus = amount * pb;
@@ -148,6 +149,7 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Press the Attack: Strike True",
+      costs: [{ label: "Aggression", amount, pool: "aggression" }],
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount, label: "Aggression" });
         const bonus = amount * pb;
@@ -177,11 +179,11 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Unrelenting",
+      costs: [{ label: "Unrelenting", amount: 1, pool: "unrelenting" }],
       rolls: isEternal ? [{ id: "eternalAggression", label: "Eternal Aggression (1d4 Aggression refund)", formula: "1d4" }] : [],
-      async apply(next, receipt) {
+      apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 1, label: "Unrelenting" });
-        const rx = await spendReaction(actor, { triggerId: `${receipt.id}-unrelenting`, receipt: receipt.id });
-        receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+        receipt.reaction = { requested: true, triggerId: `${receipt.id}-unrelenting`, receiptId: receipt.id };
         receipt.summary = `${actor.name} immediately makes a single Attack as a Reaction.`;
         receipt.result = { attacks: 1, eternalAggression: isEternal };
         return updates;
@@ -209,11 +211,11 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Pursuit Unrelenting",
+      costs: [{ label: "Unrelenting", amount: 2, pool: "unrelenting" }],
       rolls: isEternal ? [{ id: "eternalAggression", label: "Eternal Aggression (2d4 Aggression refund)", formula: "2d4" }] : [],
-      async apply(next, receipt) {
+      apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 2, label: "Unrelenting" });
-        const rx = await spendReaction(actor, { triggerId: `${receipt.id}-pursuitUnrelenting`, receipt: receipt.id });
-        receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+        receipt.reaction = { requested: true, triggerId: `${receipt.id}-pursuitUnrelenting`, receiptId: receipt.id };
         receipt.summary = `${actor.name} takes an ${actionType} in place of the single Attack.`;
         receipt.result = { actionType, eternalAggression: isEternal };
         return updates;
@@ -239,11 +241,11 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Press the Attack: Unrelenting Aggression",
+      costs: [{ label: "Aggression", amount: 2, pool: "aggression" }],
       rolls: [{ id: "unrelentingDamage", label: "Miss Damage (no Ability Modifier)", formula: damageFormula }],
-      async apply(next, receipt) {
+      apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount: 2, label: "Aggression" });
-        const rx = await spendReaction(actor, { triggerId: `${receipt.id}-unrelentingAggression`, receipt: receipt.id });
-        receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id };
+        receipt.reaction = { requested: true, triggerId: `${receipt.id}-unrelentingAggression`, receiptId: receipt.id };
         receipt.summary = `${actor.name} deals weapon dice Damage without Ability Score Modifier on a missed melee Attack.`;
         receipt.result = { aggressionSpent: 2, formula: damageFormula };
         return updates;

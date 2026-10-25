@@ -113,6 +113,39 @@ test("applyVanguardSetup: idempotent application preserving existing features", 
   assert.equal(actor.items.size, initialItemCount, "No duplicate items created");
 });
 
+test("setup migrates a same-name authored effect without replacing it", async () => {
+  const vClass = createTestItem({ name: "Vanguard", type: "class", system: { levels: 1 }, flags: { ak5e: { chapterThreeId: VANGUARD_CLASS_ID } } });
+  const landstrider = createTestItem({ name: "Landstrider", type: "feat", flags: { ak5e: { chapterThreeId: "class-feature-vanguard-1st-level-landstrider-2798" } },
+    effects: [{ name: "Landstrider: Walking Speed +10 ft", transfer: false, changes: [{ key: "system.attributes.movement.walk", value: 1, mode: 2 }] }] });
+  const actor = createTestActor({ items: [vClass, landstrider] });
+  const ownedLandstrider = actor.items.get(landstrider.id);
+  const authoredEffect = [...ownedLandstrider.effects.values()][0];
+  const preview = await previewVanguardSetup(actor);
+  assert.equal(preview.effectUpdates.length, 1);
+  await applyVanguardSetup(actor, { confirmed: true, contextKey: preview.contextKey });
+  assert.equal(ownedLandstrider.effects.size, 2);
+  assert.equal(authoredEffect.name, "Landstrider: Walking Speed +10 ft");
+  assert.ok([...ownedLandstrider.effects.values()].some(effect => effect.flags.ak5e.vanguardManagedEffect === "landstrider-speed"));
+});
+
+test("setup removes only the obsolete managed Quick off the Mark transfer effect", async () => {
+  const vClass = createTestItem({ name: "Vanguard", type: "class", system: { levels: 3 }, flags: { ak5e: { chapterThreeId: VANGUARD_CLASS_ID } } });
+  const quick = createTestItem({ name: "3rd Level: Quick off the Mark", type: "feat", flags: { ak5e: { chapterThreeId: "class-feature-vanguard-3rd-level-quick-off-the-mark-4553" } },
+    effects: [
+      { name: "Quick off the Mark: Initiative +PB", transfer: true, flags: { ak5e: { vanguardManagedEffect: "quick-off-mark-initiative" } }, changes: [{ key: "system.attributes.init.bonus", value: "@prof", mode: 2 }] },
+      { name: "Authored Initiative Note", transfer: false, changes: [] }
+    ] });
+  const actor = createTestActor({ items: [vClass, quick] });
+  const owned = actor.items.get(quick.id);
+  const before = [...owned.effects.values()];
+  const preview = await previewVanguardSetup(actor);
+  assert.equal(preview.effectDeletes.length, 1);
+  await applyVanguardSetup(actor, { confirmed: true, contextKey: preview.contextKey });
+  assert.equal(owned.effects.size, 1);
+  assert.ok(owned.effects.has(before.find(effect => effect.name === "Authored Initiative Note").id));
+  assert.equal([...owned.effects.values()][0].name, "Authored Initiative Note");
+});
+
 test("inspectVanguardFields: returns schema options for branch, saves, skills, equipment, and level choices", () => {
   const actor = createVanguardActor(4);
   const fields = inspectVanguardFields(actor);
@@ -151,6 +184,7 @@ test("previewVanguardProgression: detects missing choices and computes preview",
   // Complete choices
   const completeChoices = {
     branch: "subclass-vanguard-agent",
+    martialDCAbility: "dex",
     saves: ["str"],
     skills: ["acr", "ath", "ste"],
     tool: "Messenger Kit",
@@ -177,6 +211,7 @@ test("applyVanguardProgression: level 1 progression grant and idempotency", asyn
   const actor = createVanguardActor(1);
   const choices = {
     branch: "subclass-vanguard-agent",
+    martialDCAbility: "dex",
     saves: ["cha"],
     skills: ["acr", "prc", "ste"],
     tool: "Messenger Kit",
@@ -205,6 +240,7 @@ test("applyVanguardProgression: level 1 progression grant and idempotency", asyn
   assert.equal(actor.system.skills.ste.value, 1);
   // Verify currency granted
   assert.equal(actor.system.currency.cp, 1300);
+  assert.equal(actor.system.tools.ak5emessengerkit.value, 1);
 
   // Branch item attached
   const branchItem = Array.from(actor.items.values()).find(i => i.type === "subclass");
@@ -213,14 +249,14 @@ test("applyVanguardProgression: level 1 progression grant and idempotency", asyn
   const hpBefore = actor.system.attributes.hp.max;
 
   // Running progression again with existing mode is idempotent: no double HP!
-  const secondChoices = vanguardChoices(actor);
-  const previewSecond = await previewVanguardProgression(actor, secondChoices);
+  const previewSecond = await previewVanguardProgression(actor, choices);
   assert.equal(previewSecond.pending.length, 0);
+  assert.equal(previewSecond.writes["system.attributes.hp.max"], undefined, "reusing the original explicit HP choice cannot grant it twice");
 
   await applyVanguardProgression(actor, {
     confirmed: true,
     contextKey: previewSecond.contextKey,
-    choices: secondChoices
+    choices: previewSecond.choices
   });
 
   assert.equal(actor.system.attributes.hp.max, hpBefore, "HP not double counted");
@@ -230,6 +266,7 @@ test("applyVanguardProgression: level-up to 4 applies ASI and talents without re
   const actor = createVanguardActor(4);
   const choices = {
     branch: "subclass-vanguard-standard-bearer",
+    martialDCAbility: "dex",
     saves: ["str"],
     skills: ["ath", "per", "ak5ewilderness"],
     tool: "Messenger Kit",
@@ -260,8 +297,54 @@ test("applyVanguardProgression: level-up to 4 applies ASI and talents without re
 
   // ASI applied: DEX increased by 2
   assert.equal(actor.system.abilities.dex.value, initialDex + 2);
+  const level4MaxHp = actor.system.attributes.hp.max;
+  const replayPreview = await previewVanguardProgression(actor, choices);
+  assert.equal(replayPreview.writes["system.abilities.dex.value"], undefined, "reusing the original ASI cannot apply it twice");
+  assert.equal(replayPreview.writes["system.attributes.hp.max"], undefined, "reusing original HP choices cannot apply them twice");
+  await applyVanguardProgression(actor, { confirmed: true, contextKey: replayPreview.contextKey, choices: replayPreview.choices });
+  assert.equal(actor.system.abilities.dex.value, initialDex + 2);
+  assert.equal(actor.system.attributes.hp.max, level4MaxHp);
 
   // Talent item created
   const talentItem = Array.from(actor.items.values()).find(i => i.name === "Alacrity");
   assert.ok(talentItem, "Alacrity talent item was created");
+});
+
+test("source-category weapon proficiency only updates Light Melee AK5e weapons", async () => {
+  const actor = createVanguardActor(1);
+  const light = createTestItem({ name: "AK5e Light Weapon", type: "weapon", system: { proficient: 0 }, flags: { ak5e: { tableData: { category: "Light Melee Weapons" } } } }, actor);
+  const unrelated = createTestItem({ name: "Third Party Weapon", type: "weapon", system: { proficient: 0 }, flags: { ak5e: { tableData: { category: "Simple Weapons" } } } }, actor);
+  actor.items.set(light.id, light); actor.items.set(unrelated.id, unrelated);
+  const preview = await previewVanguardProgression(actor, { branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"],
+    skills: ["acr", "ath", "ste"], startingEquipment: { mode: "existing" } });
+  assert.deepEqual(preview.updateItems.map(update => update._id), [light.id]);
+  await applyVanguardProgression(actor, { confirmed: true, contextKey: preview.contextKey,
+    choices: { branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"], skills: ["acr", "ath", "ste"], startingEquipment: { mode: "existing" } } });
+  assert.equal(light.system.proficient, 1);
+  assert.equal(unrelated.system.proficient, 0);
+});
+
+test("invalid progression IDs and values stay pending", async () => {
+  const actor = createVanguardActor(2);
+  const plan = await previewVanguardProgression(actor, {
+    branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"], skills: ["acr", "ath", "ste"],
+    startingEquipment: { mode: "unsupported", weapon1: "not-a-source-item" },
+    hp: { 1: { mode: "unknown" }, 2: { mode: "rolled", roll: 9 } }, talents: { basic: "not-a-talent" }, tool: "unknown kit"
+  });
+  for (const key of ["startingEquipment.mode", "hp.1", "hp.2", "tool", "talents.basic"]) assert.ok(plan.pending.includes(key), `${key} remains pending`);
+  await assert.rejects(() => applyVanguardProgression(actor, { confirmed: true, contextKey: plan.contextKey,
+    choices: { branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"], skills: ["acr", "ath", "ste"], startingEquipment: { mode: "unsupported" }, hp: { 1: { mode: "unknown" } }, tool: "unknown kit" } }));
+});
+
+test("each Talent unlock remains pending until chosen or reconciled", async () => {
+  const actor = createVanguardActor(13);
+  const plan = await previewVanguardProgression(actor, { branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"],
+    skills: ["acr", "ath", "ste"], startingEquipment: { mode: "existing" }, tool: "Messenger Kit" });
+  for (const key of ["talents.basic", "talents.basicModule", "talents.advanced", "talents.advancedModule"]) assert.ok(plan.pending.includes(key), `${key} is required at its unlock`);
+  const level8 = createVanguardActor(8);
+  const duplicate = "class-option-vanguard-talent-basic-alacrity";
+  const sameTalentTwice = await previewVanguardProgression(level8, { branch: "subclass-vanguard-agent", martialDCAbility: "dex", saves: ["str"],
+    skills: ["acr", "ath", "ste"], startingEquipment: { mode: "existing" }, tool: "Messenger Kit",
+    talents: { basic: duplicate, basicModule: duplicate } });
+  assert.ok(sameTalentTwice.pending.includes("talents.basicModule"), "the Module choice must be a different talent or an explicit upgrade");
 });

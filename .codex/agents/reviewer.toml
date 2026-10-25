@@ -1,5 +1,5 @@
 name = "reviewer"
-description = "Independent critical review for complex changes, security, regressions, and inadequate tests."
+description = "Independent mid-level code and test-adequacy review; use critical_reviewer for high-risk final review."
 model = "gpt-6.1-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"

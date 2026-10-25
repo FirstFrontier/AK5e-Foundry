@@ -113,8 +113,13 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
       reduction && { source: grant.source || "Configured Art reduction", amount: -reduction }, surcharge && { source: "Arts Translocation", amount: surcharge },
       options.overrideCost !== undefined && { source:"GM-reviewed repeat cost", amount:cost-modifiedCost }].filter(Boolean);
     // A discount from another class feature (Guardian's Not Today, Ch.3 L1542) applies last, to a minimum of 0.
-    const discount = integer(options.discount ?? 0, "Arts Point discount", 0, 99);
-    if (discount && cost > 0) { const applied = Math.min(discount, cost); cost -= applied; options.modifiers.push({ source: options.discountSource ?? "Discount", amount: -applied }); }
+    const discounts = [...(options.discounts ?? []), ...(options.discount ? [{ amount: options.discount, source: options.discountSource }] : [])];
+    for (const discount of discounts) {
+      const amount = integer(discount.amount ?? 0, "Arts Point discount", 0, 99);
+      if (!amount || cost <= 0) continue;
+      const applied = Math.min(amount, cost); cost -= applied;
+      options.modifiers.push({ source: discount.source ?? "Discount", amount: -applied });
+    }
   }
   if (mode !== "ap" && options.surcharge) {
     if (!grant.caster?.costOrder) throw new ArtsRuleError("CasterRuling", "The GM must review a drone-origin free or ritual cast's AP cost.");
@@ -126,9 +131,9 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
   if (extraAP) { cost += extraAP; options.modifiers = [...(options.modifiers ?? []), { source: "Overwhelming Detonation", amount: extraAP }]; }
   if (level > maximum) throw new ArtsRuleError("LevelCap", `This casting exceeds maximum Art level ${maximum}.`, { maximum });
   if (level === 9 && state.ninthLevelCast) throw new ArtsRuleError("NinthUsed", "A 9th-level Art has already been cast since the last Long Rest.");
-  if (cost > state.value) throw new ArtsRuleError("InsufficientAP", `This casting costs ${cost} AP; only ${state.value} AP remain.`, { cost, value: state.value });
-  return { baseLevel: base, level, cost, mode, freeRemaining, modifiers: options.modifiers ?? [],
-    origin: options.origin ?? null, remaining: state.value - cost, ninthLevelCast: state.ninthLevelCast || level === 9 };
+  const shortfall = Math.max(0, cost - state.value);
+  return { baseLevel: base, level, cost, shortfall, mode, freeRemaining, modifiers: options.modifiers ?? [],
+    origin: options.origin ?? null, remaining: Math.max(0, state.value - cost), ninthLevelCast: state.ninthLevelCast || level === 9 };
 }
 
 /** One read-only quote catalogue for sheets and usage dialogs. */

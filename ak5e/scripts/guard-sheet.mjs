@@ -4,14 +4,14 @@
  */
 import { guardProfile, guardLevel, guardBranch, guardState, martialDC, centurionDC, flag } from "./guard-rules.mjs";
 import { getGuardView } from "./guard-features.mjs";
-import { applyGuardSetup } from "./guard-setup.mjs";
+import { previewGuardSetup, applyGuardSetup } from "./guard-setup.mjs";
 import { previewGuardProgression, applyGuardProgression, inspectGuardFields } from "./guard-progression.mjs";
 import { guardUses } from "./guard-uses.mjs";
 import { confirmPlayUse, openPlayUndoList, retryPlayUse, renderPlayUseCard } from "./play-uses-sheet.mjs";
 import { isCenturion } from "./centurion-features.mjs";
 import { isCrusher } from "./crusher-features.mjs";
 import { isInstructor, INSTRUCTIONS } from "./instructor-features.mjs";
-import { isArtsblade, ARTS_POOLS, maxArtLevel } from "./artsblade-features.mjs";
+import { isArtsblade, ARTS_POOLS, getArtsbladePoolChoices, maxArtLevel } from "./artsblade-features.mjs";
 import { isBrawler, bobAndWeaveAC, isUnarmoredOrLight } from "./brawler-features.mjs";
 import { isDuellist } from "./duellist-features.mjs";
 import { isLiberator, guideTheMassesBonus } from "./liberator-features.mjs";
@@ -360,7 +360,14 @@ export async function openGuardControls(actor) {
           const act = el.dataset.guardAct;
           safe(async () => {
             if (act === "__setup") {
-              await applyGuardSetup(actor, { confirmed: true });
+              const setup = await previewGuardSetup(actor);
+              const accepted = await foundry.applications.api.DialogV2.confirm({
+                window: { title: `Grant Guard features — ${actor.name}` },
+                content: `<p>Grant ${setup.creates.length} Guard feature${setup.creates.length === 1 ? "" : "s"} for Guard level ${setup.level}?</p>`,
+                rejectClose: false
+              });
+              if (!accepted) return;
+              await applyGuardSetup(actor, { confirmed: true, contextKey: setup.contextKey });
               ui.notifications.info("Guard core features granted.");
               app.close();
             } else if (act === "__undo") {
@@ -377,6 +384,15 @@ export async function openGuardControls(actor) {
         });
       }
     }
+  });
+}
+
+async function askMartialAbility(actor, feature) {
+  return foundry.applications.api.DialogV2.prompt({
+    window: { title: `${feature}: choose Martial DC ability` },
+    rejectClose: false,
+    content: `<label>Choose Strength or Dexterity for your Martial DC: <select name="ability"><option value="" selected disabled>Choose an ability</option><option value="str">Strength (${Number(actor.system?.abilities?.str?.mod ?? 0)})</option><option value="dex">Dexterity (${Number(actor.system?.abilities?.dex?.mod ?? 0)})</option></select></label>`,
+    ok: { label: "Continue", callback: (_event, target) => (target.form ?? target.closest("form"))?.elements?.ability?.value || null }
   });
 }
 
@@ -488,26 +504,41 @@ async function executeGuardDialog(actor, cmd) {
 
   // Artsblade commands
   if (cmd === "bladeArt") {
-    const poolsHtml = Object.entries(ARTS_POOLS).map(([k, v]) => `<option value="${k}">${v.name} (${v.damageType})</option>`).join("");
+    const selectedPools = getArtsbladePoolChoices(actor);
+    const availablePools = selectedPools.length ? selectedPools : Object.keys(ARTS_POOLS);
+    const poolsHtml = availablePools.map(k => `<option value="${k}">${ARTS_POOLS[k].name} (${ARTS_POOLS[k].damageType})</option>`).join("");
+    const target = Array.from(game.user.targets ?? [])[0];
     const artPool = await foundry.applications.api.DialogV2.prompt({
       window: { title: "Blade Art" },
       rejectClose: false,
-      content: `<label>Select Arts Pool: <select name="artPool">${poolsHtml}</select></label>`,
+      content: `<label>Select Arts Pool: <select name="artPool">${poolsHtml}</select></label><p>Target: ${esc(target?.name ?? "No token targeted; resolve target manually")}</p>`,
       ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.artPool?.value }
     });
     if (!artPool) return;
-    return confirmPlayUse(`Blade Art (${ARTS_POOLS[artPool]?.name ?? artPool})`, extra => guardUses.command(actor, "bladeArt", { artPool, confirmed: true, ...extra }, operationId()));
+    const targeted = Array.from(game.user.targets ?? [])[0];
+    const ability = await askMartialAbility(actor, "Blade Art");
+    if (!ability) return;
+    const data = { artPool, martialDcAbility: ability, targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null };
+    const useId = operationId();
+    return confirmPlayUse(`Blade Art (${ARTS_POOLS[artPool]?.name ?? artPool})`, extra => guardUses.command(actor, "bladeArt", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "bladeArt", { ...data, ...extra }) });
   }
 
   if (cmd === "castSpellswordArt") {
     const maxLvl = maxArtLevel(level);
-    const options = Array.from({ length: maxLvl }, (_, i) => `<option value="${i + 1}" ${i + 1 === maxLvl ? "selected" : ""}>Level ${i + 1}</option>`).join("");
+    const target = Array.from(game.user.targets ?? [])[0];
+    const knownArts = Array.from(actor.items ?? []).filter(item => item.type === "spell").map(item => item.name);
+    const selectedPools = getArtsbladePoolChoices(actor);
+    const poolOptions = selectedPools.map(key => `<option value="${key}">${ARTS_POOLS[key].name}</option>`).join("");
     const data = await foundry.applications.api.DialogV2.prompt({
       window: { title: "Cast Spellsword Art (1 SP)" },
       rejectClose: false,
       content: `
         <label>Art Name: <input type="text" name="artName" value="Spellsword Art"></label>
-        <label>Level: <select name="level">${options}</select></label>
+        ${poolOptions ? `<label>Source Arts Pool: <select name="artPool">${poolOptions}</select></label>` : "<p>No Standard Arts Pool has been recorded; the source Art and its Pool must be reviewed manually.</p>"}
+        <p>Cast at the maximum level for this Guard level: ${maxLvl}. This spends 1 Spellsword Point, never Arts Points.</p>
+        <p>Owned Arts available for manual resolution: ${esc(knownArts.join(", ") || "none listed; enter the source Art manually")}</p>
+        <p>Target: ${esc(target?.name ?? "Select a target token before the melee attack")}</p>
+        ${level >= 13 ? `<label><input type="checkbox" name="unleash"> High Fantasy: Unleash (only while Augmented Assault is active)</label>` : ""}
       `,
       ok: {
         label: "Cast",
@@ -515,32 +546,46 @@ async function executeGuardDialog(actor, cmd) {
           const form = target.form ?? target.closest("form");
           return {
             artName: form.elements.artName?.value || "Spellsword Art",
-            level: Number(form.elements.level?.value) || 1
+            castingLevel: maxLvl,
+            artPool: form.elements.artPool?.value ?? "",
+            unleash: Boolean(form.elements.unleash?.checked)
           };
         }
       }
     });
     if (!data) return;
-    return confirmPlayUse(`Spellsword Art: ${data.artName}`, extra => guardUses.command(actor, "castSpellswordArt", { ...data, confirmed: true, ...extra }, operationId()));
+    const targeted = Array.from(game.user.targets ?? [])[0];
+    const useData = { ...data, targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null };
+    const useId = operationId();
+    const ability = await askMartialAbility(actor, "Spellsword Art");
+    if (!ability) return;
+    useData.martialDcAbility = ability;
+    return confirmPlayUse(`Spellsword Art: ${data.artName}`, extra => guardUses.command(actor, "castSpellswordArt", { ...useData, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "castSpellswordArt", { ...useData, ...extra }) });
   }
 
   if (cmd === "cutThroughChaos") {
-    const mode = await foundry.applications.api.DialogV2.prompt({
+    const data = await foundry.applications.api.DialogV2.prompt({
       window: { title: "Cut Through Chaos (Reaction)" },
       rejectClose: false,
       content: `
         <label>Mode:
           <select name="mode">
-            <option value="spellAttack">Spell Attack (Impose disadvantage)</option>
-            <option value="savingThrow">Saving Throw (Gain advantage + Clear Path)</option>
+            <option value="spellAttack">Spell Attack (Melee roll must exceed incoming total)</option>
+            <option value="savingThrow">Saving Throw (Melee roll must exceed save DC)</option>
             <option value="reactionArt">Reaction Art (Free Blade Art reaction)</option>
           </select>
         </label>
+        <label>Melee Attack ability: <select name="attackAbility"><option value="str">Strength</option><option value="dex">Dexterity</option></select></label>
+        <label>Incoming Spell Attack total (first mode): <input type="number" name="incomingTotal"></label>
+        <label>Art Save DC (second mode): <input type="number" name="incomingDC"></label>
       `,
-      ok: { label: "Confirm", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.mode?.value }
+      ok: { label: "Review use", callback: (_e, target) => { const form = target.form ?? target.closest("form"); return { mode: form.elements.mode.value, attackAbility: form.elements.attackAbility.value, incomingTotal: form.elements.incomingTotal.value === "" ? null : Number(form.elements.incomingTotal.value), incomingDC: form.elements.incomingDC.value === "" ? null : Number(form.elements.incomingDC.value) }; } }
     });
-    if (!mode) return;
-    return confirmPlayUse("Cut Through Chaos", extra => guardUses.command(actor, "cutThroughChaos", { mode, confirmed: true, ...extra }, operationId()));
+    if (!data) return;
+    const targeted = Array.from(game.user.targets ?? [])[0];
+    Object.assign(data, { targetUuid: targeted?.actor?.uuid ?? null, targetName: targeted?.name ?? null });
+    const useId = operationId();
+    return confirmPlayUse("Cut Through Chaos", extra => guardUses.command(actor, "cutThroughChaos", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "cutThroughChaos", { ...data, ...extra }) });
   }
 
   if (cmd === "augmentedAssault") {
@@ -556,7 +601,10 @@ async function executeGuardDialog(actor, cmd) {
         callback: (_e, target) => Boolean((target.form ?? target.closest("form"))?.elements?.unleash?.checked)
       }
     }) : false;
-    return confirmPlayUse("Augmented Assault", extra => guardUses.command(actor, "augmentedAssault", { unleash, confirmed: true, ...extra }, operationId()));
+    if (level >= 13 && unleash === null) return;
+    const data = { unleash };
+    const useId = operationId();
+    return confirmPlayUse("Augmented Assault", extra => guardUses.command(actor, "augmentedAssault", { ...data, confirmed: true, ...extra }, useId), { preview: extra => guardUses.preview(actor, "augmentedAssault", { ...data, ...extra }) });
   }
 
   // Brawler commands

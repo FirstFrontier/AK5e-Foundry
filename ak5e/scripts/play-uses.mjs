@@ -46,6 +46,32 @@ function sameValue(a, b) {
   const keys = Object.keys(a);
   return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && sameValue(a[key], b[key]));
 }
+// Record only changed leaves so undoing an older use preserves unrelated later state.
+function dataDiff(before, after, prefix = []) {
+  const changes = [];
+  for (const key of new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})])) {
+    if (["__proto__", "constructor", "prototype"].includes(key)) continue;
+    const a = before?.[key], b = after?.[key], keys = [...prefix, key], path = keys.join(".");
+    if (sameValue(a, b)) continue;
+    if (a && b && typeof a === "object" && typeof b === "object" && !Array.isArray(a) && !Array.isArray(b)) changes.push(...dataDiff(a, b, keys));
+    else changes.push({ path, keys, before: clone(a), beforePresent: Object.hasOwn(before ?? {}, key), after: clone(b), afterPresent: Object.hasOwn(after ?? {}, key) });
+  }
+  return changes;
+}
+function setData(object, path, value, present) {
+  const keys = Array.isArray(path) ? [...path] : path.split("."), leaf = keys.pop();
+  let parent = object;
+  for (const key of keys) parent = parent[key] ??= {};
+  if (present) parent[leaf] = clone(value); else delete parent[leaf];
+}
+const dataValue = (data, change) => (change.keys ?? change.path.split(".")).reduce((value, key) => value?.[key], data);
+function rememberData(receipt, before, after) {
+  for (const change of dataDiff(before, after)) {
+    const prior = (receipt.dataChanges ??= []).find(entry => entry.path === change.path);
+    if (prior) { prior.after = change.after; prior.afterPresent = change.afterPresent; }
+    else receipt.dataChanges.push(change);
+  }
+}
 const isConstruct = actor => String(actor?.system?.details?.type?.value ?? "").toLowerCase() === "construct";
 export const warn = (list, id, text) => list.push({ id, text });
 class NoGM extends Error {}
@@ -73,6 +99,8 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
   const record = (target, source, useId) => flag(target, appliedFlag)?.[appliedKey(source, useId)];
   const targetDocument = entry => KINDS[entry.kind]?.documentName ?? "Actor";
   const canWrite = target => game.user.isGM || target.isOwner;
+  // Explicit keys distinguish multiple operations on one target without changing legacy receipts.
+  const targetUseId = (useId, entry) => entry.key ? `${useId}_${opaqueKey(String(entry.key))}` : useId;
 
   function readState(actor) {
     const stored = flag(actor, ns);
@@ -182,8 +210,43 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     }
   };
 
-  async function applyTargetChange(source, useId, entry, target) { return KINDS[entry.kind].apply(source, useId, entry, target); }
-  async function revertTargetChange(source, useId, entry, target) { return KINDS[entry.kind].revert(source, useId, entry, target); }
+  /** A branch-validated AK5e flag only, never an arbitrary document update. */
+  KINDS.flag = {
+    async apply(source, useId, entry, target) {
+      need(/^flags\.ak5e\.[A-Za-z0-9_.-]+$/.test(entry.path) && !entry.path.split(".").some(key => ["__proto__", "constructor", "prototype"].includes(key)), "Invalid AK5e flag operation.");
+      const done = record(target, source, useId); if (done) return done;
+      const before = getPath(target, entry.path);
+      const applied = { before: clone(before), beforePresent: before !== undefined, after: clone(entry.value) };
+      await target.update({ [entry.path]: clone(entry.value), [`flags.ak5e.${appliedFlag}.${appliedKey(source, useId)}`]: applied });
+      return applied;
+    },
+    async revert(source, useId, entry, target) {
+      const applied = record(target, source, useId); if (!applied) return { removed: 0 };
+      if (!sameValue(getPath(target, entry.path), applied.after)) return { preserved: true };
+      await target.update({ [applied.beforePresent ? entry.path : deletePath(entry.path)]: applied.beforePresent ? clone(applied.before) : null,
+        [`flags.ak5e.${appliedFlag}.${appliedKey(source, useId)}`]: null });
+      return { removed: 1 };
+    },
+    preview(source, receipt, entry, target) {
+      const applied = record(target, source, receipt.id);
+      return !applied ? `${entry.name}: nothing recorded to restore.` : sameValue(getPath(target, entry.path), applied.after)
+        ? `${entry.name}: restores ${entry.path}.` : `${entry.name}: preserves ${entry.path}, which changed later.`;
+    }
+  };
+
+  async function applyTargetChange(source, useId, entry, target) {
+    if (entry.saveId) {
+      const receipt = readState(source).undo.find(use => use.id === useId);
+      const save = receipt?.saves?.find(save => save.id === entry.saveId && save.uuid === entry.uuid && save.resolved);
+      need(save, "This target change requires its owner's recorded saving throw.");
+      const message = globalThis.fromUuidSync?.(save.messageUuid);
+      const author = message?.author ?? message?.user;
+      const outcome = nativeSaveOutcome(message, source, receipt, save, typeof author === "string" ? author : author?.id);
+      need(outcome.total === save.total && outcome.success === save.success, "The recorded save outcome no longer matches its native roll.");
+    }
+    return KINDS[entry.kind].apply(source, targetUseId(useId, entry), entry, target);
+  }
+  async function revertTargetChange(source, useId, entry, target) { return KINDS[entry.kind].revert(source, targetUseId(useId, entry), entry, target); }
 
   /**
    * GM-client half of the relay: only a change recorded in the source Actor's own receipt can be applied or reversed.
@@ -195,7 +258,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     need(["apply", "revert"].includes(command), `Unknown relayed ${label} change.`);
     const receipt = readState(source).undo.find(entry => entry.id === data.useId);
     need(receipt, `No recorded ${label} use matches this relayed change.`);
-    const entry = receipt.targets?.find(change => change.uuid === data.targetUuid);
+    const entry = receipt.targets?.find(change => change.uuid === data.targetUuid && (data.targetKey === undefined ? !change.key : change.key === data.targetKey));
     need(entry && KINDS[entry.kind], "That Creature is not part of the recorded use.");
     // Kinds that only ever change the source's own documents are never relayed (their owner always applies them).
     need(!KINDS[entry.kind].local, "That change is never applied through the GM relay.");
@@ -224,35 +287,44 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     need(target?.documentName === targetDocument(entry), "The target no longer exists.");
     if (canWrite(target)) return command === "apply" ? applyTargetChange(source, receipt.id, entry, target) : revertTargetChange(source, receipt.id, entry, target);
     if (!game.users?.activeGM) throw new NoGM("No GM is connected.");
-    await relay.submit(source, command, { useId: receipt.id, targetUuid: entry.uuid, confirmation: true }, `${receipt.id}-${command[0]}-${opaqueKey(entry.uuid)}`);
+    await relay.submit(source, command, { useId: receipt.id, targetUuid: entry.uuid, ...(entry.key ? { targetKey: entry.key } : {}), confirmation: true }, `${receipt.id}-${command[0]}-${opaqueKey(`${entry.uuid}:${entry.key ?? ""}`)}`);
     entry.relayed = true;
-    return command === "apply" ? record(target, source, receipt.id) ?? true : null;
+    return command === "apply" ? record(target, source, targetUseId(receipt.id, entry)) ?? true : null;
   }
 
   /* ---------------------------------------------------------------- cards and the use lifecycle */
 
   function cardHtml(receipt) {
     const lines = [`<p>${receipt.html ? receipt.summary : esc(receipt.summary)}</p>`];
+    for (const instruction of receipt.manualSteps ?? []) lines.push(`<p><strong>Manual step:</strong> ${esc(instruction)}</p>`);
+    for (const save of receipt.saves ?? []) lines.push(`<p>${esc(save.name ?? "Target")}: ${esc(save.ability.toUpperCase())} save DC ${esc(save.dc)}${save.resolved ? ` — ${save.success ? "success" : "failure"} (${esc(save.total)})` : " — awaiting its owner's roll"}.</p>`);
     if (receipt.overridden?.length) lines.push(`<p><strong>Used anyway:</strong> ${receipt.overridden.map(esc).join(" ")}</p>`);
     if (receipt.reading) lines.push(`<p><strong>Player's reading for this use (no GM ruling):</strong> ${esc(receipt.reading)}</p>`);
     for (const shortfall of receipt.shortfalls ?? []) lines.push(`<p><strong>${esc(shortfall)}.</strong></p>`);
     if (receipt.status === "pending") lines.push(`<p><strong>Not applied yet:</strong> ${esc(receipt.lastError ?? "no GM is connected")}. Retry this use from the panel.</p>`);
+    if (receipt.status === "awaitingNativeRoll") lines.push("<p><strong>Armed:</strong> complete the matching native roll to consume this benefit. Canceling the roll leaves it armed.</p>");
     if (receipt.targets?.some(entry => entry.relayed)) lines.push("<p>Applied by the GM's client.</p>");
     if (receipt.reaction?.requested && receipt.reaction.spent === false) lines.push("<p><strong>No Reaction was available.</strong> The action continued because the warning was overridden.</p>");
     return lines.join("");
   }
   async function useCard(actor, receipt, kind = "use") {
     const id = kind === "use" ? receipt.id : `${receipt.id}-${kind}`;
-    if (values(game.messages).some(message => flag(message, operationFlag) === id && flag(message, actorFlag) === actor.uuid)) return;
+    const existing = values(game.messages).find(message => flag(message, operationFlag) === id && flag(message, actorFlag) === actor.uuid);
     const title = kind === "undo" ? `Undone: ${receipt.title}` : kind === "roll" ? `${receipt.title}: result` : receipt.title;
     const body = kind === "undo" ? `<p>${esc(receipt.undoneByName ?? game.user.name)} undid this use.${receipt.undoNotes?.length ? ` ${receipt.undoNotes.map(esc).join(" ")}` : ""}</p>`
       : kind === "roll" ? (receipt.targets.filter(entry => KINDS[entry.kind]?.rollText).map(entry => `<p>${esc(KINDS[entry.kind].rollText(entry))}</p>`).join("")
         || (receipt.rollParts?.length ? `<p>${esc(`${receipt.rollLabel ?? "Damage"} rolled: ${receipt.roll} (${receipt.rollParts.map(part => `${part.total} ${part.type}`).join(", ")}). Apply it with the native damage controls on the roll card.`)}</p>` : ""))
         + (receipt.targets.some(entry => entry.relayed) ? "<p>Applied by the GM's client.</p>" : "")
         : cardHtml(receipt);
-    await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }), content: `<h3>${esc(title)}</h3>${body}`,
+    const data = { speaker: ChatMessage.implementation.getSpeaker({ actor }), content: `<h3>${esc(title)}</h3>${body}`,
       flags: { ak5e: { [operationFlag]: id, [actorFlag]: actor.uuid, ...(kind === "use" ? { [cardFlag]: { actorUuid: actor.uuid, useId: receipt.id,
-        ...(publicSnapshot && receipt.resolution ? { snapshot: { command: receipt.command, data: clone(receipt.data), resolution: clone(receipt.resolution) } } : {}) } } : {}) } } });
+        saves: (receipt.saves ?? []).map(save => ({ ...clone(save), available: !save.afterRoll || receipt.roll !== undefined })),
+        ...(publicSnapshot && receipt.resolution ? { snapshot: { command: receipt.command, data: clone(receipt.data), resolution: clone(receipt.resolution) } } : {}) } } : {}) } } };
+    if (existing) {
+      if (kind === "use" && existing.update) await existing.update(data);
+      return existing;
+    }
+    await ChatMessage.implementation.create(data);
   }
   async function finish(actor, useId) {
     const state = readState(actor), receipt = state.undo.find(entry => entry.id === useId);
@@ -304,12 +376,94 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
         throw new Error(`Not applied yet: ${receipt.lastError}. The use is recorded; retry it from the panel${error instanceof NoGM ? " when a GM is connected" : ""}.`);
       }
     }
-    receipt.status = receipt.targets?.some(entry => !entry.ready) || (receipt.damageParts?.length && receipt.roll === undefined) || (receipt.formula && receipt.roll === undefined) ? "awaitingRoll" : "complete"; receipt.lastError = null;
+    receipt.status = receipt.saves?.some(entry => !entry.resolved && (!entry.afterRoll || receipt.roll !== undefined)) ? "awaitingSave" : receipt.nativePending ? "awaitingNativeRoll"
+      : receipt.targets?.some(entry => !entry.ready) || (receipt.damageParts?.length && receipt.roll === undefined) || (receipt.formula && receipt.roll === undefined) ? "awaitingRoll" : "complete"; receipt.lastError = null;
     await save(actor, state);
     await useCard(actor, receipt);
     return receipt.result;
   }
   const ruled = (actor, key) => { const value = ruling(actor, key); return value === null ? undefined : value; };
+  /** Inspect a use without calling apply, evaluating dice, or writing documents. */
+  function preview(actor, name, data = {}) {
+    need(actor?.isOwner && !actor.pack && isMember(actor), `Choose an owned, configured ${label}.`);
+    need(Object.hasOwn(PLANS, name), `Unknown ${label} command.`);
+    const plan = PLANS[name](actor, readState(actor), data);
+    const readings = [];
+    if (plan.reading) {
+      const offered = READINGS[plan.reading];
+      need(offered, "This feature's source reading is not registered.");
+      const value = ruled(actor, plan.reading);
+      readings.push({ key: plan.reading, ...clone(offered), ...(value === undefined ? {} : { value, source: "ruling" }) });
+    }
+    const targets = plan.previewTargets ?? plan.targets ?? (data.targetUuid ? [{ uuid: data.targetUuid, name: data.targetName ?? "Target" }] : []);
+    return { title: plan.title ?? name, costs: clone(plan.costs ?? []), targets: clone(targets), warnings: clone(plan.warnings ?? []), readings };
+  }
+
+  /** Accept only a native save message made by this target's owner; never trust a supplied success flag. */
+  function nativeSaveOutcome(message, source, receipt, save, userId) {
+    const marker = flag(message, "playSave"), target = globalThis.fromUuidSync?.(save.uuid);
+    const author = message?.author ?? message?.user ?? game.users?.get?.(userId);
+    const authorId = typeof author === "string" ? author : author?.id;
+    const owner = typeof author === "object" ? author : game.users?.get?.(authorId);
+    need(target && owner && authorId === userId && (owner.isGM || target.testUserPermission?.(owner, "OWNER")), "Only the target's owner may resolve this save.");
+    const roll = message?.rolls?.[0], native = message?.flags?.dnd5e?.roll;
+    need(message?.documentName === "ChatMessage" && marker?.ns === ns && marker.sourceUuid === source.uuid
+      && marker.useId === receipt.id && marker.saveId === save.id && marker.targetUuid === target.uuid
+      && native?.type === "save" && native.ability === save.ability && message.speaker?.actor === target.id
+      && Number.isFinite(roll?.total), "The save must be this target's matching native saving throw.");
+    return { targetUuid: target.uuid, saveId: save.id, total: Number(roll.total), success: Number(roll.total) >= save.dc, messageUuid: message.uuid };
+  }
+  async function handleSaveMessage(message, _options, userId) {
+    const marker = flag(message, "playSave");
+    if (marker?.ns !== ns) return;
+    const actor = globalThis.fromUuidSync?.(marker.sourceUuid);
+    if (!actor || !isMember(actor)) return;
+    const activeGM = game.users?.activeGM;
+    if (activeGM ? activeGM.id !== game.user.id : !actor.isOwner) return;
+    return serial(actor, async () => {
+      const state = readState(actor), receipt = state.undo.find(entry => entry.id === marker.useId);
+      need(receipt && receipt.status !== "undone", "The save's feature use is no longer active.");
+      const save = receipt.saves?.find(entry => entry.id === marker.saveId && entry.uuid === marker.targetUuid);
+      need(save && !isLocked(receipt), "That save does not belong to an active encounter-window use.");
+      if (save.resolved) return receipt.result;
+      need(!save.afterRoll || receipt.roll !== undefined, "Roll this feature's damage before resolving its damage-triggered save.");
+      const outcome = nativeSaveOutcome(message, actor, receipt, save, userId);
+      const before = clone(state.data);
+      Object.assign(save, outcome, { resolved: true });
+      const plan = PLANS[receipt.command](actor, state, receipt.data, receipt.id);
+      need(typeof plan.resolveSave === "function", "This feature does not resolve saving throws.");
+      await plan.resolveSave(actor, receipt, state, outcome);
+      rememberData(receipt, before, state.data);
+      await saveStateAndFinish(actor, state, receipt);
+      return receipt.result;
+    });
+  }
+  async function saveStateAndFinish(actor, state, receipt) {
+    await save(actor, state);
+    await finish(actor, receipt.id);
+  }
+  async function completeNativeRoll(actor, data, requester = game.user) {
+    need(actor?.isOwner && !actor.pack && isMember(actor), `Choose an owned, configured ${label}.`);
+    return serial(actor, async () => {
+      const state = readState(actor), receipt = state.undo.find(entry => entry.id === data.useId);
+      if (receipt?.nativeRoll?.chatMessageUuid === data.chatMessageUuid) return receipt.result;
+      need(receipt?.status === "awaitingNativeRoll" && receipt.nativePending === true, "No matching native roll is awaiting resolution.");
+      const message = globalThis.fromUuidSync?.(data.chatMessageUuid) ?? game.messages?.get?.(String(data.chatMessageUuid ?? "").split(".").at(-1));
+      need(message?.documentName === "ChatMessage" && message.uuid === data.chatMessageUuid && message.flags?.dnd5e?.roll?.type === "damage",
+        "The native roll ChatMessage is missing or is not a Damage Roll.");
+      const validator = PLANS[receipt.command]?.validateNativeMessage;
+      need(typeof validator === "function" && validator(actor, receipt, message, requester) === true,
+        "This ChatMessage does not match the armed native roll and its owner.");
+      const marker = flag(message, "vanguardTipDamage");
+      const target = receipt.targets?.find(entry => entry.kind === marker.kind && entry.effectId === marker.effectId);
+      need(target && !target.ready, "The armed benefit target is missing or already consumed.");
+      target.ready = true; receipt.nativePending = false;
+      receipt.nativeRoll = { kind: marker.kind, effectId: marker.effectId, chatMessageUuid: message.uuid };
+      receipt.undoNotes = [...(receipt.undoNotes ?? []), "The native Damage Roll remains in chat after undo."];
+      await save(actor, state);
+      return finish(actor, receipt.id);
+    });
+  }
   /**
    * Run one use. Warnings throw `PlayWarnings` until overridden; a missing ruling throws `PlayReading` with the
    * readings; both happen before anything is written. Commands `useRoll` and `undoUse` act on a recorded receipt.
@@ -319,6 +473,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     need(typeof operationId === "string" && /^[A-Za-z0-9_-]{1,60}$/.test(operationId), "A stable operation ID is required.");
     if (name === "undoUse") return serial(actor, () => undoUse(actor, data, requester));
     if (name === "useRoll") return serial(actor, () => useRoll(actor, data));
+    if (name === "nativeRollComplete") return completeNativeRoll(actor, data, requester);
     need(Object.hasOwn(PLANS, name), `Unknown ${label} command.`);
     need(data.confirmed === true, "Confirm this use before applying it.");
     return serial(actor, async () => {
@@ -340,7 +495,11 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       const receipt = { id: operationId, command: name, title: plan.title, userId: requester.id, epoch: currentEpoch(), createdAt: Date.now(), status: "applying",
         data: structuredClone(data), overridden: overridden.map(warning => warning.text), targets: [],
         reading: reading?.source === "player" ? READINGS[plan.reading].options.find(option => option.value === reading.value)?.label ?? String(reading.value) : null };
+      const beforeData = clone(state.data);
+      receipt.saves = clone(plan.saves ?? []);
+      receipt.manualSteps = clone(plan.manualSteps ?? []);
       const updates = await plan.apply(state, receipt, reading?.value) ?? {};
+      rememberData(receipt, beforeData, state.data);
       prepareFlagChanges(actor, receipt, updates);
       // Encounter receipts stay available for the whole current window, even when a table records more than 60 uses.
       state.undo = [...state.undo, receipt];
@@ -373,6 +532,19 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: receipt.rollFlavor ?? receipt.title,
         flags: { ak5e: { [operationFlag]: `${receipt.id}-dice`, [actorFlag]: actor.uuid } } });
     }
+    // A command may deterministically turn a persisted owner-clicked roll into
+    // its next receipt stage (for example Tip's table result, then a separate
+    // Temporary HP roll). The callback lives in the registered plan, never in
+    // serialized Actor state. Replaying an interrupted resolution is safe because
+    // the callback is pure and its marker is saved with the transformed receipt.
+    const resolver = PLANS[receipt.command]?.(actor, state, receipt.data, receipt.id)?.resolveRoll;
+    if (!receipt.rollResolved && typeof resolver === "function") {
+      const beforeData = clone(state.data);
+      await resolver(actor, receipt, state);
+      rememberData(receipt, beforeData, state.data);
+      receipt.rollResolved = true;
+      await save(actor, state);
+    }
     const result = await finish(actor, receipt.id);
     const after = readState(actor).undo.find(item => item.id === receipt.id);
     await useCard(actor, after, "roll");
@@ -395,10 +567,14 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       const current = getReactions(actor), active = current.receipts?.[receipt.reaction.receiptId];
       lines.push(active ? "Restores the Reaction spent by this use." : "The Reaction has already refreshed at a Turn start; undo leaves it available.");
     }
+    for (const change of receipt.dataChanges ?? []) {
+      const matches = sameValue(dataValue(readState(actor).data, change), change.after);
+      lines.push(matches ? `Restores feature state: ${change.path}.` : `Won't restore ${change.path}: feature state changed after this use.`);
+    }
     for (const note of PLANS[receipt.command]?.undoNotes?.(actor, readState(actor), receipt) ?? []) lines.push(note);
     for (const entry of receipt.targets ?? []) {
       if (!entry.applied && !entry.attempted) { lines.push(`${entry.name}: nothing was applied yet.`); continue; }
-      lines.push(KINDS[entry.kind].preview(actor, receipt, entry, globalThis.fromUuidSync?.(entry.uuid)));
+      lines.push(KINDS[entry.kind].preview(actor, { ...receipt, id: targetUseId(receipt.id, entry) }, entry, globalThis.fromUuidSync?.(entry.uuid)));
     }
     return { lines, blocked: locked && !game.user.isGM, locked };
   }
@@ -443,6 +619,12 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       // The exact prior value is restored, even above the maximum.
       updates[resource.path] = Math.max(0, Math.min(Math.max(pool?.max ?? resource.max ?? Infinity, resource.before), current + (resource.before - resource.after)));
     }
+    const specializedUndo = PLANS[receipt.command]?.undoUpdates?.(actor, state, receipt);
+    if (specializedUndo) Object.assign(updates, specializedUndo);
+    for (const change of receipt.dataChanges ?? []) {
+      if (sameValue(dataValue(state.data, change), change.after)) setData(state.data, change.keys ?? change.path, change.before, change.beforePresent);
+      else receipt.undoNotes.push(`Won't restore ${change.path}: feature state changed after this use.`);
+    }
     for (const cleanup of CLEANUPS) cleanup(state, receipt, actor);
     receipt.status = "undone"; receipt.undoneBy = requester.id; receipt.undoneByName = requester.name;
     await save(actor, state, updates);
@@ -469,11 +651,11 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     }
   }
   return {
-    ns, label, cardFlag, effectFlag, appliedFlag, register, command, previewUndo, uses, state: readState, serial,
-    isCommand: name => Object.hasOwn(PLANS, name) || ["useRoll", "undoUse"].includes(name),
+    ns, label, cardFlag, effectFlag, appliedFlag, register, command, completeNativeRoll, preview, previewUndo, uses, state: readState, serial, handleSaveMessage,
+    isCommand: name => Object.hasOwn(PLANS, name) || ["useRoll", "undoUse", "nativeRollComplete"].includes(name),
     readings: () => ({ ...READINGS }),
     receipt: (actor, useId) => readState(actor).undo.find(entry => entry.id === useId) ?? null, validate,
-    handleRelay: (message, options, userId) => relay.handle(message, options, userId),
+    handleRelay: async (message, options, userId) => { await handleSaveMessage(message, options, userId); return relay.handle(message, options, userId); },
     relayedTargetChange
   };
 }

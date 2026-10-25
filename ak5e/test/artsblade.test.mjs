@@ -44,7 +44,7 @@ test("Artsblade identification and formula scaling", () => {
 test("Blade Art configures damage parts, sets damage formula, and tracks single-save immunity", async () => {
   setupWorld();
   const actor = guardFixture({ level: 5, branch: "artsblade" });
-  const result = await use(actor, "bladeArt", { pool: "frost", targetUuid: "Actor.foe1" }, "blade-1");
+  const result = await use(actor, "bladeArt", { pool: "frost", martialDcAbility: "str", targetUuid: "Actor.foe1" }, "blade-1");
 
   assert.equal(result.pool, "frost");
   assert.equal(result.damageType, "cold");
@@ -54,6 +54,7 @@ test("Blade Art configures damage parts, sets damage formula, and tracks single-
   const receipt = guardUses.receipt(actor, "blade-1");
   assert.equal(receipt.formula, "2d6");
   assert.equal(receipt.damageParts[0].type, "cold");
+  assert.equal(receipt.saves[0].saveId, "blade-resonance");
 });
 
 test("Augmented Assault spends 2 Aggression and configures two Blade Arts per turn", async () => {
@@ -67,7 +68,7 @@ test("Augmented Assault spends 2 Aggression and configures two Blade Arts per tu
 
   // Level 13 unleashes normal AoE
   const actor13 = guardFixture({ level: 13, branch: "artsblade", aggression: 4 });
-  const res13 = await use(actor13, "augmentedAssault", {}, "aug-13");
+  const res13 = await use(actor13, "augmentedAssault", { unleash: true }, "aug-13");
   assert.equal(res13.unleash, true);
 });
 
@@ -75,8 +76,10 @@ test("Casting Spellsword Arts spends 1 SP, computes Martial DC, and handles True
   setupWorld();
   const actor = guardFixture({ level: 5, branch: "artsblade" });
   actor.flags.ak5e.resourcePools.spellswordPoints = { value: 1, max: 1 };
+  actor.flags.ak5e.guardProgression = { choices: { artPools: ["corrosion"] } };
+  actor.items.set("acid-splash", { id: "acid-splash", type: "spell", name: "Acid Splash", system: { level: 0, actionType: "save" }, flags: { ak5e: { guardArtsPools: ["standard-art-pool-corrosion-arts-407"] } } });
 
-  const result = await use(actor, "castSpellswordArt", { artName: "Acid Splash", castingLevel: 2 }, "cast-1");
+  const result = await use(actor, "castSpellswordArt", { artName: "Acid Splash", artPool: "corrosion", martialDcAbility: "str" }, "cast-1");
   assert.equal(result.spSpent, 1);
   assert.equal(result.artName, "Acid Splash");
   assert.equal(result.castingLevel, 2);
@@ -86,7 +89,9 @@ test("Casting Spellsword Arts spends 1 SP, computes Martial DC, and handles True
   // Level 17 enables True Spellsword
   const actor17 = guardFixture({ level: 17, branch: "artsblade" });
   actor17.flags.ak5e.resourcePools.spellswordPoints = { value: 3, max: 3 };
-  const res17 = await use(actor17, "castSpellswordArt", { artName: "Lightning Bolt" }, "cast-17");
+  actor17.flags.ak5e.guardProgression = { choices: { artPools: ["electric"] } };
+  actor17.items.set("lightning-bolt", { id: "lightning-bolt", type: "spell", name: "Lightning Bolt", system: { level: 3, actionType: "save" }, flags: { ak5e: { guardArtsPools: ["standard-art-pool-electric-arts-2739"] } } });
+  const res17 = await use(actor17, "castSpellswordArt", { artName: "Lightning Bolt", artPool: "electric", martialDcAbility: "str" }, "cast-17");
   assert.equal(res17.trueSpellsword, true);
 });
 
@@ -139,16 +144,21 @@ test("Roll hooks apply Force bonus and Flame Improved Resonance", () => {
       flameResonanceUntilTurn: "c1:1:1"
     }
   };
-  globalThis.game.combat = { started: true, id: "c1", round: 1, turn: 1 };
+  globalThis.game.combat = { started: true, id: "c1", round: 1, turn: 0, turns: [{ actor }] };
 
   // Pre-roll Attack adds force bonus
-  const atkConfig = { subject: { actor }, rolls: [{ parts: ["1d20", "4"] }] };
+  const atkConfig = { subject: { actor, actionType: "mwak" }, rolls: [{ parts: ["1d20", "4"] }] };
   artsbladePreRollAttack(atkConfig);
   assert.ok(atkConfig.rolls[0].parts.includes("3"));
 
   // Pre-roll Damage adds force bonus and flame 1d10
-  const dmgConfig = { subject: { actor }, rolls: [{ parts: ["1d8", "4"] }] };
+  const dmgConfig = { subject: { actor, actionType: "mwak" }, rolls: [{ parts: ["1d8", "4"], options: { type: "slashing", types: ["slashing"] } }] };
   artsbladePreRollDamage(dmgConfig);
   assert.ok(dmgConfig.rolls[0].parts.includes("3"));
-  assert.ok(dmgConfig.rolls[0].parts.includes("1d10"));
+  assert.ok(!dmgConfig.rolls[0].parts.includes("1d10"));
+  assert.equal(dmgConfig.rolls.length, 2);
+  assert.deepEqual(dmgConfig.rolls[0].options.types, ["slashing"]);
+  assert.deepEqual(dmgConfig.rolls[1].parts, ["1d10"]);
+  assert.equal(dmgConfig.rolls[1].options.type, "fire");
+  assert.deepEqual(dmgConfig.rolls[1].options.types, ["fire"]);
 });

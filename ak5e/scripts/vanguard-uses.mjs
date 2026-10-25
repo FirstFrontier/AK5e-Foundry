@@ -24,6 +24,7 @@ import { need, opaqueKey, values } from "./operation-kernel.mjs";
 import { spendReaction, getReactions } from "./trigger-events.mjs";
 import { requireOverrides, isPlayWarnings } from "./play-undo.mjs";
 import { applyFeatureTag } from "./feature-tags.mjs";
+import { withinFeet, tokenPoint } from "./standard-bearer-rules.mjs";
 
 export const vanguardUses = createPlayUses({
   ns: "vanguardUses",
@@ -68,7 +69,8 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
         name: targetName,
         kind: "effect",
         featureId: "class-feature-vanguard-1st-level-tip-of-the-spear-3092",
-        standardBenefit: { kind: "tip1", value: pb },
+        standardBenefit: { kind: "tip1", value: pb, bearerUuid: actor.uuid },
+        meta: { standardBenefit: { kind: "tip1", value: pb, bearerUuid: actor.uuid }, sourceUseId: receipt.id, createdAt: Date.now() },
         tag: {
           label: `Tip of the Spear: +${pb} Damage`,
           trigger: "turnStart",
@@ -84,20 +86,23 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
     receipt.summary = `${targetName} gains additive Temporary Hit Points (1d6).`;
     receipt.result = { outcome: 2, additive: true };
     if (targetUuid) {
-      const thpAmount = Number(data.amount ?? data.tempHPAmount ?? (receipt.roll ?? 3));
       receipt.targets = [{
         uuid: targetUuid,
         name: targetName,
         kind: "tempHP",
         mode: "additive",
-        amount: thpAmount,
-        ready: true
+        formula: "1d6",
+        ready: false
       }];
+      receipt.formula = "1d6";
+      receipt.rollFlavor = "Tip of the Spear: Temporary Hit Points";
     }
   } else if (outcome === 3) {
-    receipt.summary = `${targetName}'s Walking Speed is increased by 10 feet until start of ${actor.name}'s next Turn.`;
+    receipt.summary = `${targetName}'s Speed modes increase by 10 feet until start of ${actor.name}'s next Turn.`;
     receipt.result = { speedBonus: 10, outcome: 3 };
     if (targetUuid) {
+      const recipient = globalThis.fromUuidSync?.(targetUuid)
+        ?? values(globalThis.canvas?.tokens?.placeables).find(token => token.actor?.uuid === targetUuid)?.actor;
       receipt.targets = [{
         uuid: targetUuid,
         name: targetName,
@@ -107,7 +112,7 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
           label: "Tip of the Spear: Speed +10 ft",
           trigger: "turnStart",
           expiryActor: "source",
-          changes: [{ key: "system.attributes.movement.walk", value: "10", mode: 2, priority: 20 }],
+          changes: recipient ? TIP_OUTCOMES[2].changes(recipient) : [{ key: "system.attributes.movement.walk", value: "10", mode: 2, priority: 20 }],
           instructions: instruction
         },
         ready: true
@@ -161,7 +166,8 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
         name: targetName,
         kind: "effect",
         featureId: "class-feature-vanguard-1st-level-tip-of-the-spear-3092",
-        standardBenefit: { kind: "tip6", value: 1 },
+        standardBenefit: { kind: "tip6", value: 1, bearerUuid: actor.uuid },
+        meta: { standardBenefit: { kind: "tip6", value: 1, bearerUuid: actor.uuid }, sourceUseId: receipt.id, createdAt: Date.now() },
         tag: {
           label: "Tip of the Spear: +1 Skill Point",
           trigger: "turnStart",
@@ -176,21 +182,96 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
 }
 
 const CORE_PLANS = {
+  leadingLanceSP(actor, _state, data) {
+    need(vanguardEnabled(actor), "Leading Lance requires the Vanguard class.");
+    const operator = flag(actor, "operatorSkills") ?? {};
+    need(operator.enabled === true && Number.isFinite(Number(operator.maximum)), "Enable Operator Skills and learn Leading Lance before recording this SP gain.");
+    const eventId = String(data.eventId ?? "");
+    need(eventId.length > 0 && eventId.length <= 200, "A stable Leading Lance activation ID is required.");
+    const activation = (operator.operatorEvents ?? []).find(event => event.id === `${eventId}:activation`
+      && event.kind === "activation" && event.sourceId === "operator-skill-vanguard-basic-leading-lance" && event.committed === true);
+    need(activation, "The Leading Lance trigger must reference a committed Leading Lance activation.");
+    const warnings = [];
+    if (operator.active) warn(warnings, "active-skill", "An Operator Skill is currently active; the shared SP rules normally prevent gains while a Skill is active.");
+    return { warnings, title: "Leading Lance: gain 10 Skill Points", apply(_next, receipt) {
+      const ledger = operator.operatorEvents ?? [];
+      if (ledger.some(event => event.id === `${eventId}:leadingLanceKill`)) {
+        receipt.eventId = eventId;
+        receipt.summary = "This Leading Lance activation already has its qualifying-kill grant recorded; no additional SP is added.";
+        receipt.result = { duplicate: true, eventId };
+        return {};
+      }
+      const before = Math.max(0, Number(operator.points) || 0), maximum = Math.max(0, Number(operator.maximum) || 0);
+      const after = Math.min(maximum, before + 10), gained = after - before;
+      const event = { id: `${eventId}:leadingLanceKill`, activationId: eventId, kind: "grant",
+        sourceId: activation.sourceId, trigger: "qualifying kill", useId: receipt.id,
+        spBefore: before, spAfter: after, spRequested: 10, spGained: gained, maximum, committed: true, createdAt: Date.now() };
+      receipt.eventId = eventId;
+      receipt.summary = `${actor.name} gains ${gained} of the 10 Skill Points granted by Leading Lance${gained < 10 ? ` (capped at the shared SP maximum of ${maximum})` : ""}.`;
+      receipt.result = { eventId, requested: 10, before, after, gained, maximum };
+      return { "flags.ak5e.operatorSkills.points": after,
+        "flags.ak5e.operatorSkills.operatorEvents": [...ledger, event] };
+    } };
+  },
+
+  undoOperatorActivation(actor, state, data) {
+    need(vanguardEnabled(actor), "Operator activation undo requires a Vanguard class Actor.");
+    const activationId = String(data.activationId ?? "");
+    const operator = flag(actor, "operatorSkills") ?? {};
+    const event = (operator.operatorEvents ?? []).find(candidate => candidate.id === `${activationId}:activation`
+      && candidate.activationId === activationId && candidate.kind === "activation" && candidate.committed === true
+      && String(candidate.sourceId ?? "").startsWith("operator-skill-vanguard-"));
+    need(event, "Choose a committed Vanguard Operator Skill activation.");
+    const grant = state.undo.find(receipt => receipt.command === "leadingLanceSP" && receipt.eventId === activationId
+      && receipt.status !== "undone");
+    need(!grant, "Undo the Leading Lance Skill Point grant before undoing its activation.");
+    const current = Math.max(0, Number(operator.points) || 0), maximum = Math.max(0, Number(operator.maximum) || 0);
+    const restore = Math.max(0, Number(event.spSpent) || 0);
+    return { warnings: [], title: "Undo Vanguard Operator Skill activation", apply(_next, receipt) {
+      receipt.activationId = activationId;
+      receipt.summary = `Undo ${event.name ?? "Vanguard Operator Skill"}; restore up to ${restore} spent Skill Points while preserving later pool changes.`;
+      receipt.result = { activationId, requestedRestore: restore };
+      return {};
+    } };
+  },
+
+  quickOffTheMark(actor) {
+    need(vanguardEnabled(actor), "Quick off the Mark requires the Vanguard class.");
+    const warnings = [];
+    levelWarning(warnings, actor, 3, "Quick off the Mark");
+    const bonus = Number(actor.system?.attributes?.prof ?? 2);
+    if (flag(actor, "vanguard.quickOffTheMarkArmed")) warn(warnings, "already-armed", "Quick off the Mark is already armed for a native Initiative roll.");
+    return { warnings, title: "Quick off the Mark", apply(_next, receipt) {
+      receipt.summary = `${actor.name} chooses to add +${bonus} to the next native Initiative roll. Canceling that native roll leaves this option armed.`;
+      receipt.result = { initiativeBonus: bonus, armed: true };
+      return { "flags.ak5e.vanguard.quickOffTheMarkArmed": { useId: receipt.id, bonus } };
+    } };
+  },
+
   tipOfTheSpear(actor, state, data) {
     need(vanguardEnabled(actor), "Tip of the Spear requires the Vanguard class.");
     const warnings = [];
-    const level = vanguardLevel(actor) ?? 1;
-    const pb = Math.floor((level - 1) / 4) + 2;
+    const pb = Number(actor.system?.attributes?.prof ?? 2);
 
     const targetUuid = data.target?.uuid ?? data.targetActor?.uuid ?? data.targetUuid ?? null;
-    const targetName = data.target?.name ?? data.targetActor?.name ?? data.targetName ?? "allied creature";
+    need(typeof targetUuid === "string" && targetUuid.length > 0, "Choose an allied creature for Tip of the Spear.");
+    const targetName = data.target?.name ?? data.targetActor?.name ?? data.targetName ?? "creature";
+    const token = data.target?.document?.object ?? data.target?.token ??
+      values(globalThis.canvas?.tokens?.placeables).find(candidate => candidate.actor?.uuid === targetUuid || candidate.document?.uuid === targetUuid);
 
     // Range check: 60 ft (Tactician may have range Infinity)
-    const distance = Number(data.distance ?? 0);
-    const range = data.range !== undefined ? Number(data.range) : 60;
-    if (Number.isFinite(range) && distance > range) {
-      warn(warnings, "range", `${targetName} is beyond ${range} feet (Tip of the Spear range); no exception is invented.`);
-    }
+    const range = 60;
+    const sourceToken = values(globalThis.canvas?.tokens?.placeables).find(candidate => candidate.actor?.uuid === actor.uuid);
+    const scene = sourceToken?.document?.parent ?? sourceToken?.parent;
+    const tokenScene = token?.document?.parent ?? token?.parent;
+    if (sourceToken && token && tokenScene?.id === scene?.id && scene?.grid) {
+      if (Number.isFinite(range) && !withinFeet(scene, tokenPoint(sourceToken), token, range)) warn(warnings, "range", `${targetName} is beyond ${range} feet; use anyway only if the table confirms an exception.`);
+    } else warn(warnings, "range-unverified", `Confirm that ${targetName} is within ${range} feet; distance could not be verified.`);
+    if (!token || token.document?.hidden || token.isVisible === false) warn(warnings, "visibility-unverified", `Confirm that ${targetName} is visible; visibility could not be verified.`);
+    const sourceDisposition = sourceToken?.document?.disposition;
+    const targetDisposition = token?.document?.disposition ?? token?.disposition;
+    if (sourceDisposition === undefined || targetDisposition === undefined) warn(warnings, "alliance-unverified", `Confirm that ${targetName} is allied; alliance could not be verified.`);
+    else if (sourceDisposition !== 1 || targetDisposition !== 1) warn(warnings, "alliance", `Confirm that ${targetName} is allied before using Tip of the Spear.`);
 
     const directed = Boolean(data.directed);
     const choice = data.choice !== undefined && data.choice !== null ? Number(data.choice) : null;
@@ -198,19 +279,19 @@ const CORE_PLANS = {
     const alreadyActive = isDirectedEngagementActive(actor);
 
     if (isDirected) {
+      need(choice !== null || !directed, "Choose one of the six Tip outcomes when invoking Directed Engagement.");
       if (!alreadyActive) {
         levelWarning(warnings, actor, 15, "Directed Engagement");
-        if (directed) {
-          const reactions = getReactions(actor);
-          if (reactions?.available < 1) {
-            warn(warnings, "reaction", `${actor.name} has no Reaction remaining.`);
-          }
+        const reactions = getReactions(actor);
+        if (reactions?.available < 1) {
+          warn(warnings, "reaction", `${actor.name} has no Reaction remaining.`);
         }
-      }
+      } else need(Number.isInteger(choice) && choice >= 1 && choice <= 6, "Choose a Tip of the Spear outcome from 1 to 6 for the active Directed Engagement.");
       need(choice === null || (Number.isInteger(choice) && choice >= 1 && choice <= 6), "Choose a Tip of the Spear outcome from 1 to 6 for Directed Engagement.");
     }
 
-    const title = directed ? "Tip of the Spear (Directed Engagement)" : "Tip of the Spear";
+    const directedUse = isDirected;
+    const title = directedUse ? "Tip of the Spear (Directed Engagement)" : "Tip of the Spear";
 
     return {
       warnings,
@@ -221,23 +302,23 @@ const CORE_PLANS = {
       async apply(next, receipt) {
         receipt.targetUuid = targetUuid;
         receipt.targetName = targetName;
-        receipt.directed = directed;
+        receipt.directed = directedUse;
         receipt.choice = choice;
-        receipt.data = data;
+        receipt.proficiencyBonus = pb;
+        receipt.data = structuredClone({ ...data, target: { uuid: targetUuid, name: targetName }, targetActor: undefined });
 
-        if (directed && !alreadyActive) {
+        if (isDirected && !alreadyActive) {
           const triggerId = `${receipt.id}-directedEngagement`;
-          const rx = await spendReaction(actor, { triggerId, receipt: receipt.id });
-          receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id, triggerId };
-          if (rx.ok) {
-            await actor.update({ "flags.ak5e.vanguard.directedEngagementActive": true });
-          }
+          receipt.reaction = { requested: true, spent: false, receiptId: `playuse_vanguardUses_${receipt.id}`, triggerId };
+          receipt.directedEngagementGrant = true;
         }
 
         const resolvedOutcome = choice ?? (receipt.roll !== undefined ? Number(receipt.roll) : null);
 
         if (resolvedOutcome !== null) {
           applyTipOutcomeData(receipt, resolvedOutcome, actor, targetUuid, targetName, pb, data);
+          receipt.outcome = resolvedOutcome;
+          receipt.rollResolved = true;
         } else {
           receipt.formula = "1d6";
           receipt.rollLabel = "Tip of the Spear (1d6)";
@@ -247,7 +328,29 @@ const CORE_PLANS = {
           receipt.result = { awaitingRoll: true, formula: "1d6" };
         }
 
+        if (receipt.directedEngagementGrant) {
+          const combat = globalThis.game?.combat;
+          const combatant = combat?.combatant;
+          return { "flags.ak5e.vanguard.directedEngagementActive": true,
+            "flags.ak5e.vanguard.directedEngagementTurn": combatant && combat?.started
+              ? { combatId: combat.uuid, round: combat.round, combatantId: combatant.id }
+              : null };
+        }
         return {};
+      },
+      resolveRoll(owner, receipt) {
+        if (receipt.choice !== null && receipt.choice !== undefined || receipt.outcome !== undefined) return;
+        const outcome = Number(receipt.roll);
+        need(Number.isInteger(outcome) && outcome >= 1 && outcome <= 6, "Tip of the Spear needs a d6 result from its Roll button.");
+        receipt.tipOutcomeRoll = outcome;
+        applyTipOutcomeData(receipt, outcome, owner, receipt.targetUuid, receipt.targetName, Number(receipt.proficiencyBonus ?? owner.system?.attributes?.prof ?? 2), receipt.data ?? {});
+        if (outcome === 2) {
+          receipt.roll = undefined;
+          receipt.formula = "1d6";
+          receipt.rollLabel = "Temporary Hit Points";
+          receipt.rollFlavor = "Tip of the Spear: Temporary Hit Points";
+          receipt.summary = `${receipt.targetName} gains additive Temporary Hit Points. Roll 1d6 in this second step.`;
+        } else receipt.rollLabel = "Tip of the Spear outcome";
       }
     };
   },
@@ -263,19 +366,26 @@ const CORE_PLANS = {
     }
 
     const damage = Number(data.damage ?? 0);
-    need(Number.isFinite(damage) && damage >= 0, "Damage must be a non-negative number.");
+    need(Number.isInteger(damage) && damage >= 0, "Enter the final whole-number Attack damage after other reductions.");
     const halved = calculateUncannyDodge(damage);
     const reduced = damage - halved;
+    const hp = actor.system?.attributes?.hp ?? {};
+    if (damage > 0) {
+      warn(warnings, "attack-hit", "Confirm the incoming Attack hit this character and Uncanny Dodge is available for that hit.");
+      warn(warnings, "attacker-visible", "Confirm the Attack source was visible and is the creature responsible for this hit.");
+      warn(warnings, "damage-final", "Enter final incoming Attack damage after resistance, vulnerability, and other reductions. Apply only the halved amount below instead of applying the full damage card as well.");
+    }
 
     return {
       warnings,
       title: "Uncanny Dodge",
       async apply(next, receipt) {
         const triggerId = `${receipt.id}-uncannyDodge`;
-        const rx = await spendReaction(actor, { triggerId, receipt: receipt.id });
-        receipt.reaction = { requested: true, spent: rx.ok, receiptId: receipt.id, triggerId };
+        receipt.reaction = { requested: true, spent: false, receiptId: `playuse_vanguardUses_${receipt.id}`, triggerId };
         receipt.summary = `${actor.name} uses their Reaction to halve incoming Attack damage against them from ${damage} to ${halved} (reduced by ${reduced}).`;
-        receipt.result = { originalDamage: damage, halvedDamage: halved, damageReduced: reduced };
+        receipt.result = { originalDamage: damage, halvedDamage: halved, damageReduced: reduced, hitPointsBefore: hp.value, temporaryHitPointsBefore: hp.temp,
+          attacker: data.attacker ? { uuid: data.attacker.uuid ?? null, name: String(data.attacker.name ?? "") } : null };
+        if (halved > 0) receipt.targets = [{ uuid: actor.uuid, name: actor.name, kind: "damage", amount: halved, ready: true }];
         return {};
       }
     };
@@ -286,6 +396,9 @@ const CORE_PLANS = {
     const warnings = [];
     const targetUuid = data.target?.uuid ?? data.targetActor?.uuid ?? data.targetUuid ?? null;
     const targetName = data.target?.name ?? data.targetActor?.name ?? data.targetName ?? "creature";
+    need(typeof targetUuid === "string" && targetUuid.length > 0, "Choose the creature you hit to record Nimble protection.");
+    const combat = globalThis.game?.combat;
+    if (!combat?.started || !combat?.combatant) warn(warnings, "expiry-unverified", "Nimble expires at the end of your Turn; no active combat Turn is available, so remove this record manually at Turn end.");
 
     return {
       warnings,
@@ -294,12 +407,30 @@ const CORE_PLANS = {
         const current = flag(actor, "vanguard.nimbleTargets") ?? [];
         if (targetUuid && !current.includes(targetUuid)) {
           const updated = [...current, targetUuid];
-          receipt.summary = `${actor.name} hits ${targetName} and does not provoke Opportunity Attacks from them for the rest of the Turn.`;
+          const currentCombat = globalThis.game?.combat, currentCombatant = currentCombat?.combatant;
+          receipt.summary = `${actor.name} hits ${targetName}; record Nimble protection from that creature until the end of this Turn${currentCombat?.started ? "." : " (remove it manually at Turn end outside combat)."}`;
           receipt.result = { targetUuid, targetName };
-          return { "flags.ak5e.vanguard.nimbleTargets": updated };
+          return { "flags.ak5e.vanguard.nimbleTargets": updated,
+            "flags.ak5e.vanguard.nimbleTurn": currentCombat?.started && currentCombatant
+              ? { combatId: currentCombat.uuid, round: currentCombat.round, combatantId: currentCombatant.id }
+              : null };
         }
         receipt.summary = `${actor.name} is Nimble against ${targetName}.`;
         return {};
+      }
+    };
+  },
+
+  clearTurnProtection(actor) {
+    need(vanguardEnabled(actor), "Vanguard turn protection controls require the Vanguard class.");
+    const state = flag(actor, "vanguard") ?? {};
+    return {
+      warnings: [], title: "Clear Vanguard turn protection",
+      apply(_next, receipt) {
+        receipt.summary = `${actor.name} clears tracked Nimble targets and Directed Engagement. Use this at the end of the current Turn when outside combat.`;
+        receipt.result = { nimbleTargetsCleared: (state.nimbleTargets ?? []).length, directedEngagementCleared: state.directedEngagementActive === true };
+        return { "flags.ak5e.vanguard.nimbleTargets": [], "flags.ak5e.vanguard.nimbleTurn": null,
+          "flags.ak5e.vanguard.directedEngagementActive": false, "flags.ak5e.vanguard.directedEngagementTurn": null };
       }
     };
   },
@@ -310,10 +441,12 @@ const CORE_PLANS = {
     levelWarning(warnings, actor, 20, "Approaching Storm");
 
     const combat = globalThis.game?.combat;
-    const round = Number(data.round ?? (combat?.round ?? 1));
+    const round = Number(combat?.round ?? data.round ?? 1);
+    if (!combat?.started) warn(warnings, "combat", "Approaching Storm requires a Damage Roll during Round 1 of a combat; no active combat is found.");
     if (combat?.started && round > 1) {
       warn(warnings, "round", "Approaching Storm only functions during the first Round of a combat.");
     }
+    if (data.round !== undefined && combat?.round !== undefined && Number(data.round) !== Number(combat.round)) warn(warnings, "round-mismatch", `The supplied Round ${data.round} does not match active combat Round ${combat.round}; the active Round is used.`);
 
     const level = vanguardLevel(actor) ?? 20;
     const bonus = approachingStormBonus(level);
@@ -321,10 +454,13 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Approaching Storm",
-      apply(next, receipt) {
-        receipt.summary = `${actor.name} adds +${bonus} to Damage dealt during Round 1 of combat.`;
-        receipt.result = { damageBonus: bonus, round };
-        return {};
+      reading: "approachingStormComponents",
+      apply(next, receipt, reading) {
+        const componentIndex = Math.max(0, Math.trunc(Number(data.componentIndex) || 0));
+        receipt.summary = `${actor.name} arms Approaching Storm for +${bonus} on the next native Damage Roll during Round 1. The bonus is optional and applies only when the native roll is made.`;
+        receipt.result = { damageBonus: bonus, round, armed: true, reading };
+        return { "flags.ak5e.vanguard.approachingStormArmed": { useId: receipt.id, bonus, round,
+          componentIndex, reading, combatId: combat?.uuid ?? null } };
       }
     };
   },
@@ -335,29 +471,105 @@ const CORE_PLANS = {
     levelWarning(warnings, actor, 18, "Lightspeed");
 
     const combat = globalThis.game?.combat;
-    const round = Number(data.round ?? (combat?.round ?? 1));
+    if (data.phase !== undefined) need(["begin", "complete"].includes(data.phase), "Choose begin or complete for the Lightspeed guided procedure.");
+    const round = Number(combat?.round ?? data.round ?? 1);
+    if (data.round !== undefined && combat?.round !== undefined && Number(data.round) !== Number(combat.round)) warn(warnings, "round-mismatch", `The supplied Round ${data.round} does not match active combat Round ${combat.round}; the active Round is used.`);
     if (combat?.started && round > 1) {
       warn(warnings, "round", "Lightspeed only grants a second turn during the first Round of a combat.");
     }
-
-    const initiative = Number(data.initiative ?? 20);
-    const secondTurnInit = lightspeedSecondInitiative(initiative);
+    const combatId = combat?.uuid ?? null;
+    if (!combatId || !combat?.started) warn(warnings, "combat", "Confirm this is the first Round of an active combat; no active combat was found.");
+    const combatant = values(combat?.turns).find(entry => entry.actor?.uuid === actor.uuid);
+    const initiative = Number(data.initiative ?? combatant?.initiative);
+    if (!Number.isFinite(initiative)) warn(warnings, "initiative-unverified", "Confirm the first-turn Initiative; it could not be read from this combat.");
+    const secondTurnInit = Number.isFinite(initiative) ? lightspeedSecondInitiative(initiative) : null;
+    const phase = data.phase === "complete" ? "complete" : "begin";
+    const prior = flag(actor, "vanguard.lightspeed") ?? {};
+    const sameRound = prior.combatId === combatId && Number(prior.round) === round;
+    if (sameRound && prior.status) warn(warnings, "lightspeed-duplicate", `A Lightspeed procedure is already ${prior.status} for this combat Round; confirm before recording another step.`);
+    if (phase === "complete" && (!sameRound || prior.status !== "pending")) warn(warnings, "lightspeed-not-pending", "No pending Lightspeed second turn is recorded for this combat Round.");
 
     return {
       warnings,
-      title: "Lightspeed",
+      title: phase === "begin" ? "Lightspeed: Begin second turn" : "Lightspeed: Complete second turn",
       apply(next, receipt) {
-        receipt.summary = `${actor.name} gains a second Turn during Round 1 at Initiative ${secondTurnInit} (Initiative ${initiative} - 10).`;
-        receipt.result = { firstInitiative: initiative, secondInitiative: secondTurnInit, round };
-        return {};
+        const status = phase === "begin" ? "pending" : "completed";
+        receipt.summary = phase === "begin"
+          ? `${actor.name} records a second Round 1 turn at Initiative ${secondTurnInit ?? "first Initiative - 10"} (first Initiative ${Number.isFinite(initiative) ? initiative : "confirm the table value"} - 10). Complete the turn and manually follow normal refresh and expiry steps.`
+          : `${actor.name} records the Lightspeed second turn complete. Manually follow the normal refresh and expiry steps.`;
+        receipt.result = { phase, status, firstInitiative: initiative, secondInitiative: secondTurnInit, combatId, round };
+        return { "flags.ak5e.vanguard.lightspeed": { combatId, round, phase, status, firstInitiative: initiative, secondInitiative: secondTurnInit, operationId: receipt.id } };
       }
     };
   }
 };
 
+CORE_PLANS.undoOperatorActivation.undoUpdates = (owner, _state, receipt) => {
+  const latest = flag(owner, "operatorSkills") ?? {}, events = latest.operatorEvents ?? [];
+  const committed = events.find(candidate => candidate.id === `${receipt.activationId}:activation`
+    && candidate.activationId === receipt.activationId && candidate.kind === "activation" && candidate.committed === true);
+  const stillGranted = vanguardUses.state(owner).undo.some(candidate => candidate.command === "leadingLanceSP"
+    && candidate.eventId === receipt.activationId && candidate.status !== "undone");
+  if (!committed || stillGranted) {
+    receipt.undoNotes = [...(receipt.undoNotes ?? []), stillGranted
+      ? "The Leading Lance SP grant remains committed; no activation state was restored."
+      : "The activation ledger changed or expired; no activation state was restored."];
+    return {};
+  }
+  const points = Math.max(0, Number(latest.points) || 0);
+  const gained = Math.min(Math.max(0, Number(committed.spSpent) || 0), Math.max(0, Number(latest.maximum) - points));
+  const updates = { "flags.ak5e.operatorSkills.points": points + gained,
+    "flags.ak5e.operatorSkills.operatorEvents": events.filter(candidate => candidate.activationId !== receipt.activationId) };
+  if (latest.active?.activationId === receipt.activationId) updates["flags.ak5e.operatorSkills.active"] = null;
+  if (gained < Number(committed.spSpent ?? 0)) receipt.undoNotes = [...(receipt.undoNotes ?? []),
+    `Restored ${gained} of ${committed.spSpent} Skill Points; the shared pool reached its maximum.`];
+  return updates;
+};
+
+CORE_PLANS.approachingStorm.undoNotes = (_actor, _state, receipt) => receipt.approachingStormApplied
+  ? ["The native damage roll already made with Approaching Storm remains in chat after undo."] : [];
+
 vanguardUses.register({
   plans: CORE_PLANS,
+  readings: {
+    approachingStormComponents: {
+      label: "Approaching Storm damage components",
+      options: [
+        { value: "once", label: "Add it once to one damage component (selected component; defaults to the first)." },
+        { value: "perRoll", label: "Add it to each distinct damage component in this action." }
+      ]
+    }
+  },
   targetKinds: {
+    damage: {
+      local: true,
+      async apply(source, useId, entry, target) {
+        const key = opaqueKey(`${useId}:${source.uuid}`);
+        const existing = flag(target, vanguardUses.appliedFlag)?.[key];
+        if (existing) return existing;
+        const hp = target.system.attributes.hp;
+        const before = { value: Number(hp.value ?? 0), temp: Number(hp.temp ?? 0) };
+        const tempLost = Math.min(before.temp, entry.amount), hitPointsLost = Math.min(before.value, entry.amount - tempLost);
+        const after = { value: before.value - hitPointsLost, temp: before.temp - tempLost };
+        const applied = { before, after, amount: entry.amount, tempLost, hitPointsLost };
+        await target.update({ "system.attributes.hp.value": after.value, "system.attributes.hp.temp": after.temp,
+          [`flags.ak5e.${vanguardUses.appliedFlag}.${key}`]: applied });
+        return applied;
+      },
+      async revert(source, useId, _entry, target) {
+        const key = opaqueKey(`${useId}:${source.uuid}`), path = `${vanguardUses.appliedFlag}.${key}`;
+        const applied = flag(target, vanguardUses.appliedFlag)?.[key];
+        if (!applied) return { removed: 0 };
+        const hp = target.system.attributes.hp;
+        if (Number(hp.value) !== applied.after.value || Number(hp.temp ?? 0) !== applied.after.temp) return { conflict: true };
+        await target.update({ "system.attributes.hp.value": applied.before.value, "system.attributes.hp.temp": applied.before.temp, [`flags.ak5e.${path}`]: null });
+        return { restored: applied.hitPointsLost + applied.tempLost };
+      },
+      preview(_source, _receipt, _entry, target) {
+        const hp = target.system.attributes.hp;
+        return `Restores the recorded damage only if HP and Temporary HP still match the state after this use (current HP ${hp.value}, Temporary HP ${hp.temp ?? 0}).`;
+      }
+    },
     effect: {
       async apply(source, useId, entry, target) {
         const existing = values(target.effects).find(effect => flag(effect, vanguardUses.effectFlag)?.opId === useId && flag(effect, vanguardUses.effectFlag)?.sourceUuid === source.uuid);
@@ -392,38 +604,45 @@ vanguardUses.register({
   }
 });
 
-const rawCommand = vanguardUses.command.bind(vanguardUses);
+CORE_PLANS.uncannyDodge.validateTarget = (source, receipt, entry, target) =>
+  entry.uuid === source.uuid && target.uuid === source.uuid && entry.kind === "damage" &&
+  Number.isInteger(entry.amount) && entry.amount === receipt.result?.halvedDamage;
 
-vanguardUses.command = async function(actor, name, data = {}, operationId) {
-  if (name === "useRoll") {
-    const state = vanguardUses.state(actor);
-    const receipt = state.undo.find(entry => entry.id === data.useId);
-    if (receipt && receipt.command === "tipOfTheSpear" && receipt.outcome === undefined) {
-      if (receipt.roll === undefined && receipt.formula) {
-        const roll = await new Roll(receipt.formula, actor.getRollData?.() ?? {}).evaluate();
-        receipt.roll = roll.total;
-        await roll.toMessage({
-          speaker: ChatMessage.implementation.getSpeaker({ actor }),
-          flavor: receipt.rollFlavor ?? receipt.title,
-          flags: { ak5e: { [`${vanguardUses.ns}Op`]: `${receipt.id}-dice`, [`${vanguardUses.ns}Actor`]: actor.uuid } }
-        });
-      }
-      const outcome = Number(receipt.roll);
-      const targetUuid = receipt.targetUuid;
-      const targetName = receipt.targetName;
-      const level = vanguardLevel(actor) ?? 1;
-      const pb = Math.floor((level - 1) / 4) + 2;
-      applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb, receipt.data ?? {});
-      await actor.update({ [`flags.ak5e.${vanguardUses.ns}.undo`]: state.undo });
-    }
-    return await rawCommand(actor, "useRoll", data, operationId);
-  }
-  return await rawCommand(actor, name, data, operationId);
+const exactData = (actual, expected) => {
+  if (actual === expected) return true;
+  if (!actual || !expected || typeof actual !== "object" || typeof expected !== "object" || Array.isArray(actual) !== Array.isArray(expected)) return false;
+  if (Array.isArray(actual)) return actual.length === expected.length && actual.every((value, index) => exactData(value, expected[index]));
+  const keys = Object.keys(actual).sort(), expectedKeys = Object.keys(expected).sort();
+  return exactData(keys, expectedKeys) && keys.every(key => exactData(actual[key], expected[key]));
+};
+CORE_PLANS.tipOfTheSpear.validateTarget = (source, receipt, entry, target) => {
+  if (entry.uuid !== receipt.targetUuid || target.uuid !== receipt.targetUuid || entry.name !== receipt.targetName) return false;
+  const outcome = Number(receipt.outcome), pb = Number(receipt.result?.damageBonus);
+  if (outcome === 2) return entry.kind === "tempHP" && entry.mode === "additive" && entry.ready === true &&
+    Number.isInteger(entry.amount) && entry.amount >= 1 && entry.amount <= 6 && Number(receipt.roll) === entry.amount;
+  if (![1, 3, 4, 5, 6].includes(outcome) || entry.kind !== "effect" || entry.ready !== true ||
+      entry.featureId !== "class-feature-vanguard-1st-level-tip-of-the-spear-3092") return false;
+  const base = { trigger: "turnStart", expiryActor: "source", changes: [], instructions: TIP_INSTRUCTIONS[outcome - 1] };
+  if (outcome === 1) return Number.isInteger(pb) && pb >= 0 && exactData(entry.standardBenefit, { kind: "tip1", value: pb, bearerUuid: source.uuid }) &&
+    exactData(entry.meta?.standardBenefit, { kind: "tip1", value: pb, bearerUuid: source.uuid }) &&
+    entry.meta?.sourceUseId === receipt.id &&
+    Number.isFinite(Number(entry.meta?.createdAt)) && Number(entry.meta.createdAt) > 0 &&
+    exactData(entry.tag, { ...base, label: `Tip of the Spear: +${pb} Damage`, actions: ["used"] });
+  if (outcome === 3) return entry.standardBenefit === undefined && exactData(entry.tag, { ...base, label: "Tip of the Spear: Speed +10 ft",
+    changes: [{ key: "system.attributes.movement.walk", value: "10", mode: 2, priority: 20 }] });
+  if (outcome === 4) return entry.standardBenefit === undefined && exactData(entry.tag, { ...base, label: "Tip of the Spear: +2 to Attack Rolls",
+    changes: attackChanges(2) });
+  if (outcome === 5) return exactData(entry.standardBenefit, { kind: "tip5", value: 1 }) &&
+    exactData(entry.tag, { ...base, label: "Tip of the Spear: Critical Range +1" });
+  return exactData(entry.standardBenefit, { kind: "tip6", value: 1, bearerUuid: source.uuid }) &&
+    exactData(entry.meta?.standardBenefit, { kind: "tip6", value: 1, bearerUuid: source.uuid }) &&
+    entry.meta?.sourceUseId === receipt.id &&
+    Number.isFinite(Number(entry.meta?.createdAt)) && Number(entry.meta.createdAt) > 0 &&
+    exactData(entry.tag, { ...base, label: "Tip of the Spear: +1 Skill Point" });
 };
 
-vanguardUses.execute = async function(actor, name, data = {}, opId) {
-  return await vanguardUses.command(actor, name, { confirmed: true, ...data }, opId);
-};
+// Uses and rolls go through the generic confirmed command API. No implicit
+// confirmation or programmatic dice path is exposed.
 
 vanguardUses.undo = async function(actor, useId) {
   return await vanguardUses.command(actor, "undoUse", { useId });

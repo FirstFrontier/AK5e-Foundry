@@ -21,16 +21,18 @@ WORKFLOW.md §8 step 3. Every other rule in AGENTS.md and WORKFLOW.md still appl
 - Do the work inline without workers only when it is trivial (a one-file edit, a quick lookup or
   answering a question), or when splitting would cost more than it saves.
 
-## Models: Sonnet and Haiku do the offloaded work
+## Models: Sonnet implements, Haiku challenges, Opus reviews and escalates
 
 | Worker model | Use for | Agent definitions |
 | --- | --- | --- |
-| **Haiku** (`haiku`) | Searches, file and heading inventories, mechanical extraction, simple command checks, narrow re-checks of one screenshot | `explorer`, or any agent with `model: "haiku"` |
-| **Sonnet** (`sonnet`) | Rules mapping, implementation, tests, Foundry/browser validation, screenshot review, routine review | `rules-mapper`, `implementer`, `tester`, `foundry-validator`, `routine-reviewer` |
-| Opus (`opus`) | **Exception only:** high-risk independent review or a problem Sonnet failed on twice (AGENTS.md §4.4) | `critical-reviewer` |
+| **Haiku** (`haiku`, high effort) | Adversarial test suites written against the spec in parallel with the implementer, bug hunting, searches, inventories, mechanical extraction, simple command checks, narrow re-checks of one screenshot | `tester`, `bug-hunter`, `explorer` |
+| **Sonnet** (`sonnet`) | Implementation (high effort), rules mapping, Foundry/browser validation, screenshot review | `implementer`, `rules-mapper`, `foundry-validator` |
+| **Opus** (`opus`) | Routine cross-model review (medium effort); taking over a task the Sonnet implementer failed twice (high effort); final bug squashing and high-risk independent review (max effort) | `routine-reviewer`, `problem-solver`, `critical-reviewer` |
 
+- Implementation work runs as adversarial pairs: one Sonnet implementer owns the production files and
+  one Haiku challenger owns a separate adversarial test file, at most 2 pairs live at once.
 - Pick the cheapest model that can do the task. Use Haiku when the task is mechanical and Sonnet
-  when it needs judgment. Don't route offloaded work to Opus or Fable by default. When you use the
+  when it needs judgment. Reserve Opus for review and escalation, and Fable for owner-authorized cases. When you use the
   generic `general-purpose`/`Explore` agents, pass `model` explicitly so they don't inherit the
   head's model.
 - Check which model actually ran when it matters, and report it.

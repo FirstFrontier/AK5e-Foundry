@@ -2169,6 +2169,8 @@ The following 15 rulings resolve ambiguities and align mechanics across Chapter 
 
 ## Infuser Specialist Subclass (Ch. 3 L5684–5840)
 
+Source contract corrected on 2026-10-25. The former summaries below invented several infusion benefits and durations. These corrections describe the printed rules; runtime acceptance is tracked separately in TODO.md.
+
 ### 1. Infuser DC Formula & Ruling (Ch. 3 L5688–5690)
 - **Source Formula (`20 - INT - PB`):**
   - Source text explicitly states: `20 - Your Intelligence Modifier - Your Proficiency Bonus`.
@@ -2182,24 +2184,24 @@ The following 15 rulings resolve ambiguities and align mechanics across Chapter 
   - Infusions cannot be applied to Constructs or Undead (enforced via non-blocking warning with table-play override).
 - **Application & Targeting:**
   - Range: 5 ft at levels 1–10; extends to 30 ft at level 11 with Stimpack.
-  - Duration: 1 minute (or until consumed / leveraged).
+  - Duration: 1 minute. Leverage does not consume an Infusion.
   - Multi-Target Restriction: Each creature can only have one active Alchemical Infusion at a time; applying a new Infusion overwrites the previous one. Reverting an overwriting application cleanly restores the prior Infusion.
 
 ### 3. All 8 Alchemical Infusions & Leverage CON Save Workflow (Ch. 3 L5782–5823)
 - **The 8 Alchemical Infusions:**
-  1. `adrenalineTrigger`: Gain Advantage on next attack roll, ability check, or saving throw before start of next turn.
-  2. `flightReflexStimulant`: Movement speed increases by 10 ft for the duration.
-  3. `focusHeightener`: Add 1d4 to next weapon attack roll or ability check.
-  4. `hesitationSuppressor`: Immune to Frightened condition; suppresses existing Frightened for duration.
-  5. `muscleStrengthener`: +2 bonus to weapon damage rolls using Strength.
-  6. `procoagulant`: Gain Temporary HP equal to Infuser level.
-  7. `respirationStimulant`: Can breathe in air and water; Advantage on saving throws against airborne toxins and suffocation.
-  8. `sensationNulling`: Resistance to non-magical Bludgeoning, Piercing, and Slashing damage until start of next turn.
+  1. `adrenalineTrigger`: Reaction after a failed Strength Skill Check/save or missed Melee Attack; add 1d6 to that result.
+  2. `flightReflexStimulant`: Reaction after any failed save; add the Infuser's Intelligence bonus to that result.
+  3. `focusHeightener`: Reaction after a failed Dexterity Skill Check/save or missed Ranged Attack; add 1d6 to that result.
+  4. `hesitationSuppressor`: Reaction when forcing a hostile creature's save; increase its DC by 1d4.
+  5. `muscleStrengthener`: Reaction on a Melee Attack hit; increase that Attack's damage by the Infuser's Intelligence bonus.
+  6. `procoagulant`: Bonus Action; roll one of the recipient's Hit Dice without expending it, add CON, gain that many Temporary HP and remove Bleeding.
+  7. `respirationStimulant`: Bonus Action; +10 feet Speed until the end of the Turn.
+  8. `sensationNulling`: Reaction on taking Damage; roll 1d6 for DR against all Damage until the end of that Turn.
 - **Leverage Workflow (Ch. 3 L5694–5700):**
-  - The Infuser may Leverage an active Infusion on a creature to trigger an enhanced effect or bonus.
+  - The recipient chooses to Leverage its active Infusion when the listed scenario occurs.
   - The recipient makes a Constitution saving throw against the Infuser DC.
   - *Success:* Recipient gains the Leverage benefit with no adverse consequences.
-  - *Failure:* Recipient gains the Leverage benefit, but becomes Dazed until the start of the Infuser's next turn and cannot be the target of Leverage again until the end of combat (Leverage lockout).
+  - *Failure:* Recipient still gains the benefit, but is Dazed until the beginning of its own next Turn and cannot Leverage while it has that Condition. There is no encounter-long lockout.
   - Unowned target modifications relay automatically through the GM client without blocking player agency.
 
 ### 4. New Concoctions & Double-Blind Trial (Ch. 3 L5705–5743)
@@ -2208,22 +2210,22 @@ The following 15 rulings resolve ambiguities and align mechanics across Chapter 
 - **Double-Blind Trial (Level 5):**
   - Bonus Action expending 1 Prowess + 1 Alchemical Infusion use.
   - Interactive `1d6` roll button on the chat card determines the random Toxin applied to an untoxined weapon from the Double-Blind table:
-    1 = Neurological Inhibitor, 2 = Bungarotoxin, 3 = Muscle Relaxant, 4 = Hemotoxin, 5 = Neurotoxin, 6 = Soporific.
+    1 = Neurological Inhibitor (printed "Neurologicial"), 2 = Necrotoxin, 3 = Haemotoxin, 4 = Cytotoxin, 5 = Neurotoxin, 6 = Bungarotoxin.
   - Clamps dual resource shortfalls at 0 when overridden at the table.
 
 ### 5. Prowess Triggers, Stimpack, Excessive Dosing & To Defy Science (Ch. 3 L5745–5770)
 - **Infuser Prowess Gain Triggers (L5745):**
-  - Specialist gains 1 Prowess (1/turn) when a creature afflicted by their Toxin or Poison is reduced to 0 HP.
+  - Specialist gains 1 Prowess when a creature with Poisoned, or affected by a Toxin created by that Specialist, is reduced to 0 HP. The source adds no once-per-turn limit to this trigger.
   - Specialist gains 1 Prowess (1/round) when an active Infusion turns a failed attack, check, or save into a success.
 - **Stimpack (Level 11, L5747–5754):**
   - Infusion application range expands from 5 ft to 30 ft.
   - Questionable Rejuvenation: Target gains 1d10 Temporary HP upon Infusion application and upon succeeding on a Leverage CON save; this Temporary HP stacks additively with Procoagulant.
 - **Excessive Dosing (Level 15, L5758–5764):**
   - Succumb: Adds Proficiency Bonus (`+PB`) to the DC of Toxins applied by the Infuser.
-  - Toxic Shock: When a creature fails its saving throw against the Infuser's Toxin, it also gains the Poisoned condition until the start of the Infuser's next turn.
+  - Toxic Shock: failed Toxin saves additionally cause Poisoned for the duration of that Toxin's Conditions, or until the end of the affected creature's next Turn when the Toxin applies no Condition.
 - **To Defy Science (Level 20, L5765–5770):**
   - 1/Long Rest Action targeting a creature within 30 ft (tracked in `toDefyScience` pool, max 1).
-  - Grants a 1-minute Invulnerability effect: creature's Hit Points cannot be reduced below their current value for the duration (managed via `dnd5e.preApplyDamage` hook clamping incoming damage).
+  - For 1 minute the chosen creature cannot lose Hit Points. This is not a fixed HP floor that would prevent healing.
 
 ## Inventor Specialist Subclass (Ch. 3 L5847–6140)
 
@@ -2316,7 +2318,7 @@ not re-decide them. Each one rests on the cited source text.
    - Each is lost at the end of its turn.
 5. **Will Into Being (C3:6692).** It applies to any roll of the Supporter's Aid Die, expended or not, as an opt-in +PB button on the card.
 6. **Advanced Aid crit (C3:6658).** The critical range widens by 1 for that attack only (20 → 19–20), as a one-shot rider.
-7. **Bard Arts missing from Ch.5.** The ten absent Arts plus Tasha's Mind Whip carry a `manual: true` marker.
+7. **Bard Arts missing from Ch.5.** The ten absent base Arts (including Tasha's Mind Whip once) and undefined Shatter-5th variant require a `manual: true` marker.
    - They can be composed.
    - They are cast through a manual card that points to the "Bard missing Arts / variants" row.
    - No mechanics are invented.
@@ -2326,9 +2328,46 @@ not re-decide them. Each one rests on the cited source text.
    - Abjuring: the creature subtracts ⌊roll/2⌋ from its damage, and the damage stays at least 1.
    - Binding: one roll of 2× the Aid Die per hexed creature, rounded to the nearest 5 ft.
 10. **Bard Performance limit (C3:7102).**
-    - The limit is max(1, CHA mod) Performances.
+    - The source limit is the Charisma Modifier, with no invented minimum of one. At nonpositive modifiers the source offers no slot; source restrictions remain visible, overridable play warnings.
     - Aid Dice expended into Muse stay spent until the Long Rest.
     - Composing happens after the rest refill.
 11. **Talent borrows (C3:6837 / 6846 / 6849).** Anti-Arts Training, Lieutenant and Part-Time Inventor are manual-ruling cards.
     - Flat-number talents use Active Effects.
     - Talents with uses or reactions use play-uses plans.
+
+## Vanguard, Agent, Charger and Pioneer development contract (2026-10-24)
+
+- **Authority and scope:** Chapter 3 L7904–8484 and referenced Chapter 1/4
+  sections. Source IDs and descriptions remain stable. Skill/Talent selection,
+  Module upgrades and class interactions reuse existing workflows; this is not
+  a claim to implement every catalogue effect.
+- **Native schema:** use installed Foundry 13.351 / D&D5e 5.3.3 fields.
+  Saving Throw proficiency is on `system.abilities.<ability>.proficient`;
+  Messenger Kit is registered as `system.tools.ak5emessengerkit`. Stock D&D5e
+  simple/martial groups do not equal AK5e Light/Heavy Melee categories. Match
+  mapped source weapons specifically and preserve authored proficiencies;
+  expose unmapped third-party weapon handling for table review.
+- **Martial DC (Ch.1 L211–212):** STR or DEX is the player's choice. Do not
+  silently choose the higher modifier. Feature levels use Vanguard levels;
+  Proficiency Bonus uses the Actor's shared PB, including multiclass Actors.
+- **Quick off the Mark (Ch.3 L8016–8017):** unlocks at level 3. The old testing
+  checklist's level 2 was documentation error, not an alternative rule.
+- **Guided Lightspeed (Ch.3 L8049–8052):** record initiative minus 10 and an
+  explicit begin/complete procedure during round 1. Do not add a Combatant,
+  reorder native turns or emit synthetic generic turn events. The procedure
+  must identify shared refresh/expiry steps requiring table confirmation.
+- **Auramancy expenditure (Ch.3 L8434):** count actual committed SP already
+  expended toward each 20-SP threshold; carry the remainder. An additional
+  20-SP purchase is not in the source and is not charged. Record spend, grants
+  and operation IDs durably so retries cannot duplicate benefits. Counter
+  reset/overlap questions remain explicit per-use readings until ruled.
+- **Tactical Burst (Ch.3 L8451):** preserve the malformed wording, but its
+  specified Tip count is `1 + floor(actual activation SP spent / 10)`.
+  No unspecified generated resource is invented. Auramancy and Tactical Burst
+  are separate benefits of the same qualifying expenditure.
+- **Unresolved readings:** Agent Level, Tip self-targeting, Aura of Pressure's
+  `5 (1d8)`, and consequential timing/overlap questions must use supported
+  per-use choices, shown publicly, unless a recorded GM ruling applies. A
+  player's temporary choice never becomes a persistent GM ruling.
+- **Acceptance:** helper tests and flags are not evidence of rendered play.
+  See `VANGUARD_WORKFLOWS.md` for per-feature state and actual test evidence.

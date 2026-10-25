@@ -15,6 +15,9 @@ const isSkillTemplate = (template, activationId, skillUuid) => flag(template, "s
 const damageSnapshots = new WeakMap();
 const restRequests = new WeakMap();
 const consumedOrigins = new Set();
+// These are ordinary play actions on an Actor the user owns. They must still work
+// when no GM client is connected; catalogue/admin and pool maintenance stay GM-run.
+const OWNER_LOCAL_PLAY_COMMANDS = new Set(["activate", "end", "resolvePhase"]);
 let installed = false;
 const safely = promise => Promise.resolve(promise).catch(error => { console.error("AK5e | Operator Skills", error); ui.notifications.error(error.message); });
 export const spText = key => game.i18n.localize(`AK5E.Operator.${key}`);
@@ -61,8 +64,14 @@ export function operatorContext(actor) {
 
 const serial = keyedSerial();
 
-async function save(actor, state) {
-  if (!operates()) throw new Error(spText("GMRequired"));
+export function isOwnerLocalOperatorCommand(actor, request, user = game.user) {
+  const hasVanguardClass = list(actor?.items).some(item => flag(item, "chapterThreeId") === "class-vanguard");
+  return Boolean(!user?.isGM && user?.id === game.user?.id && hasVanguardClass && OWNER_LOCAL_PLAY_COMMANDS.has(request?.command)
+    && actor?.testUserPermission?.(user, "OWNER"));
+}
+
+async function save(actor, state, ownerLocalRequest = null, ownerLocalUser = game.user) {
+  if (!operates() && !isOwnerLocalOperatorCommand(actor, ownerLocalRequest, ownerLocalUser)) throw new Error(spText("GMRequired"));
   // Derived counts/rates are never authoritative persisted inputs.
   const { counts, rates, ...stored } = state;
   // Unlinked token deltas must store even fields currently equal to the base Actor.
@@ -74,11 +83,12 @@ async function save(actor, state) {
 
 /** All new SP writes use the elected GM's per-Actor queue. */
 export async function executeOperatorCommand(actor, request, user = game.user) {
-  if (!operates()) throw new Error(spText("GMRequired"));
+  const ownerLocal = isOwnerLocalOperatorCommand(actor, request, user);
+  if (!operates() && !ownerLocal) throw new Error(spText("GMRequired"));
   owned(actor, user);
   if (!request?.id || typeof request.id !== "string") throw new Error("An SP command requires a stable ID.");
   return serial(actor, async () => {
-    if (!operates()) throw new Error(spText("GMRequired"));
+    if (!operates() && !ownerLocal) throw new Error(spText("GMRequired"));
     owned(actor, user);
     let state = getIntegratedOperatorState(actor);
     const previous = state.operations.find(operation => operation.id === request.id);
@@ -87,7 +97,7 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
     const data = request.data ?? {};
     const context = operatorContext(actor);
     if (skillExpired(state.active, context)) state = queueEndingPhase(actor, state);
-    let result = true;
+    let result = true, operatorEvent = null;
     switch (request.command) {
       case "enable": state = operatorState({ ...state, enabled: data.enabled !== false }, actorOperatorSkills(actor)); break;
       case "learn": {
@@ -151,7 +161,11 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         const item = actor.items.get(skill.itemId);
         const resolution = await validateSkillResolution(actor, item, data, user);
         // Validate SP before creating any persistent geometry.
+        const beforeSP = state.points;
         const activated = activateSkillState(state, skill, { ...context, id: request.id });
+        operatorEvent = { id: `${request.id}:activation`, activationId: request.id, kind: "activation", sourceId: skill.sourceId,
+          skillUuid: item.uuid, name: skill.name, cost: skill.cost, spBefore: beforeSP, spAfter: activated.points,
+          spSpent: beforeSP - activated.points, committed: true, createdAt: Date.now() };
         if (resolution) {
           const receipts = state.resolutions ?? [];
           const receipt = resolutionReceipt(resolution, data, request.id, item, user);
@@ -159,7 +173,7 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
             flags: { ak5e: { privateSkillSelection: { activationId: request.id, selectedTargetUuids: data.targetTokenUuids ?? [], narrativeTokenUuids: data.narrativeTokenUuids ?? [] } } } });
           receipt.privateMessageUuid = privateSelection.uuid;
           // A prepared receipt survives a disconnect between template creation and the SP commit.
-          await save(actor, { ...state, resolutions: [...receipts.filter(old => old.activationId !== request.id), receipt] });
+          await save(actor, { ...state, resolutions: [...receipts.filter(old => old.activationId !== request.id), receipt] }, ownerLocal ? request : null, user);
           const scene = resolution.scene;
           const templateData = scene ? skillTemplateData(resolution, request.id, user.id) : [];
           const existing = scene ? list(scene.templates).filter(template => isSkillTemplate(template, request.id, item.uuid)) : [];
@@ -184,7 +198,14 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         state = activateSkillState(state, { ...data, name: data.name ?? data.id, duration: data.duration ?? "Manual" }, { ...context, id: request.id });
         break;
       }
-      case "end": state = queueEndingPhase(actor, state); break;
+      case "end": {
+        const active = state.active;
+        state = queueEndingPhase(actor, state);
+        if (active?.activationId) operatorEvent = { id: `${active.activationId}:end`, activationId: active.activationId,
+          kind: "end", sourceId: active.id, skillUuid: active.uuid ?? null, name: active.name,
+          spBefore: state.points, spAfter: state.points, spSpent: 0, committed: true, createdAt: Date.now() };
+        break;
+      }
       case "resolvePhase": {
         if (!state.enabled) throw new Error(spText("EnableFirst"));
         const receipt = state.resolutions?.find(receipt => receipt.activationId === data.activationId && receipt.status === "committed");
@@ -332,10 +353,12 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
       }
       default: throw new Error("Unknown Operator Skill operation.");
     }
+    const operatorEvents = state.operatorEvents ?? [];
+    if (operatorEvent && !operatorEvents.some(event => event.id === operatorEvent.id)) state = { ...state, operatorEvents: [...operatorEvents, operatorEvent] };
     state = { ...state, operations: [...state.operations, { id: request.id, result }] };
     owned(actor, user);
     let committed;
-    try { committed = await save(actor, state); }
+    try { committed = await save(actor, state, ownerLocal ? request : null, user); }
     catch (error) {
       if (request.command === "activate") {
         const receipt = state.resolutions?.find(receipt => receipt.activationId === request.id);
@@ -415,9 +438,12 @@ export async function handleOperatorRequest(message, _options, userId) {
 
 export async function submitOperatorCommand(actor, command, data = {}, id = newId()) {
   owned(actor);
-  const gm = activeGM();
-  if (!gm) throw new Error(spText("GMRequired"));
   const request = { id, actorUuid: actor.uuid, command, data };
+  const gm = activeGM();
+  if (!gm) {
+    if (!isOwnerLocalOperatorCommand(actor, request)) throw new Error(spText("GMRequired"));
+    return (await executeOperatorCommand(actor, request)).result;
+  }
   if (operates()) return (await executeOperatorCommand(actor, request)).result;
   // A real document provides a server-attributed initiating user; no socket impersonation.
   const message = await ChatMessage.implementation.create({ content: spText("Request"), whisper: [gm.id, game.user.id],

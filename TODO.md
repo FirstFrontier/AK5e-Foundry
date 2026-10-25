@@ -1,5 +1,31 @@
 # AK5e Foundry VTT To-Do List
 
+### Guard/Artsblade, Specialist/Infuser, Supporter/Artificer/Bard, Medic/Witchcraft (2026-10-25)
+
+- [x] Audit source/runtime boundaries with adversarial GPT-6 Luna pairs; preserve the uncommitted Vanguard baseline.
+- [x] Inventory parent-class and requested branch source records; baseline class test commands pass, without establishing runtime acceptance.
+- [ ] Shared pure use previews, unconditional confirmation, native owner-save bridge, state undo and adversarial regressions.
+- [ ] Guard/Artsblade progression, grants, casting, resolution, expiry and rendered acceptance.
+- [ ] Specialist/Infuser saves, clicked table rolls, target relay, toxins, expiry and rendered acceptance.
+- [ ] Supporter runtime integration, Artificer and Bard workflows and rendered acceptance.
+- [ ] Medic casting integration and Witchcraft workflows and rendered acceptance.
+- [ ] Full regressions, source coverage/evidence report, screenshot review and restart acceptance.
+
+Implementation uses isolated copies under `/tmp/ak5e-five-branches-x6z5x8s1`; shared files have one integrating writer. Publishing and release packs remain separate.
+
+### Vanguard, Agent, Charger and Pioneer workflows (2026-10-24)
+
+- [x] Read Chapter 3 in full through the rules mapper; audit source mappings, existing helpers and runtime/test gaps.
+- [ ] Base Vanguard: finish setup/progression, owner controls, actual roll/effect integration, Tip, relay, undo and guided Lightspeed.
+- [ ] Agent: complete progression, Fade/Shadowstrike, hit riders, Closing the Case and Smoke and Mirrors.
+- [ ] Charger: complete Momentum, Couch/Momentous Strike, Marks and level 4–17 workflows.
+- [ ] Pioneer: complete Heavy Duty, auras, committed-SP accounting, Skill interactions and Breakthrough Skill.
+- [ ] For each queue item, finish implementation/rules and integration/Foundry adversarial pairs sequentially; resolve findings before advancing.
+- [ ] Finish focused/shared/full regressions, rendered GM/player inspection, screenshot review and server-restart acceptance.
+- [ ] Publish the feature coverage/evidence report and update rulings. Public release packs/licensing remain separate.
+
+Work is in progress in the existing dirty checkout. The base helper suite passed before changes; that result does not establish runtime or subclass acceptance. Private acceptance data is isolated under `/tmp/ak5e-vanguard-oarpw3q9` on port 30186; the installed World is not used.
+
 ### Marksman, Anti-Air, Artilleryman and Besieger workflows (2026-10-18)
 
 - [x] Re-audit scoped rules and existing repairs; full Chapter 3/reference read by validator.
