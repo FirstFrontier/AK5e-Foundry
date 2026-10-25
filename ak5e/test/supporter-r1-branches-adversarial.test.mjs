@@ -44,7 +44,7 @@ import { expireFeatureTags } from "../scripts/feature-tags.mjs";
 
 // C3:6557-6578: Proficiency Bonus and Aid Die columns.
 const pbOf = level => Math.floor((level - 1) / 4) + 2;
-const dieOf = level => (level >= 14 ? 12 : level >= 7 ? 10 : 8);
+const dieOf = level => (level >= 14 ? 12 : level >= 7 ? 10 : 8);   // die size as a number of faces
 const DEFAULT_MODS = Object.freeze({ str: 0, dex: 2, con: 2, int: 2, wis: 1, cha: 4 });
 
 /** Load a module once per file. A missing module fails the test that needs it, not the whole file. */
@@ -329,13 +329,15 @@ async function ultimateOn(hexer, foe, opId) {
 function burstButton(message) {
   const match = /data-ak5e-hexer-roll="([^"]*)"\s+data-flavor="([^"]*)"\s+data-actor="([^"]*)"/.exec(contentOf(message));
   assert.ok(match, "the burst card carries a roll button");
-  return { formula: match[1], flavor: match[2], actor: match[3] };
+  const once = /data-ak5e-hexer-once="([^"]*)"/.exec(contentOf(message));
+  return { formula: match[1], flavor: match[2], actor: match[3], once: once ? once[1] : null };
 }
 
 /** A fake button that the card wiring can bind and click, the way the chat log does. */
 function fakeButton(attrs) {
   const button = {
-    dataset: { ak5eHexerRoll: attrs.formula, flavor: attrs.flavor, actor: attrs.actor },
+    dataset: { ak5eHexerRoll: attrs.formula, flavor: attrs.flavor, actor: attrs.actor,
+      ...(attrs.once ? { ak5eHexerOnce: attrs.once } : {}) },
     disabled: false,
     handler: null,
     addEventListener(type, handler) { if (type === "click") this.handler = handler; },
@@ -551,13 +553,17 @@ test("F-R1.9: H2: a relayed Font tag with 'standardBenefit' set is rejected and 
 });
 
 test("F-R1.10: H2: a relayed Font die size that is not the Supporter's real die is rejected and creates no effect", async () => {
-  // A Bard at level 4 has a d8 Font die; the copy claims a d12 in both the receipt and the tag, so the old
-  // receipt-to-tag equality check passes and only the Supporter's real die can refuse it.
+  // A Bard at level 4 has a d8 Font die. The production code stores dieSize as a string ("d8", "d10", "d12").
+  // The copy claims "d12" in both the receipt and the tag, in that same representation, so the old receipt-to-tag
+  // equality check passes and only the Supporter's real die can refuse it.
   const { bard, fresh } = await fontRelayCopy((c, e) => {
-    c.result = { ...c.result, dieSize: 12 };
-    e.tag.data = { ...e.tag.data, dieSize: 12 };
+    c.result = { ...c.result, dieSize: "d12" };
+    e.tag.data = { ...e.tag.data, dieSize: "d12" };
   }, "fr-h2-die");
-  assert.equal(dieOf(4), "d8", "oracle: a level 4 Font die is a d8 (C3:6557-6578)");
+  assert.equal(dieOf(4), 8, "oracle: a level 4 Font die has 8 faces (C3:6557-6578)");
+  const legit = receiptOf(bard, "fr-h2-legit-fr-h2-die");
+  assert.equal(typeof legit.targets[0].tag.data.dieSize, "string", "production stores dieSize as a string");
+  assert.equal(legit.targets[0].tag.data.dieSize, `d${dieOf(4)}`, "the real level 4 die is stored as d8");
   await assert.rejects(() => relayApply(bard, "fr-h2-die", fresh.uuid), "a wrong die size is refused");
   assert.equal(Features.findAidDieEffect(fresh), null, "no effect is created");
 });
