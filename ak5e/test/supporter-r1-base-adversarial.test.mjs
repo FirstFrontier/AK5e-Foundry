@@ -518,6 +518,8 @@ test("F-R4 negatives: the Supporter itself and compendium actors are not offered
 
 test("F-R4: a player with only LIMITED permission on an NPC still sees that NPC as a recipient", async () => {
   setupFoundryGlobals({ isGM: false });
+  // setupFoundryGlobals replaces globalThis.foundry, so the DialogV2 stub must be installed again for the player.
+  stubDialogs();
   docs = new Map();
   globalThis.fromUuidSync = uuid => docs.get(uuid) ?? null;
   globalThis.fromUuid = async uuid => docs.get(uuid) ?? null;
@@ -701,7 +703,8 @@ test("F-R7: a relayed Aid Die entry whose dieSize mismatches the receipt is reje
 
 test("F-R7: a relayed entry carrying standardBenefit is rejected and creates no effect", async () => {
   const { outcome, ally } = await relayProvideAid(entry => {
-    entry.standardBenefit = { key: "bonus", value: 99 };
+    // The relayed change is the target entry (what relayable checks and the effect apply path writes).
+    entry.targets[0].standardBenefit = { key: "bonus", value: 99 };
   });
   assert.ok(outcome.error, "standardBenefit is not part of an Aid Die change");
   assert.equal(findAidDieEffect(ally), null);
