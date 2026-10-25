@@ -1027,6 +1027,8 @@ Source L6548–6692. Implemented on branch `feat/supporter-base` (2026-10-24, PR
 - [x] Shared Cancel defect fixed for play-uses dialogs. Foundry resolves `callback() ?? action`, so Cancel must return false (play-uses-sheet.mjs). The same defect in other classes is tracked in bugs/pending/B-302.
 - [ ] Open: Will Into Being +PB is a note, not applied to an already-made roll. The Advanced Aid Force rider posts its amount for native damage application. The Supporter "Choose Skills" (operator-progression) prompt auto-opens over the sheet at higher levels.
 - [ ] Open: Ritualist and Summoner branches.
+- [x] Review round R1 (PRs #33–#36): Aid Dice last 10 minutes; talent pools defined at registration; card riders confirm and undo; wider recipient list; Aid ability fallback and chooser; progression choices; GM relay content checks. See DECISIONS "Supporter review round R1 rulings".
+- [ ] Deferred (R1): upgrade creation-limit `eventCount` UI; undo receipt pruning; late branch registration snapshot; play-uses target-kind collision guard.
 - Rulings logged: ak5e/DECISIONS.md "Supporter Class and Artificer / Bard / Hexer Branches" (R1–R11) and "Supporter branch implementation rulings".
 
 #### Artificer — L
