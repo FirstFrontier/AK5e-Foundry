@@ -109,13 +109,22 @@ export const instructionDiceMax = level => stepValue(INSTRUCTION_DICE_STEPS, che
 /** Instruction Die size (L2859 vs L2882): d6 from 1st, d10 from 13th (Superior Instruction). */
 export const instructionDieFaces = level => checkLevel(level) >= 13 ? 10 : 6;
 
-/** Martial DC (Ch.1 L211): 8 + PB + higher of STR or DEX modifier. */
-export function martialDC(actor) {
+/** The character's stored Martial DC ability choice (Ch.1 L211-212: "their Strength or Dexterity Bonus (their Choice)"),
+ * or null when nothing has been chosen. Stored under flags.ak5e.guard.martialDCAbility. */
+export function martialDCChoice(actor) {
+  const ability = flag(actor, "guard")?.martialDCAbility;
+  return ability === "str" || ability === "dex" ? ability : null;
+}
+
+/** Martial DC (Ch.1 L211-212): 8 + PB + the Strength or Dexterity Modifier the character chose. `ability` overrides the
+ * stored choice for one use. Only when nothing is chosen does it fall back to the higher of the two (callers warn
+ * before relying on that default). */
+export function martialDC(actor, ability = flag(actor, "guard")?.martialDCAbility) {
   const system = actor?.system ?? {};
   const pb = Number(system.attributes?.prof ?? 2);
-  const str = Number(system.abilities?.str?.mod ?? 0);
-  const dex = Number(system.abilities?.dex?.mod ?? 0);
-  return 8 + pb + Math.max(str, dex);
+  const mod = key => Number(system.abilities?.[key]?.mod ?? 0);
+  if (ability === "str" || ability === "dex") return 8 + pb + mod(ability);
+  return 8 + pb + Math.max(mod("str"), mod("dex"));
 }
 
 /** Centurion DC (Ch.3 L2554-2555): 8 + Intimidation Modifier. */

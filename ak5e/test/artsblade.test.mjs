@@ -21,6 +21,16 @@ function setupWorld() {
 
 const use = (actor, command, data = {}, id = "arts-1") => guardUses.command(actor, command, { confirmed: true, ...data }, id);
 
+/** Cut Through Chaos needs a selected, equipped native melee weapon (its own Attack control is what is rolled). */
+function giveMeleeWeapon(actor, id = "longsword") {
+  const weapon = { id, uuid: `${actor.uuid}.Item.${id}`, type: "weapon", name: "Longsword",
+    system: { equipped: true, type: { value: "martialM" }, activities: new Map([
+      ["melee", { id: "melee", type: "attack", attack: { type: { value: "melee", classification: "weapon" } } }]
+    ]) } };
+  actor.items.set(id, weapon);
+  return { weaponUuid: weapon.uuid, activityId: "melee" };
+}
+
 test("Artsblade identification and formula scaling", () => {
   setupWorld();
   const actor = guardFixture({ level: 5, branch: "artsblade" });
@@ -101,14 +111,14 @@ test("Cut Through Chaos (4th level) spends 1 pool use and Reaction across 3 mode
   actor.flags.ak5e.resourcePools.cutThroughChaos = { value: 3, max: 3 };
 
   // Mode 1: spellAttack deflection
-  const res1 = await use(actor, "cutThroughChaos", { mode: "spellAttack" }, "ctc-1");
+  const res1 = await use(actor, "cutThroughChaos", { mode: "spellAttack", ...giveMeleeWeapon(actor) }, "ctc-1");
   assert.equal(res1.mode, "spellAttack");
   assert.equal(res1.clearPath, false);
 
   // Mode 2: savingThrow at level 13 has Clear Path
   const actor13 = guardFixture({ level: 13, branch: "artsblade" });
   actor13.flags.ak5e.resourcePools.cutThroughChaos = { value: 5, max: 5 };
-  const res2 = await use(actor13, "cutThroughChaos", { mode: "savingThrow" }, "ctc-2");
+  const res2 = await use(actor13, "cutThroughChaos", { mode: "savingThrow", ...giveMeleeWeapon(actor13) }, "ctc-2");
   assert.equal(res2.mode, "savingThrow");
   assert.equal(res2.clearPath, true);
 });

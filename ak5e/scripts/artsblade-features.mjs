@@ -9,7 +9,7 @@
  * Follows WORKFLOW.md §3.2 and integrates with guardUses and resource-pools.mjs.
  */
 import {
-  GUARD_CLASS_ID, guardEnabled, guardLevel, guardBranch, martialDC
+  GUARD_CLASS_ID, guardEnabled, guardLevel, guardBranch, martialDC, martialDCChoice
 } from "./guard-rules.mjs";
 import { guardUses } from "./guard-uses.mjs";
 import { warn, spendResource, resourceValue } from "./play-uses.mjs";
@@ -21,6 +21,34 @@ import { standardPools } from "./caster-rules.mjs";
 
 export const isArtsblade = actor => guardEnabled(actor) && guardBranch(actor) === "artsblade";
 
+const isMeleeAttackActivity = activity => activity?.actionType === "mwak" || activity?.attack?.type?.value === "melee";
+
+/** A native Melee Weapon Item: it has a native melee Attack activity, or (older Items) a melee weapon type. */
+export function isMeleeWeaponItem(item) {
+  if (item?.type !== "weapon") return false;
+  if (values(item.system?.activities).some(isMeleeAttackActivity)) return true;
+  return ["simpleM", "martialM"].includes(item.system?.type?.value) || item.system?.actionType === "mwak";
+}
+
+/**
+ * Resonance (L2272): "Melee Weapons being wielded by you are considered to have the Casting Unit Property." The wielded
+ * (equipped) native melee weapons of an Artsblade, which is what Blade Art and every Spellsword Art are cast through.
+ * Arts.mjs's own Casting Unit selection is separate: this property is only about those weapons.
+ */
+export function artsbladeCastingUnits(actor) {
+  if (!isArtsblade(actor)) return [];
+  return values(actor.items).filter(item => isMeleeWeaponItem(item) && item.system?.equipped === true);
+}
+
+/** True when this Item counts as a Casting Unit for the Actor through Resonance. */
+export const hasCastingUnitProperty = (actor, item) => artsbladeCastingUnits(actor).some(unit => unit === item || unit.id === item?.id);
+
+const castingUnitStep = actor => {
+  const names = artsbladeCastingUnits(actor).map(item => item.name);
+  return names.length
+    ? `Casting Unit (Resonance): ${names.join(", ")} ${names.length === 1 ? "counts" : "count"} as a Casting Unit while wielded, so you may ignore the Somatic Components of this Art.`
+    : "No melee weapon is equipped: Resonance makes wielded Melee Weapons Casting Units, so equip one before you make the Melee Weapon Attack this Art is cast through.";
+};
 export function getArtsbladePoolChoices(actor) {
   const choices = flag(actor, "guardProgression")?.choices ?? {};
   return [...new Set([...(choices.artPools ?? []), ...(choices.additionalArtPools ?? [])]
@@ -106,13 +134,12 @@ const levelWarning = (warnings, actor, requiredLevel, name) => {
   }
 };
 
+/** Martial DC for one use (Ch.1 L211-212): this use's choice, else the Actor's stored Guard choice, else the higher of
+ * STR/DEX with a warning that nothing was chosen. */
 const chosenMartialDC = (actor, data, warnings, feature) => {
-  const ability = data.martialDcAbility;
-  if (ability === "str" || ability === "dex") {
-    return 8 + Number(actor.system?.attributes?.prof ?? 2) + Number(actor.system?.abilities?.[ability]?.mod ?? 0);
-  }
-  warn(warnings, "martialDCAbility", `${feature}: Chapter 1 lets you choose Strength or Dexterity for Martial DC. Default preview uses the existing Guard helper; choose an ability on the prompt or Use anyway.`);
-  return martialDC(actor);
+  const ability = ["str", "dex"].includes(data.martialDcAbility) ? data.martialDcAbility : martialDCChoice(actor);
+  if (!ability) warn(warnings, "martialDCAbility", `${feature}: Chapter 1 lets you choose Strength or Dexterity for Martial DC. Nothing is chosen yet, so the higher of the two is used; choose an ability on the prompt or Use anyway.`);
+  return martialDC(actor, ability ?? undefined);
 };
 
 const ARTSBLADE_READINGS = Object.freeze({
@@ -290,6 +317,8 @@ const ARTSBLADE_PLANS = {
       ...(reading ? { reading } : {}),
       costs: [],
       targets: targetUuid ? [{ uuid: targetUuid, name: data.targetName ?? targetUuid }] : [],
+      // The confirm dialog lists targets only: say there that this one already made the save and does not repeat it.
+      ...(immuneToSave ? { previewTargets: [{ uuid: targetUuid, name: `${data.targetName ?? targetUuid} (already made this Cantrip's saving throw; exempt from repeating it until the start of your next Turn)` }] } : {}),
       saves: targetUuid && (saveAbility || hasEarthSave) && !immuneToSave ? [{ id: "blade-resonance", saveId: "blade-resonance", afterRoll: true, uuid: targetUuid, name: data.targetName ?? targetUuid, ability: saveAbility ?? "str", dc: effectiveSaveDc, condition: "only after the triggering attack hits and deals damage" }] : [],
       damageParts: [{ formula, type: poolInfo.damageType }],
       formula,
@@ -317,7 +346,10 @@ const ARTSBLADE_PLANS = {
         receipt.formula = formula;
         receipt.rollLabel = `Blade Art (${poolInfo.damageType})`;
         receipt.summary = `${actor.name} casts Blade Art (${poolInfo.name} / ${poolInfo.damageType}). Deals ${formula} Arts Damage.${immuneToSave ? " Target already made the applicable saving throw this Turn; exempt from repeating it." : (saveAbility || hasEarthSave) && targetUuid ? ` If the triggering attack damages the target, it makes a ${(saveAbility ?? "str").toUpperCase()} save against DC ${effectiveSaveDc}; its owner resolves through the card.` : ` Target DC is ${mDC} (Martial DC).`}${isImproved ? " (Improved Resonance applied)" : ""}`;
-        receipt.manualSteps = bladeArtManualSteps(poolKey, isImproved, formula, targetUuid, immuneToSave);
+        receipt.manualSteps = [castingUnitStep(actor), ...bladeArtManualSteps(poolKey, isImproved, formula, targetUuid, immuneToSave)];
+        if (!nextTurnKey(actor) && (poolKey === "crude" || (poolKey === "flame" && isImproved))) {
+          receipt.manualSteps.push(`Outside combat this ${poolKey === "crude" ? "Attack and Damage bonus" : "extra Fire Damage"} is not tracked automatically: add it to your Melee Attacks yourself and end it at the end of your next Turn.`);
+        }
         if (poolKey === "wind" && isImproved && targetUuid) receipt.actions = [{
           id: "wind-bleeding", label: "Confirm actual Blade Art damage taken and apply Bleeding", targetUuid,
           requiresActualDamage: true
@@ -468,7 +500,7 @@ const ARTSBLADE_PLANS = {
         if (isTrueSpellsword) next.data.trueSpellswordUntilTurn = nextTurnKey(actor);
 
         receipt.summary = `${actor.name} ${spCost ? "expends 1 Spellsword Point" : "casts Blade Art without a Spellsword Point"} to infuse ${artName} at maximum Artsblade level ${castingLevel} into a Melee Weapon Attack. Spell Save DC is ${mDC} (Martial DC).${isTrueSpellsword ? " True Spellsword: Melee Attacks deal Arts Damage until beginning of your next Turn." : ""}`;
-        receipt.manualSteps = spellswordResolutionSteps(selectedArt, artName, castingLevel, mDC, unleash && isAugmented && level >= 13, isTrueSpellsword);
+        receipt.manualSteps = [castingUnitStep(actor), ...spellswordResolutionSteps(selectedArt, artName, castingLevel, mDC, unleash && isAugmented && level >= 13, isTrueSpellsword)];
         receipt.summary += ` ${receipt.manualSteps.join(" ")}`;
         receipt.result = {
           artName,
