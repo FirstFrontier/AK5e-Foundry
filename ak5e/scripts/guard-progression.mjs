@@ -245,14 +245,67 @@ export function guardChoices(actor, supplied = {}) {
   result.additionalArtPools = [...(supplied.additionalArtPools ?? saved.additionalArtPools ?? [])];
   result.fightingStyle = supplied.fightingStyle ?? saved.fightingStyle ?? null;
   result.weaponmasterAdditionalFightingStyle = supplied.weaponmasterAdditionalFightingStyle ?? saved.weaponmasterAdditionalFightingStyle ?? null;
-  const level = levelOf(guardClass(actor));
-  if (level) {
-    result.asi ??= {};
-    result.hp ??= {};
-    for (const n of ASI_LEVELS.filter(v => v <= level)) result.asi[n] ??= { mode: "existing" };
-    for (let n = 1; n <= level; n++) result.hp[n] ??= { mode: "existing" };
-  }
+  result.martialDCAbility = supplied.martialDCAbility ?? saved.martialDCAbility ?? null;
+  // HP and ASI levels are NOT defaulted here. A level counts as taken only when its choice was actually supplied
+  // (an explicit { mode: "existing" } is a supplied choice); the sheet shows "existing" as the unselected default.
   return result;
+}
+
+const ABILITY_KEYS = Object.freeze(["str", "dex", "con", "int", "wis", "cha"]);
+const HIT_DIE = 10;
+
+/**
+ * Validate supplied choices against the class options before anything is previewed or written. Throws on malformed
+ * input; out-of-range HP rolls are clamped and unavailable levels are ignored, both with a warning. Returns the
+ * normalised HP rolls and the supplied levels to mark as taken.
+ */
+function validateGuardChoices(choices, level, warnings) {
+  const reject = message => { throw new Error(`Invalid Guard progression choice: ${message}`); };
+  const saves = Array.isArray(choices.saves) ? choices.saves : [choices.saves];
+  const saveKeys = SAVES.map(([, key]) => key);
+  if (saves.some(value => value !== undefined && value !== null)) {
+    if (saves.length !== 1 || !saveKeys.includes(saves[0])) reject(`choose one saving throw from ${saveKeys.join(", ")} (Strength is automatic).`);
+  }
+  const skillKeys = SKILLS.map(([, key]) => key);
+  const skills = choices.skills ?? [];
+  if (!Array.isArray(skills)) reject("skills must be a list.");
+  if (skills.some(key => !skillKeys.includes(key))) reject(`skills must come from the Guard list: ${skillKeys.join(", ")}.`);
+  if (new Set(skills).size !== skills.length) reject("the same skill was chosen more than once.");
+  if (skills.length > 3) reject("choose three skills.");
+  if (choices.tool != null && !TOOLS.includes(choices.tool)) reject(`${choices.tool} is not a listed Kit proficiency.`);
+  if (choices.fightingStyle != null && !Object.hasOwn(FIGHTING_STYLES, choices.fightingStyle)) reject(`${choices.fightingStyle} is not a Guard Fighting Style.`);
+  if (choices.branch != null && !Object.hasOwn(GUARD_BRANCH_IDS, choices.branch)) reject(`${choices.branch} is not a Guard Branch.`);
+  if (choices.martialDCAbility != null && !["str", "dex"].includes(choices.martialDCAbility)) reject("the Martial DC ability must be Strength or Dexterity.");
+
+  const asi = {}, hp = {}, hpLevels = [], asiLevels = [];
+  for (const [key, choice] of Object.entries(choices.asi ?? {})) {
+    const n = Number(key);
+    if (!ASI_LEVELS.includes(n)) reject(`level ${key} is not an Ability Score Improvement level.`);
+    if (n > level) { warnings.push(`Ignoring the level ${n} Ability Score Improvement: this character is level ${level}.`); continue; }
+    if (choice?.mode === "existing" && !choice.increases) { asi[n] = { mode: "existing" }; asiLevels.push(n); continue; }
+    const increases = choice?.increases;
+    const valid = Array.isArray(increases) && increases.every(item => item && ABILITY_KEYS.includes(item.ability) && Number.isInteger(item.amount))
+      && new Set(increases.map(item => item.ability)).size === increases.length
+      && ((increases.length === 1 && increases[0].amount === 2) || (increases.length === 2 && increases.every(item => item.amount === 1)));
+    if (!valid) reject(`level ${n} Ability Score Improvement must be +2 to one ability or +1 to two different abilities (str, dex, con, int, wis, cha).`);
+    asi[n] = { increases: increases.map(({ ability, amount }) => ({ ability, amount })) };
+    asiLevels.push(n);
+  }
+  for (const [key, choice] of Object.entries(choices.hp ?? {})) {
+    const n = Number(key);
+    if (!Number.isInteger(n) || n < 1) reject(`${key} is not a Guard level.`);
+    if (n > level) { warnings.push(`Ignoring the level ${n} Hit Point choice: this character is level ${level}.`); continue; }
+    if (choice?.mode === "existing") { hp[n] = { mode: "existing" }; hpLevels.push(n); continue; }
+    if (!["fixed", "rolled"].includes(choice?.mode)) reject(`level ${n} Hit Points must be existing, fixed or rolled.`);
+    const raw = choice.roll ?? (n === 1 ? HIT_DIE : 6);
+    const roll = Number(raw);
+    if (raw === null || raw === "" || typeof raw === "boolean" || !Number.isFinite(roll)) reject(`level ${n} Hit Point roll "${raw}" is not a number.`);
+    const clamped = Math.min(HIT_DIE, Math.max(1, Math.floor(roll)));
+    if (clamped !== roll) warnings.push(`Level ${n} Hit Point roll ${roll} is outside 1 to ${HIT_DIE} (the Guard Hit Die); using ${clamped}.`);
+    hp[n] = { mode: choice.mode, roll: clamped };
+    hpLevels.push(n);
+  }
+  return { asi, hp, asiLevels, hpLevels };
 }
 
 function asiOptions(actor) {
@@ -332,6 +385,7 @@ export function inspectGuardFields(actor, choices = {}) {
   }
   fields.push(field("saves", "Choose one additional Saving Throw proficiency (Strength is automatic)", SAVES.map(([name, key]) => option(key, name)), 1, currentChoices.saves?.[0] ?? null));
   fields.push(field("skills", "Choose three Guard skills", SKILLS.map(([name, key]) => option(key, name)), 3, currentChoices.skills ?? []));
+  fields.push(field("martialDCAbility", "Martial DC: Strength or Dexterity modifier (your choice; Chapter 1)", [option("str", "Strength"), option("dex", "Dexterity")], 1, currentChoices.martialDCAbility ?? null));
   fields.push(field("tool", "Choose a Kit proficiency (Maintenance Kit is standard)", TOOLS.map(name => option(name, name)), 1, currentChoices.tool ?? "Maintenance Kit"));
 
   fields.push(field("startingEquipment.mode", "Choose printed starting equipment or 1300 LMD", [option("items", "Starting equipment"), option("cash", "1300 LMD")], 1, currentChoices.startingEquipment?.mode ?? null));
@@ -426,6 +480,10 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   const choices = guardChoices(actor, suppliedChoices);
   const pending = [], warnings = [], writes = {}, createItems = [], updateItems = [];
   const priorState = readState(actor);
+  // Malformed input is rejected here, before anything is previewed, applied or written.
+  const checked = validateGuardChoices(choices, level, warnings);
+  choices.asi = checked.asi;
+  choices.hp = checked.hp;
 
   const attachedBranch = branchItem(actor);
   const selectedBranchId = choices.branch ?? (attachedBranch ? flag(attachedBranch, "chapterThreeId") : null);
@@ -547,6 +605,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     }
   }
   writes["system.traits.weaponProf.custom"] = currentCustomWeapons;
+  if (choices.martialDCAbility) writes["flags.ak5e.guard.martialDCAbility"] = choices.martialDCAbility;
 
   // Skills
   for (const skillKey of (choices.skills ?? [])) {
@@ -573,6 +632,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   for (const [abl, inc] of Object.entries(abilityIncreases)) {
     if (inc > 0) {
       const current = currentAbility(actor, abl);
+      if (current + inc > 20) warnings.push(`${abl.toUpperCase()} ${current} + ${inc} is above 20; Ability Score Improvement cannot raise a score above 20.`);
       writes[`system.abilities.${abl}.value`] = Math.min(20, current + inc);
     }
   }
@@ -583,13 +643,11 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   for (let n = 1; n <= level; n++) {
     if (priorState.hpLevels.includes(n)) continue;
     const hpChoice = choices.hp?.[n];
+    // An unsupplied level adds nothing and stays untaken; only a supplied, non-"existing" choice adds Hit Points.
     if (hpChoice && hpChoice.mode !== "existing") {
-      const roll = Number(hpChoice.roll ?? (n === 1 ? 10 : 6));
-      hpGainTotal += Math.max(1, roll + conMod);
-    }
-    if (isCrusher && hpChoice?.mode !== "existing") {
+      hpGainTotal += Math.max(1, hpChoice.roll + conMod);
       // Maximum Bulk: +3 HP per level
-      hpGainTotal += 3;
+      if (isCrusher) hpGainTotal += 3;
     }
   }
   if (hpGainTotal > 0) {
@@ -666,8 +724,8 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     createItems,
     updateItems,
     progression: {
-      hpLevels: Object.keys(choices.hp ?? {}).map(Number).filter(n => !priorState.hpLevels.includes(n)),
-      asiLevels: Object.keys(choices.asi ?? {}).map(Number).filter(n => !priorState.asiLevels.includes(n)),
+      hpLevels: checked.hpLevels.filter(n => !priorState.hpLevels.includes(n)),
+      asiLevels: checked.asiLevels.filter(n => !priorState.asiLevels.includes(n)),
       startingEquipmentApplied: !priorState.startingEquipmentApplied && Boolean(choices.startingEquipment?.mode),
       startingEquipmentSlots: startingSlotsAdded,
       artsTouchedApplied: isArtsblade && !priorState.artsTouchedApplied,

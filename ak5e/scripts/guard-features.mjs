@@ -4,7 +4,7 @@
  * and 9 Fighting Styles. Follows WORKFLOW.md §3.2 and resource-pools.mjs.
  */
 import {
-  GUARD_CLASS_ID, guardState, guardProfile, guardEnabled, guardLevel, guardBranch,
+  GUARD_CLASS_ID, guardState, guardProfile, guardEnabled, guardLevel, guardBranch, martialDC, martialDCChoice,
   aggressionMax, unrelentingMax, AGGRESSION_STEPS, UNRELENTING_STEPS, FIGHTING_STYLES
 } from "./guard-rules.mjs";
 import { definePool, getPool, getPoolDefinition, spendPool, refundPool } from "./resource-pools.mjs";
@@ -66,6 +66,8 @@ export function getGuardView(actor) {
     state,
     level,
     branch: profile.branch,
+    martialDC: martialDC(actor),
+    martialDCAbility: martialDCChoice(actor),
     aggression: profile.applicable ? aggression(actor) : null,
     unrelenting: level >= 3 ? unrelenting(actor) : null,
     fightingStyle: state.fightingStyle,
@@ -118,15 +120,54 @@ export function guardPreRollAttack(config, _dialog, _message) {
     roll.parts.push("2");
   }
 
-  // Deadly Fighter: first attack roll each turn with Deadly weapon gets +1 critical range
+  // Deadly Fighter (L1843): the first time each Turn you make an Attack Roll with a Deadly weapon, +1 Critical Range.
   if (hasFightingStyle(actor, "deadlyFighter")) {
     const isDeadly = Boolean(activity.item?.system?.properties?.has?.("deadly") || flag(activity.item, "deadly"));
-    if (isDeadly) {
-      roll.options ??= {};
-      roll.options.criticalSuccess = Math.min(Number(roll.options.criticalSuccess ?? 20) - 1, 19);
-    }
+    if (isDeadly) applyDeadlyFighter(actor, activity, roll);
   }
 }
+
+/** Combat turn slot ("combat:round:turn"), or null outside a started combat. */
+export const currentTurnKey = () => {
+  const combat = globalThis.game?.combat;
+  return combat?.started && combat.round != null && combat.turn != null ? `${combat.uuid ?? combat.id ?? "combat"}:${combat.round}:${combat.turn}` : null;
+};
+
+// Deadly Fighter's once-per-Turn ledger. An attack is only counted when its roll was actually made (postRollAttack), so
+// cancelling the roll dialog does not use the benefit up. The pending entry ties the bonus to the one weapon it was offered on.
+const deadlyFighterTurn = new Map();
+const deadlyFighterPending = new Map();
+const actorKey = actor => actor?.uuid ?? actor?.id ?? actor?.name;
+const itemKey = item => item?.uuid ?? item?.id ?? item?.name ?? null;
+
+/** The first Deadly attack roll each combat Turn gets +1 Critical Range; later ones in the same Turn do not. Outside a
+ * started combat there is no Turn to count, so the bonus applies to this roll (once, never stacked) with a warning. */
+function applyDeadlyFighter(actor, activity, roll) {
+  roll.options ??= {};
+  if (roll.options.ak5eDeadlyFighter) return;   // this roll already has it; never stack
+  const key = currentTurnKey();
+  if (key) {
+    if (deadlyFighterTurn.get(actorKey(actor)) === key) return;
+    deadlyFighterPending.set(actorKey(actor), { cycle: key, itemKey: itemKey(activity.item) });
+  } else {
+    globalThis.ui?.notifications?.warn?.("Deadly Fighter: +1 Critical Range applies to the first Deadly attack each Turn. There is no combat Turn to count, so it was applied to this attack; apply it once per Turn.");
+  }
+  roll.options.ak5eDeadlyFighter = key ?? "outOfCombat";
+  roll.options.criticalSuccess = Math.min(Number(roll.options.criticalSuccess ?? 20) - 1, 19);
+}
+
+/** `dnd5e.postRollAttack`: the roll was made, so this Turn's Deadly Fighter benefit is used. */
+export function guardPostRollAttack(_rolls, { subject } = {}) {
+  const actor = subject?.actor, key = currentTurnKey();
+  if (!actor || !key) return;
+  const pending = deadlyFighterPending.get(actorKey(actor));
+  if (pending?.cycle !== key || pending.itemKey !== itemKey(subject.item)) return;
+  deadlyFighterTurn.set(actorKey(actor), key);
+  deadlyFighterPending.delete(actorKey(actor));
+}
+
+/** Test helper: forget the Deadly Fighter ledger. */
+export function resetDeadlyFighterLedger() { deadlyFighterTurn.clear(); deadlyFighterPending.clear(); }
 
 export function guardPreRollDamage(config, _dialog, _message) {
   const activity = config?.subject, actor = activity?.actor;
@@ -154,6 +195,22 @@ export function guardPreRollDamage(config, _dialog, _message) {
   }
 }
 
+/* ---------------------------------------------------------------- Annihilation Protocol */
+
+/** Annihilation Protocol (20th level, L1948): when you roll Initiative with no uses of Unrelenting remaining, regain one.
+ * Runs once per combat for an Actor, so editing an Initiative value afterwards does not refund again. */
+export async function annihilationProtocol(event) {
+  const actor = event?.raw?.actor ?? (event?.actorUuid ? globalThis.fromUuidSync?.(event.actorUuid) : null);
+  if (!actor || !guardEnabled(actor) || guardLevel(actor) !== 20) return null;
+  const pool = unrelenting(actor);
+  if (!pool || pool.value !== 0) return null;
+  const combatUuid = event.combatUuid ?? null;
+  if (combatUuid && flag(actor, "guard")?.annihilationProtocolCombat === combatUuid) return null;
+  const result = await refundUnrelenting(actor, 1, "Annihilation Protocol");
+  if (combatUuid) await actor.update({ "flags.ak5e.guard.annihilationProtocolCombat": combatUuid });
+  return result;
+}
+
 /* ---------------------------------------------------------------- Registration */
 
 export function registerGuardFeatureHooks() {
@@ -163,19 +220,12 @@ export function registerGuardFeatureHooks() {
   defineGuardPools();
 
   // Annihilation Protocol (Guard 20th level): regain 1 use of Unrelenting on Initiative if at 0
-  onAk5eEvent("initiative", async actor => {
-    if (!guardEnabled(actor)) return;
-    const level = guardLevel(actor);
-    if (level === 20) {
-      const unrel = unrelenting(actor);
-      if (unrel && unrel.value === 0) {
-        await refundUnrelenting(actor, 1, "Annihilation Protocol");
-      }
-    }
-  });
+  // The handler receives the frozen event payload, not the Actor: the live Actor is event.raw.actor.
+  onAk5eEvent("initiative", annihilationProtocol);
 
   if (globalThis.Hooks?.on) {
     Hooks.on("dnd5e.preRollAttackV2", guardPreRollAttack);
+    Hooks.on("dnd5e.postRollAttack", guardPostRollAttack);
     Hooks.on("dnd5e.preRollDamageV2", guardPreRollDamage);
   }
 }

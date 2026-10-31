@@ -4,14 +4,16 @@
  * Receipts live in `flags.ak5e.guardUses`; rulings are read from `flags.ak5e.guard.rulings`.
  */
 import { createPlayUses, warn, spendResource, resourceValue } from "./play-uses.mjs";
-import { guardEnabled, guardLevel, guardBranch, guardState, checkLevel } from "./guard-rules.mjs";
+import { guardEnabled, guardLevel, guardBranch, guardState, checkLevel, martialDC, martialDCChoice } from "./guard-rules.mjs";
 import { need } from "./operation-kernel.mjs";
 import { getReactions } from "./trigger-events.mjs";
+import { getPool } from "./resource-pools.mjs";
 
 const isDuellist = actor => Boolean(guardEnabled(actor) && guardBranch(actor) === "duellist");
 
+const ns = "guardUses";
 export const guardUses = createPlayUses({
-  ns: "guardUses",
+  ns,
   label: "Guard",
   isMember: actor => guardEnabled(actor),
   ruling: (actor, key) => {
@@ -37,6 +39,35 @@ const levelWarning = (warnings, actor, requiredLevel, featureName) => {
   }
 };
 
+/**
+ * Eternal Aggression (18th level, L1943-1946): "When you expend a use of your Unrelenting Feature, roll 1d4; you recover
+ * expended Aggression equal to the amount rolled." The die is never rolled for the player: the use waits on the card's
+ * Roll button (the engine's `useRoll`), and the clicked total is added to Aggression, clamped to its maximum. The gain is
+ * recorded as a resource change on the receipt, so undo takes it back.
+ */
+function eternalAggression(actor, uses) {
+  const formula = `${uses}d4`;
+  return {
+    formula,
+    rollLabel: `Eternal Aggression (${formula} Aggression recovered)`,
+    async resolveRoll(_actor, receipt, state) {
+      const total = Number(receipt.roll);
+      need(Number.isFinite(total) && total >= 0, "Roll Eternal Aggression from its card first.");
+      let entry = (receipt.resources ??= []).find(resource => resource.eternalAggression === true);
+      if (!entry) {
+        const pool = getPool(actor, "aggression"), before = pool.value;
+        entry = { pool: "aggression", path: "flags.ak5e.resourcePools.aggression.value", before, after: Math.min(pool.max, before + total),
+          max: pool.max, label: "Eternal Aggression", eternalAggression: true };
+        receipt.resources.push(entry);
+      }
+      const gained = entry.after - entry.before;
+      receipt.result = { ...receipt.result, eternalAggressionRolled: total, eternalAggressionRecovered: gained };
+      receipt.summary = `${receipt.summary} Eternal Aggression: rolled ${total}, recovered ${gained} Aggression (${entry.before} to ${entry.after}).`;
+      // One write: the recorded gain and the pool change land together, so a replayed resolution is an absolute no-op.
+      await actor.update({ [entry.path]: entry.after, [`flags.ak5e.${ns}`]: state });
+    }
+  };
+}
 /* ---------------------------------------------------------------- Core Guard Plans */
 
 const CORE_PLANS = {
@@ -175,17 +206,19 @@ const CORE_PLANS = {
 
     const level = guardLevel(actor) ?? 1;
     const isEternal = level >= 18;
+    const eternal = isEternal ? eternalAggression(actor, 1) : null;
 
     return {
       warnings,
       title: "Unrelenting",
       costs: [{ label: "Unrelenting", amount: 1, pool: "unrelenting" }],
-      rolls: isEternal ? [{ id: "eternalAggression", label: "Eternal Aggression (1d4 Aggression refund)", formula: "1d4" }] : [],
+      ...(eternal ? { resolveRoll: eternal.resolveRoll } : {}),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 1, label: "Unrelenting" });
         receipt.reaction = { requested: true, triggerId: `${receipt.id}-unrelenting`, receiptId: receipt.id };
         receipt.summary = `${actor.name} immediately makes a single Attack as a Reaction.`;
         receipt.result = { attacks: 1, eternalAggression: isEternal };
+        if (eternal) { receipt.formula = eternal.formula; receipt.rollLabel = eternal.rollLabel; }
         return updates;
       }
     };
@@ -207,18 +240,40 @@ const CORE_PLANS = {
 
     const level = guardLevel(actor) ?? 1;
     const isEternal = level >= 18;
+    // Two uses are expended, and each expended use rolls 1d4.
+    const eternal = isEternal ? eternalAggression(actor, 2) : null;
 
     return {
       warnings,
       title: "Pursuit Unrelenting",
       costs: [{ label: "Unrelenting", amount: 2, pool: "unrelenting" }],
-      rolls: isEternal ? [{ id: "eternalAggression", label: "Eternal Aggression (2d4 Aggression refund)", formula: "2d4" }] : [],
+      ...(eternal ? { resolveRoll: eternal.resolveRoll } : {}),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 2, label: "Unrelenting" });
         receipt.reaction = { requested: true, triggerId: `${receipt.id}-pursuitUnrelenting`, receiptId: receipt.id };
         receipt.summary = `${actor.name} takes an ${actionType} in place of the single Attack.`;
         receipt.result = { actionType, eternalAggression: isEternal };
+        if (eternal) { receipt.formula = eternal.formula; receipt.rollLabel = eternal.rollLabel; }
         return updates;
+      }
+    };
+  },
+
+  /** Choose which ability (Strength or Dexterity) the Martial DC uses (Ch.1 L211-212). Stored on the Actor; undoable. */
+  chooseMartialDC(actor, _state, data) {
+    need(guardEnabled(actor), "Martial DC is a Guard feature.");
+    const ability = data.ability ?? data.martialDcAbility;
+    need(ability === "str" || ability === "dex", "Choose Strength or Dexterity for your Martial DC.");
+    const previous = martialDCChoice(actor);
+    return {
+      warnings: [],
+      title: "Choose Martial DC ability",
+      costs: [],
+      apply(_next, receipt) {
+        const dc = martialDC(actor, ability);
+        receipt.summary = `${actor.name} uses ${ability === "str" ? "Strength" : "Dexterity"} for their Martial DC: ${dc} (8 + Proficiency Bonus + ${ability.toUpperCase()} modifier).`;
+        receipt.result = { martialDCAbility: ability, martialDC: dc, previous };
+        return { "flags.ak5e.guard.martialDCAbility": ability };
       }
     };
   },
@@ -237,14 +292,17 @@ const CORE_PLANS = {
     }
 
     const damageFormula = String(data.formula ?? "1d8").trim();
+    need(/^\d*d\d+(\s*[+-]\s*\d*d?\d+)*$/i.test(damageFormula), "Enter the weapon's damage dice, for example 1d8 or 2d6 (no Ability Modifier).");
 
     return {
       warnings,
       title: "Press the Attack: Unrelenting Aggression",
       costs: [{ label: "Aggression", amount: 2, pool: "aggression" }],
-      rolls: [{ id: "unrelentingDamage", label: "Miss Damage (no Ability Modifier)", formula: damageFormula }],
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount: 2, label: "Aggression" });
+        // The weapon's damage is rolled from the card's Roll button by its owner (never rolled for them).
+        receipt.formula = damageFormula;
+        receipt.rollLabel = "Unrelenting Aggression miss Damage (no Ability Modifier)";
         receipt.reaction = { requested: true, triggerId: `${receipt.id}-unrelentingAggression`, receiptId: receipt.id };
         receipt.summary = `${actor.name} deals weapon dice Damage without Ability Score Modifier on a missed melee Attack.`;
         receipt.result = { aggressionSpent: 2, formula: damageFormula };
