@@ -17,8 +17,8 @@
  *  - Automaton relay: artificerRelay.execute(actor, {id, command: "createAutomaton", data}, user) (kernel request shape).
  *  - Turn tracking for the Arbalest (C3:6967 "Once per Turn") is not defined by the source test; the assertion
  *    accepts any warning that says once per Turn, this Turn, or already.
- *  - Cap warning text: the source has no "crumbles" rule for the Automaton maximum (C3:6895, C3:6938); a warning
- *    may not attribute such a rule to the source.
+ *  - Cap warning text: C3:6895 says that over the maximum "you cannot upkeep or control the first anymore, and it will
+ *    crumble to uselessness". The over-cap warning must state that consequence. Maximum: one, two from level 13 (C3:6938).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -502,14 +502,46 @@ test("U4-UPG-3 (guard): the Arts Detonator with its use spent at full HP still w
   assert.ok(result.warnings.some(w => w.id === "overuse"), "the spent use is still reported above 0 HP");
 });
 
-test("U4-CAP-1 (red, LOW): the Automaton maximum warning does not attribute a 'crumbles' rule to the source", async () => {
+test("U4-CAP-1 (red, LOW): the over-cap warning states the source's consequence: the earlier Automaton can no longer be upkept or controlled and crumbles to uselessness (C3:6895)", async () => {
   await ready();
   const art = makeArtificer({ level: 1 });
   enlist(art, makeAutomaton({ creator: art.uuid, variant: "platform" }));
   const result = await outcome(() => Uses.supporterUses.plan(art, "buildAutomaton", buildData("platform")));
-  assert.ok(result.warnings.some(w => w.id === "cap" || /maximum|limit/i.test(w.text ?? "")), `the cap is warned (guard): ${warningText(result.warnings) || result.threw?.message}`);
-  // C3:6895 and C3:6938 state the limit only. No line of the source says an Automaton "crumbles".
-  assert.doesNotMatch(warningText(result.warnings), /crumble/i, "no invented rule is attributed to the source");
+  const cap = result.warnings.find(w => w.id === "cap");
+  assert.ok(cap, `the over-cap build is warned (guard): ${warningText(result.warnings) || result.threw?.message}`);
+  // C3:6895: "if you create more than your maximum, you cannot upkeep or control the first anymore, and it will crumble to uselessness."
+  assert.match(cap.text, /upkeep|control/i, "the warning says the earlier Automaton cannot be upkept or controlled");
+  assert.match(cap.text, /crumble[sd]? to uselessness/i, "the warning says the earlier Automaton crumbles to uselessness");
+});
+
+test("U4-CAP-2 (guard): a second Automaton over the cap at level 1 warns and is overridable, not a block", async () => {
+  await ready();
+  const art = makeArtificer({ level: 1 });
+  enlist(art, makeAutomaton({ creator: art.uuid, variant: "platform" }));
+  const warned = await outcome(() => Uses.supporterUses.plan(art, "buildAutomaton", buildData("platform")));
+  assert.ok(warned.warnings.some(w => w.id === "cap"), `the cap warning is raised (C3:6895): ${warningText(warned.warnings) || warned.threw?.message}`);
+  const overridden = await outcome(() => Uses.supporterUses.plan(art, "buildAutomaton", buildData("platform", {
+    overrides: warned.warnings.map(w => w.id)
+  })));
+  assert.equal(overridden.threw, null, "with the warning overridden, the build plan proceeds (warn, never block)");
+});
+
+test("U4-CAP-3 (guard): the Automaton maximum is one below level 13 and two from level 13 (C3:6895, C3:6938)", async () => {
+  await ready();
+  // At level 12 one Automaton is the maximum, so a second warns.
+  const twelve = makeArtificer({ level: 12 });
+  enlist(twelve, makeAutomaton({ creator: twelve.uuid, variant: "platform" }));
+  const atTwelve = await outcome(() => Uses.supporterUses.plan(twelve, "buildAutomaton", buildData("platform")));
+  assert.ok(atTwelve.warnings.some(w => w.id === "cap"), "level 12: a second Automaton is over the maximum of one");
+  // At level 13 the maximum is two: one existing Automaton leaves room for a second without a cap warning.
+  const thirteen = makeArtificer({ level: 13 });
+  enlist(thirteen, makeAutomaton({ creator: thirteen.uuid, variant: "platform" }));
+  const atThirteenOne = await outcome(() => Uses.supporterUses.plan(thirteen, "buildAutomaton", buildData("platform")));
+  assert.ok(!atThirteenOne.warnings.some(w => w.id === "cap"), "level 13: a second Automaton is within the maximum of two (C3:6938)");
+  // The third Automaton at level 13 is over the maximum of two.
+  enlist(thirteen, makeAutomaton({ creator: thirteen.uuid, variant: "platform" }));
+  const atThirteenTwo = await outcome(() => Uses.supporterUses.plan(thirteen, "buildAutomaton", buildData("platform")));
+  assert.ok(atThirteenTwo.warnings.some(w => w.id === "cap"), "level 13: a third Automaton is over the maximum of two");
 });
 
 /* ==========================================================================
