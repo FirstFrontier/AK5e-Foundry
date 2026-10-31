@@ -15,7 +15,9 @@
  *  - Performance cap is max(1, CHA) (ruling R1 says CHA modifier, no minimum), and CHA 0 gets no cap warning.
  *  - Emergency Improv: the one-minute loss is not applied, and no Aid Die warning is raised when none is left.
  *  - Emergency Improv can insert into an ended Performance without a warning.
- *  - A Performance with zero or under three Arts can be started.
+ *  - A Performance of one or two Arts starts without the three-Art minimum warning (C3:7104); a Performance of no Arts
+ *    must be refused.
+ *  - The Turn-end prompt offers no choice that keeps Heroism's Concentration (C3:7107).
  *  - Shatter (5th Level) has manual: false although ruling 7 marks the undefined 5th-level variant manual.
  *
  * Expected GREEN (guards): cursor-after and cursor-at inserts, consecutive-Art warning, Long Rest removing unperformed
@@ -127,12 +129,18 @@ function stubRoll() {
 /** The total the player's click produces for the next roll. */
 const rollWith = total => { rollValue = total; return rollFormulas; };
 
-// DialogV2 emulation. dialogAnswer: "confirm" picks the first non-cancel button, "cancel" picks Cancel, "x" closes (null).
+// DialogV2 emulation. dialogAnswer: "confirm" picks the first non-cancel button, "cancel" picks Cancel, "x" closes (null),
+// and {choose: "Heroism"} picks the button whose label or action names that Art (null when no such button is offered).
 let dialogAnswer = "confirm";
 const dialogCalls = [];
 async function emulateDialog(options, buttons) {
   dialogCalls.push({ title: options.window?.title ?? "", actions: buttons.map(b => b.action), text: JSON.stringify(options) });
   if (dialogAnswer === "x") return null;
+  if (typeof dialogAnswer === "object" && dialogAnswer?.choose) {
+    const pick = buttons.find(b => `${b.label ?? ""} ${b.action ?? ""}`.includes(dialogAnswer.choose)) ?? null;
+    if (!pick) return null;
+    return (await pick.callback?.(null, pick, null)) ?? pick.action;
+  }
   if (dialogAnswer === "cancel") {
     const cancel = buttons.find(b => b.action === "cancel") ?? null;
     return cancel ? (await cancel.callback?.(null, cancel, null)) ?? cancel.action : null;
@@ -459,15 +467,21 @@ test("C2 (RED): ending a Turn without casting an Art asks the player before the 
   assert.ok(dialogCalls.length >= 1, "a confirm dialog is opened before the Performance is ended on Turn end");
 });
 
-test("C3 (RED, uncertain): a Turn end with Concentration Art offers the keep choice (C3:7107) in the prompt", async () => {
+// Behaviour check (head arbitration item 5): the Turn-end prompt must offer a way to keep one Art's Concentration. The
+// injected answer chooses the button naming Heroism; the recorded end must then keep Heroism (the other Concentration
+// Arts end). Only the Art name is matched in the prompt, not any label wording.
+test("C3 (RED): the Turn-end prompt offers a choice that keeps one Art's Concentration, and choosing Heroism keeps Heroism (C3:7107)", async () => {
   await freshPerform();
-  // The keep choice is a prompt; its exact control is not specified. The check is that Heroism appears as a choice.
   const actor = makeBard({ performances: [perf("p-c", ["Heroism", "Aid", "Bane"], { performed: true })],
     active: { performanceId: "p-c", index: 1, crescendo: 0, castsThisTurn: 0 } });
-  dialogAnswer = "confirm";
+  dialogAnswer = { choose: "Heroism" };
   await turnEnd(actor, 2);
   assert.ok(dialogCalls.some(call => call.text.includes("Heroism")),
-    "the Turn-end prompt offers Heroism (a Concentration Art) as the Art to keep Concentration on");
+    "the Turn-end prompt names Heroism (a Concentration Art) as a choice");
+  assert.equal(bardOf(actor).active, null, "the Performance ends at Turn end");
+  const ended = Uses.supporterUses.state(actor).undo.filter(receipt => receipt.command === "endPerformance").at(-1) ?? null;
+  assert.ok(ended, "the end of the Performance is recorded as a use");
+  assert.equal(ended.result?.keepArt, "Heroism", "choosing Heroism keeps its Concentration; the Performance's other Concentration Arts end");
 });
 
 test("C4 (green): a Turn in which an Art was cast does not end the Performance at turn end", async () => {
@@ -595,6 +609,15 @@ test("F4 (RED): composing one Performance at Charisma 0 is warned about the cap"
   assert.ok(warnings.some(w => w.id === "performanceLimit"), "one Performance is over a cap of 0 and is warned");
 });
 
+// Head arbitration item 1: the cap is a warning, never a block. Accepting it lets the composition go through.
+test("F4b (green): at Charisma 0 the cap is a warning, not a block: composing with the warning accepted succeeds", async () => {
+  await ready();
+  const actor = composer({ level: 1, cha: 0 });
+  const out = await useAndRoll(actor, "composePerformances", { aidDice: 1, performances: [["Bane", "Bless", "Aid"]] }, 4);
+  assert.equal(out.threw, false, `compose with the cap warning accepted: ${out.error?.message ?? ""}`);
+  assert.equal(performancesOf(actor).length, 1, "the Performance is composed");
+});
+
 test("F5 (RED): the Charisma-0 cap warning does not claim a minimum of 1", async () => {
   const { C } = await ready();
   const actor = composer({ level: 1, cha: 0 });
@@ -695,20 +718,34 @@ test("H3 (RED): inserting into a Performance that has already ended is warned (o
    Tests I: a Performance needs at least three Arts and is cast from its first (L7101-7112)
    ========================================================================== */
 
-test("I1 (RED): a Performance of two Arts cannot be started", async () => {
+// Head arbitration item 3: one or two Arts may start, but the start must carry a warning citing the three-Art minimum
+// (C3:7104); a warning is not a block, so the start with that warning accepted succeeds.
+async function assertShortStartWarned(names, label) {
   await ready();
-  const actor = makeBard({ performances: [perf("p-short", ["Bane", "Bless"])] });
-  const out = await settle(() => Uses.supporterUses.execute(actor, "startPerformance", { performanceId: "p-short" }, nextOp("start")));
-  assert.equal(out.threw, true, "a Performance with fewer than three Arts is refused or blocked (a minimum length of three)");
-  assert.equal(bardOf(actor).active, null, "nothing is started");
+  const actor = makeBard({ performances: [perf("p-short", names)] });
+  const warnings = await planWarnings(actor, "startPerformance", { performanceId: "p-short" });
+  assert.ok(warnings.some(w => /three|minArts/i.test(`${w.id ?? ""} ${w.text ?? ""}`)),
+    `${label}: starting a Performance of ${names.length} Art(s) is warned about the three-Art minimum (C3:7104)`);
+  const out = await go(actor, "startPerformance", { performanceId: "p-short" });
+  assert.equal(out.threw, false, `${label}: with the warning accepted the start is allowed`);
+}
+
+test("I1 (RED): a Performance of two Arts may start, with a warning citing the three-Art minimum (C3:7104)", async () => {
+  await assertShortStartWarned(["Bane", "Bless"], "two Arts");
 });
 
-test("I2 (RED): a Performance of no Arts cannot be started", async () => {
+test("I1b (RED): a Performance of one Art may start, with a warning citing the three-Art minimum (C3:7104)", async () => {
+  await assertShortStartWarned(["Bane"], "one Art");
+});
+
+// Head arbitration item 3: zero Arts is refused. go() accepts every warning, so a refusal here cannot be overridden.
+test("I2 (RED): a Performance of no Arts is refused, even with warnings accepted, and nothing is started", async () => {
   await ready();
   const actor = makeBard({ performances: [perf("p-empty", [])] });
-  const out = await settle(() => Uses.supporterUses.execute(actor, "startPerformance", { performanceId: "p-empty" }, nextOp("start")));
-  assert.equal(out.threw, true, "a Performance with no Arts is refused or blocked");
-  assert.equal(bardOf(actor).active, null, "nothing is started");
+  const out = await go(actor, "startPerformance", { performanceId: "p-empty" });
+  assert.equal(out.threw, true, "a Performance with no Arts cannot be started: nothing can be cast");
+  assert.equal(isWarningError(out.error), false, "the refusal is a hard refusal, not an overridable warning");
+  assert.equal(bardOf(actor).active, null, "no active Performance is written");
 });
 
 test("I3 (green): composing a two-Art Performance is warned (minimum three Arts)", async () => {
