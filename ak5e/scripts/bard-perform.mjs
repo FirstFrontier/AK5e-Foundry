@@ -10,6 +10,9 @@
  *   `system.bonuses.spell.dc`, `system.bonuses.msak.attack`, `system.bonuses.rsak.attack`). Healing, Temporary HP and extra
  *   Shield or Mage Armour targets are read from `crescendoBonuses()` and stated on the card.
  * - Dice are never rolled here. Arts roll only from the native card.
+ * - A Performance ends at the end of a Turn with no Art cast, when the combat ends and when a Long Rest is completed
+ *   (head ruling R2). All three use one flow (endWithChoice): the keep-Concentration choice and the confirm, Cancel
+ *   leaving the Performance running. Writers outside the use engine run in bardSerial (bard-lock.mjs).
  */
 import { isBard, supporterLevel, flag, aidDieSize, pbForLevel } from "./supporter-rules.mjs";
 import { findAidDieEffect, actorFromUuid } from "./supporter-features.mjs";
@@ -19,7 +22,10 @@ import { need, values, esc } from "./operation-kernel.mjs";
 import { warn } from "./play-uses.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
 import { registerArtQuoteOptions } from "./arts-casting.mjs";
+import { bardSerial } from "./bard-lock.mjs";
+import { isManualArt, artVariantNote, improvExpired } from "./bard-compose.mjs";
 
+const MINIMUM_ARTS = 3;
 export const FONT_LEVEL = 4;
 export const TIME_SIGNATURE_LEVEL = 10;
 export const FORTISSIMO_LEVEL = 17;
@@ -43,6 +49,24 @@ const crescendoMultiplier = actor => (levelOf(actor) >= FORTISSIMO_LEVEL ? 2 : 1
 const castLimit = actor => (levelOf(actor) >= TIME_SIGNATURE_LEVEL ? 2 : 1);
 const findPerformance = (actor, id) => performancesOf(actor).find(entry => entry.id === id) ?? null;
 const artItem = (actor, name) => values(actor.items).find(item => item.type === "spell" && item.name === name) ?? null;
+/** "Shatter (2nd Level)" is the Chapter 5 Shatter at its own Level; a name with a variant suffix falls back to the base Art. */
+const baseArtName = name => String(name ?? "").replace(/\s*\([^)]*\)\s*$/, "").trim();
+/** The sheet Item for a Performance Art, or null when the Art is manual (no Chapter 5 record, or an undefined variant). */
+const artItemFor = (actor, art) => {
+  if (!art || isManualArt(art)) return null;
+  return artItem(actor, art.name) ?? (baseArtName(art.name) !== art.name ? artItem(actor, baseArtName(art.name)) : null);
+};
+/** An Art inserted behind the cursor by Emergency Improv is never cast (bard-compose marks it `skipped`). */
+const wasCast = art => art?.skipped !== true;
+/** Arts of the Performance actually cast before position `index` (skipped inserts do not count). */
+const castCount = (performance, index) => performance.arts.slice(0, Math.max(0, Number(index) || 0)).filter(wasCast).length;
+/** Names of Concentration the actor holds now (dnd5e's Concentration tracker), empty when none. */
+function heldConcentration(actor) {
+  const tracker = actor?.concentration;
+  const items = tracker?.items ? [...tracker.items] : [];
+  if (items.length) return items.map(item => item?.name).filter(Boolean);
+  return (tracker?.effects ? [...tracker.effects] : []).map(effect => effect?.name ?? "a spell").filter(Boolean);
+}
 const activityOf = item => { const all = values(item?.system?.activities); return all.find(a => a.activation?.type === "action") ?? all[0] ?? null; };
 const requiresConcentration = item => item?.requiresConcentration === true || item?.system?.properties?.has?.("concentration") === true
   || values(item?.system?.activities).some(activity => activity?.duration?.concentration === true);
@@ -176,7 +200,7 @@ function keepArtChoices(actor, { includeCurrent = false } = {}) {
   const active = activeOf(actor), performance = active ? findPerformance(actor, active.performanceId) : null;
   if (!performance) return [];
   const names = performance.arts.slice(0, active.index + (includeCurrent ? 1 : 0))
-    .filter(art => !art.manual && requiresConcentration(artItem(actor, art.name)))
+    .filter(art => wasCast(art) && !isManualArt(art) && requiresConcentration(artItemFor(actor, art)))
     .map(art => art.name);
   return [...new Set(names)];
 }
@@ -186,8 +210,16 @@ const startPerformance = (actor, _state, data = {}) => {
   const performance = findPerformance(actor, data.performanceId);
   need(performance, "Choose a composed Performance.");
   need(!activeOf(actor), "This Bard is already Performing; end that Performance first.");
+  // Putting on a Performance casts its first Art at once (L7106), so a Performance with no Arts has nothing to begin.
+  need(performance.arts.length > 0, "This Performance has no Arts, so there is nothing to cast. Compose it again with at least three Arts.");
   const warnings = [];
   const level = levelOf(actor);
+  if (performance.arts.length < MINIMUM_ARTS) {
+    warn(warnings, "minArts", `This Performance has ${performance.arts.length} Art${performance.arts.length === 1 ? "" : "s"}; a Performance has a minimum length of three Arts (C3:7102).`);
+  }
+  if (improvExpired(performance)) {
+    warn(warnings, "improvExpired", "This Emergency Improv Performance was not begun within a minute of Composing it, so it is lost (C3:7159).");
+  }
   const { instrument, status: instrumentStatus } = instrumentCheck(actor);
   if (instrumentStatus) warn(warnings, "instrument", instrumentStatus);
   if (performance.performed) {
@@ -254,17 +286,24 @@ const castNextArt = (actor, _state, data = {}) => {
       : "Two Arts per Turn while Performing (Time Signature Change).");
   }
   if (!inCombatTurnOf(actor)) warn(warnings, "outOfTurn", "Arts of a Performance are cast on your Turn; it is not your Turn.");
-  const item = art.manual ? null : artItem(actor, art.name);
-  if (!art.manual && !item) warn(warnings, "artMissing", `${art.name} is not on this Bard's sheet; a manual card is posted instead.`);
+  const item = artItemFor(actor, art);
+  if (!isManualArt(art) && !item) warn(warnings, "artMissing", `${art.name} is not on this Bard's sheet; a manual card is posted instead.`);
   const ignoreConcentration = Boolean(item && requiresConcentration(item) && !active.concentration);
+  // C3:7108: Concentration on the Performance's Art replaces any other Concentration. The module does not end the other
+  // one (it is not the Performance's to end); it warns so the table can.
+  const otherConcentration = item && (ignoreConcentration || active.concentration) ? heldConcentration(actor) : [];
+  if (otherConcentration.length) {
+    warn(warnings, "otherConcentration", `You are Concentrating on ${otherConcentration.join(", ")}. Concentrating on the Performance ends it (C3:7108): end it yourself.`);
+  }
   const before = Number(active.crescendo) || 0;
-  const crescendo = crescendoFor(actor, active.index);
+  const crescendo = crescendoFor(actor, castCount(performance, active.index));
   const lastArt = active.index + 1 >= performance.arts.length;
   // The last Art ends the Performance (C3 L7108). Its keep-Concentration choice may name any Art cast so far, this one included.
   const keepChoices = lastArt ? keepArtChoices(actor, { includeCurrent: true }) : [];
   const keepArt = data.keepArt ?? null;
   if (keepArt !== null) need(keepChoices.includes(keepArt), "Keep Concentration on an Art of this Performance that requires Concentration, or on none.");
   const manual = !item;
+  const variantNote = artVariantNote(art.name);
   const next = {
     ...active, index: active.index + 1, castsThisTurn: active.castsThisTurn + 1, crescendo,
     concentration: ignoreConcentration ? { artName: art.name, index: active.index } : active.concentration ?? null
@@ -275,7 +314,7 @@ const castNextArt = (actor, _state, data = {}) => {
     apply(_state2, receipt) {
       const cresText = crescendo ? ` Rising Crescendo +${crescendo}: Spell Save DC and Spell Attack Bonus, Art healing and Temporary HP, and one extra Shield of Faith or Mage Armour target.` : "";
       const concText = ignoreConcentration ? ` Concentration is held by the Performance; ${art.name}'s own Concentration is ignored.` : "";
-      const manualText = manual ? ` This Art has no Chapter 5 record: its effect is not automated and no mechanics are applied (see ak5e/DECISIONS.md, "Bard missing Arts / variants").` : "";
+      const manualText = manual ? ` ${variantNote ?? "This Art has no Chapter 5 record: its effect is not automated and no mechanics are applied"} (see ak5e/DECISIONS.md, "Bard missing Arts / variants").` : "";
       let updates;
       if (lastArt) {
         // The end of the Performance, in this same use (L7108): active is cleared and the Casting Unit restored. The last
@@ -300,32 +339,44 @@ const castNextArt = (actor, _state, data = {}) => {
         : "";
       receipt.summary = `${actor.name} cast ${art.name} as Art ${active.index + 1} of ${performance.arts.length} of the Performance; no Arts Points are spent.`
         + `${manualText}${cresText}${concText}${endText}`;
-      receipt.result = { performanceId: performance.id, index: active.index, artName: art.name, manual, artFound: Boolean(item),
+      receipt.result = { performanceId: performance.id, index: active.index, artName: art.name, manual, artFound: Boolean(item), variantNote,
         ignoreConcentration, crescendo, lastArt, keepArt: lastArt ? keepArt : null, expiringCrescendo: lastArt && crescendo > 0 };
       return updates;
     }
   };
 };
 
+/** Why a Performance ends: the use title and the card text. Turn end is L7112; combat end and Long Rest are head ruling R2. */
+const END_REASONS = Object.freeze({
+  manual: { title: "End Performance", text: "The Performance ends." },
+  turnEnd: { title: "Performance ends: no Art cast this Turn", text: "The Performance ends: no Art was cast this Turn (L7112)." },
+  combatEnd: { title: "Performance ends: the combat ended", text: "The Performance ends: the combat has ended." },
+  longRest: { title: "Performance ends: Long Rest", text: "The Performance ends: a Long Rest was completed." }
+});
+
 const endPerformance = (actor, _state, data = {}) => {
   need(isBard(actor), "Ending a Performance is a Bard Supporter feature.");
   const active = activeOf(actor);
   need(active, "This Bard is not Performing.");
+  need(data.performanceId === undefined || active.performanceId === data.performanceId, "That Performance is no longer the active one.");
   const keepArt = data.keepArt ?? null;
   if (keepArt !== null) need(keepArtChoices(actor).includes(keepArt), "Keep Concentration on an Art of this Performance that requires Concentration, or on none.");
-  const reason = data.reason === "turnEnd" ? "turnEnd" : "manual";
-  const crescendo = Number(active.crescendo) || 0;
+  const reason = Object.hasOwn(END_REASONS, data.reason) ? data.reason : "manual";
+  // The Rising Crescendo effect ends with the Performance, whether the flag or an effect on the Bard still carries it.
+  const info = flag(findCrescendoEffect(actor), "bardCrescendo");
+  const crescendo = Math.max(Number(active.crescendo) || 0, Number(info?.amount) || 0);
+  const hasEffect = Boolean(findCrescendoEffect(actor));
   return {
-    title: reason === "turnEnd" ? "Performance ends: no Art cast this Turn" : "End Performance",
+    title: END_REASONS[reason].title,
     warnings: [],
     apply(_state2, receipt) {
       const updates = { "flags.ak5e.bard.active": null };
       if (active.castingUnitChanged) updates["flags.ak5e.casting.castingUnit"] = active.castingUnitBefore ?? "";
-      if (crescendo) {
+      if (crescendo || hasEffect) {
         receipt.targets = [{ kind: "bardCrescendo", uuid: actor.uuid, name: actor.name, ready: true, amount: 0, before: crescendo,
-          label: "Rising Crescendo" }];
+          beforeExpiring: info?.expiring === true, label: "Rising Crescendo" }];
       }
-      const reasonText = reason === "turnEnd" ? "The Performance ends: no Art was cast this Turn (L7112)." : "The Performance ends.";
+      const reasonText = END_REASONS[reason].text;
       const concentrationArts = keepArtChoices(actor);
       const keepText = !concentrationArts.length ? ""
         : keepArt ? ` Concentration is kept on ${keepArt}; end the other Concentration Arts of this Performance yourself.`
@@ -423,28 +474,176 @@ export function defineBardPerformPools() {
 /** Turn start (L7146-7147): a Performing Bard gains its Font die and may cast one more Art this Turn (reset). */
 export async function bardTurnStart(actor) {
   if (!isBard(actor)) return;
-  const updates = {};
-  if (activeOf(actor)) {
-    updates["flags.ak5e.bard.active.castsThisTurn"] = 0;
-    if (levelOf(actor) >= FONT_LEVEL) updates["flags.ak5e.bard.fontDie"] = true;
+  await bardSerial(actor, async () => {
+    const updates = {};
+    if (activeOf(actor)) {
+      updates["flags.ak5e.bard.active.castsThisTurn"] = 0;
+      if (levelOf(actor) >= FONT_LEVEL) updates["flags.ak5e.bard.fontDie"] = true;
+    }
+    if (Object.keys(updates).length) await actor.update(updates);
+  });
+}
+
+/** The prompt to the owner's client waits this long for an answer, then ends the Performance keeping no Concentration. */
+export const END_PROMPT_TIMEOUT_MS = 60_000;
+
+const logError = label => error => console.error(`AK5e | ${label}`, error);
+const dialogsAvailable = () => typeof globalThis.foundry?.applications?.api?.DialogV2?.wait === "function";
+/** How long a background end flow is awaited: an answer that needs no human settles inside it, a waiting dialog does not hold the caller. */
+const BACKGROUND_GRACE_MS = 50;
+/**
+ * Runs an end flow. With `background` and a dialog API the caller waits at most BACKGROUND_GRACE_MS for it (the event chain
+ * must not wait on a player's answer, and the flow carries on afterwards); otherwise nothing can block, so it is awaited
+ * and the caller sees the finished state.
+ */
+async function runEnd(task, background, label) {
+  if (!(background && dialogsAvailable())) { await task(); return; }
+  const running = task().catch(logError(label));
+  let timer;
+  await Promise.race([running, new Promise(resolve => { timer = setTimeout(resolve, BACKGROUND_GRACE_MS); })]);
+  clearTimeout(timer);
+}
+
+/** The online non-GM user who owns the Bard, when the GM client is the one driving the end. */
+function remoteOwner(actor) {
+  if (!globalThis.game?.user?.isGM) return null;
+  return values(globalThis.game.users).find(user => user.active && !user.isGM && actor.testUserPermission?.(user, "OWNER")) ?? null;
+}
+
+/** The keep-Concentration prompt (or the plain confirm when no Art holds Concentration). Null when cancelled. */
+async function localEndDialog(actor, choices, lines) {
+  const title = `Performance ends: ${actor.name}`;
+  if (choices.length) {
+    const picked = await promptKeepArt(choices, { title,
+      lines: [...lines, "Choose one Art to maintain your Concentration on (Ch.3 L7112). All other Arts end."] });
+    return picked ? { keepArt: picked.keepArt } : null;
   }
-  if (Object.keys(updates).length) await actor.update(updates);
+  return (await confirmSummary({ title, lines, confirmLabel: "End Performance" })) ? { keepArt: null } : null;
+}
+
+/** Requests the owner's client answers, by whispered chat messages (the same pattern as the kernel's relays). */
+const pendingEnds = new Map();
+async function askOwnerToEnd(actor, owner, reason, choices, lines, timeoutMs) {
+  const id = randomId();
+  const messages = [];
+  return new Promise(resolve => {
+    let timer = null;
+    const settle = answer => {
+      if (!pendingEnds.delete(id)) return;
+      clearTimeout(timer);
+      for (const message of messages) Promise.resolve(message?.delete?.()).catch(() => {});
+      resolve(answer);
+    };
+    pendingEnds.set(id, { ownerId: owner.id, settle, messages });
+    timer = setTimeout(() => settle(null), timeoutMs);
+    timer?.unref?.();
+    ChatMessage.implementation.create({
+      whisper: [owner.id],
+      content: `<p>${esc(actor.name)}: the Performance is ending. Answer the dialog that opened on your screen.</p>`,
+      flags: { ak5e: { bardEndRequest: { id, userId: owner.id, actorUuid: actor.uuid, reason, choices, lines } } }
+    }).then(message => { messages.push(message); }, () => settle(null));
+  });
+}
+
+/** The owner's client: shows the keep-Concentration prompt for a request, then whispers the answer back to the GM. */
+export async function handleBardEndRequest(message) {
+  const request = message?.flags?.ak5e?.bardEndRequest;
+  if (!request || request.userId !== globalThis.game?.user?.id) return null;
+  const actor = actorFromUuid(request.actorUuid);
+  const result = actor && dialogsAvailable() ? await localEndDialog(actor, request.choices ?? [], request.lines ?? []) : null;
+  const answer = result ? { id: request.id, cancelled: false, keepArt: result.keepArt } : { id: request.id, cancelled: true };
+  const gm = globalThis.game.users?.activeGM;
+  await ChatMessage.implementation.create({
+    whisper: gm ? [gm.id] : [], content: "<p>Performance end: answered.</p>", flags: { ak5e: { bardEndAnswer: answer } }
+  });
+  return answer;
+}
+
+/** The GM client: resolves the pending end when the owner's answer arrives. Only the asked owner's answer counts. */
+export function handleBardEndAnswer(message, userId) {
+  const answer = message?.flags?.ak5e?.bardEndAnswer;
+  const pending = answer ? pendingEnds.get(answer.id) : null;
+  if (!pending) return false;
+  const author = userId ?? message.author?.id ?? message.user?.id;
+  if (author !== pending.ownerId) return false;
+  pending.messages.push(message);
+  pending.settle(answer.cancelled === true ? { cancelled: true } : { cancelled: false, keepArt: answer.keepArt ?? null });
+  return true;
 }
 
 /**
- * Turn end: the Font die is lost (L7147). A Performance with no Art cast this Turn ends (L7112), through the use engine
- * so the end is recorded, posted to chat and undoable.
+ * The shared end flow for the turn-end, combat-end and Long Rest endings (and the sheet's End button): the keep-Concentration
+ * choice or a confirm, then `endPerformance` through the use engine (recorded, on the chat card and undoable). Cancel leaves
+ * the Performance running and writes nothing. When the GM client is driving and the Bard's player is online, the player is
+ * asked; with no answer inside `timeoutMs` the Performance ends keeping no Concentration. Without a dialog API (no
+ * interface) it ends keeping none. Resolves the use result, or null when nothing ended.
  */
-export async function bardTurnEnd(actor) {
-  if (!isBard(actor)) return;
-  if (fontDieOf(actor)) await actor.update({ "flags.ak5e.bard.fontDie": false });
-  // The expiring crescendo of a Performance's last Art is removed at turn end, even if the post-cast step never ran.
-  const expiringEffect = expiringCrescendoAmount(actor) > 0 ? findCrescendoEffect(actor) : null;
-  if (expiringEffect) await actor.deleteEmbeddedDocuments("ActiveEffect", [expiringEffect.id]);
-  const active = activeOf(actor);
-  if (active && (Number(active.castsThisTurn) || 0) === 0) {
-    await supporterUses.execute(actor, "endPerformance", { performanceId: active.performanceId, keepArt: null, reason: "turnEnd", confirmed: true }, randomId());
+export async function endWithChoice(actor, reason, { timeoutMs = END_PROMPT_TIMEOUT_MS } = {}) {
+  const started = activeOf(actor);
+  if (!started) return null;
+  const choices = keepArtChoices(actor);
+  let keepArt = null;
+  if (dialogsAvailable()) {
+    const lines = [END_REASONS[reason]?.text ?? END_REASONS.manual.text, "It cannot be performed again afterwards (No Encore, L7114)."];
+    const owner = reason === "longRest" ? null : remoteOwner(actor);
+    let decision;
+    if (owner) {
+      const answer = await askOwnerToEnd(actor, owner, reason, choices, lines, timeoutMs);
+      decision = answer === null ? { keepArt: null } : answer.cancelled ? null : { keepArt: answer.keepArt ?? null };
+    } else {
+      decision = await localEndDialog(actor, choices, lines);
+    }
+    if (!decision) return null;
+    keepArt = choices.includes(decision.keepArt) ? decision.keepArt : null;
   }
+  // The table may have moved on while the prompt was open: end only the Performance and place that was asked about.
+  const now = activeOf(actor);
+  if (!now || now.performanceId !== started.performanceId || now.index !== started.index) return null;
+  return supporterUses.execute(actor, "endPerformance",
+    { performanceId: started.performanceId, keepArt, reason, confirmed: true }, randomId());
+}
+
+/** Removes a Rising Crescendo effect that outlived its Performance (an expiring last-Art effect, or a stale one). */
+async function clearLingeringCrescendo(actor) {
+  await bardSerial(actor, async () => {
+    const effect = activeOf(actor) ? null : findCrescendoEffect(actor);
+    if (effect) await actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+  });
+}
+
+/**
+ * Turn end: the Font die is lost (L7147). A Performance with no Art cast this Turn ends (L7112) through endWithChoice, so the
+ * keep-Concentration choice and the confirm are not skipped. `background` starts that flow without waiting for the player
+ * (the event chain must not block on a dialog).
+ */
+export async function bardTurnEnd(actor, { background = false } = {}) {
+  if (!isBard(actor)) return;
+  await bardSerial(actor, async () => {
+    if (fontDieOf(actor)) await actor.update({ "flags.ak5e.bard.fontDie": false });
+    // The expiring crescendo of a Performance's last Art is removed at turn end, even if the post-cast step never ran.
+    const expiringEffect = expiringCrescendoAmount(actor) > 0 ? findCrescendoEffect(actor) : null;
+    if (expiringEffect) await actor.deleteEmbeddedDocuments("ActiveEffect", [expiringEffect.id]);
+  });
+  const active = activeOf(actor);
+  if (active && (Number(active.castsThisTurn) || 0) === 0) await runEnd(() => endWithChoice(actor, "turnEnd"), background, "Bard turn end");
+}
+
+/** Combat end (head ruling R2): the Performance ends and its Rising Crescendo goes with it. */
+export async function bardCombatEnd(actor, { background = false, ...options } = {}) {
+  if (!isBard(actor)) return;
+  await runEnd(async () => {
+    if (activeOf(actor)) await endWithChoice(actor, "combatEnd", options);
+    await clearLingeringCrescendo(actor);
+  }, background, "Bard combat end");
+}
+
+/** A Long Rest (head ruling R2): the Performance ends. Unperformed Performances are dropped by bard-compose (No Encore). */
+export async function bardLongRest(actor, { background = false, ...options } = {}) {
+  if (!isBard(actor)) return;
+  await runEnd(async () => {
+    if (activeOf(actor)) await endWithChoice(actor, "longRest", options);
+    await clearLingeringCrescendo(actor);
+  }, background, "Bard long rest");
 }
 
 const turnHandler = handler => event => {
@@ -453,16 +652,41 @@ const turnHandler = handler => event => {
   return handler(actor);
 };
 
+/** The combatEnd event names every combatant: each Bard among them ends its Performance (on the GM client that emitted it). */
+function combatEndHandler(event) {
+  const ending = [];
+  // `actorUuids` is the event's own list; the combat's combatants (`contents`: the Collection's values) are read as well,
+  // so a combatant list that the event could not enumerate still ends its Bard's Performance.
+  const combatants = event?.raw?.combat?.combatants?.contents ?? [];
+  const uuids = new Set([...(event?.actorUuids ?? []), ...combatants.map(item => item?.actor?.uuid).filter(Boolean)]);
+  for (const uuid of uuids) {
+    const actor = actorFromUuid(uuid);
+    if (actor?.isOwner && isBard(actor)) ending.push(bardCombatEnd(actor, { background: true }).catch(logError("Bard combat end")));
+  }
+  return Promise.all(ending);
+}
+
 // The quote source is pure and idempotent (the Arts registry de-duplicates), so it is registered at load.
 registerArtQuoteOptions(bardArtQuoteOptions);
 
 let hooksInstalled = false;
-/** Idempotent per module instance: the turn-start and turn-end handlers. */
+/** Idempotent per module instance: turn start and end, combat end, the Long Rest and the owner prompt relay. */
 export function registerBardPerformHooks() {
   if (hooksInstalled) return;
   hooksInstalled = true;
   onAk5eEvent("turnStart", turnHandler(bardTurnStart));
-  onAk5eEvent("turnEnd", turnHandler(bardTurnEnd));
+  // The turn-end flow may open a dialog: it runs in the background so the event chain is not held up by a player's answer.
+  onAk5eEvent("turnEnd", turnHandler(actor => bardTurnEnd(actor, { background: true })));
+  onAk5eEvent("combatEnd", combatEndHandler);
+  globalThis.Hooks?.on?.("dnd5e.restCompleted", (actor, result, config = {}) => {
+    const type = config.type ?? result?.type ?? (config.longRest ? "long" : "short");
+    if (type === "long" && actor?.isOwner && isBard(actor)) return bardLongRest(actor, { background: true }).catch(logError("Bard long rest"));
+    return undefined;
+  });
+  globalThis.Hooks?.on?.("createChatMessage", (message, _options, userId) => {
+    handleBardEndAnswer(message, userId);
+    handleBardEndRequest(message).catch(logError("Bard end prompt"));
+  });
 }
 
 /* ---------------------------------------------------------------- panel and commands */
@@ -492,7 +716,7 @@ export function bardPerformPanel(actor) {
 }
 
 async function promptPerformance(actor) {
-  const options = performancesOf(actor).map(entry => `<option value="${esc(entry.id)}">${esc(entry.id)}: ${esc(entry.arts.map(art => art.name).join(", "))}${entry.performed ? " (performed; No Encore)" : ""}</option>`).join("");
+  const options = performancesOf(actor).map(entry => `<option value="${esc(entry.id)}">${esc(entry.id)}: ${esc(entry.arts.map(art => art.name).join(", "))}${entry.performed ? " (performed; No Encore)" : ""}${improvExpired(entry) ? " (lost: not begun within a minute)" : ""}</option>`).join("");
   // Continue returns the choice; Cancel and X return false/null, which both mean no Performance is chosen.
   const picked = await foundry.applications.api.DialogV2.wait({
     window: { title: `Put on a Performance — ${actor.name}` }, rejectClose: false,
@@ -543,7 +767,7 @@ async function promptKeepArt(choices, { title, lines }) {
 async function postManualCard(actor, art, performanceId) {
   await ChatMessage.implementation.create({
     speaker: ChatMessage.implementation.getSpeaker({ actor }),
-    content: `<h3>${esc(art.name)} (Performance, manual)</h3><p>${esc(actor.name)} performs ${esc(art.name)}. The module has no Chapter 5 record for this Art or variant, `
+    content: `<h3>${esc(art.name)} (Performance, manual)</h3><p>${esc(actor.name)} performs ${esc(art.name)}. ${esc(artVariantNote(art.name) ?? "The module has no Chapter 5 record for this Art or variant")}, `
       + `so nothing is automated and no mechanics are applied. Resolve it at the table. See ak5e/DECISIONS.md, "Bard missing Arts / variants".</p>`
       + `<p>No Arts Points were spent.</p>`,
     flags: { ak5e: { bardPerformManual: { performanceId, artName: art.name } } }
@@ -584,12 +808,13 @@ async function castFlow(actor, { startOpId = null } = {}) {
   const art = performance.arts[active.index];
   need(art, "All Arts of this Performance have been cast.");
   const lastArt = active.index + 1 >= performance.arts.length;
-  const crescendo = crescendoFor(actor, active.index);
+  const crescendo = crescendoFor(actor, castCount(performance, active.index));
   const cresLine = crescendo
     ? `Rising Crescendo after this cast: +${crescendo} (Spell Save DC and Spell Attack Bonus; Art healing and Temporary HP; an extra Shield of Faith or Mage Armour target).`
     : "Rising Crescendo after this cast: +0 (it begins with the second Art).";
   const artLine = `Cast ${art.name} as Art ${active.index + 1} of ${performance.arts.length}: 0 Arts Points (Performance Arts cost no AP, C3 L7108).`;
-  const manualLine = !art.manual ? null : `${art.name} has no Chapter 5 record: its effect is not automated; a manual card is posted and nothing is rolled.`;
+  const manualLine = !isManualArt(art) ? null
+    : `${art.name}: ${artVariantNote(art.name) ?? "it has no Chapter 5 record, so its effect is not automated"}. A manual card is posted and nothing is rolled.`;
   let keepArt = null;
   if (!startOpId) {
     if (lastArt) {
@@ -620,7 +845,7 @@ async function castFlow(actor, { startOpId = null } = {}) {
       await postManualCard(actor, art, performance.id);
       cast = true;
     } else {
-      cast = await castArtNatively(actor, artItem(actor, art.name), { ignoreConcentration: result.ignoreConcentration });
+      cast = await castArtNatively(actor, artItemFor(actor, art), { ignoreConcentration: result.ignoreConcentration });
     }
   } catch (error) {
     console.error("AK5e | Bard Performance cast", error);

@@ -8,9 +8,14 @@
  * the Temporary HP that the use changed.
  *
  * Data contract shared with bard-perform.mjs (U8):
- *   flags.ak5e.bard = { performances: [{ id, arts: [{ name, muse, manual }], performed, composedAt }],
+ *   flags.ak5e.bard = { performances: [{ id, arts: [{ name, muse, manual, skipped? }], performed, composedAt,
+ *                         improv?, improvExpiresWorld?, improvExpiresAt?, expired? }],
  *                       active: null | { performanceId, index, crescendo, castsThisTurn }, museTHP }
- * This module creates Performances and writes `performances` and `museTHP` only. It never touches `active`.
+ * This module creates Performances and writes `performances` and `museTHP` (dotted paths, never the whole `bard` object).
+ * The one exception to "never touches `active`" is an Emergency Improv insert before the Performance's cursor: it moves
+ * `active.index` along by one so the next Art to cast stays the same, and marks the inserted Art `skipped` (it is behind
+ * the cursor and is never cast, so it neither counts toward Rising Crescendo nor offers a Concentration to keep).
+ * Writers outside the Supporter play-use engine (rest, the Improv expiry timer) run inside bardSerial (bard-lock.mjs).
  */
 import { definePool, getPool, getPoolDefinition } from "./resource-pools.mjs";
 import { supporterUses } from "./supporter-uses.mjs";
@@ -20,6 +25,7 @@ import { spendResource, warn } from "./play-uses.mjs";
 import { applyTempHP } from "./damage-pipeline.mjs";
 import { need, esc } from "./operation-kernel.mjs";
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
+import { bardSerial } from "./bard-lock.mjs";
 
 /** C3:7168-7211, transcribed in source order. `inChapterFive` and `manual` are checked against Ch.5 data by the test suite (R7). */
 export const BARD_PERFORMANCE_ARTS = Object.freeze([
@@ -55,14 +61,16 @@ export const BARD_PERFORMANCE_ARTS = Object.freeze([
   Object.freeze({ name: "Freedom of Movement", muse: 5, inChapterFive: true, manual: false }),
   Object.freeze({ name: "Shatter (2nd Level)", muse: 5, inChapterFive: true, manual: false }),
   Object.freeze({ name: "Circle of Power", muse: 6, inChapterFive: true, manual: false }),
-  Object.freeze({ name: "Shatter (5th Level)", muse: 8, inChapterFive: true, manual: false }),
+  Object.freeze({ name: "Shatter (5th Level)", muse: 8, inChapterFive: true, manual: true }),
   Object.freeze({ name: "Synaptic Static", muse: 8, inChapterFive: true, manual: false })
 ]);
 
 export const EMERGENCY_IMPROV_DC = 17;
 export const EMERGENCY_IMPROV_LEVEL = 13;
 const MINIMUM_ARTS = 3;
-const REMINDER_MS = 60_000;
+/** C3:7159: an Emergency Improv Performance is lost if it is not begun within a minute of Composing it. */
+export const IMPROV_WINDOW_MS = 60_000;
+const IMPROV_WINDOW_SECONDS = 60;
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -90,10 +98,13 @@ const restFlag = actor => flag(actor, "bardRest") ?? {};
 /** A Short or Long Rest has finished and no composition has used it yet (R10 timing). */
 const restWindowOpen = actor => restFlag(actor).open === true;
 
-/** R10: at most max(1, Charisma modifier) Performances per composition. */
+/**
+ * C3:7102: Performances composed "up to your Charisma Modifier". The source gives no minimum, so a modifier of 0 or less
+ * allows none (head ruling R1, DECISIONS #10); composing one anyway is an overridable warning, never a block.
+ */
 export function performanceLimit(actor) {
   const mod = Number(actor?.system?.abilities?.cha?.mod ?? 0);
-  return Math.max(1, Math.trunc(Number.isFinite(mod) ? mod : 0));
+  return Math.max(0, Math.trunc(Number.isFinite(mod) ? mod : 0));
 }
 
 const aidAvailable = actor => Number(getPool(actor, "aidDie")?.value ?? 0);
@@ -130,12 +141,15 @@ function artWarnings(warnings, names, label) {
   });
 }
 
-/** Every composition rule that does not need the Muse total (R10 cap, Art count, repeats, unknown names). */
-export function validateComposition(actor, performances) {
+/**
+ * Every composition rule that does not need the Muse total (Performance cap, Art count, repeats, unknown names).
+ * `limit: false` skips the Charisma cap: Emergency Improv grants its one Performance outside the rest composition (C3:7157).
+ */
+export function validateComposition(actor, performances, { limit = true } = {}) {
   const warnings = [];
   const cap = performanceLimit(actor);
-  if (performances.length > cap) {
-    warn(warnings, "performanceLimit", `At most ${plural(cap, "Performance")} may be composed (Charisma modifier, minimum 1); this composes ${performances.length}.`);
+  if (limit && performances.length > cap) {
+    warn(warnings, "performanceLimit", `At most ${plural(cap, "Performance")} may be composed (Charisma modifier, no minimum, C3:7102); this composes ${performances.length}.`);
   }
   performances.forEach((names, index) => artWarnings(warnings, names, `Performance ${index + 1}`));
   return warnings;
@@ -168,9 +182,24 @@ const artRecord = name => {
 };
 
 const artList = arts => arts.map(art => esc(art.name)).join(", ");
+
+/**
+ * Variants the module keeps manual even though the Performance Arts table lists them (DECISIONS, "Bard missing Arts /
+ * variants"). The table rows are frozen as transcribed, so the notes live here. No mechanics are invented for either.
+ */
+const VARIANT_NOTES = new Map([
+  [artKey("Shatter (5th Level)"), "Chapter 5 defines Shatter only at 2nd Level (C5:283) and has no 5th Level version, so the module invents no upcast: resolve this Art at the table."],
+  [artKey("Chromatic Orb (Thunder only)"), "Chromatic Orb has no Chapter 5 record, so the Thunder-only restriction is not implemented: resolve this Art at the table."]
+]);
+/** The note to show on cards for a variant Art that stays manual, or null. */
+export const artVariantNote = name => VARIANT_NOTES.get(artKey(name)) ?? null;
+/** True when the Art is cast from the manual card: a table row marked manual, or a variant the module cannot automate. */
+export const isManualArt = art => art?.manual === true || VARIANT_NOTES.has(artKey(art?.name));
+
 const manualNote = names => {
-  const manual = names.map(lookupBardArt).filter(row => row?.manual).map(row => row.name);
-  return manual.length ? ` Manual Art${manual.length === 1 ? "" : "s"} (cast from the manual card, see the "Bard missing Arts / variants" ruling): ${manual.map(esc).join(", ")}.` : "";
+  const manual = names.map(lookupBardArt).filter(row => row && isManualArt(row)).map(row => row.name);
+  const notes = manual.map(artVariantNote).filter(Boolean);
+  return manual.length ? ` Manual Art${manual.length === 1 ? "" : "s"} (cast from the manual card, see the "Bard missing Arts / variants" ruling): ${manual.map(esc).join(", ")}.${notes.length ? ` ${notes.map(esc).join(" ")}` : ""}` : "";
 };
 
 /** Post-roll outcome of a Muse commit. Muse short of the Arts' cost is recorded (the use is not blocked). */
@@ -186,6 +215,7 @@ function prepareMuseEntry(entry, total) {
 /**
  * Commits Performances or one inserted Art to the Bard's own flags, and the leftover Muse as Temporary HP. Local: it only
  * ever changes the owner's Actor, so it never goes through the GM relay. `applied` keeps what undo must reverse.
+ * Flags are written by dotted path, so `active` (the running Performance) is never overwritten with a stale copy.
  */
 const BARD_COMPOSE_KIND = {
   local: true,
@@ -199,14 +229,26 @@ const BARD_COMPOSE_KIND = {
     if (entry.mode === "insert") {
       const performance = performances.find(item => item.id === entry.performanceId);
       need(performance, "The Performance to insert into is no longer composed.");
+      const index = Math.min(Math.max(0, Number(entry.index) || 0), performance.arts.length);
       record.insertedInto = performance.id;
       record.beforeArts = clone(performance.arts);
-      performance.arts.splice(entry.index, 0, artRecord(entry.art));
-      await target.update({ "flags.ak5e.bard": { ...bard, performances, museTHP: bard.museTHP } });
+      record.index = index;
+      record.insertId = useId;
+      const inserted = { ...artRecord(entry.art), insertId: useId };
+      const updates = { "flags.ak5e.bard.performances": performances };
+      const active = bard.active;
+      if (active && active.performanceId === performance.id && index < Number(active.index)) {
+        // Behind the cursor: the Art is never cast, and the cursor moves along so the next Art to cast does not change.
+        inserted.skipped = true;
+        updates["flags.ak5e.bard.active.index"] = Number(active.index) + 1;
+        record.shifted = true;
+      }
+      performance.arts.splice(index, 0, inserted);
+      await target.update(updates);
       return record;
     }
     const composedAt = new Date().toISOString();
-    const added = entry.performances.map(draft => ({ ...clone(draft), composedAt }));
+    const added = entry.performances.map(draft => ({ ...clone(draft), composedAt, ...(entry.reminder ? improvDeadline() : {}) }));
     performances.push(...added);
     const leftover = Number(entry.leftover ?? 0);
     const temp = leftover > 0 ? applyTempHP(tempBefore, leftover, "replace") : tempBefore;
@@ -214,10 +256,11 @@ const BARD_COMPOSE_KIND = {
     record.temp = temp;
     record.composedAt = composedAt;
     await target.update({
-      "flags.ak5e.bard": { ...bard, performances, museTHP: leftover },
+      "flags.ak5e.bard.performances": performances,
+      "flags.ak5e.bard.museTHP": leftover,
       "system.attributes.hp.temp": temp
     });
-    if (entry.reminder) scheduleReminder(target, record.ids[0], composedAt);
+    if (entry.reminder) scheduleImprovExpiry(target, record.ids[0]);
     return record;
   },
   async revert(source, useId, entry, target) {
@@ -225,19 +268,38 @@ const BARD_COMPOSE_KIND = {
     if (!record || typeof record !== "object") return { removed: 0 };
     const bard = bardFlag(target);
     let performances = clone(bard.performances);
+    const updates = {};
+    let kept = 0, removed = 0;
     if (record.insertedInto) {
-      performances = performances.map(item => item.id === record.insertedInto ? { ...item, arts: clone(record.beforeArts) } : item);
+      performances = performances.map(item => {
+        if (item.id !== record.insertedInto) return item;
+        // Remove exactly the Art this use inserted (by its marker); legacy receipts restore the Arts as they were.
+        const at = record.insertId ? item.arts.findIndex(art => art.insertId === record.insertId) : -1;
+        if (at < 0) return { ...item, arts: clone(record.beforeArts) };
+        const arts = clone(item.arts);
+        arts.splice(at, 1);
+        const active = bard.active;
+        if (active && active.performanceId === item.id && at < Number(active.index)) updates["flags.ak5e.bard.active.index"] = Math.max(0, Number(active.index) - 1);
+        return { ...item, arts };
+      });
+      removed = 1;
     } else {
-      performances = performances.filter(item => !record.ids.includes(item.id));
+      // The Performance being Performed is not deleted from under the running state; the panel says it was kept.
+      const activeId = bard.active?.performanceId;
+      kept = record.ids.filter(id => id === activeId).length;
+      removed = record.ids.length - kept;
+      performances = performances.filter(item => !record.ids.includes(item.id) || item.id === activeId);
     }
     const hp = target.system.attributes.hp;
     const current = Number(hp.temp ?? 0) || 0;
     const temp = current === record.temp ? record.tempBefore : Math.max(0, current - (record.temp - record.tempBefore));
     await target.update({
-      "flags.ak5e.bard": { ...bard, performances, museTHP: record.museBefore },
+      ...updates,
+      "flags.ak5e.bard.performances": performances,
+      "flags.ak5e.bard.museTHP": record.museBefore,
       "system.attributes.hp.temp": temp
     });
-    return { removed: record.ids.length || (record.insertedInto ? 1 : 0) };
+    return { removed, kept };
   },
   rolled(entry, total) { prepareMuseEntry(entry, total); },
   rollText(entry) {
@@ -250,8 +312,34 @@ const BARD_COMPOSE_KIND = {
   preview(_source, _receipt, entry) {
     if (!entry.applied) return `${entry.name}: nothing was composed yet.`;
     return entry.mode === "insert"
-      ? `${entry.name}: removes the inserted Art and restores the Performance's Arts.`
-      : `${entry.name}: removes the composed Performance(s) and the Temporary HP they gave.`;
+      ? `${entry.name}: removes the inserted Art and restores the Performance's Arts${entry.applied.shifted ? " and the Performance's place in them" : ""}.`
+      : `${entry.name}: removes the composed Performance(s) and the Temporary HP they gave. A composed Performance that is being Performed now is kept; end it from the panel.`;
+  }
+};
+
+/**
+ * Soul of the Bard's system proficiencies (Instruments in the custom tool text, Performance proficiency or Expertise). A
+ * flag undo cannot reach `system.*`, so this target kind writes them (absolute, idempotent values) and its revert puts
+ * back only what this use changed: the Performance value if it is still the one written, and the Instruments it added.
+ */
+const customList = text => String(text ?? "").split(";").map(item => item.trim()).filter(Boolean);
+const BARD_PROFICIENCY_KIND = {
+  local: true,
+  documentName: "Actor",
+  async apply(_source, _useId, entry, target) {
+    await target.update({ "system.traits.toolProf.custom": entry.custom, "system.skills.prf.value": entry.value });
+    return { value: entry.value, custom: entry.custom };
+  },
+  async revert(_source, _useId, entry, target) {
+    const updates = {};
+    if ((Number(target.system?.skills?.prf?.value ?? 0) || 0) === entry.value) updates["system.skills.prf.value"] = entry.before;
+    const added = new Set(entry.added ?? []);
+    updates["system.traits.toolProf.custom"] = customList(target.system?.traits?.toolProf?.custom).filter(item => !added.has(item)).join("; ");
+    await target.update(updates);
+    return { restored: true };
+  },
+  preview(_source, _receipt, entry) {
+    return `${entry.name}: removes the Instruments this use added (${(entry.added ?? []).join(", ") || "none"}) and returns Performance to ${entry.before >= 1 ? "proficiency" : "untrained"}.`;
   }
 };
 
@@ -281,19 +369,52 @@ let kindsRegistered = false;
 function registerBardKinds() {
   if (kindsRegistered) return;
   kindsRegistered = true;
-  supporterUses.register({ targetKinds: { bardCompose: BARD_COMPOSE_KIND, bardCheck: BARD_CHECK_KIND } });
+  supporterUses.register({ targetKinds: { bardCompose: BARD_COMPOSE_KIND, bardCheck: BARD_CHECK_KIND, bardProficiency: BARD_PROFICIENCY_KIND } });
 }
 
-/** One-minute reminder (L7152): a Performance composed on the spot is lost if it is not begun within a minute. */
-function scheduleReminder(target, performanceId, composedAt) {
-  const timer = globalThis.setTimeout?.(() => {
-    const current = bardFlag(target).performances.find(item => item.id === performanceId);
-    if (!current || current.performed) return;
-    globalThis.ChatMessage?.implementation?.create?.({
-      speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor: target }),
-      content: `<p>Reminder: a Performance composed at ${esc(composedAt)} has not begun within a minute. It is lost unless it is begun now (Emergency Improv).</p>`
+/**
+ * The one-minute window of an Emergency Improv Performance (C3:7159). The deadline is stored on the Performance in game
+ * time (when the world clock is running) and in real time, whichever comes first, so a reload cannot lose it.
+ */
+function improvDeadline(now = Date.now()) {
+  const world = Number(globalThis.game?.time?.worldTime);
+  return { improv: true, improvExpiresAt: now + IMPROV_WINDOW_MS, ...(Number.isFinite(world) ? { improvExpiresWorld: world + IMPROV_WINDOW_SECONDS } : {}) };
+}
+
+/** True when an Emergency Improv Performance was not begun within its minute (a Performance that was begun never expires). */
+export function improvExpired(performance, now = Date.now()) {
+  if (!performance || performance.performed === true || performance.improv !== true) return false;
+  if (performance.expired === true) return true;
+  const world = Number(globalThis.game?.time?.worldTime);
+  if (Number.isFinite(Number(performance.improvExpiresWorld)) && Number.isFinite(world) && world >= Number(performance.improvExpiresWorld)) return true;
+  return Number.isFinite(Number(performance.improvExpiresAt)) && now >= Number(performance.improvExpiresAt);
+}
+
+/**
+ * Marks Emergency Improv Performances whose minute has passed as expired (`expired: true`) and says so in chat. Starting an
+ * expired Performance is an overridable warning, not a block; undoing the compose still removes it. Runs in the Bard's
+ * serial queue and rewrites only the `performances` array it just read.
+ */
+export function expireImprovPerformances(actor, { ids = null, now = Date.now() } = {}) {
+  return bardSerial(actor, async () => {
+    const performances = bardFlag(actor).performances;
+    const lost = performances.filter(item => !item.expired && item.performed !== true && item.improv === true
+      && (ids ? ids.includes(item.id) : improvExpired(item, now)));
+    if (!lost.length) return [];
+    const lostIds = lost.map(item => item.id);
+    await actor.update({ "flags.ak5e.bard.performances": performances.map(item => lostIds.includes(item.id) ? { ...item, expired: true } : item) });
+    await globalThis.ChatMessage?.implementation?.create?.({
+      speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }),
+      content: `<p>${esc(actor.name)}: an Emergency Improv Performance was not begun within a minute of Composing it and is lost (C3:7159).</p>`
     });
-  }, REMINDER_MS);
+    return lostIds;
+  });
+}
+
+function scheduleImprovExpiry(target, performanceId) {
+  const timer = globalThis.setTimeout?.(() => {
+    expireImprovPerformances(target, { ids: [performanceId] }).catch(error => console.error("AK5e | Bard Improv expiry", error));
+  }, IMPROV_WINDOW_MS);
   timer?.unref?.();
 }
 
@@ -352,7 +473,8 @@ function composePerformances(actor, state, data = {}) {
 
 /**
  * Soul of the Bard (L7137-7139): proficiency in three Instruments (custom tool text), then Performance proficiency, or
- * Expertise if already proficient. Idempotent through flags.ak5e.bardSetup; undo cannot revert the system proficiencies.
+ * Expertise if already proficient. Idempotent through flags.ak5e.bardSetup. The system proficiencies are written by the
+ * bardProficiency target kind, so undo restores them too (and a redo cannot stack Expertise on the undone proficiency).
  */
 function bardSetup(actor, state, data = {}) {
   need(isBard(actor), "Soul of the Bard is a Bard Supporter feature.");
@@ -366,6 +488,7 @@ function bardSetup(actor, state, data = {}) {
   const nextValue = current >= 1 ? 2 : 1;
   const existing = String(actor.system?.traits?.toolProf?.custom ?? "").split(";").map(item => item.trim()).filter(Boolean);
   const custom = [...new Set([...existing, ...instruments])].join("; ");
+  const added = instruments.filter(item => !existing.includes(item));
   const plan = {
     title: "Soul of the Bard: Instruments and Performance",
     warnings,
@@ -378,16 +501,13 @@ function bardSetup(actor, state, data = {}) {
       }
       receipt.summary = `${esc(actor.name)} gains proficiency in ${instruments.join(", ")}; Performance ${nextValue === 2 ? "Expertise" : "proficiency"}.`;
       receipt.result = { instruments, performance: nextValue === 2 ? "expertise" : "proficient" };
-      return {
-        "system.traits.toolProf.custom": custom,
-        "system.skills.prf.value": nextValue,
-        "flags.ak5e.bardSetup": { done: true, instruments, performance: receipt.result.performance }
-      };
+      receipt.targets = [{ kind: "bardProficiency", uuid: actor.uuid, name: actor.name, ready: true, before: current, value: nextValue, custom, added }];
+      return { "flags.ak5e.bardSetup": { done: true, instruments, performance: receipt.result.performance } };
     }
   };
   return plan;
 }
-bardSetup.undoNotes = () => ["Undo does not revert the Instrument or Performance proficiencies: remove them on the sheet if needed."];
+bardSetup.undoNotes = () => ["Undo removes the Instruments this use added and returns Performance to what it was before; Instruments or a Performance level you changed afterwards are left alone."];
 
 /** Speak to the Soul (L7139): once per Short or Long Rest, replace an Aid Die roll with the Performance Modifier. Changes nothing itself. */
 function speakToTheSoul(actor, state, data = {}) {
@@ -467,13 +587,15 @@ function emergencyImprovAid(actor, state, data = {}) {
     warn(warnings, "level", `Emergency Improv is a Supporter level ${EMERGENCY_IMPROV_LEVEL} feature; this character is level ${level}.`);
   }
   const dice = aidAvailable(actor) >= 1 ? 1 : 0;
+  if (dice === 0) warn(warnings, "noAidDie", "No Aid Die is left to expend: Emergency Improv gains no Muse, so nothing can be paid for.");
   const size = aidDieSize(level);
   const bard = bardFlag(actor);
   let entry;
   if (mode === "compose") {
     const names = normalizePerformances([data.arts ?? []])[0] ?? [];
     need(names.length > 0, "Name the Arts of the new Performance.");
-    warnings.push(...validateComposition(actor, [names]));
+    // Emergency Improv grants its one Performance outside the rest composition, so the Charisma cap does not apply to it.
+    warnings.push(...validateComposition(actor, [names], { limit: false }));
     const draft = draftPerformance(names);
     entry = { kind: "bardCompose", uuid: actor.uuid, name: actor.name, ready: dice === 0, mode: "compose",
       performances: [draft], cost: museCost(names), reminder: true };
@@ -486,6 +608,15 @@ function emergencyImprovAid(actor, state, data = {}) {
     const index = data.index === undefined || data.index === "" ? performance.arts.length : Number(data.index);
     need(Number.isInteger(index) && index >= 0 && index <= performance.arts.length, "Choose a place in the Performance to insert the Art.");
     insertWarnings(warnings, performance.arts.map(art => art.name), name, index);
+    const active = bard.active;
+    const current = active?.performanceId === performance.id;
+    if (!current && performance.performed === true) {
+      warn(warnings, "endedPerformance", "That Performance has ended and cannot be performed again (No Encore, C3:7114): an Art inserted into it can never be cast.");
+    } else if (!current) {
+      warn(warnings, "notCurrent", "That Performance is not the one you are Performing; Emergency Improv inserts into your current Performance (C3:7159).");
+    } else if (index < Number(active.index)) {
+      warn(warnings, "beforeCursor", `That place is before the Art you cast next (${Number(active.index)} Art${Number(active.index) === 1 ? "" : "s"} already cast): the inserted Art will not be cast.`);
+    }
     entry = { kind: "bardCompose", uuid: actor.uuid, name: actor.name, ready: dice === 0, mode: "insert",
       performanceId: performance.id, index, art: name, cost: lookupBardArt(name)?.muse ?? 0 };
   }
@@ -551,15 +682,20 @@ export function defineBardComposePools() {
 /** Long Rest (owner client): Performances not yet Performed are lost (No Encore, L7114). Every rest reopens composition. */
 async function onBardRest(actor, type) {
   if (!actor?.isOwner || !isBard(actor)) return;
-  const bard = bardFlag(actor);
-  const updates = { "flags.ak5e.bardRest": { open: true, type, at: new Date().toISOString() } };
-  let removed = 0;
-  if (type === "long") {
-    const kept = bard.performances.filter(item => item.performed === true);
-    removed = bard.performances.length - kept.length;
-    if (removed) updates["flags.ak5e.bard"] = { ...bard, performances: kept };
-  }
-  await actor.update(updates);
+  // Queued with the use engine's writers: the Performances are read inside the task and only `performances` is written,
+  // so the running Performance (`active`) and a use that is mid-write are never overwritten with a stale copy.
+  const removed = await bardSerial(actor, async () => {
+    const bard = bardFlag(actor);
+    const updates = { "flags.ak5e.bardRest": { open: true, type, at: new Date().toISOString() } };
+    let count = 0;
+    if (type === "long") {
+      const kept = bard.performances.filter(item => item.performed === true);
+      count = bard.performances.length - kept.length;
+      if (count) updates["flags.ak5e.bard.performances"] = kept;
+    }
+    await actor.update(updates);
+    return count;
+  });
   if (removed) {
     await globalThis.ChatMessage?.implementation?.create?.({
       speaker: globalThis.ChatMessage.implementation.getSpeaker({ actor }),
@@ -588,7 +724,7 @@ export function bardComposePanel(actor) {
   const bard = bardFlag(actor), level = levelOf(actor);
   const list = bard.performances.length
     ? `<ul>${bard.performances.map((item, index) => `<li>Performance ${index + 1}: ${artList(item.arts)}`
-      + `${item.performed ? " (performed)" : ""}${item.composedAt ? ` · composed ${esc(item.composedAt)}` : ""}</li>`).join("")}</ul>`
+      + `${item.performed ? " (performed)" : ""}${improvExpired(item) ? " (lost: not begun within a minute)" : ""}${item.composedAt ? ` · composed ${esc(item.composedAt)}` : ""}</li>`).join("")}</ul>`
     : "<p>No Performances composed.</p>";
   const cmd = (name, label) => `<button type="button" data-supporter-cmd="${esc(name)}">${esc(label)}</button>`;
   return `<section class="ak5e-bard-panel"><h5>Bard: Performances</h5>${list}`
@@ -684,7 +820,10 @@ export const bardComposeApi = Object.freeze({
   lookup: lookupBardArt,
   museCost,
   performanceLimit,
-  validateComposition: (actor, performances) => validateComposition(actor, normalizePerformances(performances)),
+  validateComposition: (actor, performances, options) => validateComposition(actor, normalizePerformances(performances), options),
+  artVariantNote,
+  isManualArt,
+  improvExpired,
   emergencyImprovDC: EMERGENCY_IMPROV_DC
 });
 

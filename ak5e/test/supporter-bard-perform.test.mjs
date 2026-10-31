@@ -360,7 +360,8 @@ test("the Font die is gained at the start of each Turn while Performing and lost
 
 test("Performing is a 1st-level feature: starting below 4th level gives no warning and no Font die", async () => {
   const low = bard({ level: 3, performances: [{ ...PERFORMANCE, arts: [{ name: "Bless", muse: 1, manual: false }] }], arts: ["Bless"] });
-  await run(low, "startPerformance", startData);
+  // A one-Art Performance is below the three-Art minimum (C3:7102): starting it is an overridable warning (U5).
+  await run(low, "startPerformance", { ...startData, overrides: ["minArts"] });
   assert.equal(isPerforming(low), true);
   assert.equal(low.getFlag("ak5e", "bard").fontDie, false, "no Font die below 4th level");
   const idle = bard({ level: 9 });
