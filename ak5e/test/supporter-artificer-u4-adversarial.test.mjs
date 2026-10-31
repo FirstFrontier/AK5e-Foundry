@@ -435,16 +435,44 @@ test("U4-PRG-2 (red, MED): a failed Supporter item creation leaves no progressio
   assert.equal(Number(actor.system.currency.cp), 0, "the starting cash is not granted when the Items fail to create");
 });
 
-test("U4-PRG-3 (red, LOW): the chosen Supporter tool is written to the actor's tool proficiencies (C3:6602)", async () => {
+/** The semicolon-separated tool proficiency text dnd5e 5.x keeps in traits.toolProf.custom. */
+function toolProfEntries(actor) {
+  return String(actor.system.traits.toolProf?.custom ?? "").split(";").map(item => item.trim()).filter(Boolean);
+}
+
+// C3:6602 Supporter: "Tools: A Tool Kit/Vehicle Proficiency of your Choice."
+test("U4-PRG-3a (red, LOW): a level 1 Supporter who chooses Vehicle gets that proficiency in traits.toolProf.custom (C3:6602)", async () => {
+  await ready();
+  const actor = progressionActor(1);
+  const choices = { ...LEVEL_ONE, tool: "Vehicle" };
+  const preview = await previewSupporterProgression(actor, choices);
+  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  assert.ok(toolProfEntries(actor).includes("Vehicle"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
+});
+
+test("U4-PRG-3b (red, LOW): a level 1 Supporter who chooses Tool Kit gets that proficiency in traits.toolProf.custom (C3:6602)", async () => {
+  await ready();
+  const actor = progressionActor(1);
+  const choices = { ...LEVEL_ONE, tool: "Tool Kit" };
+  const preview = await previewSupporterProgression(actor, choices);
+  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  assert.ok(toolProfEntries(actor).includes("Tool Kit"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
+});
+
+test("U4-PRG-3c (guard): an unlisted tool such as Engineering Kit is not written at level 1 (it is the C3:6899 exchange, not the C3:6602 choice)", async () => {
   await ready();
   const actor = progressionActor(1);
   const choices = { ...LEVEL_ONE, tool: "Engineering Kit" };
   const preview = await previewSupporterProgression(actor, choices);
-  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
-  // C3:6602 Supporter: "Tools: A Tool Kit/Vehicle Proficiency of your Choice."
-  // dnd5e 5.x keeps free-text tool proficiencies in traits.toolProf.custom, a semicolon-separated string.
-  const custom = String(actor.system.traits.toolProf?.custom ?? "").split(";").map(item => item.trim());
-  assert.ok(custom.includes("Engineering Kit"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
+  let refused = false;
+  try {
+    await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  } catch {
+    refused = true;
+  }
+  // Either refusing the apply or applying without the unlisted tool is acceptable; writing it is not.
+  assert.ok(refused || !toolProfEntries(actor).includes("Engineering Kit"),
+    `an unlisted tool must not be written at level 1 (got ${JSON.stringify(actor.system.traits.toolProf)})`);
 });
 
 test("U4-PRG-4 (red, LOW): an unchosen Hit Points level grants nothing silently; the preview warns and names that level (warn, never block)", async () => {
