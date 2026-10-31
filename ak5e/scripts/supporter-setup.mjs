@@ -4,6 +4,7 @@ import { SUPPORTER_CLASS_ID, supporterProfile, supporterLevel, aidAbilityKey } f
 import { sourceEntryData } from "./caster-setup.mjs";
 import { need } from "./operation-kernel.mjs";
 import { defineSupporterPools } from "./supporter-features.mjs";
+import { supporterSerial } from "./supporter-lock.mjs";
 
 export const SUPPORTER_CORE_FEATURES = Object.freeze([
   { id: "class-feature-supporter-1st-level-supporter-branch-925", level: 1, name: "1st Level: Supporter Branch" },
@@ -99,21 +100,25 @@ export async function previewSupporterSetup(actor, options = {}) {
 
 export async function applySupporterSetup(actor, { confirmed, contextKey, aidAbility, branch } = {}) {
   need(confirmed === true, "Confirm the previewed Supporter setup first.");
-  const plan = await previewSupporterSetup(actor, { aidAbility, branch });
-  need(plan.contextKey === contextKey, "The character changed since the preview; preview the Supporter setup again.");
+  // One setup per Actor at a time: the preview is re-read inside the lock, so an overlapping click sees the first one's
+  // items (its context key then no longer matches) instead of creating the same features twice.
+  return supporterSerial(actor, async () => {
+    const plan = await previewSupporterSetup(actor, { aidAbility, branch });
+    need(plan.contextKey === contextKey, "The character changed since the preview; preview the Supporter setup again.");
 
-  defineSupporterPools();
-  await actor.update(plan.actorUpdates);
-  if (plan.creates.length) {
-    await actor.createEmbeddedDocuments("Item", plan.creates);
-  }
+    defineSupporterPools();
+    await actor.update(plan.actorUpdates);
+    if (plan.creates.length) {
+      await actor.createEmbeddedDocuments("Item", plan.creates);
+    }
 
-  return {
-    success: true,
-    level: plan.level,
-    created: plan.creates.map(c => c.name),
-    createdCount: plan.creates.length,
-    kept: plan.kept,
-    keptCount: plan.kept.length
-  };
+    return {
+      success: true,
+      level: plan.level,
+      created: plan.creates.map(c => c.name),
+      createdCount: plan.creates.length,
+      kept: plan.kept,
+      keptCount: plan.kept.length
+    };
+  });
 }

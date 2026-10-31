@@ -248,6 +248,12 @@ function useCardHtml({ actor, source, entry, targets, die, dc }) {
   return lines.join("<br>");
 }
 
+/** The current Turn as a key: combat id, round and turn while a combat runs, else "none" (Turns are not tracked). */
+function turnKeyNow() {
+  const combat = globalThis.game?.combat;
+  return combat?.started ? `${combat.id}:${combat.round}:${combat.turn}` : "none";
+}
+
 function useUpgrade(actor, state, data) {
   need(isArtificer(actor), "Heavy Duty Upgrades need the Artificer branch.");
   const entry = requireUpgrade(data.upgradeId);
@@ -267,8 +273,17 @@ function useUpgrade(actor, state, data) {
     const record = source.kind === "automaton" ? source.info.upgradeUses[entry.id] : source.cover.upgradeUses?.[entry.id];
     const used = Number(record?.used ?? 0);
     const left = Math.max(0, max - used);
-    if (left < 1) warn(warnings, "overuse", `${entry.name} has ${left} of ${max} use(s) left; using it anyway is short by 1 and clamps at 0.`);
-    spend = { max, used, left };
+    // Arts Detonator (C3:6975): at 0 HP the Automaton may use the Reaction even if it has expended its use of it.
+    const freeAtZero = entry.id === "artsDetonator" && source.kind === "automaton" && Number(source.doc?.system?.attributes?.hp?.value ?? 1) <= 0;
+    if (left < 1 && !freeAtZero) warn(warnings, "overuse", `${entry.name} has ${left} of ${max} use(s) left; using it anyway is short by 1 and clamps at 0.`);
+    spend = { max, used, left, freeAtZero };
+  }
+
+  // Arbalest (C3:6967): Once per Turn. A second use by the same Automaton in the same Turn warns (overridable).
+  const turnKey = turnKeyNow();
+  if (entry.id === "arbalest" && (state.undo ?? []).some(prior => prior.command === "useUpgrade" && prior.status !== "undone"
+    && prior.data?.upgradeId === entry.id && prior.data?.automatonUuid === source.uuid && prior.result?.turnKey === turnKey)) {
+    warn(warnings, "oncePerTurn", `${entry.name} is Once per Turn, and ${source.name} already used it this Turn${turnKey.startsWith("none") ? " (outside combat the Turn is not tracked, so any earlier recorded use counts)" : ""}.`);
   }
 
   const dc = artificerDC(actor);
@@ -279,7 +294,7 @@ function useUpgrade(actor, state, data) {
     apply(next, receipt) {
       const updates = {};
       if (spend) {
-        if (spend.left < 1) receipt.shortfalls = [...(receipt.shortfalls ?? []), `${entry.name} short by 1 use (0 of ${spend.max} left)`];
+        if (spend.left < 1 && !spend.freeAtZero) receipt.shortfalls = [...(receipt.shortfalls ?? []), `${entry.name} short by 1 use (0 of ${spend.max} left)`];
         if (source.kind === "automaton") {
           receipt.targets = [{ uuid: source.uuid, name: source.name, kind: "automatonUses", upgradeId: entry.id, max: spend.max, ready: true }];
         } else {
@@ -290,7 +305,7 @@ function useUpgrade(actor, state, data) {
       }
       receipt.html = true;
       receipt.summary = useCardHtml({ actor, source, entry, targets, die, dc });
-      receipt.result = { upgradeId: entry.id, dc, dieSize: die, targets: targets.map(target => target.uuid) };
+      receipt.result = { upgradeId: entry.id, dc, dieSize: die, targets: targets.map(target => target.uuid), turnKey };
       return updates;
     }
   };

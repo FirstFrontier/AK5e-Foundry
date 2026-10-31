@@ -268,6 +268,9 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     if (!target && command === "revert") return { missing: true };
     need(target?.documentName === targetDocument(entry), "The target no longer exists.");
     if (command === "apply") need(PLANS[receipt.command]?.validateTarget?.(source, receipt, entry, target) === true, "The recorded change is not one this use can make.");
+    // A receipt lives in a flag its owner can write, so a revert is re-checked too when the plan supplies `validateRevert`
+    // (a plan without one keeps the kind's own checks, such as an applied-record lookup).
+    else if (typeof PLANS[receipt.command]?.validateRevert === "function") need(PLANS[receipt.command].validateRevert(source, receipt, entry, target) === true, "The recorded change is not one this use can reverse.");
     return command === "apply" ? applyTargetChange(source, receipt.id, entry, target) : revertTargetChange(source, receipt.id, entry, target);
   }
   const relay = createOperationKernel({
