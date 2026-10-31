@@ -476,7 +476,7 @@ function buildAutomatonPlan(actor, state, data = {}) {
   const warnings = [];
   const counting = automatonsOf(actor).filter(countsAgainstCap).length, cap = automatonCap(actor);
   if (counting + 1 > cap) {
-    warn(warnings, "cap", `Your Automaton maximum is ${cap}; this makes ${counting + 1}. The source says the earlier Automaton then crumbles to uselessness. Nothing is changed automatically.`);
+    warn(warnings, "cap", `Your Automaton maximum is ${cap}; this makes ${counting + 1}. The source says that if you create more than your maximum, you cannot upkeep or control the first anymore, and it will crumble to uselessness. Nothing is changed automatically.`);
   }
   if (!game.user?.isGM && !game.users?.activeGM) {
     warn(warnings, "noGM", "No GM is connected, so the Automaton cannot be created until a GM is connected. Nothing will change.");

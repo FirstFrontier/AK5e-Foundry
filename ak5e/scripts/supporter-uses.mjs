@@ -375,6 +375,15 @@ export function aidTempHPAllowance(parent) {
   return Number(parent.roll) + (rollType === "save" ? Number(parent.result?.pb ?? 0) : 0);
 }
 
+/**
+ * The most one Advanced Aid Temporary HP grant can be at the giver's level: the largest face of their Aid Die plus their
+ * Proficiency Bonus (C3:6557-6578 table, C3:6660), e.g. d8 + 3 = 11 at level 5 and d12 + 5 = 17 at level 14.
+ */
+export function aidTempHPLevelMax(actor) {
+  const level = supporterLevel(actor) ?? 1;
+  return Number(String(aidDieSize(level)).replace(/\D/g, "")) + pbForLevel(level);
+}
+
 const AID_TEMP_HP_PLAN = {
   aidTempHP(actor, state, data) {
     const amount = Number(data.amount);
@@ -382,6 +391,11 @@ const AID_TEMP_HP_PLAN = {
     need(amount <= AID_TEMP_HP_CEILING, `Advanced Aid never grants more than ${AID_TEMP_HP_CEILING} Temporary Hit Points.`);
     const name = data.targetName ?? "target creature";
     const warnings = [];
+    const levelMax = aidTempHPLevelMax(actor);
+    if (amount > levelMax) {
+      const level = supporterLevel(actor) ?? 1;
+      warn(warnings, "exceedsDie", `Your Aid Die is at most a ${aidDieSize(level)} and your Proficiency Bonus is ${pbForLevel(level)}, so Advanced Aid grants at most ${levelMax} Temporary Hit Points; ${amount} is more.`);
+    }
     // Pool debit: the grant belongs to one expended Aid Die use. Without a link, or beyond what that die allows, it warns.
     const undo = state.undo ?? [];
     const parent = data.useId ? undo.find(entry => entry.id === data.useId && AID_USE_COMMANDS.includes(entry.command)) ?? null : null;
@@ -420,7 +434,7 @@ AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) => 
   if (!Number.isInteger(entry.amount) || entry.amount < 1 || entry.amount > AID_TEMP_HP_CEILING || entry.amount !== receipt.result?.amount) return false;
   const parent = (supporterUses.state(source).undo ?? []).find(candidate => candidate.id === receipt.parentUseId);
   const allowance = parent && parent.status !== "undone" && AID_USE_COMMANDS.includes(parent.command) ? aidTempHPAllowance(parent) : null;
-  return allowance !== null && entry.amount <= allowance;
+  return allowance !== null && entry.amount <= allowance && entry.amount <= aidTempHPLevelMax(source);
 };
 
 /**
@@ -484,7 +498,7 @@ const AID_CARD_PLANS = {
           return {};
         }
         receipt.targets = [{ uuid: actor.uuid, name: actor.name, kind: "aidRider", riderId, label, ready: true }];
-        receipt.summary = `${actor.name} widens the critical range by 1 for the attack this Aid Die is spent on (Advanced Aid): the next attack roll, since none has been rolled for it yet.`;
+        receipt.summary = `${actor.name} widens the critical range by 1 (Advanced Aid): the Critical Range of that Attack is increased by 1. The Attack has not been rolled yet.`;
         receipt.result = { critRider: riderId, useId: data.useId, appliedTo: "nextAttack" };
         return {};
       }
@@ -726,7 +740,7 @@ async function clickForce(actor, useId) {
 /** Advanced Aid crit rider from the card: confirmed, then recorded as its own use so undo removes the rider (F-R3). */
 async function clickCrit(actor, useId) {
   const confirmed = await confirmSupporterUse("Advanced Aid: critical range", [
-    `${actor.name} widens the critical range by 1 (20 becomes 19) for the attack this Aid Die is spent on. If that attack is already rolled, the card states whether it is now a critical hit; otherwise the next attack is used.`,
+    `${actor.name} widens the critical range by 1 (20 becomes 19) for the attack this Aid Die is spent on. If that attack is already rolled, the card states whether it is now a critical hit; otherwise the rider waits for the Attack this Aid Die is spent on.`,
     "Undoing this use removes the rider."
   ]);
   if (!confirmed) return null;
