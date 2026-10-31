@@ -442,17 +442,30 @@ test("U4-PRG-3 (red, LOW): the chosen Supporter tool is written to the actor's t
   const preview = await previewSupporterProgression(actor, choices);
   await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
   // C3:6602 Supporter: "Tools: A Tool Kit/Vehicle Proficiency of your Choice."
-  assert.match(JSON.stringify(actor.system.traits.toolProf), /Engineering Kit/, "the chosen tool is recorded as a proficiency");
+  // dnd5e 5.x keeps free-text tool proficiencies in traits.toolProf.custom, a semicolon-separated string.
+  const custom = String(actor.system.traits.toolProf?.custom ?? "").split(";").map(item => item.trim());
+  assert.ok(custom.includes("Engineering Kit"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
 });
 
-test("U4-PRG-4 (red, LOW): an unapplied level does not default to 'existing' (it must stay pending for the player)", async () => {
+test("U4-PRG-4 (red, LOW): an unchosen Hit Points level grants nothing silently; the preview warns and names that level (warn, never block)", async () => {
   await ready();
   const actor = progressionActor(4);
-  const choices = supporterChoices(actor, {});
+  // Defaults: an unchosen Hit Points level may default to "existing" but must never default to a granting mode.
+  const defaults = supporterChoices(actor, {});
   for (const level of [2, 3, 4]) {
-    assert.notEqual(choices.hp?.[level]?.mode, "existing", `hp level ${level} has not been applied; it must not default to existing`);
+    const mode = defaults.hp?.[level]?.mode;
+    assert.ok(mode === undefined || mode === "existing", `hp level ${level} defaults to "${mode}"; an unchosen level must not silently grant Hit Points`);
   }
-  assert.notEqual(choices.asi?.[4]?.mode, "existing", "the level 4 Ability Score Improvement has not been applied");
+  // Preview with levels 2-4 left unchosen (level 1 is chosen as in LEVEL_ONE).
+  const preview = await previewSupporterProgression(actor, { ...LEVEL_ONE, hp: { 1: { mode: "fixed", roll: 6 } } });
+  // Level 1: fixed 6 + CON mod 2 = 8 on top of the existing 8 maximum; unchosen levels 2-4 add nothing.
+  assert.equal(preview.writes["system.attributes.hp.max"], 16, "only the chosen level 1 Hit Points are added; unchosen levels add nothing");
+  // Warn, never block: the unchosen levels must not stop the preview.
+  assert.ok(!preview.pending.some(p => /^hp\b/.test(p)), `unchosen Hit Points must warn, not block (pending: ${preview.pending.join(", ")})`);
+  for (const level of [2, 3, 4]) {
+    const named = preview.warnings.some(w => new RegExp(`level ${level}\\b`, "i").test(w) && /hit points/i.test(w));
+    assert.ok(named, `the preview warns that Level ${level} Hit Points were not chosen (warnings: ${JSON.stringify(preview.warnings)})`);
+  }
 });
 
 test("U4-PRG-5 (guard): re-running an applied progression with a fresh preview grants no new Items or cash", async () => {
