@@ -223,7 +223,7 @@ const CORE_PLANS = {
           actor, label: "Roll Aid Die", formula, useId: receipt.id, rollType,
           extra: { willIntoBeingPB: willEligible ? pb : 0, riders: offers }
         });
-        receipt.summary = `${actor.name} expended an Aid Die (${dieSize}) on ${rollType}.` + card;
+        receipt.summary = `${esc(actor.name)} expended an Aid Die (${esc(dieSize)}) on ${esc(rollType)}.` + card;
         receipt.result = {
           dieSize,
           rollType,
@@ -268,7 +268,7 @@ const CORE_PLANS = {
           actor, label: "Roll Aid Die", formula, useId: receipt.id, rollType,
           extra: { willIntoBeingPB: willEligible ? pb : 0, riders: advanced ? advancedAidOffers(rollType) : [] }
         });
-        receipt.summary = `${actor.name} expended the Self-Supportive Aid Die (${dieSize}) on ${rollType}.` + card;
+        receipt.summary = `${esc(actor.name)} expended the Self-Supportive Aid Die (${esc(dieSize)}) on ${esc(rollType)}.` + card;
         receipt.result = { dieSize, rollType, card, giverLevel: lvl, pb, selfSupportive: true, willBonus: willOn ? pb : 0,
           advancedEffect: advanced ? rollType : null };
         return { "flags.ak5e.supporter.selfSupportDie": false };
@@ -362,16 +362,47 @@ CORE_PLANS.lightenTheLoad.validateTarget = (source, receipt, entry, target) => r
  * Rider temp HP (save, healing): a change to the clicked creature, which may be unowned, so it goes
  * through the relay as a tempHP target. Temp HP is the amount the card computed from the stored roll.
  */
+/** Largest Aid Die face (d12) plus the largest Proficiency Bonus: no Advanced Aid Temporary HP grant can exceed it. */
+const AID_TEMP_HP_CEILING = 12 + 6;
+
+/**
+ * What Advanced Aid allows for one expended Aid Die (C3:6660-6662): the amount rolled, plus the Proficiency Bonus for a
+ * Saving Throw. `null` until the Aid Die has been rolled, and for a roll type that grants no Temporary HP.
+ */
+export function aidTempHPAllowance(parent) {
+  const rollType = parent?.result?.rollType;
+  if (!["save", "healing"].includes(rollType) || !Number.isInteger(Number(parent?.roll)) || parent?.roll === undefined) return null;
+  return Number(parent.roll) + (rollType === "save" ? Number(parent.result?.pb ?? 0) : 0);
+}
+
 const AID_TEMP_HP_PLAN = {
   aidTempHP(actor, state, data) {
     const amount = Number(data.amount);
     need(Number.isInteger(amount) && amount > 0, "Temporary HP must be a positive whole number.");
+    need(amount <= AID_TEMP_HP_CEILING, `Advanced Aid never grants more than ${AID_TEMP_HP_CEILING} Temporary Hit Points.`);
     const name = data.targetName ?? "target creature";
+    const warnings = [];
+    // Pool debit: the grant belongs to one expended Aid Die use. Without a link, or beyond what that die allows, it warns.
+    const undo = state.undo ?? [];
+    const parent = data.useId ? undo.find(entry => entry.id === data.useId && AID_USE_COMMANDS.includes(entry.command)) ?? null : null;
+    if (data.useId) {
+      if (!parent || parent.status === "undone") {
+        warn(warnings, "parentUse", "The Aid Die use this Temporary HP belongs to is missing or was undone.");
+      } else {
+        const allowance = aidTempHPAllowance(parent);
+        if (allowance === null) warn(warnings, "noAllowance", "Advanced Aid grants Temporary HP only for a rolled Saving Throw or Healing Roll Aid Die.");
+        else if (amount > allowance) warn(warnings, "exceedsRoll", `Advanced Aid allows ${allowance} Temporary Hit Points for this Aid Die; ${amount} is more.`);
+        if (undo.some(entry => entry.command === "aidTempHP" && entry.status !== "undone" && entry.parentUseId === data.useId)) {
+          warn(warnings, "alreadyGranted", "Temporary Hit Points were already granted for this Aid Die.");
+        }
+      }
+    }
     return {
       title: `Temporary HP ${amount} -> ${name}`,
-      warnings: [],
+      warnings,
       apply(next, receipt) {
         receipt.targets = [{ uuid: data.targetUuid, name, kind: "tempHP", amount, mode: "replace", ready: true }];
+        if (parent && parent.status !== "undone") receipt.parentUseId = data.useId;
         receipt.summary = `${actor.name} granted ${name} ${amount} Temporary Hit Points (Advanced Aid).`;
         receipt.result = { amount, targetUuid: data.targetUuid, targetName: name };
         return {};
@@ -379,8 +410,18 @@ const AID_TEMP_HP_PLAN = {
     };
   }
 };
-AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) =>
-  entry.kind === "tempHP" && entry.amount === receipt.result?.amount && target?.uuid === entry.uuid;
+/**
+ * The GM relay applies this to a Creature its owner cannot write, from a receipt the giver can edit, so the grant is
+ * re-checked here against the giver's own recorded Aid Die: a live parent use that rolled a Saving Throw or Healing Roll,
+ * with an amount no larger than Advanced Aid allows (and never above the absolute ceiling).
+ */
+AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) => {
+  if (entry.kind !== "tempHP" || entry.mode !== "replace" || target?.uuid !== entry.uuid) return false;
+  if (!Number.isInteger(entry.amount) || entry.amount < 1 || entry.amount > AID_TEMP_HP_CEILING || entry.amount !== receipt.result?.amount) return false;
+  const parent = (supporterUses.state(source).undo ?? []).find(candidate => candidate.id === receipt.parentUseId);
+  const allowance = parent && parent.status !== "undone" && AID_USE_COMMANDS.includes(parent.command) ? aidTempHPAllowance(parent) : null;
+  return allowance !== null && entry.amount <= allowance;
+};
 
 /**
  * Advanced Aid card riders (F-R3). Each click is its own recorded use, so undo removes what it added. A missing or
@@ -389,6 +430,27 @@ AID_TEMP_HP_PLAN.aidTempHP.validateTarget = (source, receipt, entry, target) =>
 /** True when a live aidSecondRoll receipt already records a second roll for this Aid Die use. */
 function aidSecondRollRecorded(state, useId) {
   return (state.undo ?? []).some(entry => entry.command === "aidSecondRoll" && entry.status !== "undone" && entry.data?.useId === useId);
+}
+
+/**
+ * The actor's latest native attack roll made at or after `since` (ms), as { natural, threshold, critical }; null when there is
+ * none or when its d20 cannot be read. Used so the Advanced Aid crit rider judges the attack the Aid Die was spent on when
+ * that attack has already been rolled, instead of silently waiting for the next one.
+ */
+export function attackRollSince(actor, since, messages = globalThis.game?.messages) {
+  if (!Number.isFinite(Number(since))) return null;
+  let found = null;
+  for (const message of values(messages)) {
+    if (message?.flags?.dnd5e?.roll?.type !== "attack" || message?.speaker?.actor !== actor.id) continue;
+    const time = Number(message.timestamp ?? 0);
+    if (time < Number(since) || (found && time <= found.time)) continue;
+    const roll = message.rolls?.[0];
+    const d20 = roll?.dice?.find(die => die.faces === 20);
+    const natural = Number(d20?.results?.find(result => result.active !== false)?.result ?? d20?.total);
+    if (!Number.isFinite(natural)) continue;
+    found = { time, natural, threshold: Number(roll.options?.criticalSuccess ?? 20), critical: roll.isCritical === true };
+  }
+  return found;
 }
 
 const AID_CARD_PLANS = {
@@ -404,15 +466,26 @@ const AID_CARD_PLANS = {
     if (undo.some(entry => entry.status !== "undone" && entry.targets?.some(target => target.riderId === riderId))) {
       warn(warnings, "riderPresent", "The critical-range rider for this Aid Die is already recorded.");
     }
+    // The attack this Aid Die was spent on may already be rolled. If so the rider belongs to THAT attack (a native roll
+    // cannot be changed after the fact, so the card states the result) and is not carried over to the next attack.
+    const rolled = parent && parent.status !== "undone" ? attackRollSince(actor, parent.createdAt) : null;
     return {
       title: label,
       warnings,
       apply(next, receipt) {
-        receipt.targets = [{ uuid: actor.uuid, name: actor.name, kind: "aidRider", riderId, label, ready: true }];
         // Undoing the Aid Die use also undoes this child receipt, which removes the rider.
         if (parent && parent.status !== "undone") receipt.parentUseId = data.useId;
-        receipt.summary = `${actor.name} widens the critical range by 1 for the next attack (Advanced Aid).`;
-        receipt.result = { critRider: riderId, useId: data.useId };
+        if (rolled) {
+          const widened = rolled.threshold - 1;
+          const verdict = rolled.critical ? `already a critical hit (natural ${rolled.natural})`
+            : rolled.natural >= widened ? `now a critical hit (natural ${rolled.natural}, critical range ${widened} to 20): use the critical damage` : `not a critical hit (natural ${rolled.natural}, critical range ${widened} to 20)`;
+          receipt.summary = `${actor.name} widens the critical range by 1 (Advanced Aid). The attack already rolled is ${verdict}.`;
+          receipt.result = { critRider: riderId, useId: data.useId, appliedTo: "rolledAttack", natural: rolled.natural, threshold: widened };
+          return {};
+        }
+        receipt.targets = [{ uuid: actor.uuid, name: actor.name, kind: "aidRider", riderId, label, ready: true }];
+        receipt.summary = `${actor.name} widens the critical range by 1 for the attack this Aid Die is spent on (Advanced Aid): the next attack roll, since none has been rolled for it yet.`;
+        receipt.result = { critRider: riderId, useId: data.useId, appliedTo: "nextAttack" };
         return {};
       }
     };
@@ -622,7 +695,7 @@ async function clickTempHP(actor, useId) {
   if (!confirmed) return null;
   const opId = foundry.utils.randomID();
   return confirmPlayUse("Temporary HP", extra => supporterUses.execute(actor, "aidTempHP",
-    { targetUuid: target.uuid, targetName: target.name, amount, ...extra }, opId), { confirmed: true });
+    { targetUuid: target.uuid, targetName: target.name, amount, useId, ...extra }, opId), { confirmed: true });
 }
 
 /** Advanced Aid second roll (once per Aid Die): recorded as a use first, then rolled on this click only. */
@@ -653,7 +726,7 @@ async function clickForce(actor, useId) {
 /** Advanced Aid crit rider from the card: confirmed, then recorded as its own use so undo removes the rider (F-R3). */
 async function clickCrit(actor, useId) {
   const confirmed = await confirmSupporterUse("Advanced Aid: critical range", [
-    `${actor.name} widens the critical range by 1 (20 becomes 19) for the next attack only.`,
+    `${actor.name} widens the critical range by 1 (20 becomes 19) for the attack this Aid Die is spent on. If that attack is already rolled, the card states whether it is now a critical hit; otherwise the next attack is used.`,
     "Undoing this use removes the rider."
   ]);
   if (!confirmed) return null;

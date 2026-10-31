@@ -24,6 +24,7 @@ import { actorFromUuid, spendAidDice, aidDieFormula } from "./supporter-features
 import { confirmPlayUse } from "./play-uses-sheet.mjs";
 import { confirmSupporterUse } from "./supporter-sheet.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
+import { tokenDistanceFeet } from "./supporter-measure.mjs";
 
 export const ARTIFICER_BRANCH = "artificer";
 export const AUTOMATON_BASE_HP = 25;
@@ -166,9 +167,9 @@ const ARTIFICER_KINDS = Object.freeze({
       await target.update(structuredClone(entry.set));
       return { applied: true };
     },
-    async revert(_source, _useId, entry, target) {
-      // The engine checks validateTarget only on apply, so a tampered record is refused again here before any write.
-      need(fieldRecordShapeOk(entry), "The recorded field changes are not on the Artificer whitelist; nothing is restored.");
+    async revert(source, _useId, entry, target) {
+      // A tampered record is refused again here before any write: whitelist, value ranges and the target's ownership.
+      need(fieldsValidate(source, null, entry, target), "The recorded field changes are not on the Artificer whitelist for this target; nothing is restored.");
       await target.update(structuredClone(entry.before));
       return { restored: true };
     },
@@ -187,7 +188,9 @@ const ARTIFICER_KINDS = Object.freeze({
     async revert(source, useId, _entry, target) {
       need(Boolean(target) && target.id === automatonIdFor(useId) && automatonFlag(target).creator === source.uuid,
         "This Automaton was not built by this use; it is not deleted.");
-      await target.delete();
+      // A Player cannot delete a World Actor even when they own it (found in the U4 live test), so the GM client deletes it.
+      if (game.user?.isGM) await target.delete();
+      else await artificerRelay.submit(source, "deleteAutomaton", { confirmation: true, automatonId: target.id, useId }, `${useId}-delete-automaton`);
       return { removed: true };
     },
     preview(_source, _receipt, entry) {
@@ -209,26 +212,48 @@ const plainFieldValue = value => ["number", "string", "boolean"].includes(typeof
 const isPlainRecord = value => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const isWhitelistedPath = path => SOURCE_FIELD_PATHS.includes(path) || AUTOMATON_FIELD_PATHS.includes(path) || ABILITY_FIELD_PATH.test(path);
 
-/** Shape of a field record: same non-empty path set in `set` and `before`, all whitelisted, primitive values only. */
-const fieldRecordShapeOk = entry => {
+/**
+ * Per-path value rules for a field record: a forged receipt may not push an out-of-range value through the relay.
+ * `target` (when known) tightens Hit Points to the Automaton's own maximum.
+ */
+const pathValueOk = (path, value, target) => {
+  if (path === "system.traits.weaponProf.custom" || path === "system.traits.toolProf.custom") return typeof value === "string" && value.length <= 500;
+  if (path === "system.skills.ak5etech.value") return [0, 0.5, 1, 2].includes(value);
+  if (path === "flags.ak5e.automaton.destroyed") return typeof value === "boolean";
+  if (path === "system.attributes.hp.value") {
+    const ceiling = target ? Math.max(0, hpMaxOf(target)) : 1000;
+    return Number.isInteger(value) && value >= 0 && value <= ceiling;
+  }
+  if (path.endsWith(".value")) return Number.isInteger(value) && value >= 0 && value <= 30;
+  if (path.endsWith(".proficient")) return value === 0 || value === 1 || typeof value === "boolean";
+  return false;
+};
+
+/** Shape of a field record: same non-empty path set in `set` and `before`, all whitelisted, primitive in-range values only. */
+const fieldRecordShapeOk = (entry, target = null) => {
   if (!isPlainRecord(entry?.set) || !isPlainRecord(entry?.before)) return false;
   const setPaths = Object.keys(entry.set), beforePaths = Object.keys(entry.before);
   if (!setPaths.length || [...setPaths].sort().join("\n") !== [...beforePaths].sort().join("\n")) return false;
   if (![...Object.values(entry.set), ...Object.values(entry.before)].every(plainFieldValue)) return false;
-  return setPaths.every(isWhitelistedPath);
+  if (!setPaths.every(isWhitelistedPath)) return false;
+  return setPaths.every(path => pathValueOk(path, entry.set[path], target) && pathValueOk(path, entry.before[path], target));
 };
 
-/** A relayed artificerFields entry: a whitelisted path set, primitive values, and a target that matches its paths. */
+/**
+ * A relayed artificerFields entry (checked for apply AND revert): a whitelisted path set, primitive in-range values, and a
+ * target that matches its paths. Setup fields belong to the Artificer itself. Automaton fields belong to an Actor that
+ * carries the Automaton record and was built by this Artificer (creator flag) or is on the Artificer's own list (head ruling
+ * H4: a listed Automaton is accepted whatever its creator flag). The Artificer itself and an unflagged Actor never pass, and
+ * every value is range-checked, so a forged receipt cannot write arbitrary values to an arbitrary Actor.
+ */
 const fieldsValidate = (source, _receipt, entry, target) => {
   if (entry?.kind !== "artificerFields" || !target || target.uuid !== entry.uuid) return false;
-  if (!fieldRecordShapeOk(entry)) return false;
+  if (!fieldRecordShapeOk(entry, target)) return false;
   const setPaths = Object.keys(entry.set);
-  // Setup fields belong to the Artificer itself; Automaton fields belong to an Automaton this Artificer built.
-  // An Automaton listed in the Artificer's records is accepted even when its creator flag does not match.
   if (setPaths.every(path => SOURCE_FIELD_PATHS.includes(path))) return target.uuid === source.uuid;
   if (setPaths.every(path => !SOURCE_FIELD_PATHS.includes(path))) {
-    return target.uuid !== source.uuid
-      && (automatonFlag(target).creator === source.uuid || (artificerState(source).automatons ?? []).includes(target.uuid));
+    if (target.uuid === source.uuid || !isAutomatonFlagged(target)) return false;
+    return automatonFlag(target).creator === source.uuid || (artificerState(source).automatons ?? []).includes(target.uuid);
   }
   return false;
 };
@@ -309,6 +334,19 @@ export function automatonActorData(creator, spec) {
 
 export const automatonIdFor = operationId => opaqueKey(`${operationId}:automaton`);
 
+/**
+ * Automaton statistics from the Artificer's own sheet: HP = 25 + the Technology Modifier reading (C3:6887), PB, and
+ * attack bonus = INT modifier + PB (Professional Engineer). The GM client recomputes these from the Artificer's Actor,
+ * so a client cannot ask the relay for a different HP total or attack bonus than the rules give.
+ */
+export function automatonStatsFor(actor, choice) {
+  need(["techTotal", "intMod"].includes(choice), "Choose how the Technology Modifier is read before creating the Automaton.");
+  const techMod = technologyModifierValue(actor, choice);
+  const pb = pbOf(actor), intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
+  need(Number.isFinite(intMod) && Number.isFinite(pb), "Review your Intelligence modifier before creating the Automaton.");
+  return { hpMax: Math.max(1, AUTOMATON_BASE_HP + techMod), pb, attackBonus: intMod + pb, technologyModifier: choice, techMod };
+}
+
 /** GM-client creation of a World Actor. Players submit through the relay; the GM's client writes the document. */
 export const artificerRelay = createOperationKernel({
   label: "Artificer", stateFlag: "artificerRelay", requestFlag: "artificerRelayRequest", responseFlag: "artificerRelayResponse",
@@ -316,12 +354,22 @@ export const artificerRelay = createOperationKernel({
   getState: actor => ({ operations: [], ...structuredClone(flag(actor, "artificerRelay") ?? {}) }),
   isMember: isArtificer,
   perform: async (actor, command, data, _op, state) => {
-    need(command === "createAutomaton", "Unknown Artificer relay command.");
+    need(["createAutomaton", "deleteAutomaton"].includes(command), "Unknown Artificer relay command.");
     need(isArtificer(actor), "The Artificer relay needs the Artificer branch.");
-    need(gmActive(), "Only the elected GM client may create an Automaton.");
+    need(gmActive(), "Only the elected GM client may create or delete an Automaton.");
     need(/^[A-Za-z0-9]{16}$/.test(String(data.automatonId ?? "")), "A valid Automaton ID is required.");
+    if (command === "deleteAutomaton") {
+      // Only the Automaton this use built, and only if this Artificer made it (the same check the owner's own undo makes).
+      const target = game.actors?.get?.(data.automatonId);
+      need(target && data.useId && target.id === automatonIdFor(data.useId) && automatonFlag(target).creator === actor.uuid,
+        "This Automaton was not built by this use; it is not deleted.");
+      await target.delete();
+      return state;
+    }
     if (!game.actors?.get?.(data.automatonId)) {
-      await Actor.implementation.create(automatonActorData(actor, data), { keepId: true });
+      // The client's numbers are not trusted: the GM recomputes HP, PB and the attack bonus from the Artificer's own sheet.
+      const stats = automatonStatsFor(actor, data.stats?.technologyModifier);
+      await Actor.implementation.create(automatonActorData(actor, { ...data, stats }), { keepId: true });
     }
     return state;
   }
@@ -367,6 +415,7 @@ function setupPlan(actor, state, data = {}) {
 }
 // The relay reads validateTarget from the plan function (PLANS[command]), not from the plan it returns.
 setupPlan.validateTarget = fieldsValidate;
+setupPlan.validateRevert = fieldsValidate;
 
 /** As One (L1): each Automaton may take an Action when you take the Attack Action; it cannot repeat that Action until your next Turn. */
 function asOnePlan(actor, state, data = {}) {
@@ -388,7 +437,7 @@ function asOnePlan(actor, state, data = {}) {
       const turn = artificerTurn(actor);
       const asOne = { ...(turn.asOne ?? {}), [key]: [...taken, action] };
       receipt.html = true;
-      receipt.summary = `${actor.name} used As One: ${automaton.name} takes ${ACTION_DEFS[action].label}.${actionCardHtml(automaton, action, automatonFlag(automaton).attackBonus)}`;
+      receipt.summary = `${esc(actor.name)} used As One: ${esc(automaton.name)} takes ${esc(ACTION_DEFS[action].label)}.${actionCardHtml(automaton, action, automatonFlag(automaton).attackBonus)}`;
       receipt.result = { automaton: automaton.uuid, action };
       return { "flags.ak5e.artificer.turn": { ...turn, asOne } };
     }
@@ -438,11 +487,9 @@ function buildAutomatonPlan(actor, state, data = {}) {
     warnings,
     reading: "technologyModifier",
     async apply(_next, receipt, choice) {
-      const techMod = technologyModifierValue(actor, choice);
-      const pb = pbOf(actor), intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
-      need(Number.isFinite(intMod), "Review your Intelligence modifier before creating the Automaton.");
+      const { techMod, ...stats } = automatonStatsFor(actor, choice);
+      const { pb } = stats;
       const automatonId = automatonIdFor(receipt.id), uuid = `Actor.${automatonId}`;
-      const stats = { hpMax: Math.max(1, AUTOMATON_BASE_HP + techMod), pb, attackBonus: intMod + pb, technologyModifier: choice };
       const name = `${AUTOMATON_VARIANTS[variant].label} Automaton (${actor.name})`;
       const summary = `${actor.name} built ${name}: ${stats.hpMax} HP (${AUTOMATON_BASE_HP} + Technology ${techMod} via ${choice === "techTotal" ? "the Technology total" : "Intelligence modifier"}), Proficiency Bonus ${pb}, attack +${stats.attackBonus} (Intelligence + PB).`;
       // F-R8: every fallible step is done before the world Actor exists. The relay is idempotent per opId (the Actor ID
@@ -563,7 +610,7 @@ function concussivePlan(actor, state, data = {}) {
       receipt.html = true;
       receipt.targets = [{ kind: "heal", uuid: automaton.uuid, name: automaton.name, amount: 0, ready: false,
         healingSource: "classFeature", constructException: true, recordTag: "concussiveMaintenance" }];
-      receipt.summary = `${actor.name} sacrificed one Attack to bash ${automaton.name} into shape and expended one Aid Die. `
+      receipt.summary = `${esc(actor.name)} sacrificed one Attack to bash ${esc(automaton.name)} into shape and expended one Aid Die. `
         + `<button type="button" data-ak5e-artificer-roll="${esc(receipt.id)}" data-actor="${esc(actor.uuid)}">Roll ${esc(die)} x ${esc(pb)} (heal ${esc(automaton.name)})</button>`
         + "<p>Healing applies only when you roll.</p>";
       receipt.result = { die, pb, automaton: automaton.uuid };
@@ -606,10 +653,13 @@ function advancedMatrixPlan(actor, state, data = {}) {
 
 // The relay reads validateTarget from the plan function (PLANS[command]), so each relayable plan carries its check here.
 rebuildPlan.validateTarget = fieldsValidate;
+rebuildPlan.validateRevert = fieldsValidate;
 advancedMatrixPlan.validateTarget = fieldsValidate;
+advancedMatrixPlan.validateRevert = fieldsValidate;
 // The Automaton a build created: its ID derives from this use's opId, and it is flagged as built by this source.
 buildAutomatonPlan.validateTarget = (source, receipt, entry, target) => entry?.kind === "artificerAutomaton"
   && target?.uuid === entry.uuid && target.id === automatonIdFor(receipt.id) && automatonFlag(target).creator === source.uuid;
+buildAutomatonPlan.validateRevert = buildAutomatonPlan.validateTarget;
 
 export const artificerPlans = Object.freeze({
   artificerSetup: setupPlan,
@@ -664,7 +714,7 @@ async function askForm(title, content, read) {
   return foundry.applications.api.DialogV2.wait({
     window: { title }, position: { width: 440 }, rejectClose: false, content,
     buttons: [
-      { action: "ok", label: "Confirm", default: true, callback: (_event, button) => read(button.form.elements) },
+      { action: "ok", label: "Confirm", default: true, callback: (_event, button) => read(button.form.elements) ?? false },
       { action: "cancel", label: "Cancel", callback: () => false }
     ]
   });
@@ -675,10 +725,8 @@ const automatonOptions = list => selectOptions(list.map(a => [a.uuid, a.name]));
 
 /** Distance in feet from the Artificer's token to an Automaton's token on the current scene, when both are placed. */
 function tokenDistance(actor, automaton) {
-  const tokens = globalThis.canvas?.tokens?.placeables ?? [];
-  const mine = tokens.find(t => t.actor?.uuid === actor.uuid), theirs = tokens.find(t => t.actor?.uuid === automaton.uuid);
-  const d = mine && theirs ? mine.distanceTo?.(theirs) : undefined;
-  return Number.isFinite(Number(d)) ? Number(d) : undefined;
+  // Measured on the grid between the two tokens; undefined (no warning) when either token is not on the viewed scene.
+  return tokenDistanceFeet(actor.uuid, automaton.uuid);
 }
 
 /** Runs a confirmed use: one stable operation ID per click, so a retry resumes the same receipt. */
@@ -799,9 +847,13 @@ const turnStart = async event => {
   await actor.update({ "flags.ak5e.artificer.turn": null });
 };
 
-/** At 0 HP an Automaton is destroyed (the flag is kept, the actor stays). Written by the owner's client that changed HP. */
+/**
+ * At 0 HP an Automaton is destroyed (the flag is kept, the actor stays). Exactly one client writes it: the active GM's when a
+ * GM is connected (so several clients never race on the same flag), else the client of the user who changed the HP.
+ */
 const autoDestroy = (actor, changes, _options, userId) => {
-  if (userId !== game.user?.id) return;
+  const gm = globalThis.game?.users?.activeGM;
+  if (gm ? gm.id !== game.user?.id : userId !== game.user?.id) return;
   if (!isAutomatonFlagged(actor) || automatonFlag(actor).destroyed === true || hpOf(actor) > 0) return;
   if (!actor.isOwner) return;
   Promise.resolve(actor.update({ "flags.ak5e.automaton.destroyed": true })).catch(error => console.error("AK5e | Automaton destroyed", error));

@@ -11,6 +11,7 @@ import {
   ASI_LEVELS, checkLevel, supporterProfile, supporterState, aidAbilityKey
 } from "./supporter-rules.mjs";
 import { need } from "./operation-kernel.mjs";
+import { supporterSerial } from "./supporter-lock.mjs";
 import { supporterBranchFeatureIds } from "./supporter-branches.mjs";
 import { SUPPORTER_TALENT_FLAG, SUPPORTER_TALENT_RULES, supporterTalentEffects } from "./supporter-talents.mjs";
 
@@ -162,19 +163,16 @@ export function supporterChoices(actor, supplied = {}) {
   if (level) {
     result.asi ??= {};
     result.hp ??= {};
+    // A level already applied is never applied again, whatever is supplied for it (the preview warns about a re-pick).
+    // A level not yet applied still defaults to "keep" (nothing is granted and nothing is recorded, so it can be chosen later),
+    // but the preview now warns about it instead of skipping the level silently.
     for (const n of ASI_LEVELS.filter(v => v <= level)) {
-      if (state.asiLevels?.includes(n) && !supplied.asi?.[n]) {
-        result.asi[n] = { mode: "existing" };
-      } else {
-        result.asi[n] ??= { mode: "existing" };
-      }
+      if (state.asiLevels?.includes(n)) result.asi[n] = { mode: "existing" };
+      else result.asi[n] ??= { mode: "existing" };
     }
     for (let n = 1; n <= level; n++) {
-      if (state.hpLevels?.includes(n) && !supplied.hp?.[n]) {
-        result.hp[n] = { mode: "existing" };
-      } else {
-        result.hp[n] ??= { mode: "existing" };
-      }
+      if (state.hpLevels?.includes(n)) result.hp[n] = { mode: "existing" };
+      else result.hp[n] ??= { mode: "existing" };
     }
   }
   return result;
@@ -330,6 +328,7 @@ function actorSnapshotKey(actor, choices, profile) {
     choices.saves,
     choices.skills,
     choices.aidAbility,
+    choices.tool,
     choices.startingEquipment,
     choices.hp,
     choices.asi,
@@ -433,6 +432,11 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
   // Weapons: Light Melee, recorded as custom weapon proficiency text (the caster convention, merged without duplicates)
   writes["system.traits.weaponProf.custom"] = mergeSemicolon(system.traits?.weaponProf?.custom, SUPPORTER_WEAPON_PROFS);
 
+  // Tools: "A Tool Kit/Vehicle Proficiency of your Choice" (C3:117), recorded as custom tool text, merged without duplicates.
+  if (SUPPORTER_TOOL_CHOICES.includes(choices.tool)) {
+    writes["system.traits.toolProf.custom"] = mergeSemicolon(system.traits?.toolProf?.custom, [choices.tool]);
+  }
+
   // Skills
   if (validSkills) {
     for (const skillKey of uniqueChosenSkills) {
@@ -445,6 +449,12 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
   let hpIncrease = 0;
   for (let n = 1; n <= level; n++) {
     const hpChoice = choices.hp?.[n];
+    if (state.hpLevels.includes(n) && suppliedChoices?.hp?.[n] && suppliedChoices.hp[n].mode !== "existing") {
+      warnings.push(`Level ${n} Hit Points were already applied; they are not applied again.`);
+    }
+    if (!state.hpLevels.includes(n) && !suppliedChoices?.hp?.[n]) {
+      warnings.push(`Level ${n} Hit Points were not chosen; none are added for this level now (choose Average, Rolled or Maximum to add them).`);
+    }
     if (!hpChoice || hpChoice.mode === "existing") continue;
     if (n === 1) {
       hpIncrease += Math.max(1, 6 + conMod);
@@ -464,6 +474,12 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
   const abilityIncreases = {};
   for (const n of ASI_LEVELS.filter(v => v <= level)) {
     const asiChoice = choices.asi?.[n];
+    if (state.asiLevels.includes(n) && suppliedChoices?.asi?.[n] && suppliedChoices.asi[n].mode !== "existing") {
+      warnings.push(`Level ${n} Ability Score Improvement was already applied; it is not applied again.`);
+    }
+    if (!state.asiLevels.includes(n) && !suppliedChoices?.asi?.[n]) {
+      warnings.push(`Level ${n} Ability Score Improvement was not chosen; none is applied for this level now.`);
+    }
     if (!asiChoice) {
       pending.push(`asi.${n}`);
       continue;
@@ -580,6 +596,12 @@ export async function previewSupporterProgression(actor, suppliedChoices = {}) {
 
 export async function applySupporterProgression(actor, { confirmed, contextKey, choices = {} } = {}) {
   need(confirmed === true, "Confirm the previewed Supporter progression first.");
+  // One progression per Actor at a time: the plan is re-read inside the lock, so a second overlapping click sees the first
+  // one's result (its context key then no longer matches) and cannot grant the same levels or Items twice.
+  return supporterSerial(actor, () => applyLocked(actor, { contextKey, choices }));
+}
+
+async function applyLocked(actor, { contextKey, choices }) {
   const plan = await previewSupporterProgression(actor, choices);
   need(plan.contextKey === contextKey, "The character changed since the preview; preview Supporter progression again.");
   need(plan.pending.length === 0, `Complete all required choices before applying progression: ${plan.pending.join(", ")}`);
@@ -610,10 +632,18 @@ export async function applySupporterProgression(actor, { confirmed, contextKey, 
     ...plan.writes,
     [`flags.ak5e.${SUPPORTER_PROGRESS_FLAG}`]: state
   };
-  await actor.update(updates);
-
-  if (plan.createItems.length) {
-    await actor.createEmbeddedDocuments("Item", plan.createItems);
+  // Items first, then the Actor update that records them as granted. If the update fails the new Items are removed again, so
+  // the progression record never claims levels or Items the Actor does not have (and a retry starts from the same state).
+  let created = [];
+  try {
+    if (plan.createItems.length) created = entries(await actor.createEmbeddedDocuments("Item", plan.createItems));
+    await actor.update(updates);
+  } catch (error) {
+    const ids = created.map(item => item?.id).filter(Boolean);
+    if (ids.length) {
+      try { await actor.deleteEmbeddedDocuments("Item", ids); } catch (rollbackError) { console.error("AK5e | Supporter progression rollback failed", rollbackError); }
+    }
+    throw error;
   }
 
   return {

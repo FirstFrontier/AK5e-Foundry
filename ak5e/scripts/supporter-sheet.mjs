@@ -17,6 +17,7 @@ import {
   SUPPORTER_TALENT_IDS, SUPPORTER_TALENT_RULES, ownedTalent, supporterTalentManualCard
 } from "./supporter-talents.mjs";
 import { previewSupporterSetup, applySupporterSetup } from "./supporter-setup.mjs";
+import { tokenDistanceFeet } from "./supporter-measure.mjs";
 import {
   previewSupporterProgression, applySupporterProgression, inspectSupporterFields
 } from "./supporter-progression.mjs";
@@ -84,14 +85,20 @@ const aidAbilitySelect = selected => `<label>Aid Die ability (chosen modifier)
   <select name="aidAbility">${ABILITY_KEYS.map(key => `<option value="${key}"${key === selected ? " selected" : ""}>${key.toUpperCase()}</option>`).join("")}</select>
 </label>`;
 
-/** A small details prompt (text, number, checkbox or select fields). Cancel resolves null and changes nothing. */
+/**
+ * A small details prompt (text, number, checkbox or select fields). Cancel resolves null and changes nothing.
+ * B-302: DialogV2 resolves a callback that returns null or undefined to the button's action string ("ok"), which is truthy
+ * and would pass for a real choice. The read callback therefore resolves to `false` instead, and every caller treats a
+ * falsy result as Cancel.
+ */
 async function detailsPrompt(title, fieldsHtml, read) {
-  return DialogV2().prompt({
+  const result = await DialogV2().prompt({
     window: { title },
     rejectClose: false,
     content: `<div class="ak5e-supporter-details">${fieldsHtml}</div>`,
-    ok: { label: "Continue", callback: (_event, button) => read(button.form.elements) }
+    ok: { label: "Continue", callback: (_event, button) => read(button.form.elements) ?? false }
   });
+  return result === false || result === "ok" ? null : result;
 }
 
 /** The roll an Aid Die is spent on. Values match the roll types the Aid Die engine accepts. */
@@ -216,7 +223,7 @@ export async function handleSupporterCommand(actor, cmd) {
     const ally = await chooseAlly(actor, "Provide Aid: recipient");
     if (!ally) return null;
     const die = aidDieSize(supporterLevel(actor) ?? 1);
-    return runSupporterUse(actor, "provideAid", "Provide Aid", { targetUuid: ally.targetUuid, targetName: ally.targetName, distance: 0 }, [
+    return runSupporterUse(actor, "provideAid", "Provide Aid", { targetUuid: ally.targetUuid, targetName: ally.targetName, distance: tokenDistanceFeet(actor.uuid, ally.targetUuid) }, [
       `${actor.name} spends one Aid Die (${die}) on ${ally.targetName}.`,
       "The recipient may expend it on an Attack, Skill Check, Saving Throw, Damage or Healing Roll within 10 minutes."
     ]);
@@ -235,7 +242,7 @@ export async function handleSupporterCommand(actor, cmd) {
   if (cmd === "lightenTheLoad") {
     const ally = await chooseAlly(actor, "Lighten the Load: new recipient");
     if (!ally) return null;
-    return runSupporterUse(actor, "lightenTheLoad", "Lighten the Load", { targetUuid: ally.targetUuid, targetName: ally.targetName, distance: 0 }, [
+    return runSupporterUse(actor, "lightenTheLoad", "Lighten the Load", { targetUuid: ally.targetUuid, targetName: ally.targetName, distance: tokenDistanceFeet(actor.uuid, ally.targetUuid) }, [
       `${actor.name} uses a Reaction to grant ${ally.targetName} a free Aid Die.`,
       "The Aid Die is not expended and cannot be used on a supplementary Aid Die."
     ]);
