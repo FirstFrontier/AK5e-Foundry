@@ -29,7 +29,7 @@ const EXPECTED_ARTS = [
   ["Mass Healing Word", 4, true, false], ["Mind Spike", 4, true, false], ["Slow", 4, true, false],
   ["Tasha's Mind Whip", 4, false, true], ["Thunderwave", 4, true, false], ["Aura of Life", 5, false, true],
   ["Fire Shield", 5, true, false], ["Freedom of Movement", 5, true, false], ["Shatter (2nd Level)", 5, true, false],
-  ["Circle of Power", 6, true, false], ["Shatter (5th Level)", 8, true, false], ["Synaptic Static", 8, true, false]
+  ["Circle of Power", 6, true, false], ["Shatter (5th Level)", 8, true, true], ["Synaptic Static", 8, true, false]
 ];
 
 /** Ch.5 presence is looked up in the Chapter Five data (every entry's text), as a whole word, case-sensitive. */
@@ -89,12 +89,15 @@ test("the Performance Arts table matches C3:7168-7211 row for row (34 rows, Muse
   assert.deepEqual(BARD_PERFORMANCE_ARTS.map(row => [row.name, row.muse, row.inChapterFive, row.manual]), EXPECTED_ARTS);
   assert.equal(Object.isFrozen(BARD_PERFORMANCE_ARTS), true);
   for (const row of BARD_PERFORMANCE_ARTS) assert.deepEqual(Object.keys(row).sort(), ["inChapterFive", "manual", "muse", "name"]);
-  assert.equal(BARD_PERFORMANCE_ARTS.filter(row => row.manual).length, 11);
+  // 11 Arts absent from Chapter 5, plus Shatter (5th Level): Chapter 5 defines Shatter only at 2nd Level (U5 ruling d, DECISIONS item 7).
+  assert.equal(BARD_PERFORMANCE_ARTS.filter(row => row.manual).length, 12);
 });
 
 test("inChapterFive and manual agree with a lookup in the Chapter Five data (R7)", () => {
   for (const row of BARD_PERFORMANCE_ARTS) {
     assert.equal(inChapterFiveData(row.name), row.inChapterFive, `${row.name}: Chapter Five presence`);
+    // Shatter (5th Level) is in the Chapter Five data but its 5th Level version is undefined there: manual anyway (U5 ruling d).
+    if (row.name === "Shatter (5th Level)") { assert.equal(row.manual, true); continue; }
     assert.equal(row.manual, !row.inChapterFive, `${row.name}: manual is the absence from Chapter Five`);
   }
 });
@@ -144,10 +147,10 @@ test("Emergency Improv insert: an unknown Art is a hard error and no check is co
   assert.deepEqual(armsOf(performancesOf(actor)[0]), ["Bane", "Aid", "Bolster"]);
 });
 
-test("the Performance cap is max(1, Charisma modifier) (R10)", () => {
+test("the Performance cap is the Charisma modifier with no minimum (C3:7102, U5 ruling R1)", () => {
   assert.equal(performanceLimit(createBard({ cha: 16 })), 3);
-  assert.equal(performanceLimit(createBard({ cha: 8 })), 1);
-  assert.equal(performanceLimit(createBard({ cha: 6 })), 1);
+  assert.equal(performanceLimit(createBard({ cha: 8 })), 0);
+  assert.equal(performanceLimit(createBard({ cha: 6 })), 0);
   assert.equal(performanceLimit(createBard({ cha: 20 })), 5);
   const actor = createBard({ cha: 14 });   // modifier 2
   const three = [["Bane", "Aid", "Bolster"], ["Heroism", "Sleep", "Warding Bond"], ["Bless", "Mage Armour", "Pyrotechnics"]];

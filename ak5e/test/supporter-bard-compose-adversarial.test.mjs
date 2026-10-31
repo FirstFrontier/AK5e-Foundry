@@ -290,12 +290,13 @@ test("Arts table: inChapterFive agrees with 05_chapter_5_arts.txt for every row 
   }
 });
 
-test("Ruling 7: exactly the eleven Arts absent from Ch.5 carry manual: true; every other row is manual: false", async () => {
+test("Ruling 7 (+ U5 ruling d): the eleven Arts absent from Ch.5 and Shatter (5th Level) carry manual: true; every other row is manual: false", async () => {
   const { BARD_PERFORMANCE_ARTS } = await bardModule();
   const manualNames = BARD_PERFORMANCE_ARTS.filter(row => row.manual === true).map(row => row.name).sort();
-  assert.deepEqual(manualNames, [...ABSENT_FROM_CH5].sort());
+  // U5 ruling d: Shatter (5th Level) is manual as well (Ch.5 defines Shatter only at 2nd Level), so it joins the eleven.
+  assert.deepEqual(manualNames, [...ABSENT_FROM_CH5, "Shatter (5th Level)"].sort());
   for (const row of BARD_PERFORMANCE_ARTS) {
-    if (row.name === "Shatter (5th Level)") continue;   // see the test.todo below
+    if (row.name === "Shatter (5th Level)") continue;   // manual by ruling d, see the test.todo below
     assert.equal(row.manual, !row.inChapterFive, `${row.name}: manual is the negation of inChapterFive`);
   }
 });
@@ -409,10 +410,11 @@ test("The no-consecutive rule is per Performance: one Performance may end with a
   assert.deepEqual(await planWarnings(actor, "composePerformances", data), [], "across two Performances this is allowed");
 });
 
-test("Performance cap at CHA 0: one Performance is fine, two warn (cap is max(1, CHA mod), C3:7102)", async () => {
+// U5 head ruling R1: the cap is the Charisma Modifier with no minimum (C3:7102), so CHA 0 allows no Performance.
+test("Performance cap at CHA 0: even one Performance warns (cap is the Charisma modifier, no minimum, C3:7102)", async () => {
   await ready();
   const actor = composer({ cha: 0 });
-  assert.deepEqual(await planWarnings(actor, "composePerformances", compose(1, CAP_LINE)), []);
+  assert.deepEqual(await planWarnings(actor, "composePerformances", compose(1, CAP_LINE)).then(list => list.map(w => w.id)), ["performanceLimit"]);
   const ws = await planWarnings(actor, "composePerformances", compose(2, [...CAP_LINE, ["Aid", "Heroism", "Sleep"]]));
   assert.ok(ws.length > 0, "a second Performance at CHA 0 is a warning");
 });
@@ -434,10 +436,10 @@ test("Performance cap at CHA 3: three Performances pass, a fourth warns", async 
   assert.ok((await planWarnings(actor, "composePerformances", compose(4, four))).length > 0, "a fourth is a warning");
 });
 
-test("Performance cap with a negative CHA modifier is still max(1, CHA mod) = 1", async () => {
+test("Performance cap with a negative CHA modifier is zero (no invented minimum of one, R1)", async () => {
   await ready();
   const actor = composer({ cha: -1 });
-  assert.deepEqual(await planWarnings(actor, "composePerformances", compose(1, CAP_LINE)), []);
+  assert.deepEqual(await planWarnings(actor, "composePerformances", compose(1, CAP_LINE)).then(list => list.map(w => w.id)), ["performanceLimit"]);
   assert.ok((await planWarnings(actor, "composePerformances", compose(2, [...CAP_LINE, ["Aid", "Heroism", "Sleep"]]))).length > 0);
 });
 
