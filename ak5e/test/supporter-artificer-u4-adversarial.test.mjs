@@ -435,24 +435,65 @@ test("U4-PRG-2 (red, MED): a failed Supporter item creation leaves no progressio
   assert.equal(Number(actor.system.currency.cp), 0, "the starting cash is not granted when the Items fail to create");
 });
 
-test("U4-PRG-3 (red, LOW): the chosen Supporter tool is written to the actor's tool proficiencies (C3:6602)", async () => {
+/** The semicolon-separated tool proficiency text dnd5e 5.x keeps in traits.toolProf.custom. */
+function toolProfEntries(actor) {
+  return String(actor.system.traits.toolProf?.custom ?? "").split(";").map(item => item.trim()).filter(Boolean);
+}
+
+// C3:6602 Supporter: "Tools: A Tool Kit/Vehicle Proficiency of your Choice."
+test("U4-PRG-3a (red, LOW): a level 1 Supporter who chooses Vehicle gets that proficiency in traits.toolProf.custom (C3:6602)", async () => {
+  await ready();
+  const actor = progressionActor(1);
+  const choices = { ...LEVEL_ONE, tool: "Vehicle" };
+  const preview = await previewSupporterProgression(actor, choices);
+  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  assert.ok(toolProfEntries(actor).includes("Vehicle"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
+});
+
+test("U4-PRG-3b (red, LOW): a level 1 Supporter who chooses Tool Kit gets that proficiency in traits.toolProf.custom (C3:6602)", async () => {
+  await ready();
+  const actor = progressionActor(1);
+  const choices = { ...LEVEL_ONE, tool: "Tool Kit" };
+  const preview = await previewSupporterProgression(actor, choices);
+  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  assert.ok(toolProfEntries(actor).includes("Tool Kit"), `the chosen tool is recorded in toolProf.custom (got ${JSON.stringify(actor.system.traits.toolProf)})`);
+});
+
+test("U4-PRG-3c (guard): an unlisted tool such as Engineering Kit is not written at level 1 (it is the C3:6899 exchange, not the C3:6602 choice)", async () => {
   await ready();
   const actor = progressionActor(1);
   const choices = { ...LEVEL_ONE, tool: "Engineering Kit" };
   const preview = await previewSupporterProgression(actor, choices);
-  await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
-  // C3:6602 Supporter: "Tools: A Tool Kit/Vehicle Proficiency of your Choice."
-  assert.match(JSON.stringify(actor.system.traits.toolProf), /Engineering Kit/, "the chosen tool is recorded as a proficiency");
+  let refused = false;
+  try {
+    await applySupporterProgression(actor, { confirmed: true, contextKey: preview.contextKey, choices });
+  } catch {
+    refused = true;
+  }
+  // Either refusing the apply or applying without the unlisted tool is acceptable; writing it is not.
+  assert.ok(refused || !toolProfEntries(actor).includes("Engineering Kit"),
+    `an unlisted tool must not be written at level 1 (got ${JSON.stringify(actor.system.traits.toolProf)})`);
 });
 
-test("U4-PRG-4 (red, LOW): an unapplied level does not default to 'existing' (it must stay pending for the player)", async () => {
+test("U4-PRG-4 (red, LOW): an unchosen Hit Points level grants nothing silently; the preview warns and names that level (warn, never block)", async () => {
   await ready();
   const actor = progressionActor(4);
-  const choices = supporterChoices(actor, {});
+  // Defaults: an unchosen Hit Points level may default to "existing" but must never default to a granting mode.
+  const defaults = supporterChoices(actor, {});
   for (const level of [2, 3, 4]) {
-    assert.notEqual(choices.hp?.[level]?.mode, "existing", `hp level ${level} has not been applied; it must not default to existing`);
+    const mode = defaults.hp?.[level]?.mode;
+    assert.ok(mode === undefined || mode === "existing", `hp level ${level} defaults to "${mode}"; an unchosen level must not silently grant Hit Points`);
   }
-  assert.notEqual(choices.asi?.[4]?.mode, "existing", "the level 4 Ability Score Improvement has not been applied");
+  // Preview with levels 2-4 left unchosen (level 1 is chosen as in LEVEL_ONE).
+  const preview = await previewSupporterProgression(actor, { ...LEVEL_ONE, hp: { 1: { mode: "fixed", roll: 6 } } });
+  // Level 1: fixed 6 + CON mod 2 = 8 on top of the existing 8 maximum; unchosen levels 2-4 add nothing.
+  assert.equal(preview.writes["system.attributes.hp.max"], 16, "only the chosen level 1 Hit Points are added; unchosen levels add nothing");
+  // Warn, never block: the unchosen levels must not stop the preview.
+  assert.ok(!preview.pending.some(p => /^hp\b/.test(p)), `unchosen Hit Points must warn, not block (pending: ${preview.pending.join(", ")})`);
+  for (const level of [2, 3, 4]) {
+    const named = preview.warnings.some(w => new RegExp(`level ${level}\\b`, "i").test(w) && /hit points/i.test(w));
+    assert.ok(named, `the preview warns that Level ${level} Hit Points were not chosen (warnings: ${JSON.stringify(preview.warnings)})`);
+  }
 });
 
 test("U4-PRG-5 (guard): re-running an applied progression with a fresh preview grants no new Items or cash", async () => {
