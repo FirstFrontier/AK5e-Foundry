@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   isArtilleryman, defineArtillerymanPools, artillerymanSplashDC,
-  ARTILLERYMAN_PLANS, artillerymanPreRollDamage
+  ARTILLERYMAN_PLANS, artillerymanPreRollDamage,
+  isDelayedMunitionActive, isDelayedMunitionSuppressed, suppressDelayedMunitionTimer
 } from "../scripts/artilleryman-features.mjs";
 import { getPool } from "../scripts/resource-pools.mjs";
 globalThis.game = { time: { worldTime: 100 }, user: { targets: new Set() } };
@@ -291,3 +292,148 @@ test("Secondary Detonation records its originating use and selected damage readi
   assert.equal(receipt.resolution.steps[0].sourceActorUuid, actor.uuid);
   assert.equal(receipt.resolution.steps[0].originUseId, "source-splash");
 });
+
+test("Grouped mixed-recipient blast tests and handling with cover and vehicle doubling", () => {
+  const launcher = generatedLauncher();
+  const actor = {
+    uuid: "Actor.artilleryGroup",
+    name: "Artillery Group",
+    system: { attributes: { prof: 3 }, abilities: { dex: { mod: 4 } } },
+    items: [
+      { type: "class", system: { levels: 15 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-artilleryman" } } },
+      launcher
+    ],
+    flags: { ak5e: { marksman: { enabled: true, martialDcAbility: "dex" } } }
+  };
+
+  // Base DC = 8 + 3 + 4 = 15
+  // Three targets:
+  // t1: no cover (DC 15)
+  // t2: half cover (+2 to save / DC 13)
+  // t3: three quarters cover (+5 to save / DC 10)
+  const plan = ARTILLERYMAN_PLANS.splash(actor, {}, {
+    weaponUuid: launcher.uuid,
+    point: { x: 20, y: 20 },
+    targetUuids: ["Actor.t1", "Actor.t2", "Actor.t3"],
+    coverByTarget: {
+      "Actor.t2": "half",
+      "Actor.t3": "threeQuarters"
+    }
+  });
+
+  const receipt = { id: "rcpt-mixed-blast" };
+  plan.apply({}, receipt);
+
+  assert.equal(receipt.resolution.steps.length, 3);
+  const [s1, s2, s3] = receipt.resolution.steps;
+
+  // All targets belong to the shared rollGroupId
+  assert.equal(s1.rollGroupId, "splash-blast");
+  assert.equal(s2.rollGroupId, "splash-blast");
+  assert.equal(s3.rollGroupId, "splash-blast");
+
+  // Cover DCs with Sharpened Shrapnel (base 15 + 2 = 17)
+  assert.equal(s1.save.dc, 17, "no cover has standard DC 17 with Sharpened Shrapnel");
+  assert.equal(s1.save.coverBonus, 0);
+
+  assert.equal(s2.save.dc, 15, "half cover reduces effective DC by 2 (17 - 2 = 15)");
+  assert.equal(s2.save.coverBonus, 2);
+
+  assert.equal(s3.save.dc, 12, "three-quarters cover reduces effective DC by 5 (17 - 5 = 12)");
+  assert.equal(s3.save.coverBonus, 5);
+
+  // Siege Attacker doubling for vehicles / objects
+  assert.equal(s1.siegeAttacker, true, "Artilleryman blast carries siegeAttacker: true");
+  assert.equal(s2.siegeAttacker, true);
+  assert.equal(s3.siegeAttacker, true);
+});
+
+test("Scatter Them distance, direction, and collision geometry tracking", () => {
+  const launcher = generatedLauncher();
+  const actor = {
+    uuid: "Actor.scatterGeom",
+    name: "Scatter Artillery",
+    system: { attributes: { prof: 3 }, abilities: { dex: { mod: 3 } } },
+    items: [
+      { type: "class", system: { levels: 9 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-artilleryman" } } },
+      launcher
+    ],
+    flags: {
+      ak5e: {
+        marksman: { enabled: true, martialDcAbility: "dex" },
+        resourcePools: { secondaryDetonation: { value: 1 } }
+      }
+    }
+  };
+
+  // Target positions relative to blast center { x: 10, y: 10 }:
+  // tRight: { x: 20, y: 10 } -> direction dx: 1, dy: 0, angle ~ 0 deg
+  // tUp: { x: 10, y: 0 } -> direction dx: 0, dy: -1, angle ~ 270 deg
+  const plan = ARTILLERYMAN_PLANS.scatterThem(actor, {}, {
+    weaponUuid: launcher.uuid,
+    point: { x: 10, y: 10 },
+    targetUuids: ["Actor.tRight", "Actor.tUp"],
+    targetPositions: {
+      "Actor.tRight": { x: 20, y: 10 },
+      "Actor.tUp": { x: 10, y: 0 }
+    },
+    collisionTargetUuids: ["Actor.tRight"],
+    triggerConfirmed: true
+  });
+
+  const receipt = { id: "rcpt-scatter-geom" };
+  plan.apply({}, receipt);
+
+  assert.ok(receipt.result.geometry);
+  assert.equal(receipt.result.blastCenter.x, 10);
+  assert.equal(receipt.result.blastCenter.y, 10);
+
+  const geomRight = receipt.result.geometry["Actor.tRight"];
+  assert.ok(geomRight);
+  assert.equal(geomRight.distanceFt, 30);
+  assert.equal(geomRight.collided, true);
+  assert.equal(geomRight.angleDeg, 0);
+
+  const geomUp = receipt.result.geometry["Actor.tUp"];
+  assert.ok(geomUp);
+  assert.equal(geomUp.distanceFt, 30);
+  assert.equal(geomUp.collided, false);
+  assert.equal(geomUp.angleDeg, 270);
+
+  // Check collision damage step for tRight
+  const collisionStep = receipt.resolution.steps.find(s => s.id.startsWith("scatter-collision") && s.targetUuids.includes("Actor.tRight"));
+  assert.ok(collisionStep);
+  assert.equal(collisionStep.damageParts[0].formula, "4d8");
+  assert.equal(collisionStep.damageParts[0].type, "bludgeoning");
+});
+
+test("Timer reload suppression maintains inactive munition state across reload", () => {
+  const actor = {
+    uuid: "Actor.timerReload",
+    flags: {
+      ak5e: {
+        marksman: {
+          enabled: true,
+          delayedMunitions: [
+            { id: "active-1", active: true, point: { x: 5, y: 5 } },
+            { id: "suppressed-2", active: false, point: { x: 10, y: 10 } }
+          ]
+        }
+      }
+    }
+  };
+
+  assert.equal(isDelayedMunitionActive(actor, "active-1"), true);
+  assert.equal(isDelayedMunitionSuppressed(actor, "active-1"), false);
+
+  assert.equal(isDelayedMunitionActive(actor, "suppressed-2"), false);
+  assert.equal(isDelayedMunitionSuppressed(actor, "suppressed-2"), true);
+
+  // Suppress active munition
+  suppressDelayedMunitionTimer(actor, "active-1");
+  assert.equal(isDelayedMunitionActive(actor, "active-1"), false);
+  assert.equal(isDelayedMunitionSuppressed(actor, "active-1"), true);
+});
+

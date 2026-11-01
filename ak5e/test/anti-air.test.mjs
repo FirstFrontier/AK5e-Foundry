@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   isAntiAir, isAirborneOrFast, defineAntiAirPools, antiAirTurnKey,
-  ANTI_AIR_PLANS, antiAirPreRollAttack, antiAirRollInitiative
+  ANTI_AIR_PLANS, antiAirPreRollAttack, antiAirRollInitiative, declareAirborneTarget
 } from "../scripts/anti-air-features.mjs";
 import { getPool, recoverPool } from "../scripts/resource-pools.mjs";
 globalThis.game = { time: { worldTime: 100 }, combat: null };
@@ -85,6 +85,71 @@ test("Option Recharge uses the canonical pool, once for an initiative event", as
   assert.equal(getPool(actor, "versatileApproach").value, 1);
   await antiAirRollInitiative(actor, { eventId: "reroll" });
   assert.equal(getPool(actor, "versatileApproach").value, 2, "a genuinely new initiative roll recovers one");
+});
+
+test("B-301: antiAirRollInitiative routes through recoverMarksmanPool and the serial coordinator", async () => {
+  const savedGame = globalThis.game;
+  const savedFoundry = globalThis.foundry;
+  try {
+    globalThis.game = {
+      users: { activeGM: { id: "gm", name: "GM", isGM: true } },
+      user: { id: "gm", name: "GM", isGM: true },
+      time: { worldTime: 200 }
+    };
+    globalThis.foundry = { utils: { randomID: () => "anti-air-init-id" } };
+
+    const actor = {
+      uuid: "Actor.antiAirCoord",
+      name: "Meteorite",
+      documentName: "Actor",
+      isOwner: true,
+      system: { attributes: { prof: 5 } },
+      items: [
+        { type: "class", system: { levels: 15 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+        { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-anti-air" } } }
+      ],
+      flags: {
+        ak5e: {
+          marksman: { enabled: true },
+          resourcePools: { versatileApproach: { value: 0 } },
+          marksmanCoordinator: { operations: [] }
+        }
+      },
+      getFlag(scope, key) { return this.flags?.[scope]?.[key]; },
+      async update(changes) {
+        for (const [path, value] of Object.entries(changes)) {
+          const parts = path.split("."), last = parts.pop();
+          let obj = this;
+          for (const key of parts) obj = obj[key] ??= {};
+          obj[last] = structuredClone(value);
+        }
+        return this;
+      }
+    };
+
+    const event = {
+      eventId: "init-event-coord-1",
+      combatantId: "combatant-aa-1",
+      combatUuid: "Combat.aa-1"
+    };
+
+    const result = await antiAirRollInitiative(actor, event);
+    assert.ok(Array.isArray(result), "recoverMarksmanPool returned recovery receipts");
+    assert.equal(getPool(actor, "versatileApproach").value, 1, "recovered 1 use of versatileApproach");
+
+    // Verify it went through coordinator kernel
+    const ops = actor.flags.ak5e.marksmanCoordinator.operations;
+    assert.equal(ops.length, 1, "coordinator recorded exactly one operation");
+    assert.equal(ops[0].command, "recover");
+    assert.equal(ops[0].status, "committed");
+
+    // Re-running with the same eventId is deduplicated by the coordinator / receipt ledger
+    await antiAirRollInitiative(actor, event);
+    assert.equal(getPool(actor, "versatileApproach").value, 1, "no duplicate recovery for identical event");
+  } finally {
+    globalThis.game = savedGame;
+    globalThis.foundry = savedFoundry;
+  }
 });
 
 test("Weight of Fire and Shifting Focus plans", () => {
@@ -328,5 +393,114 @@ test("Area Denial filters nominated immunity and repeats the failed-save flying 
   }
   assert.equal(lingering.repeatable, true);
   assert.equal(lingering.dynamicTargets, true);
+});
+
+test("Table fact-entry for manual airborne declaration and air tracking queries", async () => {
+  const actor = {
+    uuid: "Actor.antiAirFact",
+    name: "Shirayuki",
+    items: [
+      { type: "class", system: { levels: 3 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-anti-air" } } }
+    ],
+    flags: { ak5e: { marksman: { enabled: true } } }
+  };
+
+  const plan = ANTI_AIR_PLANS.recordAirTrackingFacts(actor, {}, {
+    targetUuid: "Scene.1.Token.droneA",
+    targetName: "Reunion Drone A",
+    airborne: true,
+    feetMovedLastTurn: 50
+  });
+
+  assert.equal(plan.warnings.length, 0);
+  const receipt = { id: "rcpt-air-fact" };
+  const updates = plan.apply({}, receipt);
+
+  assert.ok(receipt.tableFact);
+  assert.equal(receipt.tableFact.factType, "airTracking");
+  assert.equal(receipt.tableFact.targetUuid, "Scene.1.Token.droneA");
+  assert.equal(receipt.tableFact.airborne, true);
+  assert.equal(receipt.tableFact.feetMovedLastTurn, 50);
+  assert.equal(receipt.tableFact.actorUuid, actor.uuid);
+  assert.ok(typeof receipt.tableFact.declaredAt === "number");
+
+  const encodedKey = `flags.ak5e.marksman.airTrackingFacts.${encodeURIComponent("Scene.1.Token.droneA").replaceAll(".", "%2E")}`;
+  assert.equal(updates[encodedKey].airborne, true);
+  assert.equal(updates[encodedKey].feetMovedLastTurn, 50);
+
+  // Apply updates to actor
+  const targetK = encodeURIComponent("Scene.1.Token.droneA").replaceAll(".", "%2E");
+  actor.flags.ak5e.marksman.airTrackingFacts = {
+    [targetK]: updates[encodedKey]
+  };
+
+  // Check isAirborneOrFast with attacker's recorded airTrackingFacts
+  const groundedToken = { id: "droneA", document: { uuid: "Scene.1.Token.droneA", elevation: 0 } };
+  const groundedActor = { system: { attributes: { movement: { fly: 0 } } } };
+  assert.equal(isAirborneOrFast(groundedToken, groundedActor, actor), true, "attacker's air tracking fact recognizes declared airborne target");
+
+  // Attack roll against declared airborne target gets advantage
+  const roll = { options: {} };
+  const config = {
+    subject: { actor, actionType: "rwak" },
+    rolls: [roll],
+    targetToken: groundedToken,
+    targetActor: groundedActor
+  };
+  antiAirPreRollAttack(config);
+  assert.equal(roll.options.advantage, true, "antiAirPreRollAttack grants advantage vs declared airborne target");
+
+  // Fast movement fact check (Pigeon Shooting requires 60+ feet)
+  const fastToken = { id: "runner", document: { uuid: "Scene.1.Token.runner", elevation: 0 } };
+  actor.flags.ak5e.marksman.airTrackingFacts["Scene.1.Token.runner"] = { airborne: false, feetMovedLastTurn: 65 };
+  assert.equal(isAirborneOrFast(fastToken, groundedActor, actor), true, "target with recorded feetMovedLastTurn >= 60 is fast");
+  actor.flags.ak5e.marksman.airTrackingFacts["Scene.1.Token.runner"].feetMovedLastTurn = 45;
+  assert.equal(isAirborneOrFast(fastToken, groundedActor, actor), false, "target with recorded feetMovedLastTurn < 60 is not fast");
+
+  // Helper declareAirborneTarget
+  const helperResult = await declareAirborneTarget(actor, "Scene.1.Token.droneB", { airborne: true });
+  assert.equal(helperResult.receipt.tableFact.targetUuid, "Scene.1.Token.droneB");
+  assert.equal(helperResult.receipt.tableFact.airborne, true);
+});
+
+test("antiAirRollInitiative serialization alignment and event object fallback", async () => {
+  const actor = {
+    uuid: "Actor.initAlign",
+    system: { attributes: { prof: 3 } },
+    items: [
+      { type: "class", system: { levels: 15 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-anti-air" } } }
+    ],
+    flags: {
+      ak5e: {
+        marksman: { enabled: true },
+        resourcePools: { versatileApproach: { value: 0 } }
+      }
+    },
+    async update(changes) {
+      for (const [path, value] of Object.entries(changes)) {
+        const parts = path.split("."), last = parts.pop();
+        let obj = this; for (const key of parts) obj = obj[key] ??= {};
+        obj[last] = structuredClone(value);
+      }
+      return this;
+    }
+  };
+
+  // Calling with (event) object containing raw.actor
+  const singleArgEvent = {
+    raw: { actor },
+    eventId: "event-single-arg-1"
+  };
+  const res1 = await antiAirRollInitiative(singleArgEvent);
+  assert.ok(Array.isArray(res1));
+  assert.equal(getPool(actor, "versatileApproach").value, 1, "recovers pool when called with (event)");
+
+  // Calling with (actor, event) where event has no eventId (deterministic eventKey fallback)
+  const noIdEvent = { eventKey: "fallback-key-1" };
+  const res2 = await antiAirRollInitiative(actor, noIdEvent);
+  assert.ok(Array.isArray(res2));
+  assert.equal(getPool(actor, "versatileApproach").value, 2, "recovers pool using eventKey fallback");
 });
 

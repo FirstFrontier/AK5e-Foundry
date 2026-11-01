@@ -86,13 +86,23 @@ function deadlyFighterCycle(actor) {
 function deadlyItemKey(item) {
   return item?.uuid ?? item?.id ?? item?.name ?? null;
 }
-export function marksmanPostRollAttack(_rolls, { subject } = {}) {
-  const actor = subject?.actor, cycle = actor && deadlyFighterCycle(actor);
-  if (!actor || !cycle) return;
-  const actorKey = actor.uuid ?? actor.id ?? actor.name, pending = deadlyFighterPending.get(actorKey);
-  if (pending?.cycle !== cycle || pending.itemKey !== deadlyItemKey(subject?.item)) return;
-  deadlyFighterTurn.set(actorKey, cycle);
-  deadlyFighterPending.delete(actorKey);
+export function marksmanPostRollAttack(rolls, context = {}) {
+  const subject = context?.subject ?? rolls?.subject ?? (rolls?.actor ? rolls : null);
+  const actor = subject?.actor ?? rolls?.actor;
+  if (!actor) return;
+  const cycle = deadlyFighterCycle(actor);
+  if (cycle) {
+    const actorKey = actor.uuid ?? actor.id ?? actor.name, pending = deadlyFighterPending.get(actorKey);
+    if (pending?.cycle === cycle && pending.itemKey === deadlyItemKey(subject?.item)) {
+      deadlyFighterTurn.set(actorKey, cycle);
+      deadlyFighterPending.delete(actorKey);
+    }
+  }
+  if (isDefensiveStyleActive(actor)) {
+    expireDefensiveStyle(actor);
+    if (context?.flags?.ak5e) context.flags.ak5e.defensiveStyleExpired = true;
+    if (rolls?.flags?.ak5e) rolls.flags.ak5e.defensiveStyleExpired = true;
+  }
 }
 
 function tellManualTargetLockRecovery(actor) {
@@ -206,6 +216,24 @@ export function marksmanPreRollAttack(config, _dialog, _message) {
   }
 }
 
+export function findUnerringReceipt(actor, messageUuid) {
+  if (!actor || !messageUuid) return null;
+  const undo = flag(actor, "marksmanUses")?.undo ?? [];
+  const playUsesUndo = flag(actor, "playUses")?.undo ?? flag(actor, "playUses")?.receipts ?? [];
+  const directReceipts = actor.flags?.ak5e?.marksmanReceipts
+    ? (Array.isArray(actor.flags.ak5e.marksmanReceipts) ? actor.flags.ak5e.marksmanReceipts : Object.values(actor.flags.ak5e.marksmanReceipts))
+    : [];
+  const receipts = [
+    ...(marksmanUses.receipts?.(actor) ?? []),
+    ...(Array.isArray(undo) ? undo : []),
+    ...(Array.isArray(playUsesUndo) ? playUsesUndo : []),
+    ...directReceipts
+  ];
+  return receipts.find(r => r && r.command === "unerring" && r.status !== "undone" &&
+    (r.originMessageUuid === messageUuid || r.result?.originMessageUuid === messageUuid || r.messageUuid === messageUuid
+     || (r.originMessageUuid && (r.originMessageUuid.endsWith(messageUuid) || messageUuid.endsWith(r.originMessageUuid)))));
+}
+
 export function marksmanPreRollDamage(config, _dialog, _message) {
   const activity = config?.subject, actor = activity?.actor;
   if (!actor || !marksmanEnabled(actor)) return;
@@ -213,6 +241,37 @@ export function marksmanPreRollDamage(config, _dialog, _message) {
   if (!roll?.parts) return;
   inheritMarksmanAttackContext(config);
   marksmanAttackTarget(config);
+
+  // Unerring damage continuation:
+  // If the originating attack was converted to a hit by Unerring, carry unerring
+  // provenance, ensure hit is marked true, record the effective AC total, link to
+  // the unerring receipt, and suppress critical damage (treated as minimum required to hit).
+  const originMsgUuid = config.originMessageUuid
+    || config.event?.target?.closest?.("[data-message-id]")?.dataset?.messageId
+    || roll.options?.ak5eMarksman?.originMessageUuid;
+  const unerringReceipt = findUnerringReceipt(actor, originMsgUuid)
+    || (config.unerringUseId ? marksmanUses.receipt(actor, config.unerringUseId) : null)
+    || (config.ak5eUnerring ? { id: config.unerringUseId ?? "unerring", result: { hit: true, effectiveTotal: config.targetAC } } : null);
+
+  if (unerringReceipt || config.ak5eUnerring || roll.options?.ak5eMarksman?.unerring) {
+    roll.options ??= {};
+    roll.options.ak5eMarksman = {
+      ...(roll.options.ak5eMarksman ?? {}),
+      actorUuid: actor.uuid,
+      unerring: true,
+      convertedToHit: true,
+      hit: true,
+      effectiveTotal: unerringReceipt?.result?.effectiveTotal ?? config.targetAC ?? null,
+      unerringUseId: unerringReceipt?.id ?? config.unerringUseId ?? null
+    };
+    roll.options.critical = false;
+    roll.options.isCritical = false;
+    roll.critical = false;
+    config.flags ??= {};
+    config.flags.ak5e ??= {};
+    config.flags.ak5e.unerring = true;
+    config.flags.ak5e.convertedToHit = true;
+  }
 
   // Smooth Operator Fighting Style: add ability modifier to Bonus Action Rapid Fire attack
   if (hasFightingStyle(actor, "smoothOperator")) {
@@ -246,6 +305,65 @@ export function marksmanPreRollDamage(config, _dialog, _message) {
   }
 }
 
+/* ---------------------------------------------------------------- Defensive End Control */
+
+export const DEFENSIVE_STYLE_PLANS = {
+  endDefensiveStyle(actor, _state, _data) {
+    need(marksmanEnabled(actor), "Defensive is a Marksman fighting style.");
+    return {
+      warnings: [],
+      title: "End Defensive Style AC Bonus",
+      apply(_next, receipt) {
+        receipt.summary = `${actor.name} ends the Defensive Fighting Style AC bonus.`;
+        receipt.result = { ended: true };
+        (receipt.targets ??= []).push({
+          uuid: actor.uuid,
+          name: actor.name,
+          kind: "marksmanOutcome",
+          ready: true,
+          payload: { removeLabels: ["Defensive: end after the triggering Attack"] }
+        });
+        return {
+          "flags.ak5e.marksman.defensiveActive": false,
+          "flags.ak5e.marksman.defensiveBonusActive": false
+        };
+      }
+    };
+  }
+};
+DEFENSIVE_STYLE_PLANS.endDefensiveStyle.validateTarget = (source, _receipt, entry, target) =>
+  entry.kind === "marksmanOutcome" && target.uuid === source.uuid
+  && Object.keys(entry.payload ?? {}).length === 1
+  && entry.payload?.removeLabels?.length === 1
+  && entry.payload.removeLabels[0] === "Defensive: end after the triggering Attack";
+
+marksmanUses.register({ plans: DEFENSIVE_STYLE_PLANS });
+
+export function isDefensiveStyleActive(actor) {
+  if (!actor) return false;
+  if (actor.flags?.ak5e?.marksman?.defensiveBonusActive === true) return true;
+  return values(actor.effects).some(effect => effect.name === "Defensive: end after the triggering Attack");
+}
+
+export async function expireDefensiveStyle(actor) {
+  if (!actor) return false;
+  const updates = {
+    "flags.ak5e.marksman.defensiveBonusActive": false,
+    "flags.ak5e.marksman.defensiveExpiredAt": globalThis.game?.time?.worldTime ?? Date.now()
+  };
+  if (actor.flags?.ak5e?.marksman) {
+    actor.flags.ak5e.marksman.defensiveBonusActive = false;
+    actor.flags.ak5e.marksman.defensiveExpiredAt = updates["flags.ak5e.marksman.defensiveExpiredAt"];
+  }
+  const effects = values(actor.effects).filter(effect => effect.name === "Defensive: end after the triggering Attack");
+  if (effects.length && actor.deleteEmbeddedDocuments) {
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(e => e.id ?? e._id));
+  } else if (actor.update) {
+    await actor.update(updates);
+  }
+  return updates;
+}
+
 /* ---------------------------------------------------------------- Registration */
 
 export function registerMarksmanFeatureHooks() {
@@ -266,4 +384,5 @@ export function registerMarksmanFeatureHooks() {
 export const registerMarksmanHooks = registerMarksmanFeatureHooks;
 
 defineMarksmanPools();
+
 

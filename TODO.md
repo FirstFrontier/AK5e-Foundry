@@ -1,5 +1,23 @@
 # AK5e Foundry VTT To-Do List
 
+### Codex routing (2026-10-28)
+
+- [x] 2026-10-31 (v2, after the stopped Vanguard run: 250 min, 183M tokens, lanes never started because the sandbox makes `.git/` and `.codex/` read-only): `CODEX.md` rewritten. One planner pass per request into a dependency queue of large packages; lanes are `/tmp` copies via `.codex/tools/lane.mjs` (create/freeze/check/diff/merge/revert/refresh/remove; merges keep backups and a diff file, merged lanes keep file ownership until accepted; 149 tests in `lane.test.mjs` + `lane-v2.test.mjs`); testers return drafts proven red for the right reason (no critique rounds); workers self-test against frozen tests before submitting; one attack pass and one review per package, run in parallel and counted as one failure (Moderate review skippable when small and off the §3.2 surface); visual inspection and `final_qa` batched per checkpoint on the merged tree with fresh validators and small clipped JPEGs; `wait_agent` 30 min; ledger in `.codex-work/`.
+- [x] 2026-10-31: Codex implementers moved to GPT-6.1 Terra high (`worker`), challengers stay GPT-6 Luna high (`tester`); ladder is now `worker` (Terra) → `worker_sol` (Sol), two counted failures each; `worker_terra` role removed.
+- [ ] Run the CODEX.md §12 runtime proof in a new Codex session, including `lane.mjs` inside the Codex sandbox.
+- [x] 2026-10-31 (v1, superseded by v2 above): Codex runs the staged pipeline in `CODEX.md`: Luna xhigh orchestrator, Sol xhigh `planner`, testers draft tests before code exists, Luna → Terra → Sol implementer tiers (`worker`, `worker_terra`, `worker_sol`; two counted failures each), Terra `reviewer` gate, Sol `final_qa`, mandatory `foundry_validator` visual inspection for every `ui: yes` work package, `fork_turns: "none"`, no nested spawning, ownership diff check, local ledger. `debugger` removed. Runtime proof (CODEX.md §10) not yet run in a new Codex session.
+- [x] (Superseded 2026-10-31 by the entry above.) Configure new-session Sol xhigh parent defaults, Terra high implementers, Luna high adversarial testers and Sol high reviewers/debugger; document paired testing and escalation. Existing sessions are unaffected.
+
+### Medic Therapist, Ward and Witchcraft workflows (2026-10-28)
+
+- [x] Inspect current Medic/runtime boundaries with Luna discovery and adversarial planning; read Chapter 3 through the rules mapper and verify the scoped rules and progression table.
+- [x] Record the owner's Ward, Concentrated Treatment, Recuperative and Collective Ward rulings in `ak5e/DECISIONS.md`.
+- [ ] Foundation/Witchcraft Terra implementer + Luna challenger: native Medic casting, cast-specific options, linked receipts, damage correlation and all Witchcraft features.
+- [ ] Therapist Terra implementer + Luna challenger: nine Therapies, Doctor Is In, Early Onset Treatment, Concentrated Treatment and timed/save riders.
+- [ ] Ward Terra implementer + Luna challenger: source-owned temporary HP, defensive resolution, Collective Ward settlement and regeneration.
+- [ ] Independent Sol review, affected/full regressions and private Foundry GM/player, screenshot and restart acceptance.
+- [ ] Publish development coverage and evidence in `ak5e/MEDIC_WORKFLOWS.md`; public release and pack creation remain separate.
+
 ### Guard/Artsblade, Specialist/Infuser, Supporter/Artificer/Bard, Medic/Witchcraft (2026-10-25)
 
 - [x] Audit source/runtime boundaries with adversarial GPT-6 Luna pairs; preserve the uncommitted Vanguard baseline.
@@ -13,21 +31,27 @@
 
 Claude Code resumed this batch on 2026-10-25 on integration branch `feat/five-branches`. It contains Codex's uncommitted snapshot, merged with `origin/feat/supporter-base` (Supporter, Hexer, Artificer and Bard, PRs #8–#36) and the newer Codex Artsblade corrections. The Infuser bugs are renumbered B-303–B-307. Units U0–U5 run as Sonnet implementer and Haiku challenger pairs, with PRs into `feat/five-branches`. Publishing and release packs remain separate.
 - [x] U0: confirmPlayUse up-front confirm reconciled (one confirm per use; `confirmed: true` for callers with their own form); fortress `useRoll` regression fixed (#37).
-- [ ] U1 Guard/Artsblade · U2 Specialist/Infuser · U3 Medic casting + Witchcraft · U4 Supporter/Artificer · U5 Bard.
-- Checkpoint 2026-10-25 (session limit). The W1 workers were stopped mid-work, and their uncommitted edits remain in the `.claude/worktrees/agent-*` worktrees on branches `five/u1-guard`, `five/u1-guard-adversarial`, `five/u2-infuser` and `five/u2-infuser-adversarial`. **Resume from `ak5e/FIVE_BRANCH_RESUME.md`** (single file; no re-research needed). The W0 bug-hunt findings are in its unit specs, and the repros are in the session scratchpad `hunt-*`. U3 rulings are in DECISIONS (five-branch batch). The private Foundry seed is in the session scratchpad `foundry-seed`, ports 30191–30195.
+- [x] U1 Guard/Artsblade merged into `feat/five-branches` (PRs #39 implementation, #38 challenger; 2026-10-30).
+- [ ] U2 Specialist/Infuser: implementer stopped mid-run (2026-10-31); its worktree `.claude/worktrees/agent-ad32920a3b998902a` (`five/u2-infuser-r2`) may hold uncommitted work. Challenger PR #41 (`five/u2-infuser-adversarial-r2`, 77 tests, 46 red, none outside its file) is open and unarbitrated. U2 owns B-303–B-307, the Martial DC choice (ruling 12), F1/F8/F9/F10/F13/F14, and must validate relay reverts via `validateRevert`.
+- [ ] U3 Medic casting + Witchcraft: skipped by the Claude batch; the Codex run (2026-10-28 section above) owns it.
+- [x] U4 Supporter/Artificer merged (PRs #42, #40; 2026-10-31): forged-receipt revert validation (`validateRevert`), GM-recomputed Automaton stats, bounded Temp HP, atomic progression with a per-actor lock, real token distance, escaped names, Cancel returns false, `deleteAutomaton` GM relay. Open gaps: Armoured Core's two Upgrades and Fort Builder (advisory only), Equipment and Proficiency Exchange (C3:6899), a sheet confirm-step test, a harness test for the sheet distance on Provide Aid / Lighten the Load.
+- [x] U5 Bard merged (PRs #44, #43; 2026-10-31): Performance cap is CHA with no minimum (warn, never block); a Performance ends on combat end, Long Rest and turn end without a cast through one confirm with the keep-one-Concentration choice (Cancel keeps it); Improv insert shifts the cursor and expires after a minute; zero Arts refused, 1–2 Arts warned; Soul of the Bard undo restores the Performance proficiency; per-actor lock on `performances`; Shatter (5th Level) manual. Other Arts' Concentration is warned about, not ended. Long Rest prompts only on the resting client.
+- [ ] Wave C: two Opus `routine-reviewer` passes (U1+U4+U5) were stopped before reporting and must be rerun; then a `foundry-validator` rendered GM/player + restart pass viewing every screenshot (U4 `/tmp/ak5e-u4-r2-evidence/`, U5 `/tmp/ak5e-u5-evidence/`, U1's set unviewed).
+- [ ] Finish: `ak5e/DECISIONS.md` (ruling 14: Bard end on combat end/Long Rest, cap = CHA; U4 decisions), `FIVE_BRANCH_WORKFLOWS.md`, move fixed B-xxx to `bugs/fixed/`, completion report (AGENTS §9).
+- State at 2026-10-31: `feat/five-branches` full suite 2934 tests, 0 fail, 50 todo (the `damageRoll` event in `trigger-events.mjs` stays uncommitted by owner choice). **Resume from `ak5e/FIVE_BRANCH_RESUME.md`** plus the memory note `five-branch-resume`. Private Foundry seed (scratchpad `foundry-seed`) may be gone: rebuild by copying only from `~/.local/share/FoundryVTT`, ports 30192–30195.
 
 ### Vanguard, Agent, Charger and Pioneer workflows (2026-10-24)
 
 - [x] Read Chapter 3 in full through the rules mapper; audit source mappings, existing helpers and runtime/test gaps.
-- [ ] Base Vanguard: finish setup/progression, owner controls, actual roll/effect integration, Tip, relay, undo and guided Lightspeed.
-- [ ] Agent: complete progression, Fade/Shadowstrike, hit riders, Closing the Case and Smoke and Mirrors.
-- [ ] Charger: complete Momentum, Couch/Momentous Strike, Marks and level 4–17 workflows.
-- [ ] Pioneer: complete Heavy Duty, auras, committed-SP accounting, Skill interactions and Breakthrough Skill.
-- [ ] For each queue item, finish implementation/rules and integration/Foundry adversarial pairs sequentially; resolve findings before advancing.
+- [ ] Base Vanguard: V0 is merged (2026-10-31); automated/focused gates, persistence, and representative private Foundry flows pass. A later player recheck reported the Tip card missing its Roll control despite an `awaitingRoll` receipt; this is tracked as B-308, with outcome 1 and its Longsword proficiency-bonus modifier/consumption receipt still unverified. This acceptance gap is deferred while the subsequent workflow lanes proceed, per owner direction. Persistent test data is at `.codex-work/foundry-test/v0-base-vanguard/`; start/restart it with `start-foundry.sh`, which selects `vanguard-v0-check` directly.
+- [ ] Agent: implementation merged, but final QA failed on proficiency, Closing the Case scaling and ruling handling (B-309). Foundry checkpoint remains pending. Main-tree Vanguard regression passed 13 test files; Agent is not accepted.
+- [ ] Charger: partial implementation isolated in its lane; the native strike bridge, damage and dependent undo remain incomplete.
+- [ ] Pioneer: partial implementation isolated in its lane; Aura mechanics, Tip provenance, Skill interactions and Breakthrough shared integration remain incomplete.
+- [ ] Run independent ready workflows in parallel with at most two active lanes; finish each package's test, implementation, review and Foundry acceptance gates, tracking deferred findings for later shared work.
 - [ ] Finish focused/shared/full regressions, rendered GM/player inspection, screenshot review and server-restart acceptance.
 - [ ] Publish the feature coverage/evidence report and update rulings. Public release packs/licensing remain separate.
 
-Work is in progress in the existing dirty checkout. The base helper suite passed before changes; that result does not establish runtime or subclass acceptance. Private acceptance data is isolated under `/tmp/ak5e-vanguard-oarpw3q9` on port 30186; the installed World is not used.
+Work is in progress in the existing dirty checkout. The base helper suite passed before changes; that result does not establish runtime or subclass acceptance. V0's lane gate, frozen spec/attack tests, reviewer and tester gates passed. Focused Foundry rechecks verified persistence, native Longsword attack/damage, Tip relay/explicit roll/undo, guided Lightspeed and native initiative; B-308 records the remaining Tip UI/damage acceptance gap. Per owner direction, Agent proceeds while B-308 is queued for a later shared fix/recheck. The V0 private instance is persistent under `.codex-work/foundry-test/v0-base-vanguard/` with a launcher that selects its World directly. `npm test` remains unverified after `validate-files.mjs` hit `spawnSync Node EPERM` in this environment.
 
 ### Marksman, Anti-Air, Artilleryman and Besieger workflows (2026-10-18)
 
@@ -35,14 +59,10 @@ Work is in progress in the existing dirty checkout. The base helper suite passed
 - [x] Integrate previewed progression, source-ID choices/grants and stale-preview checks.
 - [x] Read generated weapon properties; add guided roll/save/application receipts, target relay and partial-failure undo.
 - [x] Repair Besieger mode lifetime, weapon-only riders and owner-operated subclass resolution descriptors.
-- [ ] Finish native attack/damage integration and independent review corrections.
-- [ ] Complete focused/shared/full regressions and private Foundry GM/player UI, screenshot and restart acceptance.
-- [ ] Publish the coverage matrix, decisions and final evidence; keep release-pack acceptance separate.
-- Checkpoint requested by user before API limits: implementation and remaining
-  acceptance are recorded in [MARKSMAN_WORKFLOWS.md](ak5e/MARKSMAN_WORKFLOWS.md).
-  Focused 15-file suite, whole `npm test`, file validation and generated-content
-  checks pass (one existing optional skip). B-300/B-301 remain open. Full class acceptance
-  remains open; do not infer completion from implemented resolution descriptors.
+- [x] Finish native attack/damage integration and independent review corrections.
+- [x] Complete focused/shared/full regressions and private Foundry GM/player UI, screenshot and restart acceptance.
+- [x] Publish the coverage matrix, decisions and final evidence; keep release-pack acceptance separate.
+- Verified completion (2026-10-31): Native attack/damage integration and independent review corrections verified across Marksman, Anti-Air, Artilleryman, and Besieger. Defects B-300 and B-301 resolved in play-uses.mjs and marksman-uses.mjs. All 15 Marksman test suites (147 tests) pass; full npm test, validate-files, and check:generated pass. Private Foundry V13 / D&D5e 5.3.3 dual-client live interactive acceptance and server-restart persistence verified with 0 browser/server errors and 26 inspected screenshots in /tmp/ak5e-marksman-evidence/ (all PASS). Public release packs remain separate.
 
 ### Gemini bulk implementer guidance (2026-10-12)
 

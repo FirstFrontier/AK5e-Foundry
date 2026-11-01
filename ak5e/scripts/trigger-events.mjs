@@ -5,6 +5,7 @@
  *
  * Verified against installed dnd5e 5.3.3 (dnd5e.mjs) and Foundry 13.351:
  *  - dnd5e.postRollAttack (rolls, { subject })          callAll, roller's client only     dnd5e.mjs:28597, 20416
+ *  - dnd5e.rollDamage (rolls, { subject })               callAll, roller's client only    dnd5e.mjs:17570, 21192
  *  - dnd5e.rollSavingThrow (rolls, { ability, subject }) callAll, roller's client only    dnd5e.mjs:37534
  *  - dnd5e.rollConcentration (rolls, { subject })        callAll, roller's client only    dnd5e.mjs:37743
  *  - dnd5e.preApplyDamage (actor, amount, updates, options) Hooks.call (CANCELLABLE)       dnd5e.mjs:36739
@@ -21,8 +22,8 @@
 import { keyedSerial, gmActive, need, flag } from "./operation-kernel.mjs";
 import { tagActors, tagHasExpired } from "./feature-tags.mjs";
 
-export const AK5E_EVENT_KINDS = Object.freeze(["apSpent", "artCast", "attack", "hit", "crit", "hitTaken", "save", "initiative",
-  "turnStart", "turnEnd", "kill", "combatEnd"]);
+export const AK5E_EVENT_KINDS = Object.freeze(["apSpent", "artCast", "attack", "hit", "crit", "damageRoll", "hitTaken", "save",
+  "initiative", "turnStart", "turnEnd", "kill", "combatEnd"]);
 export const RIDER_FLAG = "triggerRiders";
 export const REACTION_FLAG = "reactionBudget";
 // Same trigger vocabulary as feature-tags tagExpiry(), so tagHasExpired() applies unchanged.
@@ -216,6 +217,23 @@ export async function handleSavingThrow(rolls, data = {}, { concentration = fals
     raw: { rolls, actor } });
 }
 
+/** One `damageRoll` per evaluated damage/healing roll set (dnd5e.rollDamage), on the roller's client. The legacy
+ * chat-card path (dnd5e.mjs:21192) sends no `subject`, so actor/item/activity are then null. Rolls are reported as
+ * rolled; the damage is not applied here (see `hitTaken` for applied damage). */
+export async function handleRollDamage(rolls, data = {}) {
+  const roll = rolls?.[0];
+  if (!roll || seenRolls.has(roll)) return;                // dedupe: one event per evaluated roll set
+  seenRolls.add(roll);
+  const subject = data.subject ?? null, actor = subject?.actor ?? null, id = randomId();
+  const parts = [...rolls].map(r => ({ formula: r.formula ?? null, total: Number(r.total) || 0,
+    types: [...new Set([r.options?.type, ...(r.options?.types ?? [])].filter(Boolean))] }));
+  const targets = attackTargets(roll).map(t => t.uuid);
+  await emitAk5eEvent("damageRoll", { eventId: `damageRoll:${id}`, actorUuid: actor?.uuid ?? null, tokenUuid: tokenUuidOf(actor),
+    itemUuid: subject?.item?.uuid ?? null, activityUuid: subject?.uuid ?? null, total: parts.reduce((sum, p) => sum + p.total, 0),
+    critical: [...rolls].some(r => r.isCritical), rolls: parts, targetUuids: targets, userId: game.user?.id ?? null,
+    ...combatContext(), raw: { rolls, subject, actor } });
+}
+
 /** Synchronous; READS ONLY. Never returns false, never writes options or updates. */
 export function capturePreApplyDamage(actor, _amount, _updates, options) {
   if (!actor?.uuid || !options || typeof options !== "object") return;
@@ -301,6 +319,7 @@ export function registerTriggerEventHooks() {
   if (!registry || installedOn.has(registry)) return false;
   installedOn.add(registry);
   registry.on("dnd5e.postRollAttack", (rolls, data) => { fire(handlePostRollAttack(rolls, data)); });
+  registry.on("dnd5e.rollDamage", (rolls, data) => { fire(handleRollDamage(rolls, data)); });
   registry.on("dnd5e.rollSavingThrow", (rolls, data) => { fire(handleSavingThrow(rolls, data)); });
   registry.on("dnd5e.rollConcentration", (rolls, data) => { fire(handleSavingThrow(rolls, data, { concentration: true })); });
   registry.on("dnd5e.preApplyDamage", (actor, amount, updates, options) => { capturePreApplyDamage(actor, amount, updates, options); });

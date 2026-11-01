@@ -1,4 +1,6 @@
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
+import { vanguardExtensionContext, vanguardSkillSlots } from "./vanguard-extensions.mjs";
+import { vanguardProfile } from "./vanguard-rules.mjs";
 
 export const OPERATOR_SKILL_LEVELS = Object.freeze([{ tier: "Basic", level: 2 }, { tier: "Advanced", level: 7 }, { tier: "Elite", level: 14 }]);
 const records = new Map(CHAPTER_THREE_CLASSES.map(entry => [entry.id, entry]));
@@ -7,10 +9,11 @@ const flag = (document, key) => document?.getFlag?.("ak5e", key) ?? document?.fl
 const list = collection => Array.from(collection?.values?.() ?? collection ?? []);
 
 /** Pure, source-ID-based view. Never adopt Items or write receipts while rendering. */
-export function getOperatorSkillChoices(actor) {
+export function getOperatorSkillChoices(actor, { ignoreRequestId = null } = {}) {
   const empty = { applicable: false, slots: [], pending: [], blocked: [], contextKey: null, promptKey: null };
   if (actor?.type !== "character" || actor.pack) return empty;
-  const items = list(actor.items);
+  const items = list(actor.items).filter(item => !(ignoreRequestId && flag(item, "operatorSkillChoice")?.requestId === ignoreRequestId
+    && flag(item, "operatorSkillChoice")?.replacementKey));
   const classes = items.filter(item => item.type === "class");
   const managed = classes.filter(item => records.get(flag(item, "chapterThreeId"))?.kind === "class");
   if (!managed.length) return empty;
@@ -24,10 +27,33 @@ export function getOperatorSkillChoices(actor) {
   const level = Number(classItem.system?.levels);
   if (!Number.isInteger(level) || level < 1) return { ...empty, applicable: true, blocked: ["InvalidClassLevel"] };
   const stored = flag(actor, "operatorSkills")?.progression?.choices ?? {};
-  const contextKey = JSON.stringify([classId, classItem.id, level, branch?.id ?? null, branchItem?.id ?? null]);
-  const slots = OPERATOR_SKILL_LEVELS.map(unlock => {
-    const key = `${classId}:${unlock.tier}`;
-    const options = catalogue.filter(skill => skill.operatorSkill.tier === unlock.tier && (
+  const standardSlots = OPERATOR_SKILL_LEVELS.map(unlock => ({ ...unlock, key: `${classId}:${unlock.tier}` }));
+  const extensionSlots = classId === "class-vanguard" ? vanguardSkillSlots(vanguardExtensionContext(actor, {
+    branchId: branch?.id ?? null, level, profile: vanguardProfile(actor),
+    choices: flag(actor, "vanguardProgression")?.choices ?? {}, purpose: "skills", standardSlots: structuredClone(standardSlots),
+    operatorState: structuredClone(flag(actor, "operatorSkills") ?? {})
+  })).map(slot => (flag(actor, "operatorSkills")?.operations ?? []).some(operation => operation.result?.replacements?.some(entry => entry.replacementKey === slot.replacementKey && slot.replacementKey))
+    ? { ...slot, replacementKey: undefined } : slot) : [];
+  const definitions = [...standardSlots, ...extensionSlots];
+  if (new Set(definitions.map(slot => slot.key)).size !== definitions.length) throw new Error("Duplicate Operator Skill slot key.");
+  for (const slot of extensionSlots) {
+    if (typeof slot.key !== "string" || !slot.key || typeof slot.label !== "string" || !slot.label
+      || !OPERATOR_SKILL_LEVELS.some(level => level.tier === slot.tier)
+      || !Number.isInteger(slot.level) || slot.level < 1
+      || !Array.isArray(slot.optionSourceIds) || !slot.optionSourceIds.length
+      || new Set(slot.optionSourceIds).size !== slot.optionSourceIds.length
+      || (slot.replacementKey != null && (typeof slot.replacementKey !== "string" || !slot.replacementKey))
+      || (slot.ignoreCharging !== undefined && typeof slot.ignoreCharging !== "boolean")) {
+      throw new Error("Invalid Operator Skill slot definition.");
+    }
+  }
+  const slots = definitions.map((unlock, index) => {
+    const key = unlock.key, extra = index >= standardSlots.length;
+    const options = extra ? (unlock.optionSourceIds ?? []).map(id => {
+      const skill = records.get(id);
+      if (!skill?.operatorSkill || skill.operatorSkill.tier !== unlock.tier) throw new Error("Invalid Operator Skill slot source.");
+      return skill;
+    }) : catalogue.filter(skill => skill.operatorSkill.tier === unlock.tier && (
       skill.parentClass === entry.name && !skill.parentBranch
       || entry.name === "Guard" && branch?.sourceHeading === "Liberator" && skill.parentClass === "Guard" && skill.parentBranch === "Liberator"
       || unlock.level >= 4 && entry.name === "Defender" && branch?.sourceHeading === "Sentry" && skill.parentClass === "Marksman" && !skill.parentBranch
@@ -36,7 +62,7 @@ export function getOperatorSkillChoices(actor) {
     // Disabled/customized feats still represent learned Skills. Duplicated source copies count once.
     const candidates = items.filter(item => {
       const definition = flag(item, "operatorSkill");
-      return item.type === "feat" && definition && (definition.tier === unlock.tier
+      return !extra && !extensionSlots.some(slot => flag(item, "operatorSkillChoice")?.key === slot.key) && item.type === "feat" && definition && (definition.tier === unlock.tier
         || records.get(definition.sourceId ?? flag(item, "chapterThreeId"))?.operatorSkill?.tier === unlock.tier);
     });
     const marked = items.filter(item => flag(item, "operatorSkillChoice")?.key === key);
@@ -45,7 +71,7 @@ export function getOperatorSkillChoices(actor) {
     if (selection) status = "chosen";
     else if (marked.length) {
       const sourceId = [...markedSources][0];
-      if (markedSources.size !== 1 || records.get(sourceId)?.operatorSkill?.tier !== unlock.tier || marked.some(item => flag(item, "operatorSkill")?.sourceId !== sourceId)) status = "ambiguous";
+      if (markedSources.size !== 1 || !options.some(option => option.id === sourceId) || marked.some(item => flag(item, "operatorSkill")?.sourceId !== sourceId)) status = "ambiguous";
       else { selection = { sourceId, itemId: marked[0].id }; status = "chosen"; }
     } else if (candidates.length) {
       const sources = new Set(candidates.map(item => flag(item, "operatorSkill").sourceId ?? flag(item, "chapterThreeId")));
@@ -53,12 +79,16 @@ export function getOperatorSkillChoices(actor) {
       if (sources.size !== 1 || !options.some(option => option.id === sourceId)) status = "ambiguous";
       else { selection = { sourceId, itemId: candidates[0].id }; status = "chosen"; }
     }
-    const present = selection && items.find(item => item.type === "feat"
+    const present = selection && items.find(item => item.type === "feat" && (!extra || flag(item, "operatorSkillChoice")?.key === key)
       && (flag(item, "operatorSkill")?.sourceId ?? flag(item, "chapterThreeId")) === selection.sourceId);
     if (selection && present && !items.some(item => item.id === selection.itemId)) selection = { ...selection, itemId: present.id };
     return { ...unlock, key, status, selection, missing: status === "chosen" && !present,
       recovery: status === "chosen" && !stored[key] && marked.length > 0, options };
   });
+  const contextBase = [classId, classItem.id, level, branch?.id ?? null, branchItem?.id ?? null];
+  const contextKey = JSON.stringify(extensionSlots.length ? [...contextBase, extensionSlots, stored,
+    items.filter(item => !ignoreRequestId || flag(item, "operatorSkillChoice")?.requestId !== ignoreRequestId)
+      .map(item => [item.id, flag(item, "operatorSkillChoice")])] : contextBase);
   const pending = slots.filter(slot => slot.status === "pending");
   const blocked = slots.flatMap(slot => slot.status === "ambiguous" ? ["AmbiguousSkills"] : slot.missing ? ["MissingChosenSkill"] : []);
   return { applicable: true, classId, className: entry.name, branchName: branch?.sourceHeading ?? null, level, contextKey,

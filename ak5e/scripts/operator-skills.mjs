@@ -4,6 +4,8 @@ import { learnedSkills, operatorState, skillDefinition, spInteger, eventIdentity
 import { registerOperatorSheetHooks, openOperatorSkills, openOperatorSkillChoices } from "./operator-sheet.mjs";
 import { getOperatorSkillChoices, progressionWithChoices } from "./operator-progression.mjs";
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
+import { vanguardProfile } from "./vanguard-rules.mjs";
+import { notifyVanguardOperatorCommit } from "./vanguard-extensions.mjs";
 import { skillTargetProfile, validateSkillPrerequisites } from "./operator-target-profiles.mjs";
 import { profileForSkill, nativePhaseActivities, prepareSkillActivation, prepareSkillPhase, validateSkillResolution, resolutionReceipt,
   skillTemplateData, publicResolution, displaySkillResolution, rollSkillPhase, populateSkillTargets, advanceSkillArea, syncSkillTemplates } from "./operator-targeting.mjs";
@@ -11,6 +13,16 @@ export { openOperatorSkills, openOperatorSkillChoices, getOperatorSkillChoices }
 
 const list = collection => Array.from(collection?.values?.() ?? collection ?? []);
 const flag = (document, key) => document?.getFlag?.("ak5e", key) ?? document?.flags?.ak5e?.[key];
+async function cleanupReplacedSkills(actor, replacements, state) {
+  const references = Object.values(state.progression?.choices ?? {}).map(choice => choice?.itemId);
+  const remove = [];
+  for (const replacement of replacements ?? []) {
+    const item = actor.items.get(replacement.previousItemId);
+    const marker = flag(item, "operatorSkillChoice");
+    if (item && marker?.key === replacement.key && marker.sourceId === replacement.previousSourceId && !references.includes(item.id)) remove.push(item.id);
+  }
+  if (remove.length) await actor.deleteEmbeddedDocuments("Item", remove);
+}
 const isSkillTemplate = (template, activationId, skillUuid) => flag(template, "skillActivation") === activationId && flag(template, "skillOrigin")?.skillUuid === skillUuid;
 const damageSnapshots = new WeakMap();
 const restRequests = new WeakMap();
@@ -92,8 +104,15 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
     owned(actor, user);
     let state = getIntegratedOperatorState(actor);
     const previous = state.operations.find(operation => operation.id === request.id);
-    if (previous) return { state, result: ["activate", "resolvePhase"].includes(request.command) && previous.result?.activationId
-      ? { ...previous.result, replayed: true } : previous.result };
+    if (previous) {
+      if (previous.result?.replacements?.length) await cleanupReplacedSkills(actor, previous.result.replacements, state);
+      const profile = vanguardProfile(actor);
+      if (profile.applicable) for (const event of state.operatorEvents ?? []) if (event.activationId === request.id) {
+        await notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId, event: Object.freeze(structuredClone(event)), state: "present", reason: "replay", requestId: request.id, initiatingUserId: user.id });
+      }
+      return { state, result: ["activate", "resolvePhase"].includes(request.command) && previous.result?.activationId
+        ? { ...previous.result, replayed: true } : previous.result };
+    }
     const data = request.data ?? {};
     const context = operatorContext(actor);
     if (skillExpired(state.active, context)) state = queueEndingPhase(actor, state);
@@ -121,21 +140,33 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
       }
       case "chooseSkills": {
         if (!isLiveProgressionActor(actor)) throw new Error(spText("ChoiceActorRequired"));
-        let view = getOperatorSkillChoices(actor);
+        let view = getOperatorSkillChoices(actor, { ignoreRequestId: request.id });
         if (!view.applicable || !view.contextKey) throw new Error(spText("ChoiceActorRequired"));
         if (data.contextKey !== view.contextKey) throw new Error(spText("StaleChoices"));
         if (view.blocked.length) throw new Error(spText(view.blocked[0]));
         const selections = data.selections;
         if (!Array.isArray(selections) || !selections.length || new Set(selections.map(choice => choice?.key)).size !== selections.length) throw new Error(spText("SelectAllSkills"));
-        const toCreate = [];
+        const toCreate = [], replacements = [];
         for (const choice of selections) {
           const slot = view.slots.find(slot => slot.key === choice?.key);
-          if (!slot || slot.status === "locked" || slot.status === "chosen" && slot.selection.sourceId !== choice.sourceId
+          const replacement = slot?.status === "chosen" && slot.selection.sourceId !== choice.sourceId;
+          if (replacement && (!choice.replacementKey || choice.replacementKey !== slot.replacementKey || !slot.options.some(entry => entry.id === choice.sourceId)
+            || state.operations.some(operation => operation.result?.replacements?.some(entry => entry.replacementKey === choice.replacementKey)))) throw new Error(spText("InvalidSkillChoice"));
+          if (!slot || slot.status === "locked" || slot.status === "chosen" && slot.selection.sourceId !== choice.sourceId && !replacement
             || slot.status === "pending" && !slot.options.some(entry => entry.id === choice.sourceId)) throw new Error(spText("InvalidSkillChoice"));
-          if (slot.status === "chosen") continue;
+          if (slot.status === "chosen" && !replacement) continue;
           const entry = slot.options.find(entry => entry.id === choice.sourceId);
+          if (replacement) replacements.push({ replacementKey: choice.replacementKey, key: slot.key,
+            previousSourceId: slot.selection.sourceId, previousItemId: slot.selection.itemId, sourceId: choice.sourceId });
+          const recovered = list(actor.items).find(item => { const marker = flag(item, "operatorSkillChoice");
+            return marker?.requestId === request.id && marker.key === slot.key && marker.sourceId === choice.sourceId; });
+          if (recovered) continue;
           const itemData = operatorSkillItemData(entry);
-          itemData.flags.ak5e.operatorSkillChoice = { key: slot.key, sourceId: entry.id };
+          itemData.flags.ak5e.operatorSkillChoice = { key: slot.key, sourceId: entry.id, requestId: request.id,
+            ...(replacement ? { replacementKey: choice.replacementKey } : {}),
+            ...(slot.ignoreCharging === true ? { ignoreCharging: true } : {}) };
+          // The slot says "ignore the Charging Method for that Skill": the learned Skill contributes no charging method.
+          if (slot.ignoreCharging === true) itemData.flags.ak5e.operatorSkill.ignoreCharging = true;
           toCreate.push(itemData);
         }
         if (view.pending.some(slot => !selections.some(choice => choice.key === slot.key))) throw new Error(spText("SelectAllSkills"));
@@ -143,11 +174,18 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         // Recover interrupted creation/Actor saves from embedded choice markers on retry.
         if (!operates()) throw new Error(spText("GMRequired"));
         owned(actor, user);
-        view = getOperatorSkillChoices(actor);
+        view = getOperatorSkillChoices(actor, { ignoreRequestId: request.id });
         if (view.contextKey !== data.contextKey) throw new Error(spText("StaleChoices"));
-        if (selections.some(choice => view.slots.find(slot => slot.key === choice.key)?.selection?.sourceId !== choice.sourceId)) throw new Error(spText("ChoiceCommitFailed"));
-        state = operatorState({ ...state, progression: progressionWithChoices(state.progression, view) }, actorOperatorSkills(actor));
-        result = selections.map(choice => ({ key: choice.key, ...view.slots.find(slot => slot.key === choice.key).selection }));
+        if (selections.some(choice => !replacements.some(entry => entry.key === choice.key) && view.slots.find(slot => slot.key === choice.key)?.selection?.sourceId !== choice.sourceId)) throw new Error(spText("ChoiceCommitFailed"));
+        const progression = progressionWithChoices(state.progression, view);
+        for (const replacement of replacements) {
+          const item = list(actor.items).find(candidate => { const marker = flag(candidate, "operatorSkillChoice"); return marker?.requestId === request.id && marker.key === replacement.key && marker.sourceId === replacement.sourceId; });
+          if (!item) throw new Error(spText("ChoiceCommitFailed"));
+          progression.choices[replacement.key] = { sourceId: replacement.sourceId, itemId: item.id };
+        }
+        state = operatorState({ ...state, progression }, actorOperatorSkills(actor));
+        const chosen = selections.map(choice => ({ key: choice.key, ...progression.choices[choice.key] }));
+        result = replacements.length ? { choices: chosen, replacements } : chosen;
         break;
       }
       case "sync":
@@ -366,6 +404,12 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         if (scene && receipt?.templateIds?.length) await scene.deleteEmbeddedDocuments("MeasuredTemplate", receipt.templateIds);
       }
       throw error;
+    }
+    if (result?.replacements?.length) await cleanupReplacedSkills(actor, result.replacements, committed);
+    if (operatorEvent && !(operatorEvents.some(event => event.id === operatorEvent.id))) {
+      const profile = vanguardProfile(actor);
+      if (profile.applicable) await notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId,
+        event: Object.freeze(structuredClone(operatorEvent)), state: "present", reason: "commit", requestId: request.id, initiatingUserId: user.id });
     }
     await cleanupEndedSkillTemplates(actor, committed);
     if (request.command === "activate") {

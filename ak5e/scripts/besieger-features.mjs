@@ -333,6 +333,67 @@ BESIEGER_PLANS.besiegerHit = BESIEGER_PLANS.godpiercerHit;
 
 marksmanUses.register({ plans: BESIEGER_PLANS, readings: BESIEGER_READINGS });
 
+export function isSiegeBoltTickActive(receipt, targetUuid, occurrence) {
+  if (!receipt?.resolution?.steps) return false;
+  const occ = occurrence === "turn1" ? 1 : occurrence === "turn2" ? 2 : occurrence;
+  const groupId = `siege-bolt-${encodeURIComponent(targetUuid)}`;
+  const tickStep = receipt.resolution.steps.find(s => s.id === `${groupId}-tick-${occ}`);
+  return Boolean(tickStep && !tickStep.ended);
+}
+
+export function evaluateSiegeBoltSave(receipt, targetUuid, stepId, saveTotal, saveDC) {
+  const groupId = `siege-bolt-${encodeURIComponent(targetUuid)}`;
+  const succeeded = Number(saveTotal) >= Number(saveDC);
+  const cancel = occurrences => {
+    for (const occ of occurrences) {
+      const tick = receipt?.resolution?.steps?.find(s => s.id === `${groupId}-tick-${occ}`);
+      if (tick) tick.ended = true;
+      const save = receipt?.resolution?.steps?.find(s => s.id === `${groupId}-repeat-save-${occ}`);
+      if (save) save.ended = true;
+    }
+  };
+  if (stepId === `${groupId}-initial` && succeeded) {
+    cancel([1, 2]);
+    return {
+      passed: true,
+      endedEarly: true,
+      endedOngoing: true,
+      initialDamageApplies: true,
+      remainingTicksCancelled: [1, 2],
+      reason: "Initial Dexterity saving throw succeeded: ends ongoing ticks early."
+    };
+  }
+  if (stepId === `${groupId}-repeat-save-1` && succeeded) {
+    cancel([1, 2]);
+    return {
+      passed: true,
+      endedEarly: true,
+      endedOngoing: true,
+      initialDamageApplies: false,
+      remainingTicksCancelled: [1, 2],
+      reason: "Start of turn 1 Dexterity saving throw succeeded: ends remaining ticks early."
+    };
+  }
+  if (stepId === `${groupId}-repeat-save-2` && succeeded) {
+    cancel([2]);
+    return {
+      passed: true,
+      endedEarly: true,
+      endedOngoing: true,
+      initialDamageApplies: false,
+      remainingTicksCancelled: [2],
+      reason: "Start of turn 2 Dexterity saving throw succeeded: ends turn 2 tick early."
+    };
+  }
+  return {
+    passed: false,
+    endedEarly: false,
+    endedOngoing: false,
+    tickDue: stepId.startsWith(`${groupId}-repeat-save-`) ? Number(stepId.split("-").at(-1)) : null,
+    reason: "Saving throw failed; ongoing Siege Bolt effect continues."
+  };
+}
+
 /* ---------------------------------------------------------------- Hooks */
 
 export function besiegerPreRollAttack(config, _dialog, _message) {
@@ -353,16 +414,30 @@ export function besiegerPreRollAttack(config, _dialog, _message) {
       crush: ranged ? weaponPropertyValue(activity.item, "crush") + 2 * Number(actor.system?.attributes?.prof ?? 2) : 0,
       ignoreBrace: true, ignoreLongRangePenalty: true };
     if (config.range === "long" || roll.options.range === "long" || config.longRange === true) roll.options.disadvantage = false;
+
     // Within 20 ft: Disadvantage on Ranged Weapon Attacks
-    if (activity.actionType === "rwak" && attackerToken && targetToken) {
-      const aCenter = attackerToken.center ?? { x: attackerToken.x, y: attackerToken.y };
-      const tCenter = targetToken.center ?? { x: targetToken.x, y: targetToken.y };
-      const gridSize = globalThis.canvas?.grid?.size ?? 100;
-      const gridDist = globalThis.canvas?.grid?.distance ?? 5;
-      const distFt = (Math.hypot(aCenter.x - tCenter.x, aCenter.y - tCenter.y) / gridSize) * gridDist;
-      if (distFt <= 20) {
-        roll.options ??= {};
+    let distFt = null;
+    if (activity.actionType === "rwak") {
+      if (attackerToken && targetToken) {
+        const aCenter = attackerToken.center ?? { x: attackerToken.x, y: attackerToken.y };
+        const tCenter = targetToken.center ?? { x: targetToken.x, y: targetToken.y };
+        const gridSize = globalThis.canvas?.grid?.size ?? 100;
+        const gridDist = globalThis.canvas?.grid?.distance ?? 5;
+        distFt = (Math.hypot(aCenter.x - tCenter.x, aCenter.y - tCenter.y) / gridSize) * gridDist;
+      } else if (Number.isFinite(Number(config.targetDistance ?? roll.options.targetDistance))) {
+        distFt = Number(config.targetDistance ?? roll.options.targetDistance);
+      }
+      if (distFt != null && distFt <= 20) {
         roll.options.disadvantage = true;
+        roll.options.ak5eMarksman.siegeModeDisadvantage = true;
+        roll.options.ak5eMarksman.proximityDisadvantage = true;
+        roll.options.ak5eMarksman.disadvantageDistance = distFt;
+        roll.options.flags ??= {};
+        roll.options.flags.ak5e ??= {};
+        roll.options.flags.ak5e.siegeModeDisadvantage = true;
+        config.flags ??= {};
+        config.flags.ak5e ??= {};
+        config.flags.ak5e.siegeModeDisadvantage = true;
       }
     }
   }
@@ -400,21 +475,54 @@ export function besiegerPreRollDamage(config, _dialog, _message) {
   }
 
   // Siege Mode and Deliberate, Efficient damage modifications
+  const isDeliberate = config.ak5eDeliberateEfficient === true
+    || activity.flags?.ak5e?.deliberateEfficient === true
+    || roll.options?.ak5eMarksman?.deliberateEfficient === true
+    || (activity.id && flag(actor, "marksman")?.deliberateEfficientAction === activity.id);
   if (/^[mr][ws]ak$/.test(activity.actionType ?? "") && (roll.options?.ak5eMarksman?.siegeMode ?? inSiegeMode(actor))) {
     const crush = activity.actionType === "rwak" ? weaponPropertyValue(weapon, "crush") + 2 * Number(actor.system?.attributes?.prof ?? 2) : 0;
     roll.options ??= {};
     roll.options.ak5eMarksman = { ...(roll.options.ak5eMarksman ?? {}), actorUuid: actor.uuid, weaponUuid: weapon.uuid,
       turnKey: flag(actor, "marksman")?.siegeModeTurn, actionId: activity.id ?? activity._id ?? null,
       siegeMode: true, crush, minimumDamageAfterDR: crush, ignoreBrace: hasWeaponProperty(weapon, "brace"), ignoreLongRangePenalty: true };
+
+    if (isDeliberate) {
+      roll.options.ak5eMarksman.deliberateEfficient = true;
+      roll.options.ak5eMarksman.ignoreDR = true;
+      roll.options.ak5eMarksman.ignoreResistance = true;
+      roll.options.ak5eMarksman.physicalOnly = true;
+      roll.options.ak5eMarksman.bypassPhysicalDR = true;
+      roll.options.ak5eMarksman.bypassPhysicalResistance = true;
+      roll.options.ignoreDamageReduction = true;
+      roll.options.bypassResistance = true;
+
+      roll.options.flags ??= {};
+      roll.options.flags.ak5e ??= {};
+      roll.options.flags.ak5e.deliberateEfficient = true;
+      roll.options.flags.ak5e.ignoreDR = true;
+      roll.options.flags.ak5e.ignoreResistance = true;
+      roll.options.flags.ak5e.physicalOnly = true;
+
+      config.flags ??= {};
+      config.flags.ak5e ??= {};
+      config.flags.ak5e.deliberateEfficient = true;
+      config.flags.ak5e.bypassPhysicalDR = true;
+      config.flags.ak5e.ignoreDR = true;
+      config.flags.ak5e.ignoreResistance = true;
+      config.flags.ak5e.physicalOnly = true;
+    }
+
     if (!isGodpiercer) {
       // Prior to 18th level: +1d8 from Siege Mode
       roll.parts.push("1d8");
 
       // Deliberate, Efficient: +1d8
+      if (isDeliberate) {
+        roll.parts.push("1d8");
+      }
     } else {
-      // The per-hit HP loss is applied by the post-hit resolution workflow. This snapshot lets
-      // that workflow verify which ordinary weapon damage roll qualified.
-      roll.options.ak5eMarksman.godpiercerHpLoss ??= 8;
+      // The per-hit HP loss is applied by the post-hit resolution workflow.
+      roll.options.ak5eMarksman.godpiercerHpLoss = isDeliberate ? 16 : 8;
     }
   }
 }

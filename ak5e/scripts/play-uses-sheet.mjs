@@ -68,8 +68,53 @@ export async function confirmPlayUse(title, attempt, { preview, confirmed = fals
     }
   }
 }
-function refreshCards(engine, useId) {
-  for (const message of Array.from(game.messages?.values?.() ?? game.messages ?? [])) if (flag(message, engine.cardFlag)?.useId === useId) ui.chat?.updateMessage?.(message);
+/**
+ * Chat messages worth re-rendering: when the chat log's DOM can be inspected, only those currently displayed (the log
+ * keeps a bounded window), otherwise every message. Foundry V13 draws the log before `ready`, so cards drawn before a
+ * hook was registered need one explicit re-render; this keeps that pass cheap.
+ */
+function displayedMessages() {
+  const all = Array.from(globalThis.game?.messages?.values?.() ?? globalThis.game?.messages ?? []);
+  const root = globalThis.ui?.chat?.element;
+  if (typeof root?.querySelectorAll !== "function") return all;
+  const ids = new Set(Array.from(root.querySelectorAll("[data-message-id]"), element => element.dataset?.messageId));
+  return all.filter(message => ids.has(message.id));
+}
+/** Re-render the given chat messages through the normal render hooks; never throws. */
+export function rerenderChatMessages(messages) {
+  for (const message of messages) {
+    try { Promise.resolve(globalThis.ui?.chat?.updateMessage?.(message)).catch(error => console.error("AK5e | Card refresh", error)); }
+    catch (error) { console.error("AK5e | Card refresh", error); }
+  }
+}
+/** Re-render the displayed chat messages that satisfy `predicate(message)`; returns how many were refreshed. */
+export function refreshChatMessages(predicate) {
+  const matches = displayedMessages().filter(message => { try { return predicate(message); } catch { return false; } });
+  rerenderChatMessages(matches);
+  return matches.length;
+}
+/** Re-render the displayed use cards of one engine (optionally one use, or every use of one Actor). */
+export function refreshPlayUseCards(engine, { useId = null, actorUuid = null } = {}) {
+  return refreshChatMessages(message => {
+    const use = flag(message, engine.cardFlag);
+    return Boolean(use) && (useId === null || use.useId === useId) && (actorUuid === null || use.actorUuid === actorUuid);
+  });
+}
+function refreshCards(engine, useId) { refreshPlayUseCards(engine, { useId }); }
+const registeredRefresh = new Set();
+/**
+ * When an Actor's receipt flag for this engine changes (on any client), re-render that Actor's displayed use cards so
+ * the Roll / Retry / Undo controls follow the receipt. Idempotent per engine namespace.
+ */
+export function registerPlayUseCardRefresh(engine) {
+  if (registeredRefresh.has(engine.ns)) return false;
+  registeredRefresh.add(engine.ns);
+  Hooks.on("updateActor", (actor, changes) => {
+    const touched = Object.hasOwn(changes?.flags?.ak5e ?? {}, engine.ns) || changes?.[`flags.ak5e.${engine.ns}`] !== undefined
+      || Object.keys(changes ?? {}).some(key => key.startsWith(`flags.ak5e.${engine.ns}.`));
+    if (touched) refreshPlayUseCards(engine, { actorUuid: actor?.uuid });
+  });
+  return true;
 }
 /** What an undo will and will not restore, then the undo itself (noted on the public card). */
 export async function openPlayUndo(engine, actor, useId) {

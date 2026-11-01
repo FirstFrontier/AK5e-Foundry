@@ -183,3 +183,162 @@ test("reaction ledger replay prevents double spend when saving its engine receip
   assert.equal(reactionState.get(actor.uuid).spent, 1);
   assert.equal(reactionWrites(), 1, "retry uses the stable Reaction receipt ID");
 });
+
+test("B-300: ChatMessage creation failure retains evaluated roll and retry publishes without rerolling", async () => {
+  const { actor, uses, messages } = world();
+  let rollEvaluations = 0;
+  class MockRoll {
+    constructor(formula, data = {}) {
+      this.formula = formula;
+      this.data = data;
+      this.total = null;
+      this._evaluated = false;
+    }
+    async evaluate() {
+      rollEvaluations++;
+      this.total = 17;
+      this._total = 17;
+      this._evaluated = true;
+      return this;
+    }
+    async toMessage(messageData = {}) {
+      return ChatMessage.implementation.create({
+        ...messageData,
+        rolls: [this],
+        content: `Roll [${this.formula}]: ${this.total}`
+      });
+    }
+    toJSON() {
+      return {
+        formula: this.formula,
+        total: this.total,
+        evaluated: this._evaluated
+      };
+    }
+  }
+  globalThis.Roll = MockRoll;
+
+  uses.register({ plans: {
+    shoot() {
+      return {
+        title: "Shoot",
+        warnings: [],
+        apply(_state, receipt) {
+          receipt.formula = "1d20+7";
+          return {};
+        }
+      };
+    }
+  } });
+
+  await uses.command(actor, "shoot", { confirmed: true }, "shoot-b300");
+  const initialReceipt = uses.receipt(actor, "shoot-b300");
+  assert.equal(initialReceipt.roll, undefined);
+
+  let failDiceCreate = true;
+  const originalCreate = ChatMessage.implementation.create;
+  ChatMessage.implementation.create = async msg => {
+    if (failDiceCreate && msg.rolls?.length) {
+      failDiceCreate = false;
+      throw new Error("simulated dice ChatMessage failure");
+    }
+    return originalCreate(msg);
+  };
+
+  // First useRoll fails during dice ChatMessage creation
+  await assert.rejects(
+    uses.command(actor, "useRoll", { useId: "shoot-b300" }, "roll-attempt-1"),
+    /simulated dice ChatMessage failure/
+  );
+
+  // Evaluated roll was persisted, diceMessagePublished remains false, no dice message was delivered
+  const failedReceipt = uses.receipt(actor, "shoot-b300");
+  assert.equal(failedReceipt.roll, 17, "evaluated roll total was persisted");
+  assert.equal(failedReceipt.diceMessagePublished, false, "diceMessagePublished is false after failed creation");
+  const diceMessages = () => messages.filter(m => m.rolls?.length);
+  assert.equal(diceMessages().length, 0, "no dice chat message was created");
+  assert.equal(rollEvaluations, 1, "dice evaluated once");
+
+  // Subsequent retry succeeds and publishes the ChatMessage without re-evaluating the dice roll
+  await uses.command(actor, "useRoll", { useId: "shoot-b300" }, "roll-attempt-2");
+  assert.equal(diceMessages().length, 1, "dice chat message is published on retry");
+  assert.equal(diceMessages()[0].content, "Roll [1d20+7]: 17");
+  assert.equal(rollEvaluations, 1, "dice was NOT re-evaluated on retry; preserved total was published");
+  assert.equal(uses.receipt(actor, "shoot-b300").diceMessagePublished, true, "diceMessagePublished is true");
+
+  // Further retry does not publish a duplicate ChatMessage
+  await uses.command(actor, "useRoll", { useId: "shoot-b300" }, "roll-attempt-3");
+  assert.equal(diceMessages().length, 1, "no duplicate chat message published when diceMessagePublished is true");
+  assert.equal(rollEvaluations, 1);
+});
+
+test("B-300: previewUndo reflects target reversals and lock states from descendant child receipts", async () => {
+  const { actor, uses } = world();
+  globalThis.fromUuidSync = uuid => ({ uuid, name: uuid === "Token.targetA" ? "Goblin" : "Orc" });
+
+  uses.register({
+    plans: {
+      parentAction() {
+        return {
+          title: "Parent Action",
+          warnings: [],
+          apply(_next, receipt) {
+            const updates = spendResource(actor, receipt, { path: "system.resources.test.value", amount: 1, label: "Charge" });
+            receipt.summary = "Parent action performed.";
+            return updates;
+          }
+        };
+      }
+    },
+    targetKinds: {
+      customTarget: {
+        preview(_source, _receipt, entry, doc) {
+          return `${doc?.name ?? entry.name}: restore ${entry.amount} HP`;
+        }
+      }
+    }
+  });
+
+  await uses.command(actor, "parentAction", { confirmed: true }, "parent-1");
+
+  // Simulate a child resolution step in actor state.undo
+  const state = actor.flags.ak5e.testUses;
+  const childReceipt = {
+    id: "child-step-1",
+    parentUseId: "parent-1",
+    command: "childResolution",
+    status: "complete",
+    epoch: 0,
+    targets: [
+      { kind: "customTarget", name: "Goblin", uuid: "Token.targetA", amount: 15, applied: true }
+    ],
+    summary: "Child resolution step"
+  };
+  state.undo.push(childReceipt);
+  await actor.update({ "flags.ak5e.testUses": state });
+
+  // Previewing undo on parent-1 includes child target reversal lines
+  const preview = uses.previewUndo(actor, "parent-1");
+  assert.ok(preview.lines.some(line => line.includes("Goblin: restore 15 HP")), "preview reflects child target reversal");
+  assert.ok(preview.lines.some(line => line.includes("Restores 1 Charge")), "preview reflects parent resource restoration");
+  assert.equal(preview.locked, false);
+  assert.equal(preview.blocked, false);
+
+  // If a descendant receipt is from an earlier epoch (locked)
+  childReceipt.epoch = -1;
+  await actor.update({ "flags.ak5e.testUses": state });
+
+  // Non-GM user is blocked by child lock
+  globalThis.game.user.isGM = false;
+  const blockedPreview = uses.previewUndo(actor, "parent-1");
+  assert.equal(blockedPreview.locked, true, "locked is true because child receipt is locked");
+  assert.equal(blockedPreview.blocked, true, "blocked is true for non-GM");
+  assert.ok(blockedPreview.lines.some(l => l.includes("Locked: this use's encounter window has ended.")));
+
+  // GM user is not blocked
+  globalThis.game.user.isGM = true;
+  const gmPreview = uses.previewUndo(actor, "parent-1");
+  assert.equal(gmPreview.locked, true);
+  assert.equal(gmPreview.blocked, false, "GM is not blocked");
+  assert.ok(gmPreview.lines.some(l => l.includes("as GM you may still undo it")));
+});

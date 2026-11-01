@@ -1,6 +1,6 @@
 /** Recipient-owned controls for active Vanguard Tip of the Spear outcome effects. */
 import { createPlayUses } from "./play-uses.mjs";
-import { confirmPlayUse } from "./play-uses-sheet.mjs";
+import { confirmPlayUse, renderPlayUseCard, refreshPlayUseCards, registerPlayUseCardRefresh } from "./play-uses-sheet.mjs";
 import { flag, values, need, opaqueKey } from "./operation-kernel.mjs";
 import { warn } from "./play-uses.mjs";
 
@@ -182,7 +182,7 @@ export function vanguardBenefitPreRoll(config, _dialog, message) {
   if (!effect || effect.disabled || benefit?.kind !== "tip1" || benefit.bearerUuid !== armed.bearerUuid) return;
   const candidates = [...new Set(config.rolls)].filter(roll => Array.isArray(roll?.parts));
   const selected = candidates[armed.componentIndex];
-  if (!selected) { ui.notifications.warn("Tip of the Spear component is absent; this Damage Roll was unchanged. Review the armed receipt."); return; }
+  if (!selected) { ui.notifications.warn(`Tip of the Spear damage component ${armed.componentIndex} is absent from this Damage Roll, so it was unchanged. The +${armed.bonus} stays armed and unspent; review the armed receipt on its chat card (Undo clears it).`); return; }
   if (config._ak5eVanguardTipDamage?.useId === armed.useId || selected.options?._ak5eVanguardTipDamage?.useId === armed.useId) return;
   selected.parts.push(String(armed.bonus));
   selected.options ??= {};
@@ -210,6 +210,10 @@ export async function vanguardBenefitPostMessage(message, userId) {
 }
 
 export function registerVanguardBenefitHooks() {
+  // The benefit engine posts its own chat cards (arm / Skill Point bonus); give them the shared Roll / Retry / Undo controls.
+  Hooks.on("renderChatMessageHTML", (message, html) => renderPlayUseCard(benefits, message, html));
+  registerPlayUseCardRefresh(benefits);
+  refreshPlayUseCards(benefits);
   Hooks.on("createChatMessage", (message, _options, userId) => {
     void vanguardBenefitPostMessage(message, userId).catch(error => console.error("AK5e | Vanguard Tip native roll receipt", error));
   });

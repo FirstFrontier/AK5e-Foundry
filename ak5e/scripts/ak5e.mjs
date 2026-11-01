@@ -54,6 +54,11 @@ import { getGuardView, registerGuardHooks } from "./guard-features.mjs";
 import { guardUses, recordGuardRuling } from "./guard-uses.mjs";
 import { openGuardControls, registerGuardSheetHooks } from "./guard-sheet.mjs";
 import { vanguardSheetApi, registerVanguardSheetHooks, vanguardUses, recordVanguardRuling, openVanguardProgression } from "./vanguard-sheet.mjs";
+import { registerAgentFeatureHooks } from "./agent-features.mjs";
+import { registerAgentVanguardExtension } from "./agent-sheet.mjs";
+import { registerChargerFeatureHooks } from "./charger-features.mjs";
+import { registerChargerVanguardExtension } from "./charger-sheet.mjs";
+import { registerPioneerFeatureHooks, registerPioneerVanguardExtension } from "./pioneer-features.mjs";
 import { previewVanguardSetup, applyVanguardSetup } from "./vanguard-setup.mjs";
 import { vanguardChoices, inspectVanguardFields, previewVanguardProgression, applyVanguardProgression } from "./vanguard-progression.mjs";
 import { vanguardProfile, calculateVanguardProfile, martialDC as vanguardMartialDC } from "./vanguard-rules.mjs";
@@ -903,6 +908,12 @@ Hooks.once("ready", () => {
   registerWorldRuleHooks(game.ak5e);
   registerVanguardSheetHooks();
   registerVanguardResolution();
+  registerAgentFeatureHooks();
+  registerAgentVanguardExtension();
+  registerChargerFeatureHooks();
+  registerChargerVanguardExtension();
+  registerPioneerFeatureHooks();
+  registerPioneerVanguardExtension();
 });
 
 function registerStatusEffects() {

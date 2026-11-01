@@ -14,7 +14,7 @@ implementing *AK5e 1st Edition v1.3.1*. It is not a game system or a World.
 | --- | --- |
 | Install, use, API and Foundry integration contracts | [ak5e/README.md](ak5e/README.md) |
 | Project rules, testing and release requirements | [WORKFLOW.md](WORKFLOW.md) |
-| Agent roles, models, delegation | [AGENTS.md](AGENTS.md), [GEMINI.md](GEMINI.md) |
+| Agent roles, models, delegation | [AGENTS.md](AGENTS.md), [CODEX.md](CODEX.md), [GEMINI.md](GEMINI.md) |
 | Backlog and per-class checklists | [TODO.md](TODO.md) |
 | Implemented but not yet verified in Foundry | [VERIFY.md](VERIFY.md) |
 | Open defects (one file each) | [bugs/README.md](bugs/README.md), then `ls bugs/pending` |
@@ -107,7 +107,7 @@ Full wording is in [WORKFLOW.md](WORKFLOW.md); these catch most mistakes.
 | Unit tests | `ak5e/test/*.test.mjs` (fixtures beside them) |
 | Styles and templates | `ak5e/styles/`, `ak5e/templates/` |
 | Audits and implementation notes | `ak5e/*_AUDIT.md`, `CASTER_IMPLEMENTATION.md`, `DEFENDER_IMPLEMENTATION.md`, `MARKSMAN_FIXES.md`, `CONTENT_MAP.md` |
-| Agent definitions | `.claude/agents/`, `.codex/agents/`, `.agents/` |
+| Agent definitions | `.claude/agents/`, `.codex/agents/` (pipeline: `CODEX.md`), `.agents/` |
 | Test and installer commands | `package.json` |
 
 All scripts above are under `ak5e/scripts/` unless a path says otherwise.

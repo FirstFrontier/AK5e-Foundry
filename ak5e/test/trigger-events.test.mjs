@@ -73,7 +73,7 @@ test("registration is idempotent, one adapter per verified hook, none at import 
   setup();
   assert.equal(T.registerTriggerEventHooks(), false);
   assert.deepEqual([...hooks.keys()].sort(), ["combatTurnChange", "deleteCombat", "dnd5e.applyDamage", "dnd5e.postRollAttack",
-    "dnd5e.preApplyDamage", "dnd5e.rollConcentration", "dnd5e.rollSavingThrow", "updateCombatant"]);
+    "dnd5e.preApplyDamage", "dnd5e.rollConcentration", "dnd5e.rollDamage", "dnd5e.rollSavingThrow", "updateCombatant"]);
   for (const list of hooks.values()) assert.equal(list.length, 1);
 });
 
@@ -82,6 +82,7 @@ test("no adapter returns a value, so none can cancel a cancellable hook", async 
   const results = [call("dnd5e.postRollAttack", [attackRoll(10)], { subject: activity(a) }),
     call("dnd5e.rollSavingThrow", [attackRoll(10)], { ability: "con", subject: a }),
     call("dnd5e.rollConcentration", [attackRoll(10)], { subject: a }),
+    call("dnd5e.rollDamage", [attackRoll(7)], { subject: activity(a) }),
     call("dnd5e.preApplyDamage", a, 5, {}, {}), call("dnd5e.applyDamage", a, 5, {}),
     call("updateCombatant", combat.turns[0], { initiative: 12 }, {}, "gm"),
     call("combatTurnChange", combat, combat.previous, { round: 1, turn: 0, combatantId: "c0" }), call("deleteCombat", combat, {}, "gm")];
@@ -404,4 +405,36 @@ test("turnTransitions mirrors core: skipped turns across a round and rewinds emi
   assert.deepEqual(steps.map(s => `${s.kind}:${s.combatant.id}:${s.round}:${s.skipped}`),
     ["turnEnd:c1:1:false", "turnStart:c2:1:true", "turnEnd:c2:1:true", "turnStart:c0:2:true", "turnEnd:c0:2:true", "turnStart:c1:2:false"]);
   assert.deepEqual(T.turnTransitions(combat, { round: 2, turn: 1, combatantId: "c1" }, { round: 2, turn: 0, combatantId: "c0" }), []);
+});
+
+test("damage roll emits one damageRoll with actor, activity, total, types and crit; duplicate delivery is deduped", async () => {
+  setup(); const a = actor();
+  targets = [{ uuid: "Actor.t1", name: "Low", ac: 12 }];
+  const rolled = listen("damageRoll");
+  const rolls = [{ total: 9, formula: "2d8", isCritical: true, options: { type: "fire" } },
+    { total: 4, formula: "1d6", isCritical: true, options: { types: ["cold", "fire"] } }];
+  call("dnd5e.rollDamage", rolls, { subject: activity(a) });
+  call("dnd5e.rollDamage", rolls, { subject: activity(a) });          // same rolls again
+  await settle();
+  assert.equal(rolled.length, 1);
+  const [event] = rolled;
+  assert.equal(event.kind, "damageRoll");
+  assert.equal(event.actorUuid, a.uuid);
+  assert.equal(event.activityUuid, `${a.uuid}.Item.i1.Activity.x`);
+  assert.equal(event.itemUuid, `${a.uuid}.Item.i1`);
+  assert.equal(event.total, 13);
+  assert.equal(event.critical, true);
+  assert.deepEqual(event.rolls.map(r => r.types), [["fire"], ["cold", "fire"]]);
+  assert.deepEqual(event.targetUuids, ["Actor.t1"]);
+});
+
+test("damage roll without a subject (legacy chat card) still emits, with null actor and activity", async () => {
+  setup();
+  const rolled = listen("damageRoll");
+  call("dnd5e.rollDamage", [{ total: 3, formula: "1d4", options: {} }]);
+  await settle();
+  assert.equal(rolled.length, 1);
+  assert.equal(rolled[0].actorUuid, null);
+  assert.equal(rolled[0].activityUuid, null);
+  assert.equal(rolled[0].critical, false);
 });

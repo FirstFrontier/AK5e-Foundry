@@ -199,8 +199,8 @@ test("previewVanguardProgression: detects missing choices and computes preview",
   const validPlan = await previewVanguardProgression(actor, completeChoices);
   assert.equal(validPlan.pending.length, 0);
   assert.ok(validPlan.contextKey.length > 0);
-  assert.ok(validPlan.writes["system.traits.saves.value"].includes("dex"));
-  assert.ok(validPlan.writes["system.traits.saves.value"].includes("str"));
+  assert.equal(validPlan.writes["system.abilities.dex.proficient"], 1);
+  assert.equal(validPlan.writes["system.abilities.str.proficient"], 1);
   assert.equal(validPlan.writes["system.skills.acr.value"], 1);
   assert.equal(validPlan.writes["system.skills.ath.value"], 1);
   assert.equal(validPlan.writes["system.skills.ste.value"], 1);
@@ -232,8 +232,8 @@ test("applyVanguardProgression: level 1 progression grant and idempotency", asyn
 
   assert.equal(result.success, true);
   // Verify saves updated
-  assert.ok(actor.system.traits.saves.value.includes("dex"));
-  assert.ok(actor.system.traits.saves.value.includes("cha"));
+  assert.equal(actor.system.abilities.dex.proficient, 1);
+  assert.equal(actor.system.abilities.cha.proficient, 1);
   // Verify skills updated
   assert.equal(actor.system.skills.acr.value, 1);
   assert.equal(actor.system.skills.prc.value, 1);

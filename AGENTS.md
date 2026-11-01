@@ -1,6 +1,6 @@
 # AK5e Foundry VTT — Agent Policy (Claude Code, OpenAI Codex & Google Antigravity)
 
-> Shared agent policy for the **AK5e 1st Edition v1.3.1 → Foundry VTT V13** content module. Last revised: 2026-10-18.
+> Shared agent policy for the **AK5e 1st Edition v1.3.1 → Foundry VTT V13** content module. Last revised: 2026-10-28.
 > This file covers **how agents operate and delegate**. **How to build the module** (rules authority, Foundry requirements, content workflow, testing, release) is in [WORKFLOW.md](WORKFLOW.md), which **takes precedence** where the two differ. Neither overrides the user's explicit request or higher-priority environment/safety constraints. Claude Code's parallel-team rules are in [CLAUDE.md](CLAUDE.md).
 
 ## 1. Read first
@@ -10,7 +10,7 @@ Before any content, code, test or release work:
 1. Read **[WORKFLOW.md](WORKFLOW.md)** in full; this file does not repeat it.
 2. Read the task-specific references it requires: `AK5e_1.3.1_Foundry_Source/README.txt` and the **entire** relevant source chapter (plus referenced sections); and the "Foundry VTT installation and integration" section of `ak5e/README.md` before touching the manifest, hooks, importers or packs.
 3. Check current state: `git status`, `TODO.md`, `ak5e/DECISIONS.md`. For defects read `bugs/README.md`, then `ls bugs/pending`; never read `bugs/fixed/` wholesale.
-4. **Gemini bulk implementers:** also read [GEMINI.md](GEMINI.md) in full (batch implementation, review and Foundry test-session instructions; supplements, does not replace, `WORKFLOW.md`).
+4. **Codex parents:** also read [CODEX.md](CODEX.md) in full (orchestration pipeline). **Gemini bulk implementers:** also read [GEMINI.md](GEMINI.md) in full (batch implementation, review and Foundry test-session instructions; supplements, does not replace, `WORKFLOW.md`).
 
 ## 2. Non-negotiables (summary of WORKFLOW)
 
@@ -44,25 +44,30 @@ Don't use the top model for everyday planning, routine code, ordinary tests, tra
 | Primary code writer | **Claude Sonnet 5.5** (`sonnet`, high effort) | **Default for producing code**: bounded implementation, refactors and the implementer's own tests. Always give it concrete file scope and acceptance criteria; never hand it undefined architecture. Agent: `implementer`. |
 | Adversarial challenger and lookup | **Claude Haiku 5.5** (`haiku`, high effort) | Adversarial test suites written against the spec in parallel with the implementer, bug hunting, repository lookup, and simple verification. Agents: `tester`, `bug-hunter`, `explorer`. |
 | Reviewer and escalation solver | **Claude Opus 5.5** (`opus`) | Routine code and test-adequacy review at medium effort (`routine-reviewer`); taking over tasks the Sonnet implementer failed after its 2nd retry at high effort (`problem-solver`). |
-| System architect and final bug squasher | **Claude Opus 5.5** (`opus`) | **Default parent**: requirements, architecture, decomposing work into worker-sized units, acceptance criteria, integration, and final validation. Last-resort bug squashing and high-risk independent review at max effort via `critical-reviewer`. |
+| System architect and final bug squasher | **Claude Opus 5.5** (`opusplan` in plan mode; `Plan` agent) | Requirements, architecture, decomposing work into worker-sized units, and acceptance criteria. Last-resort bug squashing and high-risk independent review at max effort via `critical-reviewer`. |
+| Parent (execution) | **Claude Sonnet 5.5** (`opusplan` outside plan mode) | **Default parent**: delegation, integration glue, final validation, and the report. |
 | Exceptional escalation | **Claude Fable 5.1** (`fable`, if accessible) | Rare, long-horizon, highly complex or unusually consequential tasks that Sonnet and Opus cannot resolve adequately. Requires explicit user authorization before deliberate escalation. |
 
-- Run the Claude Code parent on `opus` as the architect. The architect writes specs, acceptance criteria and integration glue, **not bulk code**: delegate code volume to Sonnet implementers, each paired with a Haiku challenger. Trivial edits (a few lines) may still be done inline when that costs less than briefing a worker.
+- `.claude/settings.json` sets `opusplan`: the parent plans on Opus in plan mode and runs on Sonnet otherwise, because the parent's re-read context is most of the measured cost. Enter plan mode for anything beyond a small change. The parent writes specs, acceptance criteria and integration glue, **not bulk code**: delegate code volume to Sonnet implementers, each paired with a Haiku challenger. Trivial edits (a few lines) may still be done inline when that costs less than briefing a worker.
 - Never request `fable` merely because an ordinary worker failed once or a test is red.
 - Full model names may be pinned by the runtime; aliases can resolve differently by provider or version. Check the resolved model before asserting a specific release performed work.
 - Claude Code's built-in agents may inherit the parent model; they **do not automatically become Sonnet or Haiku workers**. To enforce predictable routing, use explicit native subagent definitions (`.claude/agents/*.md`) or supported per-invocation choices.
 
 ### 4.2 OpenAI Codex
 
-| Tier | Model | Work |
-| --- | --- | --- |
-| Implementer | **GPT-6.1 Sol** (`gpt-6.1-sol`, medium effort) | Bounded implementation, refactors and the implementer's own tests. Pair with an independent Luna tester. |
-| Adversarial tester / discovery | **GPT-6 Luna** (`gpt-6-luna`, high effort) | Independent adversarial tests, source inventory, exploration and Foundry validation. |
-| Mid-level reviewer | **GPT-6.1 Sol** (`gpt-6.1-sol`, high effort) | Routine code and test-adequacy review, integration and Foundry API review. |
-| Critical reviewer | **GPT-6.1 Sol** (`gpt-6.1-sol`, xhigh effort) | High-risk correctness, rules fidelity, security and release-blocking review. |
-| Exceptional | **GPT-6 Astra** (`gpt-6-astra`, if available) | Extreme reasoning problems; needs user authorization. |
+Codex follows the pipeline in **[CODEX.md](CODEX.md)** (one plan per request, tests before code, worker self-testing, failure counting, checkpoint visual inspection of `ui: yes` work, handoffs, ledger); `.codex/config.toml` tells new parent sessions to read it. Prefer parallel work on independent ready packages, with at most two active work packages ("lanes") at once, each with its own Luna tester and Terra worker pair in a private copy made by `.codex/tools/lane.mjs` (the Codex sandbox makes `.git/` and `.codex/` read-only, so git worktrees are unavailable). For Codex, CODEX.md replaces the escalation and delegation defaults in §4.4 and §6, including §6.2's same-validator rechecks.
 
-Start substantive parent sessions on Sol (low/medium effort normally, high for real complexity). Use Sol medium implementers paired with Luna high adversarial testers; use Sol high for mid-level review and Sol xhigh for critical review. Repo agent config sets child models but does **not** switch the parent or existing agents. If the active harness still advertises an older fixed worker role, start a fresh generic agent with the requested model/effort explicitly rather than claiming a hot reload. Never silently substitute an older model.
+| Role | Model | Work |
+| --- | --- | --- |
+| Orchestrator (parent) | **GPT-6 Luna** (`gpt-6-luna`, xhigh) | Requirements, delegation, escalation, integration, acceptance and the report; keeps its own context small. |
+| Planner | **GPT-6.1 Sol** (`gpt-6.1-sol`, xhigh) | `planner`: read-only spec, work packages, path choice and acceptance criteria, once per request (full, critical or multi-package work). |
+| Implementer tiers | Terra → Sol, both high | `worker` (`gpt-6.1-terra`), then `worker_sol` (`gpt-6.1-sol`): two counted failed candidates per tier, then stop and report. |
+| Adversarial tester / discovery | **GPT-6 Luna** (`gpt-6-luna`, high) | `tester` drafts tests from the spec **before any code exists**, then runs them unchanged; `explorer`, `rules_mapper`, `foundry_validator`. |
+| Review gate | **GPT-6.1 Terra** (`gpt-6.1-terra`, high) | `reviewer`: adjudicates findings, classifies failures; one review per work package, in parallel with the tester's attack pass. |
+| Final QA | **GPT-6.1 Sol** (`gpt-6.1-sol`, high) | `final_qa`: independent audit of request, spec, diff and evidence for full and critical work. |
+| Last resort | **GPT-6 Astra** (`gpt-6-astra`, high) | `critical_reviewer`: only with the owner's permission each time. |
+
+"GPT-6 Terra" is not offered by the client, so the review gate uses `gpt-6.1-terra`. Spawn every child with `fork_turns: "none"` and a written brief; children never spawn agents; no agent approves its own work. Project config supplies defaults for new sessions and agents; it does **not** switch a running parent or existing agents.
 
 ### 4.3 Google Antigravity / Gemini
 
@@ -77,7 +82,7 @@ Workers inherit the model where supported. If 3.8 is unavailable, report the act
 
 1. **Trivial:** one agent, minimal planning, targeted checks.
 2. **Routine:** normal parent plus efficient scoped workers; routine review.
-3. **Difficult/high-risk:** upgrade the *specific* investigator/reviewer to Opus or high-effort Sol immediately when justified.
+3. **Difficult/high-risk:** upgrade the *specific* investigator/reviewer to Opus, a Codex Sol role (`final_qa`, `worker_sol`) or high-effort Gemini immediately when justified.
 4. **Exceptional:** Fable/Astra only with owner authorization; never automatic.
 
 If a worker fails twice on the same issue, change approach: the parent takes over or picks a stronger specialist. Don't reword the same failing prompt or spawn redundant agents. Report unavailable models and the fallback used.
@@ -90,13 +95,14 @@ Shipped definition files are authoritative. Read-only agents never edit.
 | --- | --- | --- | --- |
 | Repository discovery | `explorer` (haiku) | `explorer` (gpt-6-luna) | Read-only |
 | Source inventory / rules mapping | `rules-mapper` (sonnet) | `rules_mapper` (gpt-6-luna) | Read-only |
-| Bounded implementation | `implementer` (sonnet, high) | `worker` (gpt-6.1-sol, medium) | Edit |
-| Tests / adversarial challenger | `tester` (haiku, high) | `tester` (gpt-6-luna, high) | Tests; production only if authorized |
+| Bounded implementation | `implementer` (sonnet, high) | `worker` (gpt-6.1-terra, high) | Edit |
+| Tests / adversarial challenger | `tester` (haiku, high) | `tester` (gpt-6-luna, high; tests before code) | Tests; production only if authorized |
 | Adversarial bug hunting | `bug-hunter` (haiku, high) | — | Read-only |
 | Foundry V13 / pack / UUID / browser validation | `foundry-validator` (sonnet) | `foundry_validator` (gpt-6-luna) | Read-only |
-| Ordinary review | `routine-reviewer` (opus, medium) | `reviewer` (gpt-6.1-sol, high) | Read-only |
-| Escalation solver | `problem-solver` (opus, high) | — | Edit |
-| High-risk review / final bug squasher | `critical-reviewer` (opus, max) | `critical_reviewer` (gpt-6.1-sol, xhigh) | Read-only |
+| Ordinary review | `routine-reviewer` (opus, medium) | `reviewer` (gpt-6.1-terra, high) | Read-only |
+| Escalation solver | `problem-solver` (opus, high) | `worker_sol` (gpt-6.1-sol, high) | Edit explicitly assigned files |
+| Planning | `Plan` (opus) | `planner` (gpt-6.1-sol, xhigh) | Read-only |
+| High-risk review | `critical-reviewer` (opus, max) | `final_qa` (gpt-6.1-sol, high); `critical_reviewer` (gpt-6-astra, high, with permission) as last resort | Read-only |
 
 ### 5.1 Antigravity routing
 
@@ -106,7 +112,7 @@ Antigravity 2.0/CLI supports `invoke_subagent`; reusable definitions go in `.age
 
 Consider agents for chapter audits, API investigation, navigation, test creation, independent review and debugging hypotheses. Delegate when work can be isolated and it improves quality, cost or time (Claude Code: parallel by default, per `CLAUDE.md`). Never let several agents edit the same module, pack or manifest.
 
-Every assignment states **scope, chapter(s), allowed files, read-only/edit, deliverable, acceptance criteria, tests, required evidence and open decisions**. Workers return paths, line locations, changed files, commands and results, limitations and uncertainties. Isolate concurrent writers (worktrees). The parent inspects and integrates diffs; a worker's "done" is not validation.
+Every assignment states **scope, chapter(s), allowed files, read-only/edit, deliverable, acceptance criteria, tests, required evidence and open decisions**. Workers return paths, line locations, changed files, commands and results, limitations and uncertainties. Isolate concurrent writers (lane copies or worktrees; Claude Code may run up to two lanes at once, per CLAUDE.md). The parent inspects and integrates diffs; a worker's "done" is not validation.
 
 For meaningful reviews use a fresh context, ideally a different capable model when stakes warrant; same-model second passes are not cross-model review. Verify claims against code, source rules or runtime evidence.
 
@@ -114,7 +120,7 @@ For meaningful reviews use a fresh context, ideally a different capable model wh
 
 - Workers may transcribe and inventory. Ambiguous rules interpretation, nontrivial cross-chapter mappings and gameplay-changing deviations need main-agent review and a logged decision.
 - **Inventory/transcription:** efficient read-only agent (Haiku, Luna, Gemini Flash) returns exact headings, tables and file/line refs; the parent verifies a sample and any uncertain mappings.
-- **Compendium entries and fixtures:** Sonnet, Luna or Gemini Flash, given exact mappings, target document types and acceptance criteria. Novel mechanics are never clerical work.
+- **Compendium entries and fixtures:** Sonnet, the Codex `worker` tier or Gemini Flash, given exact mappings, target document types and acceptance criteria. Novel mechanics are never clerical work.
 - **V13 API / import debugging:** efficient investigator first; escalate to Opus, Sol or high-effort Gemini when signatures, migrations, hooks, data loss or multi-component interactions are uncertain.
 - **Complex rules fidelity, architecture, release-blocking regressions:** strong reviewer with the source chapters, V13 docs and test evidence.
 - **Visual testing:** a routine agent runs the sanctioned launcher, captures and views screenshots and reports in writing; the parent reviews that report and functional evidence (§6.2).
@@ -166,7 +172,7 @@ For nontrivial changes the parent defines expected behavior, edge and negative c
 ## 8. Review, safeguards and efficiency
 
 - Substantial/high-risk review covers correctness, error handling, broken imports/UUIDs, stable-ID loss, GM gating, player-agency regressions (WORKFLOW §3.2), overwrite risk, concurrency, compatibility, security, performance, regressions and coverage, each finding with path/line, severity and a reproduction or reasoning chain.
-- Claude: Opus at medium effort for ordinary review (cross-model against Sonnet implementers), Opus at max effort for consequential review. Codex: Sol high for mid-level review, Sol xhigh for critical review; pair Sol medium implementers with Luna high adversarial testers. Antigravity: Gemini Flash, more effort for hard cases; report the actual reviewer model. Never use Fable/Astra for routine review.
+- Claude: Opus at medium effort for ordinary review (cross-model against Sonnet implementers), Opus at max effort for consequential review. Codex: Terra high review gate and Sol high final QA per CODEX.md; Luna high testers draft tests before Terra or Sol implementers write code; Astra `critical_reviewer` only with permission. Antigravity: Gemini Flash, more effort for hard cases; report the actual reviewer model. Never use Fable/Astra for routine review.
 - Keep Git changes scoped; don't overwrite unexpected edits. Don't reset, delete, commit, merge, push, publish, deploy, install unneeded dependencies or mutate real Foundry worlds without authorization.
 - Prefer `apply_patch` or a native targeted edit tool; never rewrite whole files just because the preferred tool is missing.
 - Prefer targeted reads and test runs over full-repo sweeps; send agents small relevant excerpts.

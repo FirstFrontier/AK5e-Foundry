@@ -9,8 +9,9 @@
  *  - Encounter-window undo receipts in `flags.ak5e.vanguardUses`.
  */
 import { createPlayUses, warn } from "./play-uses.mjs";
+import { notifyVanguardOperatorCommit, checkVanguardTipGrant, registerVanguardTipGrantSource } from "./vanguard-extensions.mjs";
 import {
-  vanguardEnabled, vanguardLevel, vanguardState, checkLevel,
+  vanguardEnabled, vanguardLevel, vanguardState, vanguardProfile, checkLevel,
   approachingStormBonus, landstriderSpeedBonus, flag
 } from "./vanguard-rules.mjs";
 import {
@@ -19,11 +20,11 @@ import {
   calculateUncannyDodge, lightspeedSecondInitiative
 } from "./vanguard-features.mjs";
 import { TIP_INSTRUCTIONS } from "./standard-bearer-rules.mjs";
-import { TIP_OUTCOMES, speedChanges, attackChanges } from "./tip-of-the-spear.mjs";
-import { need, opaqueKey, values } from "./operation-kernel.mjs";
+import { TIP_OUTCOMES, attackChanges } from "./tip-of-the-spear.mjs";
+import { need, opaqueKey, values, keyedSerial } from "./operation-kernel.mjs";
 import { spendReaction, getReactions } from "./trigger-events.mjs";
-import { requireOverrides, isPlayWarnings } from "./play-undo.mjs";
-import { applyFeatureTag } from "./feature-tags.mjs";
+import { requireOverrides, isPlayWarnings, resolveReading, isLocked } from "./play-undo.mjs";
+import { applyFeatureTag, tagExpiry, tagActors, registerFeatureTagExpiryHandler } from "./feature-tags.mjs";
 import { withinFeet, tokenPoint } from "./standard-bearer-rules.mjs";
 
 export const vanguardUses = createPlayUses({
@@ -53,7 +54,206 @@ const levelWarning = (warnings, actor, requiredLevel, featureName) => {
   }
 };
 
+// Tip THP has one native pool, not separable buckets. A revision is evidence of
+// *any* later write, including equal-valued writes and A -> B -> A changes.
+const TIP_REVISION = "tipTemporaryHpRevision";
+const tipSerial = keyedSerial();
+const tipHooks = new WeakSet();
+const tipKey = (source, useId) => opaqueKey(`${useId}:${source.uuid}`);
+const tipRecord = (source, useId, target) => flag(target, vanguardUses.appliedFlag)?.[tipKey(source, useId)];
+const tempHp = target => Math.max(0, Number(target?.system?.attributes?.hp?.temp) || 0);
+const tipSnapshot = target => ({ expectedTemp: tempHp(target), expectedRevision: flag(target, TIP_REVISION) ?? null });
+const escTip = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/** Register on every client, including clients which never initiate a Tip. */
+export function registerTipTemporaryHpHooks() {
+  if (!globalThis.Hooks || tipHooks.has(Hooks)) return;
+  tipHooks.add(Hooks);
+  Hooks.on("preUpdateActor", (_actor, changes) => {
+    const hasTemp = Object.hasOwn(changes, "system.attributes.hp.temp") ||
+      Object.hasOwn(changes.system?.attributes?.hp ?? {}, "temp") ||
+      Object.hasOwn(changes["system.attributes"]?.hp ?? {}, "temp") ||
+      Object.hasOwn(changes["system.attributes.hp"] ?? {}, "temp");
+    if (!hasTemp) return;
+    const revision = foundry.utils.randomID();
+    changes[`flags.ak5e.${TIP_REVISION}`] = revision;
+    if (changes.flags?.ak5e) changes.flags.ak5e[TIP_REVISION] = revision;
+    if (changes["flags.ak5e"]) changes["flags.ak5e"][TIP_REVISION] = revision;
+    // Our pool write and attribution receipt are atomic. Other writes leave the
+    // attribution's older revision intact and therefore make it uncertain.
+    const stamp = (object, prefix = "") => {
+      for (const [key, value] of Object.entries(object ?? {})) {
+        const path = prefix ? `${prefix}.${key}` : key;
+        if (!value || typeof value !== "object") continue;
+        if (path.startsWith(`flags.ak5e.${vanguardUses.appliedFlag}.`) && value.tipTemporaryHp === true) value.expectedRevision = revision;
+        else if (path === "flags" || path.startsWith("flags.")) stamp(value, path);
+      }
+    };
+    stamp(changes);
+  });
+}
+
+function tipDeadline(source) {
+  const combat = game.combat;
+  if (!combat?.started || combat.turn === null || !values(combat.turns).some(turn => turn.actor?.uuid === source.uuid)) {
+    return { trigger: "manual", actorUuid: source.uuid };
+  }
+  return tagExpiry(source, source, { trigger: "turnStart", expiryActor: "source" });
+}
+function crossedTipDeadline(deadline, event) {
+  if (deadline?.trigger !== "turnStart" || event.kind !== "combatTurn") return false;
+  const combat = event.combat, previous = combat?.previous;
+  if (deadline.combatUuid !== combat?.uuid || !previous || combat.turn === null || previous.turn === null) return false;
+  if (combat.round < previous.round || combat.round === previous.round && combat.turn <= previous.turn) return false;
+  const index = values(combat.turns).findIndex(turn => turn.id === deadline.combatantId && turn.actor?.uuid === deadline.actorUuid);
+  if (index < 0) return false;
+  const before = previous.round < deadline.round || previous.round === deadline.round && previous.turn < index;
+  const reached = combat.round > deadline.round || combat.round === deadline.round && combat.turn >= index;
+  return before && reached;
+}
+const tipDeadlineText = deadline => deadline?.trigger === "turnStart"
+  ? `Source's next Turn start (Round ${deadline.round}, ${deadline.combatUuid}).`
+  : "Source's next Turn boundary outside combat: the owner must confirm a manual boundary and explain why.";
+
+function establishedTipContribution(source, useId, target) {
+  const grant = tipRecord(source, useId, target);
+  if (!grant || grant.status !== "active" || grant.expectedRevision == null) return false;
+  const snapshot = tipSnapshot(target);
+  const overlapping = Object.values(flag(target, vanguardUses.appliedFlag) ?? {}).filter(record =>
+    record?.tipTemporaryHp === true && record.status === "active");
+  return overlapping.length === 1 && grant.expectedTemp === snapshot.expectedTemp &&
+    grant.expectedRevision === snapshot.expectedRevision && grant.amount <= snapshot.expectedTemp;
+}
+
+// A surviving source receipt establishes the rolled grant's upper bound, not
+// how much remains in the native pool. Missing target history always requires
+// an explicit owner selection; this transient record is never auto-subtracted.
+function reconcilableTipGrant(source, use, target, operationId) {
+  if (!use || !target) return null;
+  const recorded = tipRecord(source, use.id, target);
+  if (recorded) return recorded;
+  const entry = use.targets?.find(change => change.uuid === target.uuid && change.kind === "tipTemporaryHP");
+  const amount = Number(use.roll);
+  if (use.command !== "tipOfTheSpear" || use.outcome !== 2 || use.status === "undone" ||
+      !["expire", "retain"].includes(use.tipTemporaryHpReading) || !entry?.ready || !entry.applied && !entry.attempted ||
+      !Number.isInteger(amount) || amount < 1 || amount > 6 || entry.amount !== amount) return null;
+  const settled = vanguardUses.state(source).undo.some(receipt => receipt.command === "settleTipTemporaryHp" &&
+    receipt.tipUseId === use.id && receipt.id !== operationId && receipt.status === "complete");
+  const sourceStatus = typeof entry.applied === "object" ? entry.applied?.status : null;
+  return { tipTemporaryHp: true, sourceUuid: source.uuid, useId: use.id, amount,
+    readingValue: use.tipTemporaryHpReading, deadline: structuredClone(use.tipDeadline),
+    status: settled ? "settled" : sourceStatus ?? "active", missingAttribution: true };
+}
+async function writeTipPool(source, useId, target, grant, pool, extra = {}) {
+  const revision = foundry.utils.randomID();
+  const next = { ...grant, expectedTemp: pool, expectedRevision: revision };
+  await target.update({ "system.attributes.hp.temp": pool, [`flags.ak5e.${TIP_REVISION}`]: revision,
+    [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: next, ...extra });
+  return tipRecord(source, useId, target);
+}
+
+/** Public request; the source's owners use the same confirmed command/relay as every other use. */
+async function offerTipReconciliation(source, use, target, explanation = "The pool changed; attribution needs owner reconciliation.") {
+  const grant = reconcilableTipGrant(source, use, target), snapshot = tipSnapshot(target);
+  const maximum = Math.min(grant?.amount ?? 0, snapshot.expectedTemp);
+  const evidence = { actorUuid: source.uuid, useId: use.id, targetUuid: target.uuid,
+    readingValue: use.tipTemporaryHpReading ?? use.readingValue, deadline: use.tipDeadline,
+    min: 0, max: maximum, ...snapshot };
+  await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor: source }),
+    content: `<h3>Tip temporary HP: Needs reconciliation</h3><p>${escTip(use.id)}: ${escTip(explanation)}</p><p>Reading: ${escTip(evidence.readingValue)}. ${escTip(tipDeadlineText(use.tipDeadline))}</p><p>Remaining Tip HP: 0–${maximum}. Select only the amount of this grant still attributable in the current pool (${snapshot.expectedTemp}); zero leaves the pool unchanged.</p>`,
+    flags: { ak5e: { vanguardTipTemporaryHp: evidence } } });
+  return evidence;
+}
+
+/**
+ * Mark one receipt's Tip boundary. The active GM client owns only this field of this receipt, so the current receipt
+ * list is re-read inside the Actor's serial queue (the same queue every use, roll and undo runs in) and only the
+ * `undo` subtree is written: a concurrent receipt or use is never overwritten by a stale whole-state copy.
+ * Resolves the current receipt, or null when it is gone, undone or already marked.
+ */
+function markTipBoundaryReached(source, useId) {
+  return vanguardUses.serial(source, async () => {
+    const undo = vanguardUses.state(source).undo, current = undo.find(receipt => receipt.id === useId);
+    if (!current || current.status === "undone" || current.tipBoundaryReached) return null;
+    current.tipBoundaryReached = true;
+    await source.update({ "flags.ak5e.vanguardUses.undo": undo });
+    return current;
+  });
+}
+
+async function handleTipBoundary(event) {
+  if (event.kind !== "combatTurn") return;
+  const gm = game.users?.activeGM;
+  if (gm && gm.id !== game.user.id) return;
+  for (const source of tagActors()) {
+    if (!source.isOwner) continue;
+    // Receipts also exist before the separate THP die: mark the boundary then,
+    // so a late owner click cannot restart the duration.
+    for (const use of vanguardUses.state(source).undo) {
+      if (use.command !== "tipOfTheSpear" || use.status === "undone" || use.tipBoundaryReached || !crossedTipDeadline(use.tipDeadline, event)) continue;
+      const current = await markTipBoundaryReached(source, use.id);
+      if (!current) continue;
+      if (current.outcome !== 2 || current.tipTemporaryHpReading !== "expire") continue;
+      const target = await fromUuid(current.targetUuid), grant = tipRecord(source, use.id, target);
+      if (!target) continue;
+      if (!grant) {
+        await offerTipReconciliation(source, current, target, "Target-side attribution history is missing. The pool is unchanged; the owner must reconcile this use's remaining Tip HP.");
+        continue;
+      }
+      if (grant.status !== "active") continue;
+      if (!establishedTipContribution(source, use.id, target)) {
+        await offerTipReconciliation(source, current, target);
+        continue;
+      }
+      try {
+        await vanguardUses.command(source, "settleTipTemporaryHp", { useId: use.id, remaining: grant.amount,
+          ...tipSnapshot(target), manualBoundary: false, reason: "Established contribution at the recorded source Turn boundary", confirmed: true },
+        `tip-expiry-${opaqueKey(`${source.uuid}:${use.id}`)}`);
+      } catch (error) {
+        // A pending command already has a public Retry card. Boundary replay
+        // must not create a new operation or silently enqueue a target write.
+        ui.notifications.warn(`Tip temporary HP settlement needs retry: ${error.message}`);
+      }
+    }
+  }
+}
+registerFeatureTagExpiryHandler(handleTipBoundary);
+
 /* ---------------------------------------------------------------- Core Vanguard Plans */
+
+/**
+ * Bookkeeping integrity for a granted Tip (not a player-agency gate; range and prerequisites only ever warn).
+ * When a call names a grant source (`data.grantKind`), that kind must be registered
+ * (vanguard-extensions.mjs registerVanguardTipGrantSource), its validator must accept
+ * (actor, sourceEventId, grantIndex), and no other live receipt may already hold the same
+ * (kind, sourceEventId, grantIndex): an undone receipt releases the grant. A receipt that already exists
+ * (operationId found, e.g. while resolving its Roll) was validated when it was created and is not re-judged.
+ * A Tip without `grantKind` (an ordinary use) is unchanged.
+ */
+function validateTipGrant(actor, state, data, operationId) {
+  if (data.grantKind === undefined || data.grantKind === null) return;
+  need(typeof data.grantKind === "string" && data.grantKind.length > 0, "The Tip of the Spear grant source is not recognised.");
+  if (operationId && state.undo.some(entry => entry.id === operationId)) return;
+  need(typeof data.sourceEventId === "string" && data.sourceEventId.length > 0 && Number.isInteger(data.grantIndex) && data.grantIndex >= 1,
+    "A granted Tip of the Spear use needs its source event and a whole-number grant index of at least 1.");
+  const checked = checkVanguardTipGrant(data.grantKind, actor, data.sourceEventId, data.grantIndex);
+  need(checked.ok, checked.reason);
+  const live = state.undo.find(entry => entry.command === "tipOfTheSpear" && entry.status !== "undone" && entry.id !== operationId
+    && entry.data?.grantKind === data.grantKind && entry.data?.sourceEventId === data.sourceEventId && entry.data?.grantIndex === data.grantIndex);
+  need(!live, `That ${data.grantKind} Tip of the Spear grant (${data.sourceEventId} #${data.grantIndex}) was already used; undo the earlier use to release it.`);
+}
+
+/** Operator Skill grant sources: the committed activation receipt is the grant's proof (undoing it removes the proof). */
+const committedActivation = (actor, activationId, sourceId) => (flag(actor, "operatorSkills")?.operatorEvents ?? []).some(event =>
+  event.id === `${activationId}:activation` && event.activationId === activationId && event.kind === "activation"
+  && event.sourceId === sourceId && event.committed === true);
+export const TIP_GRANT_KIND_LEADING_LANCE = "leading-lance", TIP_GRANT_KIND_DEVASTATING_BLOW = "devastating-blow";
+registerVanguardTipGrantSource(TIP_GRANT_KIND_LEADING_LANCE, (actor, activationId, grantIndex) =>
+  [1, 2].includes(grantIndex) && committedActivation(actor, activationId, "operator-skill-vanguard-basic-leading-lance")
+  || { ok: false, reason: "Leading Lance grants two Tip of the Spear uses, each tied to a committed Leading Lance activation." });
+registerVanguardTipGrantSource(TIP_GRANT_KIND_DEVASTATING_BLOW, (actor, activationId, grantIndex) =>
+  grantIndex === 1 && committedActivation(actor, activationId, "operator-skill-vanguard-advanced-devastating-blow")
+  || { ok: false, reason: "Devastating Blow grants one Tip of the Spear use, tied to a committed Devastating Blow activation." });
 
 function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb, data = {}) {
   need(outcome >= 1 && outcome <= 6, "Tip outcome must be 1 to 6.");
@@ -89,7 +289,7 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
       receipt.targets = [{
         uuid: targetUuid,
         name: targetName,
-        kind: "tempHP",
+        kind: "tipTemporaryHP",
         mode: "additive",
         formula: "1d6",
         ready: false
@@ -103,6 +303,9 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
     if (targetUuid) {
       const recipient = globalThis.fromUuidSync?.(targetUuid)
         ?? values(globalThis.canvas?.tokens?.placeables).find(token => token.actor?.uuid === targetUuid)?.actor;
+      need(recipient, "The target's movement modes could not be recorded for this Tip benefit.");
+      const changes = TIP_OUTCOMES[2].changes(recipient);
+      receipt.tipSpeedModes = changes.map(change => change.key.slice("system.attributes.movement.".length));
       receipt.targets = [{
         uuid: targetUuid,
         name: targetName,
@@ -112,7 +315,7 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
           label: "Tip of the Spear: Speed +10 ft",
           trigger: "turnStart",
           expiryActor: "source",
-          changes: recipient ? TIP_OUTCOMES[2].changes(recipient) : [{ key: "system.attributes.movement.walk", value: "10", mode: 2, priority: 20 }],
+          changes,
           instructions: instruction
         },
         ready: true
@@ -182,6 +385,35 @@ function applyTipOutcomeData(receipt, outcome, actor, targetUuid, targetName, pb
 }
 
 const CORE_PLANS = {
+  settleTipTemporaryHp(actor, state, data) {
+    const use = state.undo.find(receipt => receipt.id === data.useId && receipt.command === "tipOfTheSpear");
+    need(use && use.outcome === 2 && use.status !== "undone", "Choose a recorded, active Tip temporary HP use.");
+    need(!isLocked(use) || game.user.isGM, "This Tip use is locked: its encounter window has ended.");
+    need(use.tipBoundaryReached || data.manualBoundary === true, "Confirm a manual source Turn boundary before settling this use.");
+    need(typeof data.reason === "string" && data.reason.trim().length >= 10, "Explain the Tip temporary HP boundary/reconciliation (at least 10 characters).");
+    need(Number.isInteger(data.remaining) && data.remaining >= 0, "Choose a non-negative whole number of remaining Tip HP.");
+    need(Number.isFinite(data.expectedTemp) && data.expectedTemp >= 0 && data.expectedRevision != null, "Review a current Temporary HP pool and revision snapshot.");
+    return { warnings: [], title: "Settle Tip temporary HP", async apply(_next, receipt) {
+      const target = await fromUuid(use.targetUuid), grant = reconcilableTipGrant(actor, use, target, receipt.id);
+      need(target && grant, "The recorded Tip grant could not be found; reconcile its history first.");
+      need(grant.status === "active", "This Tip contribution has already been settled or undone; retry its existing receipt.");
+      if (data.expectedTemp !== tempHp(target) || data.expectedRevision !== flag(target, TIP_REVISION)) {
+        await offerTipReconciliation(actor, use, target, "The pool or revision snapshot is stale. Review this fresh snapshot and retry with a new operation ID.");
+        throw new Error("The Tip temporary HP snapshot changed; review the refreshed public snapshot.");
+      }
+      need(data.remaining <= Math.min(grant.amount, tempHp(target)), "Remaining Tip HP cannot exceed this grant or the current pool.");
+      const amount = use.tipTemporaryHpReading === "expire" && grant.status === "active" ? data.remaining : 0;
+      receipt.readingValue = use.tipTemporaryHpReading;
+      receipt.tipUseId = use.id;
+      receipt.tipDeadline = structuredClone(use.tipDeadline);
+      receipt.summary = `Tip temporary HP adjustment: remove ${amount}. Reading: ${receipt.readingValue}. ${tipDeadlineText(use.tipDeadline)} Reconciliation: ${data.reason.trim()}; ${data.remaining} remaining Tip HP attributed to this grant.`;
+      if (grant.missingAttribution) receipt.summary += " Target attribution history was missing; the adjustment uses only the owner's selected remaining contribution.";
+      receipt.result = { adjustment: amount, remaining: data.remaining, readingValue: receipt.readingValue };
+      receipt.targets = [{ uuid: use.targetUuid, name: use.targetName, kind: "tipTemporaryHPSettlement", ready: true,
+        tipUseId: use.id, amount, ...tipSnapshot(target), manualBoundary: data.manualBoundary === true }];
+      return {};
+    } };
+  },
   leadingLanceSP(actor, _state, data) {
     need(vanguardEnabled(actor), "Leading Lance requires the Vanguard class.");
     const operator = flag(actor, "operatorSkills") ?? {};
@@ -219,12 +451,14 @@ const CORE_PLANS = {
     const activationId = String(data.activationId ?? "");
     const operator = flag(actor, "operatorSkills") ?? {};
     const event = (operator.operatorEvents ?? []).find(candidate => candidate.id === `${activationId}:activation`
-      && candidate.activationId === activationId && candidate.kind === "activation" && candidate.committed === true
-      && String(candidate.sourceId ?? "").startsWith("operator-skill-vanguard-"));
+      && candidate.activationId === activationId && candidate.kind === "activation" && candidate.committed === true);
     need(event, "Choose a committed Vanguard Operator Skill activation.");
     const grant = state.undo.find(receipt => receipt.command === "leadingLanceSP" && receipt.eventId === activationId
       && receipt.status !== "undone");
-    need(!grant, "Undo the Leading Lance Skill Point grant before undoing its activation.");
+    need(!grant, `Undo Leading Lance use ${grant?.id} first using Undo recent use, then retry this activation.`);
+    const dependent = state.undo.find(receipt => receipt.status !== "undone" && receipt.operatorSources?.some(source =>
+      source.actorUuid === actor.uuid && source.activationId === activationId));
+    need(!dependent, `Undo dependent use ${dependent?.command ?? "benefit"} (${dependent?.id}) first using Undo recent use, then retry this activation.`);
     const current = Math.max(0, Number(operator.points) || 0), maximum = Math.max(0, Number(operator.maximum) || 0);
     const restore = Math.max(0, Number(event.spSpent) || 0);
     return { warnings: [], title: "Undo Vanguard Operator Skill activation", apply(_next, receipt) {
@@ -248,14 +482,23 @@ const CORE_PLANS = {
     } };
   },
 
-  tipOfTheSpear(actor, state, data) {
+  tipOfTheSpear(actor, state, data, operationId) {
+    registerTipTemporaryHpHooks();
     need(vanguardEnabled(actor), "Tip of the Spear requires the Vanguard class.");
+    validateTipGrant(actor, state, data, operationId);
     const warnings = [];
     const pb = Number(actor.system?.attributes?.prof ?? 2);
 
     const targetUuid = data.target?.uuid ?? data.targetActor?.uuid ?? data.targetUuid ?? null;
     need(typeof targetUuid === "string" && targetUuid.length > 0, "Choose an allied creature for Tip of the Spear.");
     const targetName = data.target?.name ?? data.targetActor?.name ?? data.targetName ?? "creature";
+    const selfTarget = targetUuid === actor.uuid;
+    const reading = selfTarget ? "tipSelfTargeting" : null;
+    const storedReading = reading ? vanguardState(actor).rulings?.[reading] : null;
+    const rulingValue = storedReading?.source?.trim?.() && storedReading.value !== undefined ? storedReading.value : undefined;
+    const selectedReading = reading
+      ? (rulingValue ?? data.readings?.[reading] ?? data.reading ?? null)
+      : null;
     const token = data.target?.document?.object ?? data.target?.token ??
       values(globalThis.canvas?.tokens?.placeables).find(candidate => candidate.actor?.uuid === targetUuid || candidate.document?.uuid === targetUuid);
 
@@ -272,6 +515,9 @@ const CORE_PLANS = {
     const targetDisposition = token?.document?.disposition ?? token?.disposition;
     if (sourceDisposition === undefined || targetDisposition === undefined) warn(warnings, "alliance-unverified", `Confirm that ${targetName} is allied; alliance could not be verified.`);
     else if (sourceDisposition !== 1 || targetDisposition !== 1) warn(warnings, "alliance", `Confirm that ${targetName} is allied before using Tip of the Spear.`);
+    if (selfTarget && selectedReading === "otherAllyOnly") {
+      warn(warnings, "selfTarget", "The selected reading allows only another ally to receive Tip; this use targets the Vanguard themself.");
+    }
 
     const directed = Boolean(data.directed);
     const choice = data.choice !== undefined && data.choice !== null ? Number(data.choice) : null;
@@ -296,10 +542,13 @@ const CORE_PLANS = {
     return {
       warnings,
       title,
+      ...(reading ? { reading } : {}),
       rolls: (!isDirected && choice === null)
         ? [{ id: "tipRoll", label: "Tip of the Spear (1d6)", formula: "1d6" }]
         : [],
-      async apply(next, receipt) {
+      async apply(next, receipt, resolvedReading) {
+        receipt.tipDeadline = tipDeadline(actor);
+        if (reading) receipt.readingValue = resolvedReading;
         receipt.targetUuid = targetUuid;
         receipt.targetName = targetName;
         receipt.directed = directedUse;
@@ -510,9 +759,11 @@ CORE_PLANS.undoOperatorActivation.undoUpdates = (owner, _state, receipt) => {
     && candidate.activationId === receipt.activationId && candidate.kind === "activation" && candidate.committed === true);
   const stillGranted = vanguardUses.state(owner).undo.some(candidate => candidate.command === "leadingLanceSP"
     && candidate.eventId === receipt.activationId && candidate.status !== "undone");
-  if (!committed || stillGranted) {
-    receipt.undoNotes = [...(receipt.undoNotes ?? []), stillGranted
-      ? "The Leading Lance SP grant remains committed; no activation state was restored."
+  const dependent = vanguardUses.state(owner).undo.some(candidate => candidate.status !== "undone" && candidate.operatorSources?.some(source =>
+    source.actorUuid === owner.uuid && source.activationId === receipt.activationId));
+  if (!committed || stillGranted || dependent) {
+    receipt.undoNotes = [...(receipt.undoNotes ?? []), stillGranted || dependent
+      ? "A dependent use remains committed. Undo it using Undo recent use before retrying the activation."
       : "The activation ledger changed or expired; no activation state was restored."];
     return {};
   }
@@ -529,9 +780,42 @@ CORE_PLANS.undoOperatorActivation.undoUpdates = (owner, _state, receipt) => {
 CORE_PLANS.approachingStorm.undoNotes = (_actor, _state, receipt) => receipt.approachingStormApplied
   ? ["The native damage roll already made with Approaching Storm remains in chat after undo."] : [];
 
+CORE_PLANS.tipOfTheSpear.beforeRoll = (actor, receipt, data) => {
+  if (receipt.outcome !== 2 || receipt.tipTemporaryHpReading) return;
+  const key = "tipTemporaryHpExpiry", definition = vanguardUses.readings()[key];
+  const record = vanguardState(actor).rulings?.[key];
+  const ruling = record?.source?.trim?.() ? record.value : undefined;
+  const reading = resolveReading(ruling, data.readings?.[key] ?? data.reading, key, definition.label, definition.options);
+  receipt.tipTemporaryHpReading = reading.value;
+  receipt.rollCardStage = "temporaryHp";
+  if (receipt.readingValue) {
+    receipt.tipSelfReadingValue = receipt.readingValue;
+    receipt.manualSteps = [...(receipt.manualSteps ?? []), `Self-target reading captured for this use: ${receipt.reading}.`];
+  }
+  receipt.readingValue = reading.value;
+  receipt.readingSource = reading.source;
+  receipt.reading = definition.options.find(option => option.value === reading.value)?.label;
+  receipt.manualSteps = [...(receipt.manualSteps ?? []), `${tipDeadlineText(receipt.tipDeadline)} Reading captured for this use: ${reading.value}${reading.source === "ruling" ? " (GM ruling)" : " (per-use choice)"}.`];
+  return true;
+};
+
 vanguardUses.register({
   plans: CORE_PLANS,
   readings: {
+    tipTemporaryHpExpiry: {
+      label: "Tip temporary HP at the source's next Turn (unspent HP is not specified in the source)",
+      options: [
+        { value: "expire", label: "Expire: remove only the remaining attributable Tip temporary HP at the source's next Turn start." },
+        { value: "retain", label: "Retain: keep the temporary HP after the source's next Turn start." }
+      ]
+    },
+    tipSelfTargeting: {
+      label: "Tip of the Spear self-target eligibility",
+      options: [
+        { value: "allowSelf", label: "Self is allowed; the Vanguard may receive their own Tip benefit." },
+        { value: "otherAllyOnly", label: "Only another ally may receive the Tip benefit; self is excluded." }
+      ]
+    },
     approachingStormComponents: {
       label: "Approaching Storm damage components",
       options: [
@@ -541,6 +825,99 @@ vanguardUses.register({
     }
   },
   targetKinds: {
+    tipTemporaryHP: {
+      async apply(source, useId, entry, target) {
+        return tipSerial(target, async () => {
+          const existing = tipRecord(source, useId, target);
+          if (existing) return existing;
+          const use = vanguardUses.receipt(source, useId);
+          need(["expire", "retain"].includes(use?.tipTemporaryHpReading), "Choose this use's temporary HP duration before rolling.");
+          const before = tempHp(target), late = use.tipBoundaryReached && use.tipTemporaryHpReading === "expire";
+          const grant = { tipTemporaryHp: true, sourceUuid: source.uuid, useId, amount: entry.amount,
+            tempBefore: before, temp: late ? before : before + entry.amount, rolled: entry.amount,
+            readingValue: use.tipTemporaryHpReading, deadline: structuredClone(use.tipDeadline),
+            status: late ? "expired" : "active" };
+          let applied;
+          if (late) {
+            applied = { ...grant, ...tipSnapshot(target) };
+            await target.update({ [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: applied });
+          } else applied = await writeTipPool(source, useId, target, grant, before + entry.amount);
+          if (use.tipDeadline?.trigger === "manual") await offerTipReconciliation(source, use, target, "Outside combat there is no automatic boundary. Confirm the manual source Turn boundary and explain why before settlement.");
+          return applied;
+        });
+      },
+      async revert(source, useId, _entry, target) {
+        return tipSerial(target, async () => {
+          const grant = reconcilableTipGrant(source, vanguardUses.receipt(source, useId), target);
+          if (!grant || grant.status === "undone") return { removed: 0 };
+          if (grant.status !== "active") {
+            await target.update({ [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}.status`]: "undone" });
+            return { removed: 0 };
+          }
+          if (!establishedTipContribution(source, useId, target)) {
+            const use = vanguardUses.receipt(source, useId);
+            await offerTipReconciliation(source, use, target, "Undo needs owner reconciliation of this grant. The current pool is preserved until the remaining contribution is selected.");
+            throw new Error("Reconcile the remaining Tip HP before undoing this grant; no pool adjustment was made");
+          }
+          await writeTipPool(source, useId, target, { ...grant, status: "undone" }, tempHp(target) - grant.amount);
+          return { removed: grant.amount };
+        });
+      },
+      preview(source, receipt, entry, target) {
+        const grant = reconcilableTipGrant(source, receipt, target);
+        if (!grant || grant.status !== "active") return `${entry.name}: no current Tip temporary HP contribution to remove; expiry/undo is not reversed.`;
+        return establishedTipContribution(source, receipt.id, target)
+          ? `${entry.name}: removes this established ${grant.amount} Tip temporary HP contribution.`
+          : `${entry.name}: attribution is uncertain; the owner must reconcile the remaining Tip HP. The pool is preserved until then.`;
+      },
+      rolled(entry, total) { entry.amount = total; },
+      rollText(entry) {
+        const applied = entry.applied ?? {};
+        return `${entry.name}: Tip temporary HP ${applied.tempBefore ?? 0} → ${applied.temp ?? entry.amount} (rolled ${entry.amount})${applied.status === "expired" ? "; original deadline already passed, adjustment 0" : ""}.`;
+      }
+    },
+    tipTemporaryHPSettlement: {
+      async apply(source, useId, entry, target) {
+        return tipSerial(target, async () => {
+          const prior = tipRecord(source, useId, target);
+          if (prior) return prior;
+          const use = vanguardUses.receipt(source, entry.tipUseId), grant = reconcilableTipGrant(source, use, target, useId);
+          need(use?.status !== "undone" && grant?.status === "active", "This Tip grant is no longer active.");
+          if (entry.expectedTemp !== tempHp(target) || entry.expectedRevision !== flag(target, TIP_REVISION)) {
+            await offerTipReconciliation(source, use, target, "The pool or revision changed before application. Review this fresh snapshot with a new operation ID.");
+            throw new Error("Stale Tip temporary HP snapshot; review the refreshed public request");
+          }
+          const amount = grant.status === "active" && grant.readingValue === "expire" ? entry.amount : 0;
+          need(Number.isInteger(amount) && amount >= 0 && amount <= Math.min(grant.amount, tempHp(target)), "The remaining Tip contribution is out of range.");
+          const applied = { tipTemporaryHpSettlement: true, tipUseId: entry.tipUseId, removed: amount, undone: false };
+          const nextGrant = grant.readingValue === "retain" ? grant
+            : { ...grant, status: "settled", settledBy: useId, remaining: 0, adjustment: amount };
+          if (amount) await writeTipPool(source, entry.tipUseId, target, nextGrant, tempHp(target) - amount,
+            { [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: applied });
+          else await target.update({ [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, entry.tipUseId)}`]: nextGrant,
+            [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: applied });
+          return applied;
+        });
+      },
+      async revert(source, useId, entry, target) {
+        return tipSerial(target, async () => {
+          const applied = tipRecord(source, useId, target);
+          if (!applied || applied.undone) return { restored: 0 };
+          const use = vanguardUses.receipt(source, entry.tipUseId), grant = tipRecord(source, entry.tipUseId, target);
+          const restore = use?.status !== "undone" && grant?.status !== "undone" ? applied.removed : 0;
+          const done = { ...applied, undone: true };
+          if (restore) await writeTipPool(source, entry.tipUseId, target,
+            { ...grant, status: "active", remaining: restore, amount: restore, settledBy: null }, tempHp(target) + restore,
+            { [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: done });
+          else await target.update({ [`flags.ak5e.${vanguardUses.appliedFlag}.${tipKey(source, useId)}`]: done });
+          return { restored: restore };
+        });
+      },
+      preview(source, receipt, entry, target) {
+        const applied = tipRecord(source, receipt.id, target);
+        return `${entry.name}: reverses only this Tip temporary HP adjustment (${applied?.undone ? 0 : applied?.removed ?? 0}), preserving intervening pool changes; an undone grant is never restored.`;
+      }
+    },
     damage: {
       local: true,
       async apply(source, useId, entry, target) {
@@ -618,7 +995,8 @@ const exactData = (actual, expected) => {
 CORE_PLANS.tipOfTheSpear.validateTarget = (source, receipt, entry, target) => {
   if (entry.uuid !== receipt.targetUuid || target.uuid !== receipt.targetUuid || entry.name !== receipt.targetName) return false;
   const outcome = Number(receipt.outcome), pb = Number(receipt.result?.damageBonus);
-  if (outcome === 2) return entry.kind === "tempHP" && entry.mode === "additive" && entry.ready === true &&
+  if (outcome === 2) return entry.kind === "tipTemporaryHP" && entry.mode === "additive" && entry.ready === true &&
+    ["expire", "retain"].includes(receipt.tipTemporaryHpReading) &&
     Number.isInteger(entry.amount) && entry.amount >= 1 && entry.amount <= 6 && Number(receipt.roll) === entry.amount;
   if (![1, 3, 4, 5, 6].includes(outcome) || entry.kind !== "effect" || entry.ready !== true ||
       entry.featureId !== "class-feature-vanguard-1st-level-tip-of-the-spear-3092") return false;
@@ -628,8 +1006,14 @@ CORE_PLANS.tipOfTheSpear.validateTarget = (source, receipt, entry, target) => {
     entry.meta?.sourceUseId === receipt.id &&
     Number.isFinite(Number(entry.meta?.createdAt)) && Number(entry.meta.createdAt) > 0 &&
     exactData(entry.tag, { ...base, label: `Tip of the Spear: +${pb} Damage`, actions: ["used"] });
-  if (outcome === 3) return entry.standardBenefit === undefined && exactData(entry.tag, { ...base, label: "Tip of the Spear: Speed +10 ft",
-    changes: [{ key: "system.attributes.movement.walk", value: "10", mode: 2, priority: 20 }] });
+  if (outcome === 3) {
+    const allowedModes = ["walk", "fly", "swim", "climb", "burrow"];
+    const modes = receipt.tipSpeedModes;
+    if (!Array.isArray(modes) || !exactData(modes, allowedModes.filter(mode => modes.includes(mode)))) return false;
+    const movement = Object.fromEntries(modes.map(mode => [mode, 1]));
+    return entry.standardBenefit === undefined && exactData(entry.tag, { ...base, label: "Tip of the Spear: Speed +10 ft",
+      changes: TIP_OUTCOMES[2].changes({ system: { attributes: { movement } } }) });
+  }
   if (outcome === 4) return entry.standardBenefit === undefined && exactData(entry.tag, { ...base, label: "Tip of the Spear: +2 to Attack Rolls",
     changes: attackChanges(2) });
   if (outcome === 5) return exactData(entry.standardBenefit, { kind: "tip5", value: 1 }) &&
@@ -641,11 +1025,51 @@ CORE_PLANS.tipOfTheSpear.validateTarget = (source, receipt, entry, target) => {
     exactData(entry.tag, { ...base, label: "Tip of the Spear: +1 Skill Point" });
 };
 
+CORE_PLANS.settleTipTemporaryHp.validateTarget = (source, receipt, entry, target) => {
+  const data = receipt.data, use = vanguardUses.receipt(source, data?.useId);
+  const grant = reconcilableTipGrant(source, use, target, receipt.id);
+  return Boolean(use && use.command === "tipOfTheSpear" && use.outcome === 2 && use.status !== "undone" && grant &&
+    (use.tipBoundaryReached || data.manualBoundary === true) &&
+    (!isLocked(use) || game.user.isGM) && typeof data.reason === "string" && data.reason.trim().length >= 10 &&
+    entry.kind === "tipTemporaryHPSettlement" && entry.tipUseId === use.id &&
+    entry.uuid === use.targetUuid && target.uuid === use.targetUuid &&
+    Number.isInteger(data.remaining) && data.remaining >= 0 && data.remaining <= grant.amount &&
+    entry.amount === (use.tipTemporaryHpReading === "expire" ? data.remaining : 0) &&
+    entry.expectedTemp === data.expectedTemp && entry.expectedRevision === data.expectedRevision);
+};
+CORE_PLANS.settleTipTemporaryHp.validateRevert = (source, receipt, entry, target) => {
+  const applied = tipRecord(source, receipt.id, target);
+  return entry.kind === "tipTemporaryHPSettlement" && applied?.tipTemporaryHpSettlement === true &&
+    applied.tipUseId === entry.tipUseId && applied.removed >= 0 && applied.removed <= 6;
+};
+
 // Uses and rolls go through the generic confirmed command API. No implicit
 // confirmation or programmatic dice path is exposed.
 
+const commandVanguardUse = vanguardUses.command;
+vanguardUses.command = async function(actor, name, data = {}, operationId, requester = game.user) {
+  const before = structuredClone(flag(actor, "operatorSkills")?.operatorEvents ?? []);
+  const result = await commandVanguardUse(actor, name, data, operationId, requester);
+  const after = flag(actor, "operatorSkills")?.operatorEvents ?? [];
+  const profile = vanguardProfile(actor);
+  const notify = (event, state, reason) => notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId,
+    event: Object.freeze(structuredClone(event)), state, reason, requestId: operationId ?? data.useId, initiatingUserId: requester.id });
+  for (const event of after.filter(event => event.committed && event.kind === "grant" && !before.some(previous => previous.id === event.id))) await notify(event, "present", "commit");
+  for (const event of before.filter(event => !after.some(current => current.id === event.id))) await notify(event, "removed", "undo");
+  return result;
+};
+
 vanguardUses.undo = async function(actor, useId) {
-  return await vanguardUses.command(actor, "undoUse", { useId });
+  const use = vanguardUses.receipt(actor, useId);
+  const before = use?.command === "undoOperatorActivation" ? (flag(actor, "operatorSkills")?.operatorEvents ?? []).filter(event => event.activationId === use.activationId).map(event => structuredClone(event)) : [];
+  const result = await vanguardUses.command(actor, "undoUse", { useId });
+  const remaining = flag(actor, "operatorSkills")?.operatorEvents ?? [];
+  const profile = vanguardProfile(actor);
+  for (const event of before.filter(event => !remaining.some(candidate => candidate.id === event.id))) {
+    await notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId, event: Object.freeze(event),
+      state: "removed", reason: "undo", requestId: useId, initiatingUserId: game.user.id });
+  }
+  return result;
 };
 
 vanguardUses.plan = function(actor, name, data = {}) {

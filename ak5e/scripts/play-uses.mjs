@@ -73,6 +73,82 @@ function rememberData(receipt, before, after) {
   }
 }
 const isConstruct = actor => String(actor?.system?.details?.type?.value ?? "").toLowerCase() === "construct";
+
+function serializeRoll(roll) {
+  if (!roll) return null;
+  if (typeof roll.toJSON === "function") {
+    try {
+      const res = roll.toJSON();
+      return typeof res === "string" ? JSON.parse(res) : res;
+    } catch {
+      // fallback
+    }
+  }
+  return {
+    formula: roll.formula,
+    total: roll.total,
+    evaluated: true
+  };
+}
+
+function reconstructRoll(data, RollClass = globalThis.Roll) {
+  if (!data) return null;
+  const Cls = RollClass ?? globalThis.Roll;
+  if (typeof Cls?.fromData === "function") {
+    try {
+      return Cls.fromData(data);
+    } catch {
+      // fallback
+    }
+  }
+  if (typeof Cls?.fromJSON === "function") {
+    try {
+      return Cls.fromJSON(typeof data === "string" ? data : JSON.stringify(data));
+    } catch {
+      // fallback
+    }
+  }
+  let roll;
+  try {
+    roll = new Cls(data.formula ?? "");
+  } catch {
+    roll = { formula: data.formula ?? "" };
+  }
+  roll.formula = data.formula ?? roll.formula;
+  roll.total = data.total;
+  roll._total = data.total;
+  roll._evaluated = true;
+  if (typeof roll.toMessage !== "function") {
+    roll.toMessage = async (msgData = {}) => {
+      return ChatMessage.implementation.create({
+        ...msgData,
+        rolls: [roll],
+        content: `Roll [${roll.formula}]: ${roll.total}`
+      });
+    };
+  }
+  if (typeof roll.toJSON !== "function") {
+    roll.toJSON = () => ({
+      formula: roll.formula,
+      total: roll.total,
+      evaluated: true
+    });
+  }
+  return roll;
+}
+
+function collectDescendants(state, parentId, visited = new Set()) {
+  if (!state?.undo || visited.has(parentId)) return [];
+  visited.add(parentId);
+  const children = state.undo.filter(entry => entry.parentUseId === parentId && entry.status !== "undone" && !visited.has(entry.id)).reverse();
+  const result = [];
+  for (const child of children) {
+    result.push(...collectDescendants(state, child.id, visited));
+    result.push(child);
+  }
+  return result;
+}
+
 export const warn = (list, id, text) => list.push({ id, text });
 class NoGM extends Error {}
 
@@ -302,7 +378,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     for (const instruction of receipt.manualSteps ?? []) lines.push(`<p><strong>Manual step:</strong> ${esc(instruction)}</p>`);
     for (const save of receipt.saves ?? []) lines.push(`<p>${esc(save.name ?? "Target")}: ${esc(save.ability.toUpperCase())} save DC ${esc(save.dc)}${save.resolved ? ` — ${save.success ? "success" : "failure"} (${esc(save.total)})` : " — awaiting its owner's roll"}.</p>`);
     if (receipt.overridden?.length) lines.push(`<p><strong>Used anyway:</strong> ${receipt.overridden.map(esc).join(" ")}</p>`);
-    if (receipt.reading) lines.push(`<p><strong>Player's reading for this use (no GM ruling):</strong> ${esc(receipt.reading)}</p>`);
+    if (receipt.reading) lines.push(`<p><strong>${receipt.readingSource === "ruling" ? "GM ruling applied to this use" : "Player's reading for this use (no GM ruling)"}:</strong> ${esc(receipt.reading)}</p>`);
     for (const shortfall of receipt.shortfalls ?? []) lines.push(`<p><strong>${esc(shortfall)}.</strong></p>`);
     if (receipt.status === "pending") lines.push(`<p><strong>Not applied yet:</strong> ${esc(receipt.lastError ?? "no GM is connected")}. Retry this use from the panel.</p>`);
     if (receipt.status === "awaitingNativeRoll") lines.push("<p><strong>Armed:</strong> complete the matching native roll to consume this benefit. Canceling the roll leaves it armed.</p>");
@@ -311,12 +387,13 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     return lines.join("");
   }
   async function useCard(actor, receipt, kind = "use") {
-    const id = kind === "use" ? receipt.id : `${receipt.id}-${kind}`;
+    const id = kind === "use" ? receipt.id : `${receipt.id}-${kind}${kind === "roll" && receipt.rollCardStage ? `-${receipt.rollCardStage}` : ""}`;
     const existing = values(game.messages).find(message => flag(message, operationFlag) === id && flag(message, actorFlag) === actor.uuid);
     const title = kind === "undo" ? `Undone: ${receipt.title}` : kind === "roll" ? `${receipt.title}: result` : receipt.title;
     const body = kind === "undo" ? `<p>${esc(receipt.undoneByName ?? game.user.name)} undid this use.${receipt.undoNotes?.length ? ` ${receipt.undoNotes.map(esc).join(" ")}` : ""}</p>`
       : kind === "roll" ? (receipt.targets.filter(entry => KINDS[entry.kind]?.rollText).map(entry => `<p>${esc(KINDS[entry.kind].rollText(entry))}</p>`).join("")
         || (receipt.rollParts?.length ? `<p>${esc(`${receipt.rollLabel ?? "Damage"} rolled: ${receipt.roll} (${receipt.rollParts.map(part => `${part.total} ${part.type}`).join(", ")}). Apply it with the native damage controls on the roll card.`)}</p>` : ""))
+        + (receipt.reading || receipt.manualSteps?.length ? cardHtml(receipt) : "")
         + (receipt.targets.some(entry => entry.relayed) ? "<p>Applied by the GM's client.</p>" : "")
         : cardHtml(receipt);
     const data = { speaker: ChatMessage.implementation.getSpeaker({ actor }), content: `<h3>${esc(title)}</h3>${body}`,
@@ -324,7 +401,7 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
         saves: (receipt.saves ?? []).map(save => ({ ...clone(save), available: !save.afterRoll || receipt.roll !== undefined })),
         ...(publicSnapshot && receipt.resolution ? { snapshot: { command: receipt.command, data: clone(receipt.data), resolution: clone(receipt.resolution) } } : {}) } } : {}) } } };
     if (existing) {
-      if (kind === "use" && existing.update) await existing.update(data);
+      if (existing.update) await existing.update(data);
       return existing;
     }
     await ChatMessage.implementation.create(data);
@@ -520,6 +597,11 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
     need(receipt?.formula, "Choose a use that is waiting for its roll.");
     need(receipt.status !== "undone", "That use was undone.");
     if (receipt.status === "complete") return receipt.result;
+    // A registered feature may need a public per-use reading before a later
+    // die in a staged use. Resolve it before saving anything or starting dice.
+    if (typeof PLANS[receipt.command]?.beforeRoll === "function") {
+      if (await PLANS[receipt.command].beforeRoll(actor, receipt, data, state)) await save(actor, state);
+    }
     if (receipt.roll === undefined && receipt.damageParts?.length) {
       // Typed Damage for native application (for example a Munitions volley): one D&D5e damage roll per Damage type.
       const DamageRoll = globalThis.CONFIG?.Dice?.DamageRoll ?? Roll, data = actor.getRollData?.() ?? {};
@@ -527,16 +609,39 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
       for (const part of receipt.damageParts) rolls.push(await new DamageRoll(part.formula, data, { type: part.type, types: [part.type] }).evaluate());
       receipt.roll = rolls.reduce((sum, roll) => sum + Number(roll.total), 0);
       receipt.rollParts = rolls.map((roll, index) => ({ type: receipt.damageParts[index].type, total: roll.total }));
+      receipt.serializedRolls = rolls.map(serializeRoll);
+      receipt.diceMessagePublished = false;
       await save(actor, state);
       await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: receipt.rollFlavor ?? receipt.title, rolls,
         flags: { dnd5e: { roll: { type: "damage" } }, ak5e: { [operationFlag]: `${receipt.id}-dice`, [actorFlag]: actor.uuid } } });
+      receipt.diceMessagePublished = true;
+      await save(actor, state);
     } else if (receipt.roll === undefined) {
       const roll = await new Roll(receipt.formula, actor.getRollData?.() ?? {}).evaluate();
       receipt.roll = roll.total;
+      receipt.serializedRoll = serializeRoll(roll);
+      receipt.diceMessagePublished = false;
       for (const entry of receipt.targets) if (!entry.ready) { entry.ready = true; (KINDS[entry.kind]?.rolled ?? (e => { e.amount = roll.total; }))(entry, roll.total); }
       await save(actor, state);
       await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: receipt.rollFlavor ?? receipt.title,
         flags: { ak5e: { [operationFlag]: `${receipt.id}-dice`, [actorFlag]: actor.uuid } } });
+      receipt.diceMessagePublished = true;
+      await save(actor, state);
+    } else if (!receipt.diceMessagePublished) {
+      if (receipt.damageParts?.length) {
+        const DamageRoll = globalThis.CONFIG?.Dice?.DamageRoll ?? Roll;
+        const rolls = receipt.serializedRolls?.length
+          ? receipt.serializedRolls.map(r => reconstructRoll(r, DamageRoll))
+          : receipt.damageParts.map((part, index) => reconstructRoll({ formula: part.formula, total: receipt.rollParts?.[index]?.total ?? receipt.roll }, DamageRoll));
+        await ChatMessage.implementation.create({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: receipt.rollFlavor ?? receipt.title, rolls,
+          flags: { dnd5e: { roll: { type: "damage" } }, ak5e: { [operationFlag]: `${receipt.id}-dice`, [actorFlag]: actor.uuid } } });
+      } else {
+        const roll = reconstructRoll(receipt.serializedRoll ?? { formula: receipt.formula, total: receipt.roll });
+        await roll.toMessage({ speaker: ChatMessage.implementation.getSpeaker({ actor }), flavor: receipt.rollFlavor ?? receipt.title,
+          flags: { ak5e: { [operationFlag]: `${receipt.id}-dice`, [actorFlag]: actor.uuid } } });
+      }
+      receipt.diceMessagePublished = true;
+      await save(actor, state);
     }
     // A command may deterministically turn a persisted owner-clicked roll into
     // its next receipt stage (for example Tip's table result, then a separate
@@ -558,29 +663,35 @@ export function createPlayUses({ ns, label, isMember, ruling = () => undefined, 
   }
   /** What undoing a use will and will not restore, shown before the user confirms. */
   function previewUndo(actor, useId) {
-    const receipt = readState(actor).undo.find(entry => entry.id === useId);
+    const state = readState(actor);
+    const receipt = state.undo.find(entry => entry.id === useId);
     if (!receipt) return { lines: ["This use is no longer recorded."], blocked: true };
     if (receipt.status === "undone") return { lines: ["This use was already undone."], blocked: true };
-    const lines = [], locked = isLocked(receipt);
+    const descendants = collectDescendants(state, receipt.id);
+    const locked = isLocked(receipt) || descendants.some(isLocked);
+    const lines = [];
     if (locked) lines.push(game.user.isGM ? "This use is from an earlier encounter window; as GM you may still undo it." : "Locked: this use's encounter window has ended.");
-    for (const resource of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.resources ?? [] : [])) if (resource.before !== resource.after)
-      lines.push(resource.before > resource.after ? `Restores ${resource.before - resource.after} ${resource.label}.` : `Removes the ${resource.after - resource.before} ${resource.label} it gave.`);
-    for (const change of (!receipt.preparedUpdates || receipt.updatesApplied ? receipt.flagChanges ?? [] : [])) {
-      if (sameValue(getPath(actor, change.path), change.after)) lines.push(`Restores ${change.path.replace(/^flags\.ak5e\./, "")} to its prior value.`);
-      else lines.push(`Won't restore ${change.path.replace(/^flags\.ak5e\./, "")}: its value changed after this use.`);
-    }
-    if (receipt.reaction?.spent) {
-      const current = getReactions(actor), active = current.receipts?.[receipt.reaction.receiptId];
-      lines.push(active ? "Restores the Reaction spent by this use." : "The Reaction has already refreshed at a Turn start; undo leaves it available.");
-    }
-    for (const change of receipt.dataChanges ?? []) {
-      const matches = sameValue(dataValue(readState(actor).data, change), change.after);
-      lines.push(matches ? `Restores feature state: ${change.path}.` : `Won't restore ${change.path}: feature state changed after this use.`);
-    }
-    for (const note of PLANS[receipt.command]?.undoNotes?.(actor, readState(actor), receipt) ?? []) lines.push(note);
-    for (const entry of receipt.targets ?? []) {
-      if (!entry.applied && !entry.attempted) { lines.push(`${entry.name}: nothing was applied yet.`); continue; }
-      lines.push(KINDS[entry.kind].preview(actor, { ...receipt, id: targetUseId(receipt.id, entry) }, entry, globalThis.fromUuidSync?.(entry.uuid)));
+    for (const entry of [...descendants, receipt]) {
+      for (const resource of (!entry.preparedUpdates || entry.updatesApplied ? entry.resources ?? [] : [])) if (resource.before !== resource.after)
+        lines.push(resource.before > resource.after ? `Restores ${resource.before - resource.after} ${resource.label}.` : `Removes the ${resource.after - resource.before} ${resource.label} it gave.`);
+      for (const change of (!entry.preparedUpdates || entry.updatesApplied ? entry.flagChanges ?? [] : [])) {
+        if (sameValue(getPath(actor, change.path), change.after)) lines.push(`Restores ${change.path.replace(/^flags\.ak5e\./, "")} to its prior value.`);
+        else lines.push(`Won't restore ${change.path.replace(/^flags\.ak5e\./, "")}: its value changed after this use.`);
+      }
+      if (entry.reaction?.spent) {
+        const current = getReactions(actor), active = current.receipts?.[entry.reaction.receiptId];
+        lines.push(active ? "Restores the Reaction spent by this use." : "The Reaction has already refreshed at a Turn start; undo leaves it available.");
+      }
+      for (const change of entry.dataChanges ?? []) {
+        const matches = sameValue(dataValue(state.data, change), change.after);
+        lines.push(matches ? `Restores feature state: ${change.path}.` : `Won't restore ${change.path}: feature state changed after this use.`);
+      }
+      for (const note of PLANS[entry.command]?.undoNotes?.(actor, state, entry) ?? []) lines.push(note);
+      for (const targetEntry of entry.targets ?? []) {
+        if (!targetEntry.applied && !targetEntry.attempted) { lines.push(`${targetEntry.name}: nothing was applied yet.`); continue; }
+        const previewText = KINDS[targetEntry.kind]?.preview?.(actor, { ...entry, id: targetUseId(entry.id, targetEntry) }, targetEntry, globalThis.fromUuidSync?.(targetEntry.uuid));
+        if (previewText) lines.push(previewText);
+      }
     }
     return { lines, blocked: locked && !game.user.isGM, locked };
   }

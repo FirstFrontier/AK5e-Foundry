@@ -11,6 +11,7 @@ import {
   ASI_LEVELS, checkLevel, vanguardProfile, vanguardState
 } from "./vanguard-rules.mjs";
 import { need } from "./operation-kernel.mjs";
+import { vanguardExtensionContext, vanguardProgressionContributions } from "./vanguard-extensions.mjs";
 
 export const VANGUARD_PROGRESS_FLAG = "vanguardProgression";
 export const VANGUARD_TALENT_FLAG = "vanguardTalent";
@@ -145,6 +146,12 @@ function currentAbility(actor, ability) {
 
 const option = (value, label, details = {}) => ({ value, label, ...details });
 const field = (key, label, options, count = 1, selected = null, requiredAt = 1) => ({ key, label, options, count, selected, requiredAt });
+const mergeBranchChoices = (saved, supplied) => {
+  if (!supplied || typeof supplied !== "object" || Array.isArray(supplied)) return structuredClone(supplied);
+  const result = saved && typeof saved === "object" && !Array.isArray(saved) ? structuredClone(saved) : {};
+  for (const [key, value] of Object.entries(supplied)) result[key] = mergeBranchChoices(result[key], value);
+  return result;
+};
 
 export function vanguardChoices(actor, supplied = {}) {
   const state = readState(actor), saved = state.choices ?? {};
@@ -160,6 +167,10 @@ export function vanguardChoices(actor, supplied = {}) {
     result.startingEquipment.mode = "existing";
   }
   result.talents = { ...(saved.talents ?? {}), ...(supplied.talents ?? {}) };
+  result.branches = structuredClone(saved.branches ?? {});
+  for (const [id, branchChoices] of Object.entries(supplied.branches ?? {})) {
+    result.branches[id] = mergeBranchChoices(result.branches[id], branchChoices ?? {});
+  }
   for (const tier of ["basic", "advanced"]) {
     if (result.talents[tier]) continue;
     const owned = entries(actor?.items).find(item => {
@@ -305,12 +316,21 @@ export function inspectVanguardFields(actor, choices = {}) {
     ], 1, currentChoices.talents?.advancedModule ?? null));
   }
 
+  const profile = vanguardProfile(actor);
+  const branchId = flag(attached, "chapterThreeId") ?? (VANGUARD_BRANCH_IDS[currentChoices.branch] ? currentChoices.branch : null);
+  const context = vanguardExtensionContext(actor, { branchId, level, profile, choices: currentChoices, purpose: "progression",
+    phase: "fields", progressionState: readState(actor), basePlan: null });
+  for (const contribution of vanguardProgressionContributions(context)) {
+    for (const descriptor of contribution.fields ?? []) {
+      need(descriptor.key?.startsWith(`branches.${branchId}.`), "Invalid Vanguard branch field key.");
+      fields.push(descriptor);
+    }
+  }
   return fields;
 }
 
 function actorSnapshotKey(actor, choices, profile) {
-  const itemSnapshot = entries(actor.items).map(item => [item.id, item.type, sourceId(item), flag(item, "tableData")?.category,
-    item.system?.proficient, flag(item, "vanguardProgressionGrant"), flag(item, "classContentKind")]).sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+  const itemSnapshot = entries(actor.items).map(item => item.toObject ? item.toObject() : { id: item.id, type: item.type, system: item.system, flags: item.flags }).sort((a, b) => String(a._id ?? a.id).localeCompare(String(b._id ?? b.id)));
   return JSON.stringify([
     actor.uuid,
     profile.level,
@@ -324,6 +344,8 @@ function actorSnapshotKey(actor, choices, profile) {
     choices.hp,
     choices.asi,
     choices.talents,
+    choices.branches,
+    flag(actor, VANGUARD_PROGRESS_FLAG),
     sourceSystem(actor),
     itemSnapshot
   ]);
@@ -419,12 +441,13 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
   const system = sourceSystem(actor);
   writes["flags.ak5e.vanguard.martialDCAbility"] = choices.martialDCAbility;
   // Saves: Dexterity automatic + chosen Strength or Charisma
-  const currentSaves = new Set(system.traits?.saves?.value ?? []);
-  currentSaves.add(VANGUARD_SAVES.automatic);
+  const dexteritySaveProficiency = Number(system.abilities?.dex?.proficient ?? 0);
+  writes["system.abilities.dex.proficient"] = Math.max(dexteritySaveProficiency, 1);
   if (validSaves) {
-    currentSaves.add(chosenSaves[0]);
+    const selectedSave = chosenSaves[0];
+    const currentSaveProficiency = Number(system.abilities?.[selectedSave]?.proficient ?? 0);
+    writes[`system.abilities.${selectedSave}.proficient`] = Math.max(currentSaveProficiency, 1);
   }
-  writes["system.traits.saves.value"] = Array.from(currentSaves);
 
   // Armor: Light Armor, Light Shield
   const currentArmor = new Set(system.traits?.armorProf?.value ?? []);
@@ -583,7 +606,90 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
     }
   }
 
-  const contextKey = actorSnapshotKey(actor, choices, profile);
+  const branchId = flag(attachedBranch, "chapterThreeId") ?? (VANGUARD_BRANCH_IDS[selectedBranchId] ? selectedBranchId : null);
+  const basePlan = { level, choices: structuredClone(choices), pending: [...pending], warnings: [...warnings],
+    writes: structuredClone(writes), createItems: structuredClone(createItems), updateItems: structuredClone(updateItems) };
+  const context = vanguardExtensionContext(actor, { branchId, level, profile, choices, purpose: "progression", phase: "plan",
+    progressionState: readState(actor), basePlan });
+  const contributions = vanguardProgressionContributions(context);
+  const hpReceipts = { ...state.receipts };
+  for (const contribution of contributions) {
+    pending.push(...(contribution.pending ?? [])); warnings.push(...(contribution.warnings ?? []));
+    const prof = contribution.proficiencies ?? {};
+    for (const skill of prof.skills ?? []) {
+      need(/^[a-z][a-z0-9]*$/.test(skill.key) && Number.isFinite(Number(skill.minimum)) && Number(skill.minimum) >= 0 && Number(skill.minimum) <= 2, "Invalid Vanguard branch skill proficiency.");
+      const path = `system.skills.${skill.key}.value`;
+      writes[path] = Math.max(Number(writes[path] ?? system.skills?.[skill.key]?.value ?? 0), Number(skill.minimum) || 0);
+    }
+    const armorIds = globalThis.CONFIG?.DND5E?.armorProficiencies ?? { lgt: true, med: true, hvy: true, shl: true };
+    for (const armor of prof.armor ?? []) need(Object.hasOwn(armorIds, armor), "Invalid Vanguard branch armor proficiency.");
+    writes["system.traits.armorProf.value"] = [...new Set([...writes["system.traits.armorProf.value"], ...(prof.armor ?? [])])];
+    for (const tool of prof.tools ?? []) {
+      need(/^[a-z][a-z0-9]*$/.test(tool.key) && Number.isFinite(Number(tool.minimum)) && Number(tool.minimum) >= 0 && Number(tool.minimum) <= 2
+        && (!tool.ability || ["str", "dex", "con", "int", "wis", "cha"].includes(tool.ability)), "Invalid Vanguard branch tool proficiency.");
+      const path = `system.tools.${tool.key}`, current = writes[path] ?? system.tools?.[tool.key] ?? {};
+      writes[path] = { ...current, value: Math.max(Number(current.value) || 0, Number(tool.minimum) || 0), ...(current.ability || !tool.ability ? {} : { ability: tool.ability }) };
+    }
+    const categories = [...(prof.weaponCategories ?? []), ...(prof.weapons ?? [])];
+    const validCategories = new Set(EQUIPMENT.filter(entry => entry.kind === "weapon" && entry.tableData?.category).map(entry => entry.tableData.category));
+    const normalizedCategories = categories.map(category => {
+      const normalized = validCategories.has(category) ? category : `${category} Weapons`;
+      need(validCategories.has(normalized), "Invalid Vanguard branch weapon category.");
+      return normalized;
+    });
+    for (const item of entries(actor.items)) {
+      const category = flag(item, "tableData")?.category ?? item._source?.flags?.ak5e?.tableData?.category;
+      if (item.type === "weapon" && normalizedCategories.includes(category) && Number(item.system?.proficient) !== 1) updateItems.push({ _id: item.id, system: { proficient: 1 } });
+    }
+    for (const bonus of contribution.hpBonuses ?? []) {
+      const key = `branchHp:${branchId}:${bonus.key}`, previous = Number(hpReceipts[key] ?? state.branchHpBonuses?.[`${branchId}:${bonus.key}`] ?? 0), total = Number(bonus.total);
+      need(Number.isFinite(total) && total >= 0 && bonus.sourceId, "Invalid Vanguard branch HP bonus.");
+      const delta = bonus.alreadyIncluded && previous === 0 ? 0 : Math.max(0, total - previous);
+      if (delta) writes["system.attributes.hp.max"] = Number(writes["system.attributes.hp.max"] ?? system.attributes?.hp?.max ?? 0) + delta;
+      hpReceipts[key] = Math.max(previous, total);
+    }
+    const exchange = contribution.equipmentExchange;
+    if (exchange && !alreadyGrantedEquipment && choices.startingEquipment?.mode === "items") {
+      need(["weapon1", "weapon2"].includes(exchange.slot), "Invalid Vanguard equipment exchange slot.");
+      const replacement = EQUIPMENT.find(entry => entry.id === exchange.sourceId);
+      need(replacement, "Unknown Vanguard equipment exchange item.");
+      const keys = ["weapon1", "weapon2", "armour"];
+      const offset = keys.slice(0, keys.indexOf(exchange.slot)).filter(key => EQUIPMENT.some(entry => entry.id === choices.startingEquipment[key])).length;
+      const equipmentIndices = createItems.flatMap((item, index) => item.flags?.ak5e?.vanguardProgressionGrant?.kind === "startingEquipment" ? [index] : []);
+      if (EQUIPMENT.some(entry => entry.id === choices.startingEquipment[exchange.slot])) createItems[equipmentIndices[offset]] = equipmentData(replacement);
+    }
+    for (const item of structuredClone(contribution.createItems ?? [])) {
+      const source = item.flags?.ak5e?.vanguardProgressionGrant?.sourceId ?? item.flags?.ak5e?.chapterThreeId ?? item.flags?.ak5e?.chapterFourId;
+      need(source && branchId, "Vanguard branch grant requires a source identity.");
+      item.flags ??= {}; item.flags.ak5e ??= {};
+      item.flags.ak5e.vanguardProgressionGrant ??= { kind: `branch:${branchId}`, sourceId: source };
+      const grant = item.flags.ak5e.vanguardProgressionGrant;
+      if (!createItems.some(existing => existing.flags?.ak5e?.vanguardProgressionGrant?.kind === grant.kind && existing.flags?.ak5e?.vanguardProgressionGrant?.sourceId === grant.sourceId)) createItems.push(item);
+    }
+    updateItems.push(...structuredClone(contribution.updateItems ?? []));
+  }
+  // Merge embedded updates by leaf, rejecting conflicting claims instead of
+  // letting Foundry silently apply whichever contribution happened to be last.
+  const mergedUpdates = new Map();
+  const flatten = (value, prefix, result) => {
+    if (value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length) {
+      for (const [key, child] of Object.entries(value)) flatten(child, prefix ? `${prefix}.${key}` : key, result);
+    } else result[prefix] = value;
+  };
+  for (const update of updateItems) {
+    need(update._id, "Vanguard Item update needs an ID.");
+    const { _id, ...rest } = update, leaves = {};
+    flatten(rest, "", leaves);
+    const merged = mergedUpdates.get(_id) ?? { _id };
+    for (const [path, value] of Object.entries(leaves)) {
+      need(!Object.keys(merged).some(key => key !== "_id" && key !== path && (key.startsWith(`${path}.`) || path.startsWith(`${key}.`))), `Conflicting Vanguard Item update: ${path}`);
+      need(!Object.hasOwn(merged, path) || JSON.stringify(merged[path]) === JSON.stringify(value), `Conflicting Vanguard Item update: ${path}`);
+      merged[path] = value;
+    }
+    mergedUpdates.set(_id, merged);
+  }
+  updateItems.splice(0, updateItems.length, ...mergedUpdates.values());
+  const contextKey = JSON.stringify([actorSnapshotKey(actor, choices, profile), contributions]);
 
   return {
     level,
@@ -593,7 +699,7 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
     writes,
     createItems,
     updateItems,
-    contextKey
+    contextKey, receipts: hpReceipts
   };
 }
 
@@ -605,6 +711,8 @@ export async function applyVanguardProgression(actor, { confirmed, contextKey, c
 
   const state = readState(actor);
   state.choices = structuredClone(plan.choices);
+  state.receipts = plan.receipts;
+  delete state.branchHpBonuses;
 
   const hpLevelsGranted = Object.entries(plan.choices.hp ?? {})
     .filter(([_, opt]) => opt && opt.mode !== "existing")

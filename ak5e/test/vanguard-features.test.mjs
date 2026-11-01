@@ -276,7 +276,9 @@ test("vanguardUses: table-play plan execution, warnings, overrides, and undo", a
   }, "tip-op-1");
   assert.equal(result.outcome, 2);
   assert.equal(target.system.attributes.hp.temp, 0);
-  await vanguardUses.command(actor, "useRoll", { useId: "tip-op-1" });
+  await vanguardUses.command(actor, "useRoll", {
+    useId: "tip-op-1", readings: { tipTemporaryHpExpiry: "retain" }
+  });
   assert.equal(target.system.attributes.hp.temp, 4);
 
   const receipt = vanguardUses.receipt(actor, "tip-op-1");

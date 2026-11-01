@@ -4,6 +4,9 @@ const flag = (doc, key) => doc?.getFlag?.("ak5e", key) ?? doc?.flags?.ak5e?.[key
 const entries = collection => Array.from(collection?.values?.() ?? collection ?? []);
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const busy = new Set();
+const expiryHandlers = new Set();
+/** Feature-owned lifecycle work which is not represented by an ActiveEffect. */
+export function registerFeatureTagExpiryHandler(handler) { expiryHandlers.add(handler); }
 const localize = key => game.i18n.localize(`AK5E.Tags.${key}`);
 const safely = promise => promise.catch(error => { console.error("AK5e | Temporary tags", error); ui.notifications.error(error.message); });
 const isTagSource = item => item.flags?.ak5e && (!flag(item, "temporaryTag") || flag(item, "temporaryTag").preset === "treatise") &&
@@ -239,6 +242,10 @@ function operates(actor) {
 }
 
 export async function expireFeatureTags(event) {
+  for (const handler of expiryHandlers) {
+    try { await handler(event); }
+    catch (error) { console.error("AK5e | Feature boundary failed", error); ui.notifications.error(error.message); }
+  }
   for (const actor of tagActors()) {
     if (!actor.isOwner || !operates(actor)) continue;
     for (const { tag } of featureTagEntries(actor)) {

@@ -18,15 +18,30 @@ import {
 } from "../scripts/tip-of-the-spear.mjs";
 import { spendReaction, getReactions } from "../scripts/trigger-events.mjs";
 import { vanguardPreRollDamage, vanguardPostRollDamage, vanguardPreConfigureInitiative, vanguardPostRollInitiative } from "../scripts/vanguard-resolution.mjs";
+import { registerVanguardSheetHooks } from "../scripts/vanguard-sheet.mjs";
 const TIP_WARNINGS = ["range", "range-unverified", "visibility-unverified", "alliance-unverified"];
 
 test.beforeEach(() => {
   setupFoundryGlobals();
+  registerVanguardSheetHooks();
 });
 
 test.afterEach(() => {
   teardownFoundryGlobals();
 });
+
+function emitActorUpdateHooksForTempHp(actor) {
+  const update = actor.update.bind(actor);
+  actor.update = async (changes, options = {}) => {
+    const writesTempHp = Object.hasOwn(changes ?? {}, "system.attributes.hp.temp") ||
+      Object.hasOwn(changes?.system?.attributes?.hp ?? {}, "temp");
+    if (writesTempHp) await Hooks.callAll("preUpdateActor", actor, changes, options, game.user.id);
+    const result = await update(changes, options);
+    if (writesTempHp) await Hooks.callAll("updateActor", actor, changes, options, game.user.id);
+    return result;
+  };
+  return actor;
+}
 
 test("owned Operator Skill play commands can commit without a GM while admin writes remain GM-only", async () => {
   const player = { id: "player-owner", isGM: false };
@@ -253,7 +268,9 @@ test("ADV-TIP-5: Outcome 2 uses a separate owner-clicked THP roll and replays id
   assert.equal(receipt.tipOutcomeRoll, 2);
   assert.equal(receipt.status, "awaitingRoll");
   assert.equal(ally.system.attributes.hp.temp, 3);
-  await vanguardUses.command(actor, "useRoll", { useId: "tip-two-stage" });
+  await vanguardUses.command(actor, "useRoll", {
+    useId: "tip-two-stage", readings: { tipTemporaryHpExpiry: "retain" }
+  });
   receipt = vanguardUses.receipt(actor, "tip-two-stage");
   assert.equal(receipt.outcome, 2);
   assert.equal(ally.system.attributes.hp.temp, 7);
@@ -355,6 +372,7 @@ test("ADV-THP-1: Multi-step additive THP accumulation and undo with damage absor
     name: "Ally",
     system: { attributes: { hp: { value: 20, max: 20, temp: 5 } } }
   });
+  emitActorUpdateHooksForTempHp(ally);
 
   // Direct helper
   const step1 = await applyAdditiveTempHP(ally, 6);
@@ -378,17 +396,24 @@ test("ADV-THP-1: Multi-step additive THP accumulation and undo with damage absor
     confirmed: true
   }, "tip-thp-undo-test");
 
-  await vanguardUses.command(actor, "useRoll", { useId: "tip-thp-undo-test" });
+  await vanguardUses.command(actor, "useRoll", {
+    useId: "tip-thp-undo-test", readings: { tipTemporaryHpExpiry: "retain" }
+  });
 
   assert.equal(ally.system.attributes.hp.temp, 19);
 
   // Damage reduces THP to 18
   await ally.update({ "system.attributes.hp.temp": 18 });
 
-  // Undoing the 10 THP grant cleanly removes 10 (down to 8)
-  const undo = await vanguardUses.undo(actor, "tip-thp-undo-test");
-  assert.equal(undo.undone, "tip-thp-undo-test");
-  assert.equal(ally.system.attributes.hp.temp, 14);
+  // The changed pool requires owner reconciliation before any amount is selected.
+  const undoPreview = vanguardUses.previewUndo(actor, "tip-thp-undo-test");
+  assert.equal(undoPreview.blocked, false, "the conflicting grant can be previewed for owner reconciliation");
+  const previewText = (undoPreview.lines ?? []).map(line =>
+    typeof line === "string" ? line : line?.text ?? line?.label ?? JSON.stringify(line)).join(" ");
+  assert.match(previewText, /reconcil|owner.{0,40}(?:choose|select|confirm|resolve)|(?:choose|select|confirm|resolve).{0,40}owner/i,
+    "the preview routes the owner to reconcile before choosing an adjustment");
+  assert.equal(ally.system.attributes.hp.temp, 18,
+    "the conflict preview leaves the changed pool untouched until the owner selects a reconciliation amount");
 });
 
 test("ADV-THP-2: Non-positive THP values are rejected by applyAdditiveTempHP", async () => {

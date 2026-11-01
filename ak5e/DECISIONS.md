@@ -1,21 +1,38 @@
 # AK5e Foundry implementation decisions
 
-## Marksman workflow checkpoint (2026-10-18)
+## Marksman, Anti-Air, Artilleryman, and Besieger Workflows & Defect Resolutions (2026-10-31)
 
-The current implementation adds guided, owner-operated rolls/saves/application
-and managed effects to the scoped Marksman branches. This supersedes older
-manual-only descriptions only for implemented paths. See
-[MARKSMAN_WORKFLOWS.md](MARKSMAN_WORKFLOWS.md) for the coverage and unfinished
-acceptance; the user requested a checkpoint before API limits.
+This section records rulings, technical decisions, and defect resolutions for the Marksman
+class and its Anti-Air, Artilleryman, and Besieger subclasses. This supersedes prior checkpoint
+descriptions for implemented and verified paths per [MARKSMAN_WORKFLOWS.md](MARKSMAN_WORKFLOWS.md).
 
-Enhanced Target Lock's level-11/12 conflict and branch-level conflict remain
-explicit choices. Secondary Detonation offers fresh-roll/original-total readings;
-the latter requires recorded or reviewed original damage. Godpiercer requires an
-explicit mitigation policy. These are per-use choices unless a sourced GM ruling
-is recorded; this checkpoint does not settle the underlying source ambiguity.
-CON retroactive HP changes remain manual under the existing decision. Geometry,
-collision and unsupported Skill/Talent effects remain manual. No complete class
-automation, full rendered acceptance, or release-pack acceptance is claimed.
+- **Enhanced Target Lock (Level 11 vs Level 12 conflict resolution):**
+  - *Source Conflict:* Chapter 3 Marksman class table (line 3580) indicates Enhanced Target Lock unlocks at 11th level, whereas the feature heading (line 3664) reads "12th Level: Enhanced Target Lock".
+  - *Resolution:* Resolved via `flags.ak5e.marksman.rulings.enhancedTargetLockLevel`. A GM ruling can be recorded on the actor (`enhancedTargetLockLevel.value = "11"` or `"12"`). At level 11, if no GM ruling is recorded, the confirmation flow presents an interactive choice (`reading = "enhancedTargetLockLevel"` with options `"11"` and `"12"`). At level 12+, Enhanced Target Lock (+2 attack bonus, 10-minute duration) applies automatically. Initiative recovery at level 11 respects the ruling; at level 12+ it uses canonical pool/event recovery.
+
+- **Martial DC (Strength or Dexterity choice):**
+  - *Rule Authority:* Chapter 1 line 212 explicitly specifies: "A Character’s Martial DC is equal to 8 + their Strength or Dexterity Bonus (their Choice) + their Proficiency Bonus."
+  - *Resolution:* The player chooses whether to base their Martial DC on Strength or Dexterity via the actor progression panel or subsystem controls (`flags.ak5e.marksman.martialDcAbility = "str" | "dex"`). Per-use overrides are supported via `data.martialDcAbility`. If unchosen, the system does not invent a fallback DC; it issues an explicit warning ("Choose STR or DEX for Martial DC, or enter a manual DC for this use") so the table can adjudicate.
+
+- **Godpiercer (Level 18 Besieger Direct HP Loss & Mitigation Policy):**
+  - *Rule Authority:* Chapter 3 line 4081 dictates that at 18th level, Siege Mode and Deliberate, Efficient no longer grant additional damage dice; instead, when they would provide additional damage, they cause hit creatures to lose 8 Hit Points (or 16 Hit Points if both features apply on the attack).
+  - *Resolution:* Modeled as direct Hit Point loss rather than rolled damage. Because AK5e distinguishes Hit Point loss from damage, the interaction with defensive features (Damage Reduction, Resistance, and Temporary HP) requires an explicit mitigation policy reading (`godpiercerMitigation`):
+    1. `currentHP`: Complete bypass of Damage Reduction, Resistance, and Temporary Hit Points (direct loss to current HP).
+    2. `temporaryHP`: Bypass Damage Reduction and Resistance; Temporary Hit Points absorb the loss before current HP.
+    3. `ordinaryMitigation`: Ordinary damage mitigation rules apply; DR and Resistance apply, and Temporary HP absorb first.
+    The confirm panel requests this reading per use unless a GM ruling is pre-configured on the actor.
+
+- **Secondary Detonation (Damage Calculation Ruling):**
+  - *Source Ambiguity:* Chapter 3 line 3985 allows triggering a secondary blast within 15 feet of an originating detonation, dealing half the originating blast's damage. The text leaves ambiguous whether the originating damage formula is rolled anew and halved, or if the originating blast's rolled total is halved directly.
+  - *Resolution:* Settled via `flags.ak5e.rulings.secondaryDetonationDamage = "reuse" | "roll"`. The confirm workflow supports `reading = "secondaryDetonationDamage"` with options `originalTotal` ("Reuse the originating damage total, then halve it") and `freshRoll` ("Roll the originating weapon/Trap damage again, then halve it"). When reusing original total, the system looks up the originating receipt's recorded roll or accepts user entry, halves it (floored), and applies it without re-rolling. Saves deal no damage on success. Secondary detonations cannot chain (`noChaining: true`).
+
+- **Defect B-300 (Persisted Roll Message Retry & Multi-Tier Descendant Undo Preview):**
+  - *Defect:* If ChatMessage creation failed during `useRoll`, the evaluated roll was lost or rerolled upon retry, leading to inconsistent dice totals or duplicate chat messages. In addition, `previewUndo` only inspected top-level receipts, omitting descendant child receipts (such as target damage, conditions, and lock statuses).
+  - *Resolution:* In `ak5e/scripts/play-uses.mjs`, evaluated dice are serialized and retained in `receipt.serializedRoll` / `receipt.serializedRolls`, with message status tracked by `receipt.diceMessagePublished`. On retry, if an evaluated roll is stored but unpublished, the evaluated roll is reconstructed and republished without rerolling. If already published, message creation is safely skipped. `previewUndo` now recursively traverses `state.undo` in reverse tree order for all child entries where `entry.parentUseId === receipt.id`, compiling lines for all descendant target HP reversals, condition removals, and resource updates. Lock status is aggregated across the full tree (`locked = isLocked(receipt) || descendants.some(isLocked)`, and `blocked = locked && !game.user.isGM`).
+
+- **Defect B-301 (Plain Scalar Recovery Context & Anti-Air Initiative Coordination):**
+  - *Defect:* Passing complex D&D5e context objects (containing circular Document/Application references) into `recoverMarksmanPool` caused `TypeError: Converting circular structure to JSON` in `operation-kernel.mjs` serialization and bloated actor flags. Furthermore, Anti-Air 15th-level Option Recharge initiative recovery bypassed the serial recovery coordinator.
+  - *Resolution:* In `ak5e/scripts/marksman-uses.mjs`, `plainRecoveryContext(context)` sanitizes all recovery context options, stripping complex objects and retaining only primitive scalar values (`string`, `number`, `boolean`, `null`). In `ak5e/scripts/anti-air-features.mjs`, `antiAirRollInitiative` routes Option Recharge at level 15+ through `recoverMarksmanPool(actor, "initiative", { poolIds: ["versatileApproach"], eventKey, context: plainRecoveryContext(...) })`, guaranteeing single-committing-client serialization without JSON serialization errors.
 
 ## Marksman audit repairs (2026-10-12)
 
@@ -2489,3 +2506,30 @@ Head rulings for unit U3. They rest on the cited Chapter 3 text and the existing
 11. **Out of scope:** Revivify remains unresolved (C3:4712; see the Revivify entry above), so Resuscitation is not a real cast.
 12. **Martial DC choice (Ch.1 L212), applied to all classes in this batch.** Martial DC is "8 + Strength or Dexterity Bonus (their Choice) + PB". Guard and Specialist follow `vanguard-rules.mjs`: a stored per-character choice, overridable per use. The higher modifier is the default only until a choice is made. The "Specialist DC" (8 + PB + DEX) has no source basis and is removed.
 13. **U0 contract arbitrations.** `guardian.test.mjs` Not Today: undoing a replacing use restores the earlier pending discount, because leaf undo returns the state to what it was before that use. The Artificer upgrade "Continue" form counts as the use's confirm.
+
+## Medic Therapist, Ward and Witchcraft owner rulings (2026-10-28)
+
+The owner selected these readings during planning and explicitly approved their implementation. They are project rulings for gaps in the source, not additional printed rules. The earlier Medic casting/Witchcraft rulings continue to apply.
+
+- **Ward pool selection (C3:5059–5061).** A recipient retains their existing temporary-HP pool or replaces it with the new Ward. Pools never stack. Only the Ward's originating Medic may use it for their Ward features. Track native temporary HP remaining and its source; ordinary temporary HP and another Medic's Ward do not qualify as this Medic's Ward.
+- **Concentrated Treatment allowance (C3:4949).** The next three individual Therapy activations other than the Basic Therapy selected for The Doctor Is In are free. Two qualifying Therapies on one Art consume two allowances, and each adds its own `1d6 × actual AP spent` healing package when the Art restores HP.
+- **Concentrated Treatment lifetime (C3:4949).** Unspent allowances remain after The Doctor Is In's one minute ends. A later activation replaces the remaining allowance with three; allowances do not accumulate.
+- **Recuperative Therapy granularity (C3:4983).** Heal once per committed hostile damage application. Combined damage parts in one application trigger once; separately applied hits trigger separately.
+- **Collective Ward ordering (C3:5083).** Subtract the Ward actually removed from the damage remaining after DR and Resistance/Vulnerability, before the recipient's temporary HP absorb damage, to a minimum of zero. Donor Ward is consumed to prevent damage; it is not transferred into the recipient's temporary-HP pool.
+
+**Representation and timing:** Ward defenses are explicitly resolved from attack/damage cards before application. Synchronous native hooks consume confirmed outcomes and never await dialogs. Treat the Cause records a source-bound forced miss without changing the attack die. If consequences were already applied, show the timing warning and the explicit manual correction procedure instead of silently reversing damage. Unknown source/save/spatial contexts remain visibly guided. Other unresolved source readings retain per-use choices unless a GM ruling is recorded.
+
+## Vanguard workflow implementation coverage (2026-10-31)
+
+This records implementation and acceptance evidence, not new rules rulings. Unresolved source readings remain per-use choices until the GM rules otherwise.
+
+- **Automated behavior:** V0 extension contexts, progression contributions, proficiency validation/merging, cumulative HP receipts, owner controls, additional Operator Skill slots, replacement/replay, committed notifications and undo dependencies are covered by the frozen spec/attack tests and the existing Vanguard/Operator suites. After merge, `npm run test:vanguard` passed 11/11 and `npm run test:rules` passed 7/7. Independent final QA found no additional production-code defect. `npm test` remains unverified because `validate-files.mjs` hit `spawnSync Node EPERM` in this environment.
+- **Guided/runtime procedures verified in private Foundry V13 Build 351 + D&D5e 5.3.3:** owner setup/progression; Tip trigger and use confirmation/cancellation; player-rolled Tip outcome 4; warning override and GM-relayed application to an unowned target; explicit owner undo; guided Lightspeed begin/complete confirmations without synthetic combat state; native Quick off the Mark +6 in the D&D5e initiative roll, with player result 14. Existing custom actor and gear data were preserved. Evidence was produced in a private World (not the installed World); its complete test tree now lives at `.codex-work/foundry-test/v0-base-vanguard/` and was copied byte-for-byte from `/tmp`.
+- **Not yet accepted:** the Tip of the Spear outcome-1 damage bonus and its consumption receipt on a native Longsword damage roll have not been exercised because the test actor had no active managed Tip1 benefit. In a focused V13 + D&D5e private-copy recheck, the player opened native attack configuration and explicitly rolled an attack; no damage was auto-rolled. After positioning the native card onscreen at 1280px, the player explicitly rolled Longsword damage (`1d8 + 3 = 11`) and the `damageRoll` event included actor, item and activity context; HP remained 100 until GM application. A GM-applied native damage result changed a disposable target from 30 to 19 HP and emitted `preApplyDamage`, `applyDamage` and AK5e `hitTaken` with source/message context. The card exposes no player Apply/Undo action, so this does not verify a module-owned target relay/undo path. Persistence **passed** across a clean restart of the same private User Data copy: the World, actor HP/progression, custom `keep-this`/`retain-me` markers, Tip receipts/undo, Lightspeed receipts and Quick off the Mark initiative remained. The seed under `.codex-work/foundry-test/v0-base-vanguard/` was not changed. Tip confirmation/cancel, explicit player d6, warning override, GM relay, owner undo, guided Lightspeed, native initiative and controls/progression readability passed; Tip public card passed. V0 remains **blocked for runtime acceptance** pending the Tip1 native-roll bonus/receipt check.
+- **Queued / deferred:** Tip's awaiting-roll card control and outcome-1 native damage modifier/receipt remain under B-308. Per owner direction, subsequent workflows proceed while this V0 acceptance gap is addressed in a later shared lane. Public release packs and licensing remain out of scope.
+
+## Vanguard shared hooks: `ignoreCharging` flag (2026-11-01)
+
+- **Decision (head):** the Breakthrough `ignoreCharging` slot flag is stored on the actor's own Skill item flags and honoured from there. It is not recomputed from extension slot definitions, so an owner who hand-edits their own item flags can drop a Skill's charging method.
+- **Why:** owners can already edit their own items; WORKFLOW §3.2 (trust the table) means a player manipulating their own character is not an integrity boundary the module defends. A recompute design would have broken the pure `learnedSkills(items)` contract and needed every `operatorState` caller threaded with slot data.
+- **Effect:** attack tests ATK-7c/7d (item-flag smuggling) were removed; ATK-7a/7b/7e still pin the flagged and unflagged behaviour and the exact-boolean check.

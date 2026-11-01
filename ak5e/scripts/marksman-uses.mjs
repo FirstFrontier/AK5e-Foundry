@@ -49,10 +49,24 @@ async function coordinated(actor, command, data, id) {
   await coordinator.submit(actor, command, { ...data, confirmation: true }, id);
   return flag(actor, "marksmanCoordinator")?.operations?.find(operation => operation.id === id)?.result;
 }
-export async function recoverMarksmanPool(actor, period, options) {
-  if (!canCoordinate(actor)) return recoverPool(actor, period, options);
-  const id = `recover_${opaqueKey(JSON.stringify([period, options.eventKey ?? foundry.utils.randomID(), options.poolIds]))}`;
-  return coordinated(actor, "recover", { period, ...options }, id);
+export function plainRecoveryContext(context) {
+  if (!context || typeof context !== "object") return {};
+  const allowed = {};
+  for (const [key, value] of Object.entries(context)) {
+    if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      allowed[key] = value;
+    }
+  }
+  return allowed;
+}
+
+export async function recoverMarksmanPool(actor, period, options = {}) {
+  const context = plainRecoveryContext(options?.context);
+  const eventKey = options?.eventKey ?? globalThis.foundry?.utils?.randomID?.();
+  const poolIds = options?.poolIds;
+  if (!canCoordinate(actor)) return recoverPool(actor, period, { ...options, context, eventKey, poolIds });
+  const id = `recover_${opaqueKey(JSON.stringify([period, eventKey, poolIds]))}`;
+  return coordinated(actor, "recover", { period, poolIds, eventKey, context }, id);
 }
 marksmanUses.command = async (actor, name, data = {}, id = globalThis.foundry?.utils?.randomID?.()) => {
   need(actor?.isOwner, "Choose an owned Marksman Actor.");

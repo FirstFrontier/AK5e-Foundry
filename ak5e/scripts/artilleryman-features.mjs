@@ -54,7 +54,10 @@ function addSplashSteps(actor, receipt, data, weapon, { secondary = false, scale
   const ability = abilityModifier(actor, weapon, data), targets = [...new Set((data.targetUuids ?? []).filter(Boolean))];
   const baseDC = splashBaseDC(actor, data);
   for (const targetUuid of targets) {
-    const dc = artillerymanSplashDC(actor, targetUuid, baseDC);
+    const rawDC = artillerymanSplashDC(actor, targetUuid, baseDC);
+    const cover = data.coverByTarget?.[targetUuid] ?? (data.halfCoverTargets?.includes(targetUuid) ? 2 : data.threeQuartersCoverTargets?.includes(targetUuid) ? 5 : 0);
+    const coverBonus = typeof cover === "string" ? (cover === "threeQuarters" ? 5 : cover === "half" ? 2 : 0) : Number(cover || 0);
+    const dc = rawDC != null && coverBonus > 0 ? Math.max(1, rawDC - coverBonus) : rawDC;
     const fixedSource = data.originalDamageByTarget?.[targetUuid] ?? originalDamage;
     const fixed = Number(fixedSource), hasFixedDamage = fixedSource != null && Number.isFinite(fixed);
     const parts = hasFixedDamage
@@ -62,12 +65,13 @@ function addSplashSteps(actor, receipt, data, weapon, { secondary = false, scale
       : baseParts.map((part, index) => ({ formula: `${part.formula}${index === 0 && ability ? ` + ${ability}` : ""}${part.type === "thunder" && expertise ? ` + ${expertise}d${(part.formula.match(/d(\d+)/i) ?? [null, 8])[1]}` : ""}`, type: part.type }));
     const id = `${secondary ? "secondary" : munition ? "delayed" : "splash"}-${encodeURIComponent(targetUuid)}`;
     addStep(receipt, { id, kind: "damage", label: secondary ? "Secondary Detonation" : munition ? "Delayed Detonation" : "Splash", targetUuids: [targetUuid],
-      damageParts: parts, rollGroupId: secondary ? "secondary-blast" : "splash-blast", damageScale: hasFixedDamage ? 1 : scale, save: { ability: "dex", dc, success: secondary ? "zero" : "half",
+      damageParts: parts, rollGroupId: secondary ? "secondary-blast" : "splash-blast", damageScale: hasFixedDamage ? 1 : scale,
+      save: { ability: "dex", dc, ...(rawDC != null ? { baseDC: rawDC } : {}), coverBonus: coverBonus || 0, success: secondary ? "zero" : "half",
         ...(weapon.system?.proficient === false || Number(weapon.system?.proficient) === 0 ? { advantage: true } : {}) },
       ...(marksmanLevel(actor) >= 15 && baseParts.some(part => part.type === "thunder") ? { siegeAttacker: true } : {}),
       originUseId: data.originUseId ?? null, sourceActorUuid: actor.uuid, weaponUuid: weapon.uuid, activityId: data.activityId,
       splash: { point: data.point ?? munition?.point ?? null, radiusFt: radius, noAttackRoll: true, nonProficientSaveAdvantage: true,
-        enhancedPayload: enhanced, secondary, originalUseId: data.originUseId ?? null } });
+        enhancedPayload: enhanced, secondary, coverBonus: coverBonus || undefined, originalUseId: data.originUseId ?? null } });
   }
 }
 
@@ -206,7 +210,7 @@ export const ARTILLERYMAN_PLANS = {
         receipt.summary = `${actor.name} burrows a specially fused munition into a visible grounded point within the weapon's range. Record an invisible marker and a ten-minute timer by hand. As a Reaction to a Creature moving, detonate with the panel; otherwise resolve its automatic detonation at the ten-minute mark without spending a Reaction. Disarm as an Action while within 5 feet using the panel. The timer, marker, saves and damage application are manual. ${splashProcedure(actor, false, data)}`;
         receipt.result = { munitionId, point, weaponName };
         addStep(receipt, { id: `timer-${encodeURIComponent(munitionId)}`, kind: "effect", label: `Delayed munition ${munitionId}: ten-minute timer`, targetUuids: [actor.uuid],
-          trigger: { event: "worldTime", at: now() + 600 }, sourceActorUuid: actor.uuid, munitionId });
+          trigger: { event: "worldTime", at: now() + 600 }, sourceActorUuid: actor.uuid, munitionId, munitionActiveCheck: true });
         if (data.resolutionNotes) receipt.summary += ` Resolution notes: ${data.resolutionNotes}`;
         return updates;
       }
@@ -217,8 +221,9 @@ export const ARTILLERYMAN_PLANS = {
     need(isArtilleryman(actor), "Delayed Detonation is an Artilleryman feature.");
     const warnings = [];
     const state = flag(actor, "marksman") ?? {};
-    const munition = (state.delayedMunitions ?? []).find(entry => entry.active && (entry.id === data.munitionId ||
-      (data.originUseId && (entry.deploymentUseId === data.originUseId || entry.originUseId === data.originUseId)))) ??
+    const munition = (state.delayedMunitions ?? []).find(entry => entry.active &&
+      (!data.munitionId || entry.id === data.munitionId) &&
+      (!data.originUseId || entry.deploymentUseId === data.originUseId || entry.originUseId === data.originUseId)) ??
       (state.delayedMunition?.active && (!data.munitionId || state.delayedMunition.id === data.munitionId) ? state.delayedMunition : null);
     if (!munition || !munition.active) {
       warn(warnings, "munition", "No active burrowed munition is currently deployed.");
@@ -238,8 +243,15 @@ export const ARTILLERYMAN_PLANS = {
       title: "Delayed Detonation (Detonate)",
       apply(next, receipt) {
         if (!automatic) receipt.reaction = { requested: true, triggerId: `${receipt.id}-detonate` };
+        if (!munition || !munition.active) {
+          receipt.result = { detonated: false, suppressed: true };
+          receipt.summary = `${actor.name} attempted to detonate a munition, but no active munition is deployed.`;
+          return {};
+        }
         const updates = { "flags.ak5e.marksman.delayedMunitions": (state.delayedMunitions ?? []).map(entry => entry.id === munition?.id ? { ...entry, active: false } : entry) };
-        if (state.delayedMunition?.active && (!munition?.id || state.delayedMunition.id === munition.id)) updates["flags.ak5e.marksman.delayedMunition.active"] = false;
+        if (state.delayedMunition?.active && (!munition?.id || state.delayedMunition.id === munition.id)) {
+          updates["flags.ak5e.marksman.delayedMunition.active"] = false;
+        }
         receipt.summary = `${actor.name} detonates the burrowed munition ${automatic ? "at the ten-minute timer (no Reaction)" : "as a Reaction to movement"}. ${splashProcedure(actor, false, data)}`;
         receipt.weaponUuid = munition?.weaponUuid;
         receipt.result = { detonated: true, point: munition?.point };
@@ -257,8 +269,10 @@ export const ARTILLERYMAN_PLANS = {
     const warnings = [];
     if (!data.triggerConfirmed) warn(warnings, "distance", "Disarming uses an Action while within 5 feet of the munition.");
     const state = flag(actor, "marksman") ?? {};
-    const munition = (state.delayedMunitions ?? []).find(entry => entry.active && (entry.id === data.munitionId ||
-      (data.originUseId && entry.deploymentUseId === data.originUseId))) ?? (state.delayedMunition?.active ? state.delayedMunition : null);
+    const munition = (state.delayedMunitions ?? []).find(entry => entry.active &&
+      (!data.munitionId || entry.id === data.munitionId) &&
+      (!data.originUseId || entry.deploymentUseId === data.originUseId || entry.originUseId === data.originUseId)) ??
+      (state.delayedMunition?.active && (!data.munitionId || state.delayedMunition.id === data.munitionId) ? state.delayedMunition : null);
     if (!munition) warn(warnings, "munition", "No active munition is deployed.");
     return { warnings, title: "Disarm Munition", apply(_next, receipt) {
       receipt.summary = `${actor.name} disarms the munition as an Action while within 5 feet. Remove its manual marker and timer.`;
@@ -326,27 +340,107 @@ export const ARTILLERYMAN_PLANS = {
       warn(warnings, "scatterThem", "Scatter Them has already been used; uses clamp at 0.");
     }
 
-    const targetCount = Array.isArray(data.targetUuids) ? data.targetUuids.length : 1;
+    const point = pointOf(data) ?? (data.blastCenter ? pointOf({ point: data.blastCenter }) : null);
+    const targets = [...new Set((Array.isArray(data.targetUuids) ? data.targetUuids : [data.targetUuid]).filter(Boolean))];
+    const targetCount = targets.length || 1;
+    const flingDist = Number.isFinite(Number(data.flingDistance)) ? Number(data.flingDistance) : 30;
 
     return {
       warnings,
       title: "Scatter Them",
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "scatterThem", amount: 1, label: "Scatter Them" });
-        receipt.summary = `${actor.name} flings ${targetCount} Creature(s) 30 feet away from the blast center (4d8 Bludgeoning Damage on solid surface collision).`;
-        receipt.result = { targetCount, flingDistance: 30, collisionFormula: "4d8" };
-        receipt.summary += " Manual resolution: move every Creature that took that Thunder damage directly away from the blast centre by 30 feet. On collision with a solid surface, roll 4d8 Bludgeoning from this card and apply with native controls; no collision means no additional damage.";
+        const collisions = [...new Set((data.collisionTargetUuids ?? []).filter(uuid => targets.includes(uuid)))];
+
+        const geometryByTarget = {};
+        for (const targetUuid of targets) {
+          const targetPos = data.targetPositions?.[targetUuid] ?? (globalThis.fromUuidSync?.(targetUuid)?.object?.center);
+          let angleDeg = null, direction = "away from blast center";
+          if (point && targetPos && Number.isFinite(targetPos.x) && Number.isFinite(targetPos.y)) {
+            const dx = targetPos.x - point.x, dy = targetPos.y - point.y;
+            angleDeg = Math.round((Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360);
+            direction = `${angleDeg}° (${dx >= 0 ? "E" : "W"}${dy >= 0 ? "S" : "N"})`;
+          } else if (data.directionByTarget?.[targetUuid]) {
+            direction = String(data.directionByTarget[targetUuid]);
+          }
+          const isCollided = collisions.includes(targetUuid);
+          const surface = data.collisionSurfaces?.[targetUuid] ?? "solid surface";
+          const distanceToCollision = isCollided && data.collisionDistanceByTarget?.[targetUuid] != null
+            ? Number(data.collisionDistanceByTarget[targetUuid]) : (isCollided ? flingDist : null);
+          geometryByTarget[targetUuid] = {
+            blastCenter: point,
+            distanceFt: flingDist,
+            direction,
+            angleDeg,
+            collided: isCollided,
+            surface: isCollided ? surface : null,
+            distanceToCollision
+          };
+        }
+
+        receipt.summary = `${actor.name} flings ${targetCount} Creature(s) ${flingDist} feet away from the blast center (4d8 Bludgeoning Damage on solid surface collision).`;
+        receipt.result = {
+          targetCount,
+          flingDistance: flingDist,
+          collisionFormula: "4d8",
+          blastCenter: point,
+          geometry: geometryByTarget
+        };
+        receipt.summary += ` Manual resolution: move every Creature that took that Thunder damage directly away from the blast centre by ${flingDist} feet. On collision with a solid surface, roll 4d8 Bludgeoning from this card and apply with native controls; no collision means no additional damage.`;
         receipt.formula = "4d8";
         receipt.damageParts = [{ formula: "4d8", type: "bludgeoning" }];
-        const collisions = [...new Set((data.collisionTargetUuids ?? []).filter(uuid => (data.targetUuids ?? []).includes(uuid)))];
-        for (const targetUuid of collisions) addStep(receipt, { id: `scatter-collision-${encodeURIComponent(targetUuid)}`, kind: "damage",
-          label: "Scatter Them: collision damage", targetUuids: [targetUuid], damageParts: [{ formula: "4d8", type: "bludgeoning" }],
-          sourceActorUuid: actor.uuid, originUseId: data.originUseId ?? null });
+
+        for (const targetUuid of collisions) {
+          const targetGeom = geometryByTarget[targetUuid] ?? { blastCenter: point, distanceFt: flingDist, direction: "away from center" };
+          addStep(receipt, {
+            id: `scatter-collision-${encodeURIComponent(targetUuid)}`,
+            kind: "damage",
+            label: "Scatter Them: collision damage",
+            targetUuids: [targetUuid],
+            damageParts: [{ formula: "4d8", type: "bludgeoning" }],
+            geometry: targetGeom,
+            sourceActorUuid: actor.uuid,
+            originUseId: data.originUseId ?? null
+          });
+        }
         return updates;
       }
     };
   }
 };
+
+export function isDelayedMunitionActive(actor, munitionId = null) {
+  const state = flag(actor, "marksman") ?? {};
+  const list = state.delayedMunitions ?? [];
+  if (munitionId) return list.some(m => m.id === munitionId && m.active === true && !m.suppressed);
+  return list.some(m => m.active === true && !m.suppressed) || Boolean(state.delayedMunition?.active && !state.delayedMunition?.suppressed);
+}
+
+export function isDelayedMunitionSuppressed(actor, munitionId = null) {
+  const state = flag(actor, "marksman") ?? {};
+  const list = state.delayedMunitions ?? [];
+  if (munitionId) {
+    const m = list.find(entry => entry.id === munitionId);
+    return !m || m.active === false || m.suppressed === true;
+  }
+  return list.every(m => m.active === false || m.suppressed === true) && (!state.delayedMunition || state.delayedMunition.active === false || state.delayedMunition.suppressed === true);
+}
+
+export function suppressDelayedMunitionTimer(actor, munitionId = null) {
+  const state = flag(actor, "marksman") ?? {};
+  const munitions = (state.delayedMunitions ?? []).map(entry =>
+    (!munitionId || entry.id === munitionId) ? { ...entry, active: false, suppressed: true, suppressedAt: now() } : entry
+  );
+  if (actor?.flags?.ak5e?.marksman?.delayedMunitions) {
+    actor.flags.ak5e.marksman.delayedMunitions = munitions;
+  }
+  const updates = {
+    "flags.ak5e.marksman.delayedMunitions": munitions,
+    ...((!munitionId || state.delayedMunition?.id === munitionId) && state.delayedMunition ? { "flags.ak5e.marksman.delayedMunition.active": false, "flags.ak5e.marksman.delayedMunition.suppressed": true } : {})
+  };
+  if (actor?.update) actor.update(updates).catch?.(() => {});
+  return updates;
+}
 
 export const ARTILLERYMAN_READINGS = Object.freeze({
   secondaryDetonationDamage: Object.freeze({ label: "Secondary Detonation damage roll", options: Object.freeze([

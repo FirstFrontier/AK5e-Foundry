@@ -12,13 +12,14 @@ import {
   MARKSMAN_CLASS_ID, marksmanEnabled, marksmanLevel, marksmanBranch,
   martialDC, isTargetLocked, targetLockBonus
 } from "./marksman-rules.mjs";
-import { marksmanUses } from "./marksman-uses.mjs";
+import { marksmanUses, recoverMarksmanPool } from "./marksman-uses.mjs";
 import { warn, spendResource, resourceValue } from "./play-uses.mjs";
-import { definePool, getPool, getPoolDefinition, recoverPool } from "./resource-pools.mjs";
+import { definePool, getPool, getPoolDefinition } from "./resource-pools.mjs";
 import { onAk5eEvent } from "./trigger-events.mjs";
 import { getReactions } from "./trigger-events.mjs";
 import { need, flag } from "./operation-kernel.mjs";
 import { weaponDamageParts, weaponPropertyValue, hasWeaponProperty } from "./weapon-properties.mjs";
+import { marksmanAttackTarget } from "./marksman-context.mjs";
 
 export const isAntiAir = actor => marksmanEnabled(actor) && marksmanBranch(actor) === "antiAir";
 const now = () => Number(globalThis.game?.time?.worldTime ?? Date.now() / 1000);
@@ -77,7 +78,7 @@ const levelWarning = (warnings, actor, requiredLevel, name) => {
 };
 
 /** Checks whether a target creature is considered airborne or moved 60+ feet (Pigeon Shooting). */
-export function isAirborneOrFast(targetToken, targetActor) {
+export function isAirborneOrFast(targetToken, targetActor, attacker = null) {
   if (!targetToken && !targetActor) return false;
   // Elevation and a fly speed do not establish lack of ground contact (rooftops, grounded flyers).
   if (flag(targetToken?.document, "airborne") === true || flag(targetActor, "airborne") === true) return true;
@@ -85,6 +86,15 @@ export function isAirborneOrFast(targetToken, targetActor) {
   if (targetActor?.statuses?.has?.("flying") || targetActor?.statuses?.has?.("hovering")) return true;
   // Moved 60+ ft flag or tracking
   if (flag(targetActor, "movedLastTurn") >= 60 || flag(targetActor, "feetMovedLastTurn") >= 60) return true;
+
+  // Check structured table facts recorded on the attacker
+  const targetUuid = targetToken?.document?.uuid ?? targetToken?.uuid ?? targetActor?.uuid;
+  if (attacker && targetUuid) {
+    const facts = flag(attacker, "marksman")?.airTrackingFacts?.[targetKey(targetUuid)]
+      ?? flag(attacker, "marksman")?.airTrackingFacts?.[targetUuid];
+    if (facts?.airborne === true) return true;
+    if (Number(facts?.feetMovedLastTurn) >= 60) return true;
+  }
   return false;
 }
 
@@ -379,8 +389,70 @@ export const ANTI_AIR_PLANS = {
       receipt.summary = `${actor.name} ends The Last Option; no use is refunded. Use this when its minute ends outside combat.`;
       return { "flags.ak5e.marksman.lastOption.active": false };
     } };
+  },
+
+  recordAirTrackingFacts(actor, _state, data) {
+    need(isAntiAir(actor), "Air Tracking is an Anti-Air feature.");
+    const warnings = [];
+    const targetUuid = data.targetUuid ?? null;
+    const targetName = data.targetName ?? (targetUuid ? (globalThis.fromUuidSync?.(targetUuid)?.name ?? "Target") : "Target");
+    if (!targetUuid && !data.targetName) warn(warnings, "target", "Select the target creature to record Air Tracking facts.");
+    if (data.airborne === undefined && data.feetMovedLastTurn === undefined) {
+      warn(warnings, "facts", "Provide ground contact or feet moved during the target's last Turn.");
+    }
+    const airborne = data.airborne === true ? true : data.airborne === false ? false : null;
+    const feetMovedLastTurn = Number.isFinite(Number(data.feetMovedLastTurn)) ? Number(data.feetMovedLastTurn) : null;
+
+    return {
+      warnings,
+      title: "Air Tracking Facts",
+      apply(_next, receipt) {
+        const tableFact = {
+          type: "airTracking",
+          factType: "airTracking",
+          actorUuid: actor.uuid,
+          targetUuid,
+          targetName,
+          airborne,
+          feetMovedLastTurn,
+          resolutionNotes: data.resolutionNotes ?? null,
+          declaredAt: now(),
+          declaredBy: globalThis.game?.user?.id ?? "player"
+        };
+        receipt.tableFact = tableFact;
+        receipt.result = { ...tableFact };
+        const airborneText = airborne === true ? "not in contact with ground (airborne)" : airborne === false ? "in contact with ground" : "ground contact unrecorded";
+        const movedText = feetMovedLastTurn != null ? `moved ${feetMovedLastTurn} ft during last Turn` : "movement unrecorded";
+        receipt.summary = `${actor.name} records reviewed Air Tracking table facts for ${targetName}: ${airborneText}; ${movedText}.`;
+        if (data.resolutionNotes) receipt.summary += ` Notes: ${data.resolutionNotes}`;
+
+        const updates = {};
+        if (targetUuid) {
+          updates[`flags.ak5e.marksman.airTrackingFacts.${targetKey(targetUuid)}`] = tableFact;
+        }
+        return updates;
+      }
+    };
   }
 };
+
+export async function declareAirborneTarget(actor, targetUuid, facts = {}) {
+  const targetDoc = targetUuid && globalThis.fromUuidSync?.(targetUuid);
+  const targetName = facts.targetName ?? targetDoc?.name ?? "Target";
+  const id = `fact_${now()}_${targetKey(targetUuid)}`;
+  const plan = ANTI_AIR_PLANS.recordAirTrackingFacts(actor, {}, {
+    targetUuid,
+    targetName,
+    airborne: facts.airborne ?? true,
+    feetMovedLastTurn: facts.feetMovedLastTurn,
+    resolutionNotes: facts.resolutionNotes,
+    confirmed: true
+  });
+  const receipt = { id, command: "recordAirTrackingFacts" };
+  const updates = plan.apply({}, receipt);
+  if (actor.update) await actor.update(updates);
+  return { receipt, updates, tableFact: receipt.tableFact };
+}
 
 marksmanUses.register({ plans: ANTI_AIR_PLANS });
 
@@ -392,11 +464,12 @@ export function antiAirPreRollAttack(config, _dialog, _message) {
   const roll = config.rolls?.[0];
   if (!roll) return;
 
-  const targetToken = globalThis.game?.user?.targets?.first?.() ?? null;
-  const targetActor = targetToken?.actor ?? null;
+  let { token: targetToken, actor: targetActor } = marksmanAttackTarget(config);
+  targetToken ??= config.targetToken ?? null;
+  targetActor ??= config.targetActor ?? config.targetToken?.actor ?? null;
 
   // Air Tracking: Pigeon Shooting (Advantage against airborne or moved 60+ ft)
-  if (activity.actionType === "rwak" && isAirborneOrFast(targetToken, targetActor)) {
+  if (activity.actionType === "rwak" && isAirborneOrFast(targetToken, targetActor, actor)) {
     roll.options ??= {};
     roll.options.advantage = true;
   }
@@ -405,13 +478,27 @@ export function antiAirPreRollAttack(config, _dialog, _message) {
 }
 
 export async function antiAirRollInitiative(actor, event = {}) {
+  if (actor?.raw?.actor) {
+    event = actor;
+    actor = event.raw.actor;
+  }
   if (!actor || !isAntiAir(actor)) return;
   const level = marksmanLevel(actor);
   // 15th level: Option Recharge (recover 1 use of Versatile Approach if below max)
   if (level >= 15) {
     const pool = getPool(actor, "versatileApproach");
     if (pool && pool.value < pool.max) {
-      await recoverPool(actor, "initiative", { poolIds: ["versatileApproach"], eventKey: event.eventId, context: { marksmanEvent: true } });
+      const eventKey = event.eventId ?? event.eventKey ?? `optionRecharge:${event.combatantId ?? actor.uuid}:${event.combatUuid ?? "combat"}`;
+      return await recoverMarksmanPool(actor, "initiative", {
+        poolIds: ["versatileApproach"],
+        eventKey,
+        context: {
+          marksmanEvent: true,
+          actorUuid: actor.uuid,
+          combatantId: event.combatantId ?? null,
+          combatUuid: event.combatUuid ?? null
+        }
+      });
     }
   }
 }

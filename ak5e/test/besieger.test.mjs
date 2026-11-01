@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   isBesieger, inSiegeMode, isLargeOrLarger, defineBesiegerPools,
-  BESIEGER_PLANS, besiegerPreRollAttack, besiegerPreRollDamage
+  BESIEGER_PLANS, besiegerPreRollAttack, besiegerPreRollDamage,
+  isSiegeBoltTickActive, evaluateSiegeBoltSave
 } from "../scripts/besieger-features.mjs";
 import { getPool } from "../scripts/resource-pools.mjs";
 
@@ -274,4 +275,167 @@ test("Godpiercer requires an explicit per-use mitigation reading", () => {
   plan.apply({}, ordinaryReceipt, { value: "ordinaryMitigation" });
   assert.equal(ordinaryReceipt.resolution.steps[0].amount, 8);
 });
+
+test("Siege Bolt ongoing save tick evaluation and early termination on successful save", () => {
+  const actor = {
+    uuid: "Actor.siegeBoltTicks",
+    name: "Siege Specialist",
+    system: { attributes: { prof: 4 }, abilities: { dex: { mod: 4 } } },
+    items: [
+      { type: "class", system: { levels: 10 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-besieger" } } }
+    ],
+    flags: { ak5e: { marksman: { enabled: true, martialDcAbility: "dex" } } }
+  };
+
+  const plan = BESIEGER_PLANS.siegeBolt(actor, {}, {
+    targetUuid: "Actor.boss",
+    confirmed: true
+  });
+
+  const receipt = { id: "rcpt-bolt-ticks" };
+  plan.apply({}, receipt);
+
+  assert.equal(receipt.resolution.steps.length, 5);
+  const initialStep = receipt.resolution.steps.find(s => s.id.endsWith("-initial"));
+  const save1Step = receipt.resolution.steps.find(s => s.id.endsWith("-repeat-save-1"));
+  const tick1Step = receipt.resolution.steps.find(s => s.id.endsWith("-tick-1"));
+
+  assert.equal(initialStep.kind, "damage");
+  assert.equal(save1Step.trigger.event, "turnStart");
+  assert.equal(tick1Step.trigger.event, "turnEnd");
+
+  // Initial state: tick 1 and 2 are active before save evaluation
+  assert.equal(isSiegeBoltTickActive(receipt, "Actor.boss", "turn1"), true);
+  assert.equal(isSiegeBoltTickActive(receipt, "Actor.boss", "turn2"), true);
+
+  // Scenario A: target succeeds on initial save (DC = 8 + 4 + 4 = 16)
+  const successEval = evaluateSiegeBoltSave(receipt, "Actor.boss", initialStep.id, 18, 16);
+  assert.equal(successEval.passed, true);
+  assert.equal(successEval.endedOngoing, true);
+
+  // When initial save passed, ongoing ticks are ended
+  assert.equal(isSiegeBoltTickActive(receipt, "Actor.boss", "turn1"), false);
+  assert.equal(isSiegeBoltTickActive(receipt, "Actor.boss", "turn2"), false);
+
+  // Scenario B: fresh receipt where initial save failed
+  const failReceipt = { id: "rcpt-bolt-fail" };
+  plan.apply({}, failReceipt);
+
+  const failEval = evaluateSiegeBoltSave(failReceipt, "Actor.boss", failReceipt.resolution.steps[0].id, 12, 16);
+  assert.equal(failEval.passed, false);
+  assert.equal(failEval.endedOngoing, false);
+
+  // Ticks remain active
+  assert.equal(isSiegeBoltTickActive(failReceipt, "Actor.boss", "turn1"), true);
+  assert.equal(isSiegeBoltTickActive(failReceipt, "Actor.boss", "turn2"), true);
+
+  // Target saves at start of turn 1
+  const turn1Eval = evaluateSiegeBoltSave(failReceipt, "Actor.boss", failReceipt.resolution.steps[1].id, 17, 16);
+  assert.equal(turn1Eval.passed, true);
+  assert.equal(turn1Eval.endedOngoing, true);
+
+  // Tick 1 was saved against, and tick 2 is terminated
+  assert.equal(isSiegeBoltTickActive(failReceipt, "Actor.boss", "turn2"), false);
+});
+
+test("Siege Mode disadvantage at close range (<= 20ft) carries native roll flags and provenance", () => {
+  const actor = {
+    uuid: "Actor.siegeModeDisadv",
+    name: "Siege Shooter",
+    items: [
+      { type: "class", system: { levels: 6 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-besieger" } } }
+    ],
+    flags: {
+      ak5e: {
+        marksman: { enabled: true, siegeMode: true, manualTurn: 0, siegeModeTurn: "manual:0" }
+      }
+    }
+  };
+
+  // Attack <= 20ft (e.g. 15ft) -> Disadvantage applies
+  const rollClose = { options: {} };
+  const configClose = {
+    subject: { actor, actionType: "rwak" },
+    rolls: [rollClose],
+    targetDistance: 15,
+    flags: { ak5e: {} }
+  };
+  besiegerPreRollAttack(configClose);
+
+  assert.equal(rollClose.options.disadvantage, true, "Siege Mode enforces disadvantage at <= 20ft");
+  assert.equal(rollClose.options.ak5eMarksman.siegeModeDisadvantage, true);
+  assert.equal(configClose.flags.ak5e.siegeModeDisadvantage, true);
+
+  // Attack > 20ft (e.g. 40ft) -> No disadvantage from Siege Mode
+  const rollFar = { options: {} };
+  const configFar = {
+    subject: { actor, actionType: "rwak" },
+    rolls: [rollFar],
+    targetDistance: 40,
+    flags: { ak5e: {} }
+  };
+  besiegerPreRollAttack(configFar);
+
+  assert.equal(rollFar.options.disadvantage, undefined, "Siege Mode does not apply disadvantage at > 20ft");
+  assert.equal(rollFar.options.ak5eMarksman?.siegeModeDisadvantage, undefined);
+  assert.equal(configFar.flags.ak5e.siegeModeDisadvantage, undefined);
+});
+
+test("Deliberate Efficient damage bypass carries native DR and Resistance bypass provenance", () => {
+  const weapon = {
+    id: "rifle",
+    uuid: "Actor.deBypass.Item.rifle",
+    system: { damage: { base: { formula: "2d12", types: new Set(["piercing"]) } } }
+  };
+  const actor = {
+    uuid: "Actor.deBypass",
+    name: "Deliberate Besieger",
+    items: [
+      { type: "class", system: { levels: 8 }, flags: { ak5e: { chapterThreeId: "class-marksman" } } },
+      { type: "subclass", flags: { ak5e: { chapterThreeId: "subclass-marksman-besieger" } } },
+      weapon
+    ],
+    flags: {
+      ak5e: {
+        marksman: {
+          enabled: true,
+          siegeMode: true,
+          manualTurn: 0,
+          siegeModeTurn: "manual:0",
+          deliberateEfficientAction: "attack-act-1"
+        }
+      }
+    }
+  };
+
+  const roll = { parts: ["2d12", "4"], options: {} };
+  const config = {
+    subject: { actor, item: weapon, actionType: "rwak", id: "attack-act-1" },
+    rolls: [roll],
+    flags: { ak5e: {} }
+  };
+
+  besiegerPreRollDamage(config);
+
+  // Level < 18 adds 1d8
+  assert.ok(roll.parts.includes("1d8"), "Deliberate Efficient adds 1d8 damage die");
+
+  // Native bypass flags on roll.options
+  assert.equal(roll.options.ignoreDamageReduction, true);
+  assert.equal(roll.options.bypassResistance, true);
+
+  // ak5eMarksman provenance flags
+  assert.equal(roll.options.ak5eMarksman.ignoreDR, true);
+  assert.equal(roll.options.ak5eMarksman.ignoreResistance, true);
+  assert.equal(roll.options.ak5eMarksman.physicalOnly, true);
+  assert.equal(roll.options.ak5eMarksman.bypassPhysicalDR, true);
+  assert.equal(roll.options.ak5eMarksman.bypassPhysicalResistance, true);
+
+  // config.flags.ak5e flags
+  assert.equal(config.flags.ak5e.deliberateEfficient, true);
+  assert.equal(config.flags.ak5e.bypassPhysicalDR, true);
+});
+
 
