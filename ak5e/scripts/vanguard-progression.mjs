@@ -12,6 +12,8 @@ import {
 } from "./vanguard-rules.mjs";
 import { need } from "./operation-kernel.mjs";
 import { vanguardExtensionContext, vanguardProgressionContributions } from "./vanguard-extensions.mjs";
+import { vanguardUses } from "./vanguard-uses.mjs";
+import { currentEpoch } from "./play-undo.mjs";
 
 export const VANGUARD_PROGRESS_FLAG = "vanguardProgression";
 export const VANGUARD_TALENT_FLAG = "vanguardTalent";
@@ -20,6 +22,163 @@ const TALENTS = CHAPTER_THREE_CLASSES.filter(entry =>
   entry.kind === "class-option" && entry.parentClass === "Vanguard" && entry.classOption?.category === "talent"
 );
 const EQUIPMENT = CHAPTER_FOUR_EQUIPMENT;
+
+const receiptGet = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
+const receiptSame = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Effect documents can serialize keys in a different order after recreation.
+const receiptCanonical = value => Array.isArray(value) ? value.map(receiptCanonical)
+  : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(key => [key, receiptCanonical(value[key])])) : value;
+const receiptEffectData = effect => {
+  const data = structuredClone(effect?.toObject ? effect.toObject() : effect);
+  delete data.id;
+  return data;
+};
+const receiptComparableEffect = effect => {
+  const data = receiptEffectData(effect);
+  // Foundry refreshes document audit metadata when recreating an embedded document.
+  delete data._stats;
+  return receiptCanonical(data);
+};
+const receiptDeletePath = path => {
+  const parts = path.split("."), leaf = parts.pop();
+  return `${parts.join(".")}.-=${leaf}`;
+};
+
+// Preflight every owned target before the undo engine starts changing anything.
+// The same notes are shown by its confirmation and copied onto the public card.
+function receiptTargetConflicts(source, entry, target) {
+  if (!target) return [];
+  const owner = entry.kind === "vanguardCreatedEffect"
+    ? (target.parent?.uuid === source.uuid ? target.parent : target.parent?.parent) : target.parent;
+  if (owner?.uuid !== source.uuid) return [`${entry.name}: won't restore; the document belongs to another Actor.`];
+  if (entry.kind === "vanguardItemRestore") return (entry.updates ?? []).filter(change => {
+    const current = receiptGet(target, change.path);
+    return !receiptSame(current, change.after) && !receiptSame(current, change.beforePresent ? change.before : undefined);
+  }).map(change => `${entry.name}: won't restore ${change.path}; it changed after this use.`);
+  if (entry.kind !== "vanguardRestoreEffects") return [];
+  const notes = [], seen = new Set();
+  for (const effect of entry.effects ?? []) {
+    const data = receiptEffectData(effect), id = data?._id;
+    if (typeof id !== "string" || !id.trim()) { notes.push(`${entry.name}: won't restore an effect without its original ID.`); continue; }
+    if (seen.has(id)) { notes.push(`${entry.name}: won't restore repeated effect ID ${id}.`); continue; }
+    seen.add(id);
+    const current = target.effects?.get(id);
+    if (current && !receiptSame(receiptComparableEffect(current), receiptComparableEffect(data)))
+      notes.push(`${entry.name}: won't restore effect ${id}; its ID is occupied by a different effect.`);
+  }
+  return notes;
+}
+function receiptUndoConflicts(source, _state, receipt) {
+  return (receipt.targets ?? []).filter(entry => entry.applied || entry.attempted)
+    .flatMap(entry => receiptTargetConflicts(source, entry, globalThis.fromUuidSync?.(entry.uuid)));
+}
+
+/** Owned-document target kinds used by the Vanguard progression/setup receipts. */
+const VANGUARD_RECEIPT_KINDS = {
+  vanguardCreatedItem: {
+    documentName: "Item", local: true,
+    async revert(source, _useId, _entry, target) {
+      if (target.parent?.uuid !== source.uuid) return false;
+      await target.delete();
+      return true;
+    },
+    preview(_source, _receipt, _entry, target) { return target ? `Remove created Item ${target.name}.` : "The created Item is already gone."; }
+  },
+  vanguardCreatedEffect: {
+    documentName: "ActiveEffect", local: true,
+    async revert(source, _useId, _entry, target) {
+      const owner = target.parent?.uuid === source.uuid ? target.parent : target.parent?.parent;
+      if (owner?.uuid !== source.uuid) return false;
+      await target.delete();
+      return true;
+    },
+    preview(_source, _receipt, _entry, target) { return target ? `Remove created effect ${target.name}.` : "The created effect is already gone."; }
+  },
+  vanguardItemRestore: {
+    documentName: "Item", local: true,
+    apply() { return true; },
+    async revert(source, _useId, entry, target) {
+      if (target.parent?.uuid !== source.uuid) return false;
+      const updates = {};
+      for (const change of entry.updates ?? []) {
+        const current = receiptGet(target, change.path);
+        // Another target or the final ledger write may have failed after this
+        // field was restored. Accept that exact recorded before-state on retry.
+        if (receiptSame(current, change.beforePresent ? change.before : undefined)) continue;
+        if (!receiptSame(current, change.after)) continue;
+        updates[change.beforePresent ? change.path : receiptDeletePath(change.path)] = change.beforePresent ? structuredClone(change.before) : null;
+      }
+      if (Object.keys(updates).length) await target.update(updates);
+      return true;
+    },
+    preview(source, _receipt, entry, target) {
+      if (!target) return "The updated Item is missing.";
+      const conflicts = receiptTargetConflicts(source, entry, target);
+      return `Restore safe previous Item fields on ${target.name}.${conflicts.length ? ` ${conflicts.join(" ")}` : ""}`;
+    }
+  },
+  vanguardRestoreEffects: {
+    documentName: "Item", local: true,
+    apply() { return true; },
+    async revert(source, _useId, entry, target) {
+      if (target.parent?.uuid !== source.uuid) return false;
+      const missing = [], seen = new Set();
+      const ids = (entry.effects ?? []).map(effect => receiptEffectData(effect)?._id);
+      const duplicates = new Set(ids.filter((id, index) => ids.indexOf(id) !== index));
+      for (const effect of entry.effects ?? []) {
+        const data = receiptEffectData(effect);
+        if (typeof data?._id !== "string" || !data._id.trim() || seen.has(data._id) || duplicates.has(data._id)) continue;
+        seen.add(data._id);
+        const current = target.effects?.get(data._id);
+        if (!current) missing.push(data);
+        // Existing effects, whether identical or conflicting, are never overwritten.
+      }
+      if (missing.length) await target.createEmbeddedDocuments("ActiveEffect", missing, { keepId: true });
+      return true;
+    },
+    preview(source, _receipt, entry, target) {
+      if (!target) return "The parent Item is missing.";
+      const conflicts = receiptTargetConflicts(source, entry, target);
+      return `Restore safe deleted effects on ${target.name}.${conflicts.length ? ` ${conflicts.join(" ")}` : ""}`;
+    }
+  }
+};
+let vanguardReceiptKindsRegistered = false;
+export function registerVanguardReceiptKinds() {
+  if (vanguardReceiptKindsRegistered) return;
+  vanguardReceiptKindsRegistered = true;
+  vanguardUses.register({ targetKinds: VANGUARD_RECEIPT_KINDS, plans: {
+    vanguardProgression: { undoNotes: receiptUndoConflicts },
+    vanguardSetup: { undoNotes: receiptUndoConflicts }
+  } });
+}
+registerVanguardReceiptKinds();
+
+export function beginVanguardReceipt(actor, command, title) {
+  const id = `vanguard-${command}-${globalThis.foundry?.utils?.randomID?.() ?? Date.now().toString(36)}`;
+  return { id, command, title, userId: globalThis.game?.user?.id ?? "system", epoch: currentEpoch(),
+    createdAt: Date.now(), status: "applying", data: {}, targets: [], flagChanges: [], resources: [], summary: "", result: {} };
+}
+
+export async function saveVanguardReceipt(actor, receipt) {
+  const state = vanguardUses.state(actor);
+  const undo = Array.isArray(state.undo) ? [...state.undo] : [];
+  const index = undo.findIndex(entry => entry.id === receipt.id);
+  if (index >= 0) undo[index] = receipt; else undo.push(receipt);
+  await actor.update({ "flags.ak5e.vanguardUses.undo": undo });
+}
+
+export async function postVanguardReceiptCard(actor, receipt) {
+  const factory = globalThis.ChatMessage;
+  if (!factory?.implementation?.create) return;
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  await factory.implementation.create({
+    speaker: factory.implementation.getSpeaker({ actor }),
+    content: `<h3>${esc(receipt.title)}</h3><p>${esc(receipt.summary)}</p>`,
+    flags: { ak5e: { vanguardUsesOperation: receipt.id, vanguardUsesActor: actor.uuid,
+      vanguardUsesUse: { actorUuid: actor.uuid, useId: receipt.id, saves: [] } } }
+  });
+}
 
 const DEFAULT_STATE = Object.freeze({
   version: 1,
@@ -35,19 +194,21 @@ const DEFAULT_STATE = Object.freeze({
 const entries = collection => Array.from(collection?.values?.() ?? collection ?? []);
 const flag = (doc, key) => doc?.getFlag?.("ak5e", key) ?? doc?.flags?.ak5e?.[key];
 const sourceSystem = actor => actor?._source?.system ?? actor?.system ?? {};
+const plainObject = value => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
 function readState(actor) {
   const stored = flag(actor, VANGUARD_PROGRESS_FLAG) ?? {};
+  const safe = plainObject(stored) ? stored : {};
   return {
     ...structuredClone(DEFAULT_STATE),
-    ...structuredClone(stored),
-    choices: structuredClone(stored.choices ?? {}),
-    hpLevels: [...(stored.hpLevels ?? [])],
-    asiLevels: [...(stored.asiLevels ?? [])],
-    startingEquipmentGranted: Boolean(stored.startingEquipmentGranted),
-    operations: [...(stored.operations ?? [])],
-    receipts: { ...(stored.receipts ?? {}) },
-    plans: { ...(stored.plans ?? {}) }
+    ...structuredClone(safe),
+    choices: plainObject(safe.choices) ? structuredClone(safe.choices) : {},
+    hpLevels: Array.isArray(safe.hpLevels) ? [...safe.hpLevels] : [],
+    asiLevels: Array.isArray(safe.asiLevels) ? [...safe.asiLevels] : [],
+    startingEquipmentGranted: Boolean(safe.startingEquipmentGranted),
+    operations: Array.isArray(safe.operations) ? [...safe.operations] : [],
+    receipts: plainObject(safe.receipts) ? { ...safe.receipts } : {},
+    plans: plainObject(safe.plans) ? { ...safe.plans } : {}
   };
 }
 
@@ -69,7 +230,10 @@ function branchItem(actor) {
 }
 
 function levelOf(item) {
-  const level = Number(item?.system?.levels);
+  const raw = item?.system?.levels;
+  if (raw === null || raw === undefined || raw === "" || typeof raw === "boolean" ||
+      Array.isArray(raw) || typeof raw === "object") return null;
+  const level = Number(raw);
   return Number.isInteger(level) && level >= 1 && level <= 20 ? level : null;
 }
 
@@ -144,6 +308,23 @@ function currentAbility(actor, ability) {
   return Number.isFinite(raw) ? raw : 10;
 }
 
+function finiteInteger(value, label, { min = -Infinity, max = Infinity } = {}) {
+  const valid = value !== null && value !== undefined && value !== "" && typeof value !== "boolean";
+  const n = valid ? Number(value) : NaN;
+  need(Number.isInteger(n) && n >= min && n <= max, `${label} must be an integer${Number.isFinite(min) ? ` from ${min}` : ""}${Number.isFinite(max) ? ` to ${max}` : ""}.`);
+  return n;
+}
+
+function proficiency(value, label) {
+  if (value === undefined) return 0;
+  const valid = (typeof value === "number" || (typeof value === "string" && value.trim() !== "")) && Number.isFinite(Number(value));
+  const n = valid ? Number(value) : NaN;
+  need([0, 0.5, 1, 2].includes(n), `${label} must be 0, 0.5, 1, or 2.`);
+  return n;
+}
+
+const storedList = value => Array.isArray(value) ? [...value] : [];
+
 const option = (value, label, details = {}) => ({ value, label, ...details });
 const field = (key, label, options, count = 1, selected = null, requiredAt = 1) => ({ key, label, options, count, selected, requiredAt });
 const mergeBranchChoices = (saved, supplied) => {
@@ -154,21 +335,25 @@ const mergeBranchChoices = (saved, supplied) => {
 };
 
 export function vanguardChoices(actor, supplied = {}) {
+  const suppliedChoices = supplied;
+  need(plainObject(suppliedChoices), "Vanguard choices must be an object.");
   const state = readState(actor), saved = state.choices ?? {};
-  const result = { ...structuredClone(saved), ...structuredClone(supplied ?? {}) };
-  result.skills = [...(Array.isArray(supplied.skills) ? supplied.skills : saved.skills ?? [])];
-  const saves = supplied.saves ?? saved.saves ?? [];
+  const result = { ...structuredClone(saved), ...structuredClone(suppliedChoices) };
+  const savedSkills = Array.isArray(saved.skills) ? saved.skills : [];
+  result.skills = [...(Array.isArray(suppliedChoices.skills) ? suppliedChoices.skills : savedSkills)];
+  const saves = suppliedChoices.saves ?? saved.saves ?? [];
   result.saves = Array.isArray(saves) ? [...saves] : [saves];
-  result.asi = { ...(saved.asi ?? {}), ...(supplied.asi ?? {}) };
-  result.hp = { ...(saved.hp ?? {}), ...(supplied.hp ?? {}) };
-  result.martialDCAbility = supplied.martialDCAbility ?? saved.martialDCAbility ?? null;
-  result.startingEquipment = { ...(saved.startingEquipment ?? {}), ...(supplied.startingEquipment ?? {}) };
-  if (state.startingEquipmentGranted && !supplied.startingEquipment?.mode) {
+  result.asi = { ...(plainObject(saved.asi) ? saved.asi : {}), ...(plainObject(suppliedChoices.asi) ? suppliedChoices.asi : {}) };
+  result.hp = { ...(plainObject(saved.hp) ? saved.hp : {}), ...(plainObject(suppliedChoices.hp) ? suppliedChoices.hp : {}) };
+  result.martialDCAbility = suppliedChoices.martialDCAbility ?? saved.martialDCAbility ?? null;
+  result.startingEquipment = { ...(plainObject(saved.startingEquipment) ? saved.startingEquipment : {}),
+    ...(plainObject(suppliedChoices.startingEquipment) ? suppliedChoices.startingEquipment : {}) };
+  if (state.startingEquipmentGranted && !suppliedChoices.startingEquipment?.mode) {
     result.startingEquipment.mode = "existing";
   }
-  result.talents = { ...(saved.talents ?? {}), ...(supplied.talents ?? {}) };
-  result.branches = structuredClone(saved.branches ?? {});
-  for (const [id, branchChoices] of Object.entries(supplied.branches ?? {})) {
+  result.talents = { ...(plainObject(saved.talents) ? saved.talents : {}), ...(plainObject(suppliedChoices.talents) ? suppliedChoices.talents : {}) };
+  result.branches = plainObject(saved.branches) ? structuredClone(saved.branches) : {};
+  for (const [id, branchChoices] of Object.entries(plainObject(suppliedChoices.branches) ? suppliedChoices.branches : {})) {
     result.branches[id] = mergeBranchChoices(result.branches[id], branchChoices ?? {});
   }
   for (const tier of ["basic", "advanced"]) {
@@ -184,8 +369,8 @@ export function vanguardChoices(actor, supplied = {}) {
     const ownedUpgrade = entries(actor?.items).find(item => flag(item, VANGUARD_TALENT_FLAG)?.tier === tier && flag(item, VANGUARD_TALENT_FLAG)?.upgraded);
     if (ownedUpgrade) result.talents[key] = "upgrade";
   }
-  result.branch = supplied.branch ?? saved.branch ?? null;
-  result.tool = supplied.tool ?? saved.tool ?? "Messenger Kit";
+  result.branch = suppliedChoices.branch ?? saved.branch ?? null;
+  result.tool = suppliedChoices.tool ?? saved.tool ?? "Messenger Kit";
 
   const level = levelOf(vanguardClass(actor));
   if (level) {
@@ -432,7 +617,7 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
       const kitEntry = EQUIPMENT.find(e => e.id === "tool-messenger-kit-9");
       if (kitEntry) createItems.push(equipmentData(kitEntry));
     } else if (choices.startingEquipment?.mode === "cash") {
-      const beforeCp = Number(sourceSystem(actor).currency?.cp ?? 0);
+      const beforeCp = finiteInteger(sourceSystem(actor).currency?.cp ?? 0, "Currency cp", { min: 0 });
       writes["system.currency.cp"] = beforeCp + 1300; // 1300 LMD = 1300 CP
     }
   }
@@ -441,21 +626,21 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
   const system = sourceSystem(actor);
   writes["flags.ak5e.vanguard.martialDCAbility"] = choices.martialDCAbility;
   // Saves: Dexterity automatic + chosen Strength or Charisma
-  const dexteritySaveProficiency = Number(system.abilities?.dex?.proficient ?? 0);
+  const dexteritySaveProficiency = proficiency(system.abilities?.dex?.proficient, "Dexterity save proficiency");
   writes["system.abilities.dex.proficient"] = Math.max(dexteritySaveProficiency, 1);
   if (validSaves) {
     const selectedSave = chosenSaves[0];
-    const currentSaveProficiency = Number(system.abilities?.[selectedSave]?.proficient ?? 0);
+    const currentSaveProficiency = proficiency(system.abilities?.[selectedSave]?.proficient, `${selectedSave.toUpperCase()} save proficiency`);
     writes[`system.abilities.${selectedSave}.proficient`] = Math.max(currentSaveProficiency, 1);
   }
 
   // Armor: Light Armor, Light Shield
-  const currentArmor = new Set(system.traits?.armorProf?.value ?? []);
+  const currentArmor = new Set(storedList(system.traits?.armorProf?.value));
   for (const prof of VANGUARD_ARMOR_PROFS) currentArmor.add(prof);
   writes["system.traits.armorProf.value"] = Array.from(currentArmor);
 
   // Weapons: Light Melee
-  const currentWeapons = new Set(system.traits?.weaponProf?.value ?? []);
+  const currentWeapons = new Set(storedList(system.traits?.weaponProf?.value));
   writes["system.traits.weaponProf.value"] = Array.from(currentWeapons);
   const currentWeaponCustom = String(system.traits?.weaponProf?.custom ?? "").split(/[,;]/).map(value => value.trim()).filter(Boolean);
   if (!currentWeaponCustom.some(value => value.toLowerCase() === "light melee")) currentWeaponCustom.push("Light Melee");
@@ -471,19 +656,22 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
 
   // Tools: Messenger Kit
   writes["system.tools.ak5emessengerkit"] = {
-    ...(system.tools?.ak5emessengerkit ?? {}), value: Math.max(1, Number(system.tools?.ak5emessengerkit?.value) || 0),
+    ...(system.tools?.ak5emessengerkit ?? {}), value: Math.max(1, proficiency(system.tools?.ak5emessengerkit?.value, "Messenger Kit proficiency")),
     ability: system.tools?.ak5emessengerkit?.ability ?? "int"
   };
 
   // Skills
   if (validSkills) {
     for (const skillKey of uniqueChosenSkills) {
-      writes[`system.skills.${skillKey}.value`] = Math.max(1, Number(system.skills?.[skillKey]?.value ?? 0));
+      writes[`system.skills.${skillKey}.value`] = Math.max(1, proficiency(system.skills?.[skillKey]?.value, `${skillKey} skill proficiency`));
     }
   }
 
   // Hit Points calculations
-  const conMod = Number(system.abilities?.con?.mod ?? 0);
+  // D&D5e derives ability modifiers on `actor.system`; the source data used for
+  // writes may only contain the ability score. Read the prepared modifier first
+  // so native actors use their actual Constitution modifier (C3 L7918).
+  const conMod = finiteInteger(actor?.system?.abilities?.con?.mod ?? system.abilities?.con?.mod ?? 0, "Constitution modifier");
   let hpIncrease = 0;
   for (let n = 1; n <= level; n++) {
     const hpChoice = choices.hp?.[n];
@@ -504,7 +692,7 @@ export async function previewVanguardProgression(actor, suppliedChoices = {}) {
     }
   }
   if (hpIncrease > 0) {
-    const currentMax = Number(system.attributes?.hp?.max ?? 0);
+    const currentMax = finiteInteger(system.attributes?.hp?.max ?? 0, "Hit Point maximum", { min: 0 });
     writes["system.attributes.hp.max"] = currentMax + hpIncrease;
   }
 
@@ -715,10 +903,10 @@ export async function applyVanguardProgression(actor, { confirmed, contextKey, c
   delete state.branchHpBonuses;
 
   const hpLevelsGranted = Object.entries(plan.choices.hp ?? {})
-    .filter(([_, opt]) => opt && opt.mode !== "existing")
+    .filter(([lvl, opt]) => opt && opt.mode !== "existing" && Number.isInteger(Number(lvl)) && Number(lvl) >= 1 && Number(lvl) <= plan.level)
     .map(([lvl]) => Number(lvl));
   const asiLevelsGranted = Object.entries(plan.choices.asi ?? {})
-    .filter(([_, opt]) => opt && opt.mode !== "existing" && opt.increases?.length)
+    .filter(([lvl, opt]) => opt && opt.mode !== "existing" && opt.increases?.length && Number.isInteger(Number(lvl)) && Number(lvl) >= 1 && Number(lvl) <= plan.level)
     .map(([lvl]) => Number(lvl));
 
   state.hpLevels = [...new Set([...(state.hpLevels ?? []), ...hpLevelsGranted])];
@@ -743,8 +931,18 @@ export async function applyVanguardProgression(actor, { confirmed, contextKey, c
     ...plan.writes,
     [`flags.ak5e.${VANGUARD_PROGRESS_FLAG}`]: state
   };
-  // Reconcile missing stable IDs before committing completion state. A retry
-  // after partial failure will find created source Items and not duplicate them.
+  // Compare persisted source rather than prepared D&D5e DataModels, whose
+  // derived/default fields may differ from the values actually being written.
+  const persisted = { system: sourceSystem(actor), flags: actor?._source?.flags ?? actor.flags };
+  const changedPaths = Object.entries(updates).filter(([path, after]) =>
+    !receiptSame(receiptCanonical(receiptGet(persisted, path)), receiptCanonical(after)));
+  const itemUpdates = plan.updateItems.map(update => {
+    const item = actor.items.get(update._id), persistedItem = item?._source ?? item;
+    const changes = Object.entries(update).filter(([path, after]) => path !== "_id" &&
+      !receiptSame(receiptCanonical(receiptGet(persistedItem, path)), receiptCanonical(after)));
+    return { _id: update._id, ...Object.fromEntries(changes) };
+  }).filter(update => Object.keys(update).length > 1);
+  // Reconcile missing stable IDs before deciding whether anything needs doing.
   const managedCounts = new Map();
   for (const item of entries(actor.items)) {
     const grant = flag(item, "vanguardProgressionGrant");
@@ -761,14 +959,52 @@ export async function applyVanguardProgression(actor, { confirmed, contextKey, c
     desiredCounts.set(key, desired);
     if (desired > (managedCounts.get(key) ?? 0)) missingItems.push(item);
   }
-  if (missingItems.length) await actor.createEmbeddedDocuments("Item", missingItems);
-  if (plan.updateItems.length) await actor.updateEmbeddedDocuments("Item", plan.updateItems);
-  await actor.update(updates);
+  if (!missingItems.length && !itemUpdates.length && !changedPaths.length) {
+    return { success: true, level: plan.level, updatedFields: [], created: [] };
+  }
+  const changedUpdates = Object.fromEntries(changedPaths);
+  const receipt = beginVanguardReceipt(actor, "vanguardProgression", "Vanguard progression");
+  receipt.flagChanges = changedPaths.map(([path, after]) => {
+    const before = receiptGet(persisted, path);
+    return { path, before: structuredClone(before), beforePresent: before !== undefined, after: structuredClone(after) };
+  });
+  receipt.summary = `Apply Vanguard level ${plan.level} progression choices.`;
+  await saveVanguardReceipt(actor, receipt);
+  try {
+    if (missingItems.length) {
+      const createdDocs = await actor.createEmbeddedDocuments("Item", missingItems);
+      receipt.targets.push(...createdDocs.map(document => ({ uuid: document.uuid, name: document.name, kind: "vanguardCreatedItem", applied: true, attempted: true })));
+      receipt.createdItemIds = createdDocs.map(document => document.id);
+    }
+    if (itemUpdates.length) {
+      for (const update of itemUpdates) {
+        const item = actor.items.get(update._id);
+        if (!item) continue;
+        const changes = Object.entries(update).filter(([path]) => path !== "_id").map(([path, after]) => {
+          const before = receiptGet(item, path);
+          return { path, before: structuredClone(before), beforePresent: before !== undefined, after: structuredClone(after) };
+        });
+        if (changes.length) receipt.targets.push({ uuid: item.uuid, name: item.name, kind: "vanguardItemRestore", updates: changes, applied: true, attempted: true });
+      }
+      await saveVanguardReceipt(actor, receipt);
+      await actor.updateEmbeddedDocuments("Item", itemUpdates);
+    }
+    if (changedPaths.length) await actor.update(changedUpdates);
+    receipt.status = "complete";
+    receipt.result = { created: missingItems.map(c => c.name), updated: itemUpdates.length };
+    receipt.summary = `Applied Vanguard level ${plan.level} progression: ${missingItems.length} Item(s) added, ${changedPaths.length} field(s) written.`;
+    await saveVanguardReceipt(actor, receipt);
+    await postVanguardReceiptCard(actor, receipt).catch(() => {});
+  } catch (error) {
+    receipt.status = "pending"; receipt.lastError = String(error.message ?? error).replace(/\.$/, "");
+    await saveVanguardReceipt(actor, receipt).catch(() => {});
+    throw error;
+  }
 
   return {
     success: true,
     level: plan.level,
-    updatedFields: Object.keys(plan.writes),
-    created: plan.createItems.map(c => c.name)
+    updatedFields: changedPaths.map(([path]) => path),
+    created: missingItems.map(c => c.name)
   };
 }

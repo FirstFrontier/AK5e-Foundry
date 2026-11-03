@@ -89,7 +89,7 @@ export function hasFightingStyle(actor, styleKey) {
   const state = guardState(actor);
   if (state.fightingStyle === styleKey) return true;
   // Fallback: check if the character owns the corresponding feature item
-  const style = FIGHTING_STYLES[styleKey];
+  const style = typeof styleKey === "string" && Object.hasOwn(FIGHTING_STYLES, styleKey) ? FIGHTING_STYLES[styleKey] : null;
   if (!style) return false;
   return values(actor.items).some(i => i.type === "feat" && (flag(i, "chapterThreeId") === style.id || i.name === style.name));
 }

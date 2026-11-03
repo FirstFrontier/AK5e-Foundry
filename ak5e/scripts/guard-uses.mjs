@@ -10,6 +10,40 @@ import { getReactions } from "./trigger-events.mjs";
 import { getPool } from "./resource-pools.mjs";
 
 const isDuellist = actor => Boolean(guardEnabled(actor) && guardBranch(actor) === "duellist");
+const manualTargets = (data, description) => {
+  if (data.targetUuid !== undefined) {
+    need(typeof data.targetUuid === "string" && data.targetUuid.trim().length > 0, "Choose a valid target identifier.");
+    need(data.targetName === undefined || (typeof data.targetName === "string" && data.targetName.trim().length > 0), "Choose a valid target name.");
+    return [{ uuid: data.targetUuid, name: data.targetName ?? data.targetUuid }];
+  }
+  return [description];
+};
+const aggressionAmount = data => {
+  const raw = data.amount === undefined ? 1 : data.amount, amount = Number(raw);
+  need((typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "")) && Number.isFinite(amount)
+    && Number.isInteger(amount) && amount >= 1 && amount <= 3, "Choose how much Aggression to expend (1 to 3).");
+  return amount;
+};
+const proficiency = actor => {
+  const pb = Number(actor.system?.attributes?.prof ?? 2);
+  need(Number.isFinite(pb) && Number.isInteger(pb) && pb >= 0 && pb <= 20, "The Proficiency Bonus must be a finite non-negative integer.");
+  return pb;
+};
+
+/** Only explicit weapon dice and flat weapon bonuses; never actor-data references or executable expressions. */
+export function validateGuardDamageFormula(value) {
+  need(typeof value === "string" && value.trim().length > 0 && value.length <= 200, "Enter the weapon's damage dice (no Ability Modifier).");
+  const formula = value.trim();
+  need(/^\d*d\d+(\s*[+-]\s*(?:\d*d\d+|\d+))*$/i.test(formula), "Enter the weapon's damage dice, for example 1d8 or 2d6 (no Ability Modifier).");
+  for (const term of formula.replace(/\s/g, "").split(/[+-]/)) {
+    const [count, faces] = term.toLowerCase().split("d");
+    const number = Number(count || 1);
+    need(Number.isFinite(number) && Number.isInteger(number) && number >= 1 && number <= 1000
+      && (faces === undefined || (Number.isFinite(Number(faces)) && Number.isInteger(Number(faces)) && Number(faces) >= 2 && Number(faces) <= 1000)),
+    "Enter the weapon's damage dice within supported dice limits (no Ability Modifier).");
+  }
+  return formula;
+}
 
 const ns = "guardUses";
 export const guardUses = createPlayUses({
@@ -73,10 +107,9 @@ function eternalAggression(actor, uses) {
 const CORE_PLANS = {
   forestall(actor, state, data) {
     need(guardEnabled(actor), "Forestall is a Guard feature.");
-    const amount = Number(data.amount ?? 1);
-    need(Number.isInteger(amount) && amount >= 1 && amount <= 3, "Choose how much Aggression to expend (1 to 3).");
+    const amount = aggressionAmount(data);
     const warnings = [];
-    const pb = Number(actor.system?.attributes?.prof ?? 2);
+    const pb = proficiency(actor);
 
     // Parry (Duellist 1st Level, Ch. 3 L2764):
     // First Forestall each Round costs 0 reaction and 1 fewer Aggression (min 0).
@@ -121,7 +154,8 @@ const CORE_PLANS = {
     return {
       warnings,
       title: isParry ? "Press the Attack: Forestall (Parry)" : "Press the Attack: Forestall",
-      costs: aggressionCost ? [{ label: "Aggression", amount: aggressionCost, pool: "aggression" }] : [],
+      costs: [{ label: "Aggression", amount: aggressionCost, pool: "aggression" }, { label: "Reaction", amount: isParry ? 0 : 1 }],
+      previewTargets: manualTargets(data, "Self; manually identify the triggering Attack."),
       apply(next, receipt) {
         receipt.roundKey = roundKey;
         receipt.isParry = isParry;
@@ -143,10 +177,9 @@ const CORE_PLANS = {
 
   smite(actor, _state, data) {
     need(guardEnabled(actor), "Smite is a Guard feature.");
-    const amount = Number(data.amount ?? 1);
-    need(Number.isInteger(amount) && amount >= 1 && amount <= 3, "Choose how much Aggression to expend (1 to 3).");
+    const amount = aggressionAmount(data);
     const warnings = [];
-    const pb = Number(actor.system?.attributes?.prof ?? 2);
+    const pb = proficiency(actor);
     const available = resourceValue(actor, { pool: "aggression" });
     if (available < amount) {
       warn(warnings, "aggression", `${amount} Aggression needed and ${available} remain; Aggression clamps at 0.`);
@@ -155,6 +188,7 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Press the Attack: Smite",
+      previewTargets: manualTargets(data, "Manual targeting: the Creature hit by your Attack; apply the bonus manually."),
       costs: [{ label: "Aggression", amount, pool: "aggression" }],
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount, label: "Aggression" });
@@ -168,10 +202,9 @@ const CORE_PLANS = {
 
   strikeTrue(actor, _state, data) {
     need(guardEnabled(actor), "Strike True is a Guard feature.");
-    const amount = Number(data.amount ?? 1);
-    need(Number.isInteger(amount) && amount >= 1 && amount <= 3, "Choose how much Aggression to expend (1 to 3).");
+    const amount = aggressionAmount(data);
     const warnings = [];
-    const pb = Number(actor.system?.attributes?.prof ?? 2);
+    const pb = proficiency(actor);
     const available = resourceValue(actor, { pool: "aggression" });
     if (available < amount) {
       warn(warnings, "aggression", `${amount} Aggression needed and ${available} remain; Aggression clamps at 0.`);
@@ -180,6 +213,7 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Press the Attack: Strike True",
+      previewTargets: manualTargets(data, "Manual targeting: the Creature you are attacking; apply the Attack Roll bonus manually."),
       costs: [{ label: "Aggression", amount, pool: "aggression" }],
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount, label: "Aggression" });
@@ -211,7 +245,8 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Unrelenting",
-      costs: [{ label: "Unrelenting", amount: 1, pool: "unrelenting" }],
+      costs: [{ label: "Unrelenting", amount: 1, pool: "unrelenting" }, { label: "Reaction", amount: 1 }],
+      previewTargets: manualTargets(data, "Manual targeting: choose the Creature for your single Attack when another Creature ends their Turn."),
       ...(eternal ? { resolveRoll: eternal.resolveRoll } : {}),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 1, label: "Unrelenting" });
@@ -226,7 +261,10 @@ const CORE_PLANS = {
 
   pursuitUnrelenting(actor, _state, data) {
     need(guardEnabled(actor), "Pursuit Unrelenting is a Guard feature.");
-    const actionType = data.actionType === "bonus" ? "Bonus Action" : "Action";
+    // Keep the public API's optional Action default; the sheet always obtains an explicit choice.
+    const mode = data.actionType === undefined ? "action" : data.actionType;
+    need(["action", "bonus", "bonusAction"].includes(mode), "Choose Action or Bonus Action for Pursuit Unrelenting.");
+    const actionType = mode === "action" ? "Action" : "Bonus Action";
     const warnings = [];
     levelWarning(warnings, actor, 11, "Pursuit Unrelenting");
     const available = resourceValue(actor, { pool: "unrelenting" });
@@ -246,7 +284,8 @@ const CORE_PLANS = {
     return {
       warnings,
       title: "Pursuit Unrelenting",
-      costs: [{ label: "Unrelenting", amount: 2, pool: "unrelenting" }],
+      costs: [{ label: "Unrelenting", amount: 2, pool: "unrelenting" }, { label: "Reaction", amount: 1 }],
+      previewTargets: manualTargets(data, `Manual targeting: resolve the chosen ${actionType} when another Creature ends their Turn.`),
       ...(eternal ? { resolveRoll: eternal.resolveRoll } : {}),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "unrelenting", amount: 2, label: "Unrelenting" });
@@ -268,6 +307,7 @@ const CORE_PLANS = {
     return {
       warnings: [],
       title: "Choose Martial DC ability",
+      previewTargets: ["Self: Martial DC ability choice; no resource or Reaction cost."],
       costs: [],
       apply(_next, receipt) {
         const dc = martialDC(actor, ability);
@@ -291,13 +331,13 @@ const CORE_PLANS = {
       warn(warnings, "reaction", `${actor.name} has no Reaction remaining.`);
     }
 
-    const damageFormula = String(data.formula ?? "1d8").trim();
-    need(/^\d*d\d+(\s*[+-]\s*\d*d?\d+)*$/i.test(damageFormula), "Enter the weapon's damage dice, for example 1d8 or 2d6 (no Ability Modifier).");
+    const damageFormula = validateGuardDamageFormula(data.formula);
 
     return {
       warnings,
       title: "Press the Attack: Unrelenting Aggression",
-      costs: [{ label: "Aggression", amount: 2, pool: "aggression" }],
+      costs: [{ label: "Aggression", amount: 2, pool: "aggression" }, { label: "Reaction", amount: 1 }],
+      previewTargets: manualTargets(data, `Manual targeting: the Creature missed by your melee Attack; Roll ${damageFormula} without Ability Modifier, then apply Damage manually.`),
       apply(next, receipt) {
         const updates = spendResource(actor, receipt, { pool: "aggression", amount: 2, label: "Aggression" });
         // The weapon's damage is rolled from the card's Roll button by its owner (never rolled for them).

@@ -4,6 +4,8 @@ import { GUARD_CLASS_ID, guardProfile, guardLevel, guardEnabled } from "./guard-
 import { defineGuardPools } from "./guard-features.mjs";
 import { sourceEntryData } from "./caster-setup.mjs";
 import { need } from "./operation-kernel.mjs";
+import { guardUses } from "./guard-uses.mjs";
+import { currentEpoch, isLocked } from "./play-undo.mjs";
 
 export const GUARD_CORE_FEATURES = Object.freeze([
   { id: "class-feature-guard-1st-level-guard-branch-2128", level: 1, name: "1st Level: Guard Branch" },
@@ -62,7 +64,7 @@ function featureItemData(entry) {
 
 export async function previewGuardSetup(actor) {
   const profile = guardProfile(actor);
-  need(actor?.isOwner && profile.applicable, "Choose an owned character with the Guard class.");
+  need(actor?.isOwner && profile.applicable && !profile.blocked.length, "Choose an owned character with a valid single Guard class.");
   const level = profile.level ?? 1;
   const existing = list(actor.items);
   const creates = [], kept = [];
@@ -89,7 +91,8 @@ export async function previewGuardSetup(actor) {
     }
   }
 
-  const contextKey = JSON.stringify([actor.uuid, level, creates.map(c => c.name), kept]);
+  const contextKey = JSON.stringify([actor.uuid, level, actor._source?.system ?? actor.system,
+    actor.flags?.ak5e ?? {}, existing.map(item => ({ id: item.id, data: item.toObject?.() ?? itemSnapshot(item) })), creates, kept]);
   return {
     level,
     creates,
@@ -103,19 +106,183 @@ export async function previewGuardSetup(actor) {
 
 export async function applyGuardSetup(actor, { confirmed, contextKey } = {}) {
   need(confirmed === true, "Confirm the previewed Guard setup first.");
-  const plan = await previewGuardSetup(actor);
-  need(plan.contextKey === contextKey, "The character changed since the preview; preview the Guard setup again.");
-
-  defineGuardPools();
-
-  await actor.update(plan.actorUpdates);
-  if (plan.creates.length) {
-    await actor.createEmbeddedDocuments("Item", plan.creates);
-  }
-
-  return {
-    level: plan.level,
-    created: plan.creates.map(c => c.name),
-    kept: plan.kept
-  };
+  return guardUses.serial(actor, async () => {
+    const plan = await previewGuardSetup(actor);
+    need(typeof contextKey === "string" && contextKey.length > 0 && plan.contextKey === contextKey,
+      "The character changed since the preview; preview the Guard setup again.");
+    defineGuardPools();
+    const receipt = await commitGuardChanges(actor, "setup", plan.actorUpdates, plan.creates);
+    return { level: plan.level, created: plan.creates.map(c => c.name), kept: plan.kept, receiptId: receipt.id, receipt };
+  });
 }
+
+/** Setup and progression share an owner-local ledger, not a document-update relay.
+ * The actor delta and its before-state land atomically, before any Item creation.
+ * Each planned Item has a persisted marker, so partial creation is discoverable.
+ */
+const CHANGE_FLAG = "guardChanges";
+const changeState = actor => structuredClone(flag(actor, CHANGE_FLAG) ?? { undo: [] });
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const readPath = (actor, path) => path.split(".").reduce((value, key) => value?.[key], actor._source ?? actor);
+const deletePath = path => { const keys = path.split("."), key = keys.pop(); return [...keys, `-=${key}`].join("."); };
+const validId = id => typeof id === "string" && /^[A-Za-z0-9_-]{1,60}$/.test(id);
+function requireOwner(actor) {
+  need(actor?.isOwner && !actor.pack && guardProfile(actor).applicable, "Choose an owned Guard character.");
+}
+function itemSnapshot(item) {
+  const data = item.toObject?.() ?? item;
+  return JSON.parse(JSON.stringify({ name: data.name, type: data.type, img: data.img, system: data.system ?? {}, flags: data.flags ?? {} }));
+}
+function absentContainers(actor, changes) {
+  const result = new Set();
+  for (const change of changes) {
+    const keys = change.path.split(".");
+    for (let size = 1; size < keys.length; size++) {
+      const path = keys.slice(0, size).join(".");
+      if (readPath(actor, path) === undefined) result.add(path);
+    }
+  }
+  return [...result];
+}
+function pruneAbsentContainers(actor, receipt, restore) {
+  const projected = JSON.parse(JSON.stringify({ system: (actor._source ?? actor).system, flags: (actor._source ?? actor).flags }));
+  const at = path => path.split(".").reduce((value, key) => value?.[key], projected);
+  for (const [path, value] of Object.entries(restore)) {
+    const keys = path.split("."), last = keys.pop();
+    const parent = at(keys.join("."));
+    if (!parent) continue;
+    if (last.startsWith("-=")) delete parent[last.slice(2)];
+    else parent[last] = value;
+  }
+  for (const path of [...(receipt.absentContainers ?? [])].sort((a, b) => b.length - a.length)) {
+    const value = at(path);
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length) continue;
+    for (const key of Object.keys(restore)) if (key.startsWith(`${path}.`)) delete restore[key];
+    restore[deletePath(path)] = null;
+    const keys = path.split("."), last = keys.pop(), parent = at(keys.join("."));
+    if (parent) delete parent[last];
+  }
+}
+function changesFor(actor, updates) {
+  const changes = [];
+  const visit = (path, after) => {
+    if (after && typeof after === "object" && !Array.isArray(after) && Object.keys(after).length) {
+      for (const [key, value] of Object.entries(after)) visit(`${path}.${key}`, value);
+      return;
+    }
+    if (after && typeof after === "object" && !Array.isArray(after) && readPath(actor, path) !== undefined) return;
+    const before = readPath(actor, path);
+    if (!same(before, after)) changes.push({ path, beforePresent: before !== undefined, before: before === undefined ? null : structuredClone(before), after: structuredClone(after) });
+  };
+  for (const [path, value] of Object.entries(updates)) visit(path, value);
+  return changes;
+}
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+async function changeCard(actor, receipt, undo = false) {
+  const implementation = globalThis.ChatMessage?.implementation ?? globalThis.ChatMessage;
+  if (!implementation?.create) return;
+  try {
+    await implementation.create({
+      speaker: implementation.getSpeaker?.({ actor }) ?? {},
+      content: `<h3>${undo ? "Undone: " : ""}${escapeHtml(receipt.title)}</h3><p>${escapeHtml(actor.name)}: ${escapeHtml(receipt.summary)}</p><p>Receipt: ${escapeHtml(receipt.id)}. Undo is available from Guard Controls → Undo Setup / Progression.</p>${undo ? `<ul>${(receipt.undoNotes ?? []).map(note => `<li>${escapeHtml(note)}</li>`).join("")}</ul>` : ""}`,
+      flags: { ak5e: { guardChangeCard: { actorUuid: actor.uuid, useId: receipt.id } } }
+    });
+  } catch { globalThis.ui?.notifications?.warn?.(`Guard change ${receipt.id} was saved, but its chat notice could not be posted. Use Guard Controls to review/undo it.`); }
+}
+function captureCreated(actor, receipt) {
+  for (const item of list(actor.items)) {
+    if (flag(item, "guardChange")?.receiptId !== receipt.id) continue;
+    if (!receipt.createdIds.includes(item.id)) receipt.createdIds.push(item.id);
+    if (!Object.hasOwn(receipt.items, item.id)) receipt.items[item.id] = itemSnapshot(item);
+  }
+}
+
+/** Internal apply helper; callers hold guardUses.serial across preview validation and commitment. */
+export async function commitGuardChanges(actor, kind, updates, creates = [], completionUpdates = {}) {
+  requireOwner(actor);
+  need(["setup", "progression"].includes(kind), "Choose Guard setup or progression.");
+  const id = globalThis.foundry?.utils?.randomID?.();
+  need(validId(id), "A stable Guard change receipt ID is required.");
+  const state = changeState(actor), changes = changesFor(actor, updates);
+  const receipt = { id, kind, title: kind === "setup" ? "Guard core feature setup" : "Guard progression",
+    epoch: currentEpoch(), userId: game.user.id, status: "creating", before: changes.map(change => ({ path: change.path, present: change.beforePresent, value: change.before })),
+    changes, absentContainers: absentContainers(actor, changes), createdIds: [], items: {}, plannedItems: creates.map((data, index) => ({ index, name: data.name })), summary: `Create ${creates.length} Items; change ${changes.length} fields.` };
+  state.undo.push(receipt);
+  await actor.update({ ...updates, [`flags.ak5e.${CHANGE_FLAG}`]: state });
+  try {
+    if (creates.length) await actor.createEmbeddedDocuments("Item", creates.map((data, index) => ({
+      ...structuredClone(data), flags: { ...structuredClone(data.flags ?? {}), ak5e: { ...structuredClone(data.flags?.ak5e ?? {}), guardChange: { receiptId: id, index } } }
+    })));
+  } catch (error) {
+    captureCreated(actor, receipt);
+    receipt.status = "partial";
+    // Even if acknowledgement fails, the prewritten intent and per-Item markers remain recoverable.
+    try { await actor.update({ [`flags.ak5e.${CHANGE_FLAG}`]: state }); } catch { /* Intent remains discoverable; never conceal the creation failure. */ }
+    throw error;
+  }
+  captureCreated(actor, receipt);
+  for (const change of changesFor(actor, completionUpdates)) {
+    const prior = receipt.changes.find(entry => entry.path === change.path);
+    if (prior) prior.after = change.after;
+    else { receipt.changes.push(change); receipt.before.push({ path: change.path, present: change.beforePresent, value: change.before }); }
+  }
+  receipt.status = "complete";
+  await actor.update({ ...completionUpdates, [`flags.ak5e.${CHANGE_FLAG}`]: state });
+  await changeCard(actor, receipt);
+  return structuredClone(receipt);
+}
+
+function reviewGuardChange(actor, id) {
+  const receipt = changeState(actor).undo.find(entry => entry.id === id);
+  if (!receipt) return { lines: ["This Guard change is no longer recorded."], blocked: true };
+  if (receipt.status === "undone") return { lines: ["This Guard change was already undone."], blocked: true };
+  if (isLocked(receipt)) return { lines: ["Locked: this Guard change belongs to an earlier encounter window."], blocked: true };
+  const lines = receipt.changes.map(change => same(readPath(actor, change.path), change.after)
+    ? `Restore ${change.path} to ${change.beforePresent ? JSON.stringify(change.before) : "its prior absence"}.`
+    : `Preserve ${change.path}: changed after this Guard change.`);
+  for (const item of list(actor.items).filter(item => flag(item, "guardChange")?.receiptId === id)) {
+    lines.push(Object.hasOwn(receipt.items, item.id) && same(itemSnapshot(item), receipt.items[item.id])
+      ? `Remove unchanged created Item: ${item.name} (${item.id}).`
+      : `Preserve Item ${item.name}: edited after creation or its creation was not acknowledged.`);
+  }
+  return { lines: lines.length ? lines : ["No document changes remain to restore."], blocked: false };
+}
+export async function undoGuardChange(actor, id, { confirmed = false } = {}) {
+  requireOwner(actor);
+  need(validId(id), "Choose a valid Guard change receipt identifier.");
+  need(confirmed === true, "Confirm the Guard change undo preview first.");
+  return guardUses.serial(actor, async () => {
+    const state = changeState(actor), receipt = state.undo.find(entry => entry.id === id);
+    need(receipt, "This Guard change is no longer recorded.");
+    if (receipt.status === "undone") return { already: true };
+    const review = reviewGuardChange(actor, id);
+    need(!review.blocked, review.lines.join(" "));
+    receipt.status = "undoing";
+    await actor.update({ [`flags.ak5e.${CHANGE_FLAG}`]: state });
+    for (const item of list(actor.items).filter(item => flag(item, "guardChange")?.receiptId === id)) {
+      if (Object.hasOwn(receipt.items, item.id) && same(itemSnapshot(item), receipt.items[item.id])) await item.delete();
+    }
+    const restore = {};
+    for (const change of receipt.changes) if (same(readPath(actor, change.path), change.after)) {
+      restore[change.beforePresent ? change.path : deletePath(change.path)] = change.beforePresent ? change.before : null;
+    }
+    pruneAbsentContainers(actor, receipt, restore);
+    receipt.status = "undone"; receipt.undoNotes = review.lines;
+    await actor.update({ ...restore, [`flags.ak5e.${CHANGE_FLAG}`]: state });
+    await changeCard(actor, receipt, true);
+    return { undone: id, notes: review.lines };
+  });
+}
+
+/** Adapter exposes the same read-only list/review interface as gameplay-use undo. */
+export const guardChanges = {
+  ns: CHANGE_FLAG, label: "Guard setup / progression", cardFlag: "guardChangeCard",
+  receipt: (actor, id) => changeState(actor).undo.find(receipt => receipt.id === id) ?? null,
+  uses: actor => changeState(actor).undo.map(receipt => ({ ...receipt, locked: isLocked(receipt) })),
+  previewUndo: reviewGuardChange,
+  command: async (actor, command, data) => {
+    need(command === "undoUse", "Unknown Guard change command.");
+    return undoGuardChange(actor, data?.useId, { confirmed: true });
+  }
+};
+export const undoGuardSetup = undoGuardChange;

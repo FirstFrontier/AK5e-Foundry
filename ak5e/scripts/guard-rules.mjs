@@ -98,7 +98,8 @@ function stepValue(steps, level) {
 
 export function checkLevel(level) {
   const n = Number(level);
-  if (!Number.isInteger(n) || n < 1 || n > 20) throw new RangeError("Guard level must be an integer from 1 to 20.");
+  if (!["number", "string"].includes(typeof level) || (typeof level === "string" && !level.trim())
+    || !Number.isFinite(n) || !Number.isInteger(n) || n < 1 || n > 20) throw new RangeError("Guard level must be an integer from 1 to 20.");
   return n;
 }
 
@@ -156,8 +157,8 @@ export function guardProfile(actor) {
   if (!guardClass) return empty;
   if (classes.length > 1) return { ...empty, applicable: true, blocked: ["MultipleClasses"] };
 
-  const rawLevel = Number(guardClass.system?.levels);
-  const level = Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
+  const inputLevel = guardClass.system?.levels, rawLevel = Number(inputLevel);
+  const level = ["number", "string"].includes(typeof inputLevel) && Number.isFinite(rawLevel) && Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
   if (level === null) return { ...empty, applicable: true, blocked: ["InvalidClassLevel"] };
 
   const branches = items.filter(i => i.type === "subclass");
@@ -165,7 +166,7 @@ export function guardProfile(actor) {
   let branch = null, branchId = null;
   if (branchItem) {
     branchId = flag(branchItem, "chapterThreeId") ?? null;
-    branch = GUARD_BRANCH_IDS[branchId] ?? null;
+    branch = typeof branchId === "string" && Object.hasOwn(GUARD_BRANCH_IDS, branchId) ? GUARD_BRANCH_IDS[branchId] : null;
     if (!branch && branchItem.name) {
       const match = branchItem.name.replace(/^Guard:\s*/i, "").trim().toLowerCase();
       branch = Object.values(GUARD_BRANCH_IDS).includes(match) ? match : null;

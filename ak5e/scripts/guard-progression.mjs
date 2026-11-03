@@ -13,6 +13,8 @@ import {
 } from "./guard-rules.mjs";
 import { WEAPONMASTER_FIGHTING_STYLES } from "./weaponmaster-features.mjs";
 import { need } from "./operation-kernel.mjs";
+import { commitGuardChanges, undoGuardChange } from "./guard-setup.mjs";
+import { guardUses } from "./guard-uses.mjs";
 
 export const GUARD_PROGRESS_FLAG = "guardProgression";
 export const GUARD_TALENT_FLAG = "guardTalent";
@@ -232,6 +234,13 @@ const option = (value, label, details = {}) => ({ value, label, ...details });
 const field = (key, label, options, count = 1, selected = null, requiredAt = 1) => ({ key, label, options, count, selected, requiredAt });
 
 export function guardChoices(actor, supplied = {}) {
+  need(supplied && typeof supplied === "object" && !Array.isArray(supplied), "Invalid Guard progression choice: supply a choices object.");
+  for (const key of ["skills", "artPools", "additionalArtPools"]) if (Object.hasOwn(supplied, key)) {
+    need(Array.isArray(supplied[key]), `Invalid Guard progression choice: ${key} must be a list.`);
+  }
+  for (const key of ["hp", "asi", "talents", "startingEquipment"]) if (Object.hasOwn(supplied, key)) {
+    need(supplied[key] && typeof supplied[key] === "object" && !Array.isArray(supplied[key]), `Invalid Guard progression choice: ${key} must be an object.`);
+  }
   const state = readState(actor), saved = state.choices ?? {};
   const result = { ...structuredClone(saved), ...structuredClone(supplied ?? {}) };
   result.skills = [...(Array.isArray(supplied.skills) ? supplied.skills : saved.skills ?? [])];
@@ -277,6 +286,30 @@ function validateGuardChoices(choices, level, warnings) {
   if (choices.branch != null && !Object.hasOwn(GUARD_BRANCH_IDS, choices.branch)) reject(`${choices.branch} is not a Guard Branch.`);
   if (choices.martialDCAbility != null && !["str", "dex"].includes(choices.martialDCAbility)) reject("the Martial DC ability must be Strength or Dexterity.");
 
+  const equipment = choices.startingEquipment ?? {};
+  if (equipment.mode != null && !["items", "cash"].includes(equipment.mode)) reject("starting equipment mode must be items or cash.");
+  const permittedEquipment = {
+    weapon1: entry => entry.kind === "weapon" && ["Heavy Melee Weapons", "Light Melee Weapons"].includes(entry.tableData?.category),
+    weapon2: entry => (entry.kind === "weapon" && entry.tableData?.category === "Light Melee Weapons") || (entry.kind === "equipment" && entry.tableData?.category === "Light Shields"),
+    armour: entry => ["equipment-reinforced-outfit-1", "equipment-combat-gear-5"].includes(entry.id)
+  };
+  for (const [slot, allowed] of Object.entries(permittedEquipment)) if (equipment[slot] != null) {
+    if (typeof equipment[slot] !== "string" || !EQUIPMENT.some(entry => entry.id === equipment[slot] && allowed(entry))) reject(`choose a listed starting ${slot}.`);
+  }
+  for (const [slot, value] of Object.entries(choices.talents ?? {})) {
+    const tier = slot.startsWith("basic") ? "basic" : "advanced";
+    if (!["basic", "basicModule", "advanced", "advancedModule"].includes(slot)) reject("choose a listed Guard talent slot.");
+    if (typeof value !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/.test(value)) reject("choose a listed Guard talent or its Module upgrade.");
+    if (value === "upgrade") {
+      if (!slot.endsWith("Module")) reject("only a Module talent slot can use its upgrade.");
+      continue;
+    }
+    // An unlisted but well-formed ID is not granted (the pre-existing behaviour) and is surfaced as a warning.
+    if (!TALENTS.some(entry => entry.id === value && entry.classOption.tier.toLowerCase() === tier)) {
+      warnings.push(`Ignoring an unlisted Guard talent for ${slot}: ${value}.`);
+    }
+  }
+
   const asi = {}, hp = {}, hpLevels = [], asiLevels = [];
   for (const [key, choice] of Object.entries(choices.asi ?? {})) {
     const n = Number(key);
@@ -300,6 +333,8 @@ function validateGuardChoices(choices, level, warnings) {
     const raw = choice.roll ?? (n === 1 ? HIT_DIE : 6);
     const roll = Number(raw);
     if (raw === null || raw === "" || typeof raw === "boolean" || !Number.isFinite(roll)) reject(`level ${n} Hit Point roll "${raw}" is not a number.`);
+    if (choice.mode === "fixed" && roll !== (n === 1 ? HIT_DIE : 6)) reject(`level ${n} fixed Hit Points must use ${n === 1 ? HIT_DIE : 6} before Constitution.`);
+    if (n === 1 && choice.mode !== "fixed") reject("level 1 Hit Points are fixed at 10 before Constitution.");
     const clamped = Math.min(HIT_DIE, Math.max(1, Math.floor(roll)));
     if (clamped !== roll) warnings.push(`Level ${n} Hit Point roll ${roll} is outside 1 to ${HIT_DIE} (the Guard Hit Die); using ${clamped}.`);
     hp[n] = { mode: choice.mode, roll: clamped };
@@ -468,18 +503,23 @@ function actorSnapshotKey(actor, choices, profile) {
     choices.asi,
     choices.talents
     , choices.artPools,
-    choices.additionalArtPools
+    choices.additionalArtPools,
+    choices
   ]);
 }
 
 /** Pure preview of Guard progression. Writes nothing. */
 export async function previewGuardProgression(actor, suppliedChoices = {}) {
   const profile = guardProfile(actor);
-  need(actor?.isOwner && profile.applicable, "Choose an owned character with the Guard class.");
+  need(actor?.isOwner && profile.applicable && !profile.blocked.length, "Choose an owned character with a valid single Guard class.");
   const level = profile.level;
   const choices = guardChoices(actor, suppliedChoices);
   const pending = [], warnings = [], writes = {}, createItems = [], updateItems = [];
   const priorState = readState(actor);
+  if (priorState.startingEquipmentApplied && priorState.choices?.startingEquipment?.mode) {
+    need(choices.startingEquipment.mode === priorState.choices.startingEquipment.mode,
+      "Starting equipment or LMD was already granted; undo its progression receipt before changing that choice.");
+  }
   // Malformed input is rejected here, before anything is previewed, applied or written.
   const checked = validateGuardChoices(choices, level, warnings);
   choices.asi = checked.asi;
@@ -564,6 +604,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     }
   } else if (choices.startingEquipment?.mode === "cash" && !priorState.startingEquipmentApplied) {
     const beforeCp = Number(sourceSystem(actor).currency?.cp ?? 0);
+    need(Number.isFinite(beforeCp) && Number.isInteger(beforeCp) && beforeCp >= 0 && Number.isSafeInteger(beforeCp + 1300), "The LMD balance must be a finite non-negative integer.");
     writes["system.currency.cp"] = beforeCp + 1300;
   }
 
@@ -652,6 +693,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   }
   if (hpGainTotal > 0) {
     const currentMax = Number(system.attributes?.hp?.max ?? 0);
+    need(Number.isFinite(currentMax) && Number.isInteger(currentMax) && currentMax >= 0 && Number.isSafeInteger(currentMax + hpGainTotal), "The Hit Point maximum must be a finite non-negative integer.");
     writes["system.attributes.hp.max"] = currentMax + hpGainTotal;
   }
 
@@ -738,9 +780,10 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
 /** Apply Guard progression. Idempotent and validates confirmation and contextKey. */
 export async function applyGuardProgression(actor, { confirmed, contextKey, ...suppliedChoices } = {}) {
   need(confirmed === true, "Confirm the previewed Guard progression setup first.");
+  return guardUses.serial(actor, async () => {
   const plan = await previewGuardProgression(actor, suppliedChoices);
   need(!plan.pending.length, `Complete all pending Guard choices before applying: ${plan.pending.join(", ")}`);
-  need(plan.contextKey === contextKey, "The character changed since the preview; preview the Guard progression setup again.");
+  need(typeof contextKey === "string" && contextKey.length > 0 && plan.contextKey === contextKey, "The character changed since the preview; preview the Guard progression setup again.");
 
   const state = readState(actor);
   state.choices = plan.choices;
@@ -759,24 +802,17 @@ export async function applyGuardProgression(actor, { confirmed, contextKey, ...s
     "flags.ak5e.guard.fightingStyle": plan.choices.fightingStyle
   };
 
-  await actor.update(actorUpdates);
-
-  if (plan.createItems.length) {
-    await actor.createEmbeddedDocuments("Item", plan.createItems);
-  }
+  const completedState = structuredClone(state);
   if (plan.choices.startingEquipment?.mode === "items") {
-    state.startingEquipmentSlots = [...new Set([...state.startingEquipmentSlots, ...plan.progression.startingEquipmentSlots])];
-    if (["weapon1", "weapon2", "armour", "kit"].every(slot => state.startingEquipmentSlots.includes(slot))) state.startingEquipmentApplied = true;
-    await actor.update({ [`flags.ak5e.${GUARD_PROGRESS_FLAG}`]: state });
+    completedState.startingEquipmentSlots = [...new Set([...state.startingEquipmentSlots, ...plan.progression.startingEquipmentSlots])];
+    if (["weapon1", "weapon2", "armour", "kit"].every(slot => completedState.startingEquipmentSlots.includes(slot))) completedState.startingEquipmentApplied = true;
   }
-  if (plan.updateItems.length) {
-    await actor.updateEmbeddedDocuments("Item", plan.updateItems);
-  }
-
+  const receipt = await commitGuardChanges(actor, "progression", actorUpdates, plan.createItems,
+    { [`flags.ak5e.${GUARD_PROGRESS_FLAG}`]: completedState });
   return {
-    level: plan.level,
-    branch: plan.branchName,
-    created: plan.createItems.map(i => i.name),
-    updated: plan.updateItems.map(i => i.name)
+    level: plan.level, branch: plan.branchName, created: plan.createItems.map(i => i.name),
+    updated: plan.updateItems.map(i => i.name), receiptId: receipt.id, receipt
   };
+  });
 }
+export const undoGuardProgression = undoGuardChange;

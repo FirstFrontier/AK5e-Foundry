@@ -3,6 +3,9 @@ import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { VANGUARD_CLASS_ID, vanguardProfile, vanguardLevel } from "./vanguard-rules.mjs";
 import { sourceEntryData } from "./caster-setup.mjs";
 import { need } from "./operation-kernel.mjs";
+import { beginVanguardReceipt, saveVanguardReceipt, postVanguardReceiptCard, registerVanguardReceiptKinds } from "./vanguard-progression.mjs";
+
+registerVanguardReceiptKinds();
 
 export const VANGUARD_CORE_FEATURES = Object.freeze([
   { id: "class-feature-vanguard-1st-level-vanguard-branch-1724", level: 1, name: "1st Level: Vanguard Branch" },
@@ -76,7 +79,7 @@ function withNativeEffects(data, sourceId) {
     flags: { ak5e: { vanguardManagedEffect: "landstrider-speed" } }
   });
   if (additions.length) {
-    data.effects ??= [];
+    data.effects = Array.isArray(data.effects) ? data.effects : [];
     for (const effect of additions) if (!data.effects.some(existing => flag(existing, "vanguardManagedEffect") === effect.flags.ak5e.vanguardManagedEffect)) data.effects.push(effect);
   }
   return data;
@@ -87,7 +90,7 @@ export async function previewVanguardSetup(actor) {
   need(actor?.isOwner && profile.applicable && !profile.blocked.length, "Choose an owned character with one valid Vanguard branch.");
   const level = profile.level ?? 1;
   const existing = list(actor.items);
-  const creates = [], kept = [], effectUpdates = [], effectDeletes = [];
+  const creates = [], kept = [], effectUpdates = [], effectDeletes = [], planned = new Set();
 
   for (const feat of VANGUARD_CORE_FEATURES) {
     if (feat.level > level) continue;
@@ -102,8 +105,9 @@ export async function previewVanguardSetup(actor) {
       const present = new Set(list(owned.effects).map(effect => flag(effect, "vanguardManagedEffect")).filter(Boolean));
       const missingEffects = authoredData.effects.filter(effect => effect.flags?.ak5e?.vanguardManagedEffect && !present.has(effect.flags.ak5e.vanguardManagedEffect));
       if (missingEffects.length) effectUpdates.push({ itemId: owned.id, effects: missingEffects });
-    } else {
+    } else if (!planned.has(feat.id)) {
       creates.push(featureItemData(feat));
+      planned.add(feat.id);
     }
   }
 
@@ -111,7 +115,10 @@ export async function previewVanguardSetup(actor) {
   for (const entry of branchFeatures(branch, level)) {
     const owned = existing.find(item => flag(item, "chapterThreeId") === entry.id);
     if (owned) kept.push(entry.name);
-    else creates.push(featureItemData({ id: entry.id, name: entry.name }));
+    else if (!planned.has(entry.id)) {
+      creates.push(featureItemData({ id: entry.id, name: entry.name }));
+      planned.add(entry.id);
+    }
   }
 
   const contextKey = JSON.stringify([actor.uuid, level, branch, creates.map(c => c.flags?.ak5e?.chapterThreeId), kept, effectUpdates, effectDeletes]);
@@ -133,24 +140,66 @@ export async function applyVanguardSetup(actor, { confirmed, contextKey } = {}) 
   const plan = await previewVanguardSetup(actor);
   need(plan.contextKey === contextKey, "The character changed since the preview; preview the Vanguard setup again.");
 
-  if (plan.creates.length) {
-    const present = new Set(list(actor.items).map(item => flag(item, "chapterThreeId")).filter(Boolean));
-    const missing = plan.creates.filter(item => !present.has(item.flags?.ak5e?.chapterThreeId));
-    if (missing.length) await actor.createEmbeddedDocuments("Item", missing);
+  const actorChanges = Object.entries(plan.actorUpdates ?? {}).filter(([path, after]) => {
+    const before = path.split(".").reduce((value, key) => value?.[key], actor);
+    return JSON.stringify(before) !== JSON.stringify(after);
+  });
+  if (!plan.creates.length && !plan.effectUpdates.length && !plan.effectDeletes.length && !actorChanges.length) {
+    return { level: plan.level, created: [], kept: plan.kept, removedEffects: 0 };
   }
-  for (const update of plan.effectUpdates) {
-    const item = actor.items.get(update.itemId);
-    if (!item) continue;
-    const pending = update.effects.filter(effect => !list(item.effects).some(current => flag(current, "vanguardManagedEffect") === effect.flags?.ak5e?.vanguardManagedEffect));
-    if (pending.length) await item.createEmbeddedDocuments("ActiveEffect", pending);
+  const receipt = beginVanguardReceipt(actor, "vanguardSetup", "Vanguard setup");
+  receipt.flagChanges = Object.entries(plan.actorUpdates ?? {}).map(([path, after]) => {
+    const before = path.split(".").reduce((value, key) => value?.[key], actor);
+    return { path, before: structuredClone(before), beforePresent: before !== undefined, after: structuredClone(after) };
+  });
+  receipt.summary = `Apply Vanguard setup: ${plan.creates.length} new feature(s), ${plan.effectUpdates.length} effect update(s).`;
+  await saveVanguardReceipt(actor, receipt);
+
+  try {
+    if (plan.creates.length) {
+      const present = new Set(list(actor.items).map(item => flag(item, "chapterThreeId")).filter(Boolean));
+      const missing = plan.creates.filter(item => !present.has(item.flags?.ak5e?.chapterThreeId));
+      if (missing.length) {
+        const createdDocs = await actor.createEmbeddedDocuments("Item", missing);
+        receipt.targets.push(...createdDocs.map(document => ({ uuid: document.uuid, name: document.name, kind: "vanguardCreatedItem", applied: true, attempted: true })));
+        receipt.createdItemIds = createdDocs.map(document => document.id);
+      }
+    }
+    for (const update of plan.effectUpdates) {
+      const item = actor.items.get(update.itemId);
+      if (!item) continue;
+      const pending = update.effects.filter(effect => !list(item.effects).some(current => flag(current, "vanguardManagedEffect") === effect.flags?.ak5e?.vanguardManagedEffect));
+      if (pending.length) {
+        const createdEffects = await item.createEmbeddedDocuments("ActiveEffect", pending);
+        receipt.targets.push(...createdEffects.map(effect => ({ uuid: effect.uuid, name: effect.name, kind: "vanguardCreatedEffect", applied: true, attempted: true })));
+      }
+    }
+    for (const deletion of plan.effectDeletes) {
+      const item = actor.items.get(deletion.itemId);
+      if (!item) continue;
+      const existing = deletion.effectIds.filter(id => item.effects.has(id));
+      if (!existing.length) continue;
+      const removed = existing.map(id => item.effects.get(id)).filter(Boolean).map(effect => {
+        const data = effect.toObject ? effect.toObject() : structuredClone(effect);
+        // Keep the original document ID so a retried undo can recognize it.
+        delete data.id;
+        return data;
+      });
+      await item.deleteEmbeddedDocuments("ActiveEffect", existing);
+      if (removed.length) receipt.targets.push({ uuid: item.uuid, name: item.name, kind: "vanguardRestoreEffects", effects: removed, applied: true, attempted: true });
+    }
+    await saveVanguardReceipt(actor, receipt);
+    await actor.update(plan.actorUpdates);
+    receipt.status = "complete";
+    receipt.result = { created: plan.creates.length, kept: plan.kept.length, removedEffects: receipt.targets.filter(target => target.kind === "vanguardRestoreEffects").reduce((count, target) => count + (target.effects?.length ?? 0), 0) };
+    receipt.summary = `Applied Vanguard setup: ${plan.creates.length} feature(s) added, ${plan.kept.length} already present.`;
+    await saveVanguardReceipt(actor, receipt);
+    await postVanguardReceiptCard(actor, receipt).catch(() => {});
+  } catch (error) {
+    receipt.status = "pending"; receipt.lastError = String(error.message ?? error).replace(/\.$/, "");
+    await saveVanguardReceipt(actor, receipt).catch(() => {});
+    throw error;
   }
-  for (const deletion of plan.effectDeletes) {
-    const item = actor.items.get(deletion.itemId);
-    if (!item) continue;
-    const existing = deletion.effectIds.filter(id => item.effects.has(id));
-    if (existing.length) await item.deleteEmbeddedDocuments("ActiveEffect", existing);
-  }
-  await actor.update(plan.actorUpdates);
 
   return {
     level: plan.level,

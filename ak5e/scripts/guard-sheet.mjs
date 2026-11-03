@@ -4,10 +4,11 @@
  */
 import { guardProfile, guardLevel, guardBranch, guardState, martialDC, martialDCChoice, centurionDC, flag } from "./guard-rules.mjs";
 import { getGuardView } from "./guard-features.mjs";
-import { previewGuardSetup, applyGuardSetup } from "./guard-setup.mjs";
-import { previewGuardProgression, applyGuardProgression, inspectGuardFields } from "./guard-progression.mjs";
-import { guardUses } from "./guard-uses.mjs";
-import { confirmPlayUse, openPlayUndoList, renderPlayUseCard } from "./play-uses-sheet.mjs";
+import { previewGuardSetup, applyGuardSetup, guardChanges } from "./guard-setup.mjs";
+import { previewGuardProgression, applyGuardProgression, inspectGuardFields, guardChoices } from "./guard-progression.mjs";
+import { guardUses, validateGuardDamageFormula } from "./guard-uses.mjs";
+import { need } from "./operation-kernel.mjs";
+import { confirmPlayUse, openPlayUndoList, renderPlayUseCard, refreshChatMessages, registerPlayUseCardRefresh } from "./play-uses-sheet.mjs";
 import { isCenturion } from "./centurion-features.mjs";
 import { isCrusher } from "./crusher-features.mjs";
 import { isInstructor, INSTRUCTIONS } from "./instructor-features.mjs";
@@ -64,14 +65,22 @@ export async function openGuardControls(actor) {
     </div>
   `);
 
-  if (!profile.configured) {
+  if (actor.isOwner && profile.applicable && !profile.blocked.length) sections.push(`
+    <div class="ak5e-guard-management">
+      <button type="button" data-guard-act="__progression">Guard Base Progression</button>
+      <button type="button" data-guard-act="__changes">Undo Setup / Progression</button>
+      ${profile.configured ? '<button type="button" data-guard-act="__setup">Grant Core Guard Features</button>' : ""}
+    </div>
+  `);
+
+  if (!profile.configured && actor.isOwner) {
     sections.push(`
       <div class="ak5e-guard-unconfigured">
         <p>This character is not yet configured with Guard class features.</p>
         <button type="button" data-guard-act="__setup">Grant Core Guard Features</button>
       </div>
     `);
-  } else {
+  } else if (actor.isOwner && !profile.blocked.length) {
     // Core Guard Actions
     sections.push(`
       <div class="ak5e-guard-action-group">
@@ -360,33 +369,133 @@ export async function openGuardControls(actor) {
         el.addEventListener("click", event => {
           event.preventDefault();
           const act = el.dataset.guardAct;
+          if (el.disabled) return;
+          el.disabled = true;
           safe(async () => {
             if (act === "__setup") {
               const setup = await previewGuardSetup(actor);
               const accepted = await foundry.applications.api.DialogV2.confirm({
                 window: { title: `Grant Guard features — ${actor.name}` },
-                content: `<p>Grant ${setup.creates.length} Guard feature${setup.creates.length === 1 ? "" : "s"} for Guard level ${setup.level}?</p>`,
+                content: `<p>Guard level ${setup.level}: review core feature setup.</p><h4>Create</h4><ul>${setup.creates.map(item => `<li>${esc(item.name)}</li>`).join("") || "<li>None</li>"}</ul><h4>Retain unchanged</h4><ul>${setup.kept.map(name => `<li>${esc(name)}</li>`).join("") || "<li>None</li>"}</ul><p>Enable Guard controls. These changes have an encounter-window undo receipt.</p>`,
                 rejectClose: false
               });
               if (!accepted) return;
-              await applyGuardSetup(actor, { confirmed: true, contextKey: setup.contextKey });
-              ui.notifications.info("Guard core features granted.");
+              const result = await applyGuardSetup(actor, { confirmed: true, contextKey: setup.contextKey });
+              ui.notifications.info(`Guard core features granted. Undo receipt: ${result.receiptId}`);
               app.close();
+            } else if (act === "__progression") {
+              await openGuardProgression(actor);
+            } else if (act === "__changes") {
+              await openPlayUndoList(guardChanges, actor);
             } else if (act === "__undo") {
               await openPlayUndoList(guardUses, actor);
             }
-          });
+          }).finally(() => { el.disabled = false; });
         });
       }
       for (const el of app.element.querySelectorAll("[data-guard-cmd]")) {
         el.addEventListener("click", event => {
           event.preventDefault();
           const cmd = el.dataset.guardCmd;
-          safe(() => executeGuardDialog(actor, cmd));
+          if (el.disabled) return;
+          el.disabled = true;
+          safe(() => executeGuardDialog(actor, cmd)).finally(() => { el.disabled = false; });
         });
       }
     }
   });
+}
+
+/** Read native weapon dice only; ability references are intentionally not substituted. */
+export function guardWeaponDamageFormula(weapon) {
+  if (!weapon) return "";
+  const damage = weapon.system?.damage;
+  const base = damage?.base;
+  if (typeof base?.formula === "string" && base.formula.trim()) return base.formula;
+  if (base?.number != null && base?.denomination != null) {
+    const count = Number(base.number), faces = Number(base.denomination);
+    if (Number.isInteger(count) && Number.isInteger(faces) && count > 0 && faces >= 2) return `${count}d${faces}`;
+  }
+  const values = damage?.value;
+  if (Array.isArray(values)) {
+    const formulas = values.map(part => part?.components?.value?.formula).filter(value => typeof value === "string" && value.trim());
+    if (formulas.length) return formulas.join(" + ");
+  }
+  const legacy = damage?.parts;
+  if (Array.isArray(legacy)) return legacy.map(part => Array.isArray(part) ? part[0] : part?.formula).filter(value => typeof value === "string").join(" + ");
+  return "";
+}
+
+const baseProgressionField = key => ["branch", "fightingStyle", "saves", "skills", "martialDCAbility", "tool"].includes(key)
+  || key.startsWith("startingEquipment.") || key.startsWith("hp.") || key.startsWith("asi.");
+const choiceAt = (choices, path) => path.split(".").reduce((value, key) => value?.[key], choices);
+function setChoice(choices, path, value) {
+  const keys = path.split("."), last = keys.pop();
+  let target = choices;
+  for (const key of keys) target = target[key] ??= {};
+  target[last] = value;
+}
+
+/** Owner-accessible base-only editor. Inspection and both cancel/close paths are read-only. */
+export async function openGuardProgression(actor) {
+  need(actor?.isOwner && guardProfile(actor).applicable, "Choose an owned Guard character.");
+  let choices = guardChoices(actor), pending = [];
+  while (true) {
+    const fields = inspectGuardFields(actor, choices).filter(entry => baseProgressionField(entry.key)).map(entry => ({
+      ...entry, options: entry.key.startsWith("asi.")
+        ? [{ value: { mode: "existing" }, label: "Already included in current ability scores" }, ...entry.options] : entry.options
+    }));
+    const content = `<p>Choose base Guard progression. Unselected HP/ASI levels stay untaken. Existing marks a contribution already included; it adds no values. Subclass automation is not expanded.</p>
+      ${pending.length ? `<p>Complete these choices: ${pending.map(esc).join(", ")}</p>` : ""}
+      ${fields.map((entry, index) => {
+        const selected = choiceAt(choices, entry.key);
+        return `<label style="display:block;margin-block:0.5em">${esc(entry.label)}
+          <select name="guardField${index}"${entry.count > 1 ? ' multiple size="6" style="width:100%;min-height:6.5em"' : ' style="width:100%"'}>
+            ${entry.count === 1 ? '<option value="">Leave unchanged / not selected</option>' : ""}
+            ${entry.options.map((option, optionIndex) => {
+              const chosen = entry.count > 1 ? (Array.isArray(selected) && selected.some(value => JSON.stringify(value) === JSON.stringify(option.value)))
+                : JSON.stringify(entry.key === "saves" ? selected?.[0] : selected) === JSON.stringify(option.value);
+              return `<option value="${optionIndex}"${chosen ? " selected" : ""}>${esc(option.label)}</option>`;
+            }).join("")}
+          </select></label>`;
+      }).join("")}`;
+    const answer = await foundry.applications.api.DialogV2.wait({
+      window: { title: `Guard Base Progression — ${actor.name}` }, position: { width: 680 }, rejectClose: false, content,
+      buttons: [
+        { action: "apply", label: "Preview changes to Apply", callback: (_event, button) => {
+          const form = button.form ?? button.closest("form"), next = structuredClone(choices);
+          for (const [index, entry] of fields.entries()) {
+            const control = form?.elements?.[`guardField${index}`];
+            if (!control) continue;
+            const selected = entry.count > 1 ? Array.from(control.selectedOptions ?? [], option => option.value) : [control.value];
+            if (entry.count === 1 && selected[0] === "") continue;
+            need(selected.every(value => /^(0|[1-9]\d*)$/.test(value) && Number(value) < entry.options.length), "Choose valid Guard progression options.");
+            const values = [...new Set(selected)].map(value => structuredClone(entry.options[Number(value)].value));
+            setChoice(next, entry.key, entry.count > 1 || entry.key === "saves" ? values : values[0]);
+          }
+          return { choices: next };
+        } },
+        { action: "cancel", label: "Cancel", default: true, callback: () => false }
+      ]
+    });
+    if (!answer || typeof answer !== "object" || !answer.choices) return null;
+    choices = answer.choices;
+    const plan = await previewGuardProgression(actor, choices);
+    if (plan.pending.length) { pending = plan.pending; continue; }
+    const accepted = await foundry.applications.api.DialogV2.wait({
+      window: { title: `Apply Guard progression — ${actor.name}` }, position: { width: 680 }, rejectClose: false,
+      content: `<h4>Actor changes</h4><ul>${Object.entries(plan.writes).map(([path, after]) => `<li>${esc(path)}: ${esc(JSON.stringify(choiceAt(actor._source ?? actor, path)) ?? "(absent)")} → ${esc(JSON.stringify(after))}</li>`).join("") || "<li>None</li>"}</ul>
+        <h4>Create Items</h4><ul>${plan.createItems.map(item => `<li>${esc(item.name)}</li>`).join("") || "<li>None</li>"}</ul>
+        <p>Existing Items are retained unchanged. Newly included HP levels: ${esc(plan.progression.hpLevels.join(", ") || "none")}; ASIs: ${esc(plan.progression.asiLevels.join(", ") || "none")}.</p>
+        ${plan.warnings.length ? `<ul>${plan.warnings.map(warning => `<li>${esc(warning)}</li>`).join("")}</ul>` : ""}
+        <p>Apply creates an encounter-window undo receipt. A changed character requires a fresh preview.</p>`,
+      buttons: [{ action: "apply", label: "Apply", callback: () => true }, { action: "cancel", label: "Cancel", default: true, callback: () => false }]
+    });
+    if (accepted !== true) return null;
+    const result = await applyGuardProgression(actor, { ...plan.choices, confirmed: true, contextKey: plan.contextKey });
+    ui.notifications.info(`Guard progression applied. Undo receipt: ${result.receiptId}`);
+    return result;
+  }
 }
 
 /**
@@ -440,10 +549,41 @@ export async function executeGuardDialog(actor, cmd) {
       window: { title: `Press the Attack: ${cmd}` },
       rejectClose: false,
       content: `<label>Aggression to spend: <input type="number" name="amount" min="1" max="3" value="1"></label>`,
-      ok: { label: "Review use", callback: (_e, target) => Number((target.form ?? target.closest("form"))?.elements?.amount?.value ?? 1) }
+      ok: { label: "Review use", callback: (_e, target) => (target.form ?? target.closest("form"))?.elements?.amount?.value }
     });
-    if (!amount) return;
+    if (amount === null) return null;
     return runGuardUse(actor, `Press the Attack: ${cmd}`, cmd, { amount });
+  }
+
+  if (cmd === "pursuitUnrelenting") {
+    const actionType = await askPrompt({
+      window: { title: "Pursuit Unrelenting: choose Action or Bonus Action" },
+      content: '<label>Replace the Attack with: <select name="actionType"><option value="action">Action</option><option value="bonusAction">Bonus Action</option></select></label>',
+      ok: { callback: (_event, target) => (target.form ?? target.closest("form"))?.elements?.actionType?.value }
+    });
+    if (actionType === null) return null;
+    need(["action", "bonusAction"].includes(actionType), "Choose Action or Bonus Action.");
+    return runGuardUse(actor, "Pursuit Unrelenting", cmd, { actionType });
+  }
+
+  if (cmd === "unrelentingAggression") {
+    const weapons = Array.from(actor.items?.values?.() ?? []).filter(item => item.type === "weapon" && item.system?.equipped && isMeleeWeaponItem(item));
+    const data = await askPrompt({
+      window: { title: "Unrelenting Aggression: missed melee Attack" },
+      content: `<label>Weapon for that Attack: <select name="weaponUuid"><option value="">Enter damage manually</option>${weapons.map(item => `<option value="${esc(item.uuid)}">${esc(item.name)}</option>`).join("")}</select></label>
+        <label>Weapon damage formula (optional override; exclude Ability Modifier): <input type="text" name="formula" placeholder="For example 2d6"></label>
+        <p>Use the Damage for the missed Attack, without its Ability Score Modifier. You will click Roll on the card; target and Damage application are manual.</p>`,
+      ok: { callback: (_event, target) => {
+        const form = target.form ?? target.closest("form");
+        return { weaponUuid: form?.elements?.weaponUuid?.value ?? "", formula: form?.elements?.formula?.value ?? "" };
+      } }
+    });
+    if (data === null) return null;
+    need(typeof data.weaponUuid === "string" && typeof data.formula === "string", "Choose the intended weapon or enter its damage formula.");
+    const weapon = data.weaponUuid ? weapons.find(item => item.uuid === data.weaponUuid) : null;
+    need(!data.weaponUuid || weapon, "Choose an equipped melee weapon owned by this Guard.");
+    const formula = validateGuardDamageFormula(data.formula.trim() || guardWeaponDamageFormula(weapon));
+    return runGuardUse(actor, "Unrelenting Aggression", cmd, { formula, ...(weapon ? { weaponUuid: weapon.uuid } : {}) });
   }
 
   if (cmd === "chooseMartialDC") {
@@ -1253,9 +1393,22 @@ export function renderGuardControls(app, element) {
   }
 }
 
+/** Re-render displayed Guard cards so their Roll / Retry / Undo controls follow the receipt.
+ *  Foundry V13 draws the chat log before `ready`, when these hooks did not exist yet. */
+export function refreshGuardCards() {
+  return refreshChatMessages(message => Boolean(flag(message, guardUses.cardFlag) || flag(message, guardChanges.cardFlag)));
+}
+
 export function registerGuardSheetHooks() {
   if (installed) return;
   installed = true;
+  // A receipt that moves to awaitingRoll after its card was drawn (a slow Actor update, a
+  // reload, or the GM client) must regain its Roll/Undo controls; the shared helper re-renders
+  // the displayed cards for this engine when the Actor's receipt flag changes.
+  registerPlayUseCardRefresh(guardUses);
+  registerPlayUseCardRefresh(guardChanges);
+  refreshGuardCards();
+  if (globalThis.ui?.chat?.rendered === false && typeof Hooks.once === "function") Hooks.once("renderChatLog", () => refreshGuardCards());
 
   Hooks.on("getHeaderControlsApplicationV2", (app, controls) => {
     const actor = actorFor(app);
@@ -1273,6 +1426,7 @@ export function registerGuardSheetHooks() {
   Hooks.on("renderChatMessageHTML", (message, html) => {
     try {
       renderPlayUseCard(guardUses, message, html);
+      renderPlayUseCard(guardChanges, message, html);
     } catch (error) {
       console.error("AK5e | Guard use card", error);
     }

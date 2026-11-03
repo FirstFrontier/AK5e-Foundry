@@ -11,3 +11,5 @@ Area: Guard progression / all three subclasses
 **Verification limits:** Recorded from the prior audit's Node probes and/or static review; no new runtime tests or fresh Foundry reproduction in this tracking change. Historical screenshots alone do not certify player behavior.
 
 **Fixed means:** Reapplying unchanged choices adds no HP, ASIs, cash or duplicate grants. Level increases apply only new contributions and preserve authored values.
+
+**Resolution (fixed 2026-11-02, guard-base-polish merge-1):** Base-class fix in guard-uses/sheet/progression/setup (confirm-before-spend, preview key handoff, contributions-once idempotency, exact before-state undo, durable Reaction receipts). Frozen 18/18 (d700bc2d), attack 22/22 + tester r2 15/15, review PASS, main test:guard 297 pass. Subclass slices stay open where they reproduce outside base files.

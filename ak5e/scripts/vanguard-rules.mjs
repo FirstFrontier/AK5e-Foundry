@@ -95,9 +95,17 @@ export const flag = (document, key) => document?.getFlag?.("ak5e", key)
   ?? String(key).split(".").reduce((value, part) => value?.[part], document?.flags?.ak5e);
 const list = collection => Array.from(collection?.values?.() ?? collection ?? []);
 
+/** Parse a stored class level without coercing booleans, arrays or objects. */
+function levelValue(value) {
+  if (value === null || value === undefined || value === "" || typeof value === "boolean" ||
+      Array.isArray(value) || typeof value === "object") return null;
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 20 ? n : null;
+}
+
 export function checkLevel(level) {
-  const n = Number(level);
-  if (!Number.isInteger(n) || n < 1 || n > 20) {
+  const n = levelValue(level);
+  if (n === null) {
     throw new RangeError("Vanguard level must be an integer from 1 to 20.");
   }
   return n;
@@ -108,17 +116,56 @@ export function pbForLevel(level) {
   return Math.floor((lvl - 1) / 4) + 2;
 }
 
+function finiteNumber(value, label) {
+  if (value === null || value === undefined || value === "" || typeof value === "boolean") {
+    throw new RangeError(`${label} must be a finite number.`);
+  }
+  const n = Number(value);
+  if (!Number.isFinite(n)) throw new RangeError(`${label} must be a finite number.`);
+  return n;
+}
+
+function wholeNumber(value, label, { min = -Infinity, max = Infinity } = {}) {
+  const n = finiteNumber(value, label);
+  if (!Number.isInteger(n) || n < min || n > max) {
+    throw new RangeError(`${label} must be an integer${Number.isFinite(min) ? ` from ${min}` : ""}${Number.isFinite(max) ? ` to ${max}` : ""}.`);
+  }
+  return n;
+}
+
+/** Shared D&D5e Proficiency Bonus kept on the Actor; falls back to the Vanguard
+ * level's PB only when the Actor record has no value at all. */
+function sharedProficiencyBonus(actor) {
+  const raw = actor?.system?.attributes?.prof;
+  if (raw === undefined) return pbForLevel(vanguardLevel(actor) ?? 1);
+  return wholeNumber(raw, "Proficiency Bonus", { min: 0 });
+}
+
 /** Hit Points calculation (Ch. 3 L7918–7920):
  * Base HP at 1st level: 8 + CON modifier.
  * HP per level after 1st: 5 (fixed) or rolled 1d8 + CON modifier.
  */
 export function hitPointsAtLevel(level, conMod = 0, { mode = "fixed", rolls = [] } = {}) {
   const lvl = checkLevel(level);
-  const con = Number(conMod) || 0;
+  const con = wholeNumber(conMod, "Constitution modifier");
+  if (mode !== "fixed" && mode !== "rolled") {
+    throw new RangeError(`Unknown Hit Point mode: ${String(mode)}.`);
+  }
+  if (mode === "rolled") {
+    if (!Array.isArray(rolls)) throw new RangeError("Rolled Hit Points require an array of recorded d8 results.");
+    if (rolls.length < lvl - 1) {
+      throw new RangeError(`Rolled Hit Points require ${lvl - 1} recorded d8 result(s) for Vanguard level ${lvl}.`);
+    }
+    for (let index = 0; index < lvl - 1; index++) {
+      const roll = rolls[index];
+      if (typeof roll !== "number" || !Number.isInteger(roll) || roll < 1 || roll > 8) {
+        throw new RangeError(`Hit Point roll ${index + 1} must be a recorded d8 result from 1 to 8.`);
+      }
+    }
+  }
   let total = Math.max(1, 8 + con);
   for (let i = 2; i <= lvl; i++) {
-    const rollIndex = i - 2;
-    const gained = (mode === "rolled" && Number.isInteger(rolls[rollIndex])) ? rolls[rollIndex] : 5;
+    const gained = mode === "rolled" ? rolls[i - 2] : 5;
     total += Math.max(1, gained + con);
   }
   return Math.max(1, total);
@@ -136,31 +183,32 @@ export function landstriderSpeedBonus() {
 
 /** Martial DC (Ch. 1 L211): 8 + shared PB + the character's chosen STR or DEX modifier. */
 export function martialDC(actor, ability = flag(actor, "vanguard")?.martialDCAbility) {
-  const system = actor?.system ?? {};
-  const pb = Number(system.attributes?.prof ?? 2);
-  const str = Number(system.abilities?.str?.mod ?? 0);
-  const dex = Number(system.abilities?.dex?.mod ?? 0);
   if (ability !== "str" && ability !== "dex") return null;
-  return 8 + pb + Number(system.abilities?.[ability]?.mod ?? (ability === "str" ? str : dex));
+  const system = actor?.system ?? {};
+  const pb = sharedProficiencyBonus(actor);
+  const modifier = wholeNumber(system.abilities?.[ability]?.mod,
+    `${ability === "str" ? "Strength" : "Dexterity"} modifier`);
+  return 8 + pb + modifier;
 }
 
 /** Vanguard DC (standard DC using Dexterity or Martial DC): 8 + PB + DEX modifier. */
 export function vanguardDC(actor) {
   const system = actor?.system ?? {};
-  const pb = Number(system.attributes?.prof ?? 2);
-  const dex = Number(system.abilities?.dex?.mod ?? 0);
+  const pb = sharedProficiencyBonus(actor);
+  const dex = wholeNumber(system.abilities?.dex?.mod, "Dexterity modifier");
   return 8 + pb + dex;
 }
 
 export function vanguardState(actor) {
-  const stored = flag(actor, "vanguard") ?? {};
+  const raw = flag(actor, "vanguard");
+  const stored = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   return {
     ...structuredClone(DEFAULT_STATE),
     ...structuredClone(stored),
-    operations: [...(stored.operations ?? [])],
-    events: [...(stored.events ?? [])],
-    uses: { ...(stored.uses ?? {}) },
-    rulings: { ...(stored.rulings ?? {}) }
+    operations: Array.isArray(stored.operations) ? [...stored.operations] : [],
+    events: Array.isArray(stored.events) ? [...stored.events] : [],
+    uses: stored.uses && typeof stored.uses === "object" && !Array.isArray(stored.uses) ? { ...stored.uses } : {},
+    rulings: stored.rulings && typeof stored.rulings === "object" && !Array.isArray(stored.rulings) ? { ...stored.rulings } : {}
   };
 }
 
@@ -174,8 +222,7 @@ export function vanguardProfile(actor) {
   if (!vClass) return empty;
   // A Vanguard may multiclass. Vanguard feature gates always use Vanguard
   // class levels, while the Actor keeps its shared D&D5e proficiency bonus.
-  const rawLevel = Number(vClass.system?.levels);
-  const level = Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
+  const level = levelValue(vClass.system?.levels);
   if (level === null) return { ...empty, applicable: true, blocked: ["InvalidClassLevel"] };
 
   const identifier = vClass.system?.identifier ?? vClass.system?.classIdentifier ?? "vanguard";
@@ -187,13 +234,24 @@ export function vanguardProfile(actor) {
   const branchItem = branches[0] ?? null;
   let branch = null, branchId = null;
   if (branchItem) {
-    branchId = flag(branchItem, "chapterThreeId") ?? null;
-    branch = VANGUARD_BRANCH_IDS[branchId] ?? null;
+    const storedBranchId = flag(branchItem, "chapterThreeId") ?? null;
+    if (storedBranchId !== null && (typeof storedBranchId !== "string" || !storedBranchId.trim())) {
+      return { ...empty, applicable: true, level, classItem: vClass, branchItem, blocked: ["UnknownBranch"] };
+    }
+    branchId = storedBranchId;
+    // Object.hasOwn prevents inherited keys ("constructor", "__proto__", ...)
+    // from ever resolving as a branch function/object.
+    branch = typeof branchId === "string" && Object.hasOwn(VANGUARD_BRANCH_IDS, branchId)
+      ? VANGUARD_BRANCH_IDS[branchId]
+      : null;
     if (!branch && branchItem.name) {
       const match = branchItem.name.replace(/^Vanguard:\s*/i, "").trim().toLowerCase();
       const normalized = match.replace(/[-\s]+(.)/g, (_, c) => c.toUpperCase());
       const standardMatch = Object.entries(VANGUARD_BRANCH_IDS).find(([_, name]) => name.toLowerCase() === match || name.toLowerCase() === normalized);
-      branch = standardMatch ? standardMatch[1] : null;
+      if (standardMatch) {
+        branchId = standardMatch[0];
+        branch = standardMatch[1];
+      }
     }
     if (!branch) return { ...empty, applicable: true, level, classItem: vClass, branchItem, blocked: ["UnknownBranch"] };
   }
@@ -228,11 +286,14 @@ export function vanguardBranch(actor) {
 export function calculateVanguardProfile(actor) {
   const profile = vanguardProfile(actor);
   const level = profile.level ?? 1;
-  const pb = Number(actor?.system?.attributes?.prof ?? pbForLevel(level));
+  const pb = sharedProficiencyBonus(actor);
   const system = actor?.system ?? {};
-  const conMod = Number(system.abilities?.con?.mod ?? 0);
-  const dexMod = Number(system.abilities?.dex?.mod ?? 0);
-  const strMod = Number(system.abilities?.str?.mod ?? 0);
+  const conMod = wholeNumber(system.abilities?.con?.mod ?? 0, "Constitution modifier");
+  const dexMod = wholeNumber(system.abilities?.dex?.mod ?? 0, "Dexterity modifier");
+  const strMod = wholeNumber(system.abilities?.str?.mod ?? 0, "Strength modifier");
+  // strMod is part of the public profile's ability contract even though the
+  // current DCs use DEX; validate it so malformed actors cannot leak Infinity.
+  void strMod;
 
   const features = [];
   for (let l = 1; l <= level; l++) {
