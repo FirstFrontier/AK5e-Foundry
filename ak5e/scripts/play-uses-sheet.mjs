@@ -138,7 +138,15 @@ export async function openPlayUndoList(engine, actor) {
 }
 /** Retry a use left "Not applied yet" (for example while no GM was connected); the same receipt is resumed. */
 export function retryPlayUse(engine, actor, use) {
-  return confirmPlayUse(use.title, extra => engine.command(actor, use.command, { ...use.data, ...extra }, use.id));
+  const preview = use.command === "collectiveWard" ? () => ({
+    title: use.title,
+    costs: (use.result?.donorUpdates ?? []).map(donor => {
+      const name = use.targets?.find(target => target.uuid === donor.uuid)?.name ?? donor.uuid;
+      return `${name}: ${donor.wardBefore - donor.wardAfter} Ward`;
+    }),
+    targets: (use.targets ?? []).filter(target => target.key === "recipient")
+  }) : undefined;
+  return confirmPlayUse(use.title, extra => engine.command(actor, use.command, { ...use.data, ...extra }, use.id), { preview });
 }
 /** Roll, Retry and Undo controls on a use card, for the source Actor's owners and the GM. */
 export function renderPlayUseCard(engine, message, html) {

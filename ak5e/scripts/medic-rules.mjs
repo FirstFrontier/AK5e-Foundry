@@ -16,7 +16,10 @@ export const MEDIC_BRANCH_IDS = Object.freeze({
 
 export const IMPLEMENTED_MEDIC_BRANCHES = Object.freeze([
   "physician",
-  "triage"
+  "therapist",
+  "triage",
+  "ward",
+  "witchcraft"
 ]);
 
 export const MEDIC_SKILLS = Object.freeze([

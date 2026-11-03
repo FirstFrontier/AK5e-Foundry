@@ -19,8 +19,9 @@ import {
   medicProfile,
   hitPointsAtLevel
 } from "./medic-rules.mjs";
-import { defineMedicPools } from "./medic-features.mjs";
+import { defineMedicPools, medicArtsFlags } from "./medic-features.mjs";
 import { need } from "./operation-kernel.mjs";
+import { appendArtReceipt, captureArtChanges, createReceiptItems, receiptItemRecord } from "./arts-ledger.mjs";
 
 export const MEDIC_PROGRESS_FLAG = "medicProgression";
 export const MEDIC_TALENT_FLAG = "medicTalent";
@@ -543,6 +544,13 @@ export async function previewMedicProgression(actor, suppliedChoices = {}) {
   // Flags updates
   writes["flags.ak5e.medic.enabled"] = true;
   writes["flags.ak5e.medic.spellcastingAbility"] = choices.spellcastingAbility ?? "int";
+  // Native Arts flags (contract item 1): a progressed Medic is an Arts actor.
+  const arts = medicArtsFlags(actor, level, choices.spellcastingAbility ?? "int");
+  writes["flags.ak5e.casting"] = arts.casting;
+  writes["flags.ak5e.artsPoints"] = arts.artsPoints;
+
+  // Assign ids before creation so the undo receipt can name exactly the Items this use made.
+  for (const item of createItems) if (!item._id) item._id = globalThis.foundry?.utils?.randomID?.() ?? `medic-progression-${item.name}`;
 
   const contextKey = JSON.stringify([
     actor.uuid,
@@ -577,10 +585,26 @@ export async function applyMedicProgression(actor, { confirmed, contextKey, choi
 
   defineMedicPools();
 
-  await actor.update(plan.writes);
-  if (plan.createItems.length) {
-    await actor.createEmbeddedDocuments("Item", plan.createItems);
+  // Encounter undo covers the native Arts flags and the Items this progression created. Other
+  // progression writes (HP, abilities, proficiencies) keep their own established flow.
+  const receiptUpdates = {};
+  for (const path of ["flags.ak5e.casting", "flags.ak5e.artsPoints"]) {
+    if (plan.writes[path] !== undefined) receiptUpdates[path] = plan.writes[path];
   }
+  const receiptChanges = captureArtChanges(actor, receiptUpdates);
+  const receiptItems = plan.createItems.map(receiptItemRecord).filter(Boolean);
+  let receipt = null;
+  if (receiptChanges.length || receiptItems.length) {
+    receipt = {
+      id: `medic-progression-${String(actor.id ?? actor.uuid).replace(/[^A-Za-z0-9_-]/g, "")}-${plan.level}-${Date.now().toString(36)}`,
+      name: "Medic progression: Arts casting", level: plan.level, cost: 0, source: "Medic progression", actorUuid: actor.uuid,
+      changes: receiptChanges, items: receiptItems
+    };
+    plan.writes["flags.ak5e.artReceipts"] = appendArtReceipt(actor, receipt, receiptChanges);
+  }
+
+  await actor.update(plan.writes);
+  await createReceiptItems(actor, receipt?.id, plan.createItems);
 
   // Update durable progression state
   const state = readState(actor);
@@ -618,6 +642,7 @@ export async function applyMedicProgression(actor, { confirmed, contextKey, choi
     level: plan.level,
     branch: plan.branch,
     created: plan.createItems.map(c => c.name),
+    receipt: receipt ? structuredClone(receipt) : null,
     writes: plan.writes
   };
 }

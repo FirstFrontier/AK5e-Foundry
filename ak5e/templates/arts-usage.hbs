@@ -24,6 +24,31 @@
     {{#each ak5eArts.modifiers}}<p>{{source}}: {{amount}} AP</p>{{/each}}
     {{#if ak5eArts.origin}}<p>Art origin: the selected Arts Master's space.</p>{{/if}}
     {{#if ak5eArts.ritual}}<p>{{localize "AK5E.Arts.RitualHint"}}</p>{{/if}}
+    {{#each ak5eArts.castOptions as |option|}}
+    <fieldset data-ak5e-option="{{option.id}}">
+      <legend>{{option.label}}</legend>
+      {{#each option.fieldsModel as |field|}}
+      {{#if (eq field.type "hidden")}}
+      <input type="hidden" name="{{field.inputName}}" value="{{field.value}}">
+      {{else}}
+      <label>{{field.label}}
+        {{#if (eq field.type "checkbox")}}
+        <input type="checkbox" name="{{field.inputName}}" {{checked field.value}}>
+        {{else if (eq field.type "select")}}
+        <select name="{{field.inputName}}">{{selectOptions field.options selected=field.value valueAttr="value" labelAttr="label"}}</select>
+        {{else if (eq field.type "number")}}
+        <input type="number" name="{{field.inputName}}" value="{{field.value}}" min="{{field.min}}" max="{{field.max}}" step="{{field.step}}">
+        {{else}}
+        <input type="text" name="{{field.inputName}}" value="{{field.value}}">
+        {{/if}}
+      </label>
+      {{#if field.hint}}<p>{{field.hint}}</p>{{/if}}
+      {{/if}}
+      {{/each}}
+    </fieldset>
+    {{/each}}
+    {{#each ak5eArts.castOptionWarnings}}<p role="alert">{{this.text}}</p>{{/each}}
+    {{#each ak5eArts.castContextWarnings}}<p role="alert">{{this.text}}</p>{{/each}}
     <p>{{localize "AK5E.Arts.ConsumptionHint"}}</p>
   </fieldset>
 </section>

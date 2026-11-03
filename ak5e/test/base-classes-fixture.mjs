@@ -605,8 +605,10 @@ export function setupFoundryGlobals(options = {}) {
   }
 
   const activeGM = options.activeGM !== undefined ? options.activeGM : gmUser;
+  let activeGMValue = activeGM;
   Object.defineProperty(usersMap, "activeGM", {
-    get() { return activeGM; },
+    get() { return activeGMValue; },
+    set(value) { activeGMValue = value; },
     configurable: true,
     enumerable: true
   });

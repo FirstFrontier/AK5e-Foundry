@@ -1,9 +1,10 @@
 /** Medic feature setup: preview and apply class and subclass features up to current Medic level idempotently. */
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { MEDIC_CLASS_ID, medicProfile, medicLevel, medicEnabled } from "./medic-rules.mjs";
-import { defineMedicPools } from "./medic-features.mjs";
+import { defineMedicPools, medicArtsFlags } from "./medic-features.mjs";
 import { sourceEntryData } from "./caster-setup.mjs";
 import { need } from "./operation-kernel.mjs";
+import { appendArtReceipt, captureArtChanges, createReceiptItems, receiptItemRecord } from "./arts-ledger.mjs";
 
 export const MEDIC_CORE_FEATURES = Object.freeze([
   { id: "class-feature-medic-1st-level-arts-casting-871", level: 1, name: "1st Level: Arts Casting" },
@@ -95,19 +96,26 @@ export async function previewMedicSetup(actor) {
     if (owned) {
       kept.push(feat.name);
     } else {
-      creates.push(featureItemData(feat));
+      const data = featureItemData(feat);
+      // Assign the id before creation so the undo receipt can name exactly the Items this use made.
+      data._id = globalThis.foundry?.utils?.randomID?.() ?? `medic-${feat.id}`;
+      creates.push(data);
     }
   }
 
   const contextKey = JSON.stringify([actor.uuid, level, profile.branch, creates.map(c => c.name), kept]);
+  const arts = medicArtsFlags(actor, level);
   return {
     level,
     branch: profile.branch,
     creates,
     kept,
     contextKey,
+    artsPoints: arts.artsPoints,
     actorUpdates: {
-      "flags.ak5e.medic.enabled": true
+      "flags.ak5e.medic.enabled": true,
+      "flags.ak5e.casting": arts.casting,
+      "flags.ak5e.artsPoints": arts.artsPoints
     }
   };
 }
@@ -119,15 +127,31 @@ export async function applyMedicSetup(actor, { confirmed, contextKey } = {}) {
 
   defineMedicPools();
 
-  await actor.update(plan.actorUpdates);
-  if (plan.creates.length) {
-    await actor.createEmbeddedDocuments("Item", plan.creates);
+  const updates = { ...plan.actorUpdates };
+  const changes = captureArtChanges(actor, updates);
+  const items = plan.creates.map(receiptItemRecord).filter(Boolean);
+  // A real flag change or a created Item needs a receipt. A repeat setup is idempotent and must not
+  // overwrite the receipt of the apply that actually changed state; an undo restores the true prior state.
+  let receipt = null;
+  if (changes.length || items.length) {
+    receipt = {
+      id: `medic-arts-setup-${String(actor.id ?? actor.uuid).replace(/[^A-Za-z0-9_-]/g, "")}-${plan.level}-${Date.now().toString(36)}`,
+      name: "Medic Arts setup", level: plan.level, cost: 0, source: "Medic class", actorUuid: actor.uuid,
+      changes, items
+    };
+    updates["flags.ak5e.artReceipts"] = appendArtReceipt(actor, receipt, changes);
   }
+
+  await actor.update(updates);
+  // keepId keeps the receipt's pre-assigned IDs; the created documents are then sealed into the receipt.
+  await createReceiptItems(actor, receipt?.id, plan.creates);
 
   return {
     level: plan.level,
     branch: plan.branch,
     created: plan.creates.map(c => c.name),
-    kept: plan.kept
+    kept: plan.kept,
+    artsPoints: structuredClone(plan.artsPoints),
+    receipt: receipt ? structuredClone(receipt) : null
   };
 }

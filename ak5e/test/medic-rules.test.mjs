@@ -134,7 +134,7 @@ test("proficiencies and chassis constants adhere strictly to Ch. 3 L4588", () =>
   assert.equal(MEDIC_CLASS_ID, "class-medic");
   assert.equal(MEDIC_BRANCH_IDS["subclass-medic-physician"], "physician");
   assert.equal(MEDIC_BRANCH_IDS["subclass-medic-triage"], "triage");
-  assert.deepEqual(IMPLEMENTED_MEDIC_BRANCHES, ["physician", "triage"]);
+  assert.deepEqual(IMPLEMENTED_MEDIC_BRANCHES, ["physician", "therapist", "triage", "ward", "witchcraft"]);
 });
 
 test("Spellcasting Ability resolves INT or WIS and computes DCs", () => {

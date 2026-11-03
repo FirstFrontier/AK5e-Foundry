@@ -10,6 +10,8 @@ import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./as
 import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
 import { registerSheetThemeHooks, openSheetTheme, resolveSheetTheme, setSheetTheme, SHEET_THEMES } from "./sheet-themes.mjs";
 import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt, openArtUndoList, undoArtReceipt } from "./arts-casting.mjs";
+import { registerArtRelayHooks } from "./arts-ledger.mjs";
+import { registerArtCorrelation } from "./art-correlation.mjs";
 import { applyFeatureTag, applyTagPreset, removeFeatureTag, resolveFeatureTag, setTagCounter, featureTags, openFeatureTagSetup } from "./feature-tags.mjs";
 import { sourceTagPresets } from "./tag-presets.mjs";
 import { registerWorldRuleSettings, configureWorldConditions, registerWorldRuleHooks, refreshConditionReferences, openWorldRuleControl,
@@ -91,11 +93,14 @@ import { isHunter, registerHunterHooks, inLetTheLightIn } from "./hunter-feature
 import { isSpreadshot, registerSpreadshotHooks, getLoadedShells, getShellInventory } from "./spreadshot-features.mjs";
 import * as medicRules from "./medic-rules.mjs";
 import { isMedic, isPhysician, isTriage, calculateMedicProfile } from "./medic-rules.mjs";
-import { getMedicView, registerMedicHooks } from "./medic-features.mjs";
+import { registerTherapistHooks } from "./therapist-features.mjs";
+import { registerWardHooks } from "./ward-features.mjs";
+import { registerWitchcraftHooks } from "./witchcraft-features.mjs";
+import { getMedicView, registerMedicHooks, registerMedicArts, previewSelfDefenceProtocol, applySelfDefenceProtocol } from "./medic-features.mjs";
 import { previewMedicSetup, applyMedicSetup } from "./medic-setup.mjs";
 import { inspectMedicFields, previewMedicProgression, applyMedicProgression } from "./medic-progression.mjs";
 import { medicUses, recordMedicRuling } from "./medic-uses.mjs";
-import { openMedicControls, registerMedicSheetHooks } from "./medic-sheet.mjs";
+import { openMedicControls, openMedicSelfDefence, registerMedicSheetHooks } from "./medic-sheet.mjs";
 import * as specialistRules from "./specialist-rules.mjs";
 import { isSpecialist, isExecutor, isHookmaster, isInfuser, isInventor, isSkyranger, isDollkeeper, isTrapmaster, calculateInventorDC, calculateTrapDC, calculateSpecialistProfile, specialistProfile, specialistLevel, specialistBranch } from "./specialist-rules.mjs";
 import { registerSpecialistHooks, hasWeaponSpecialisation, getWeaponSpecialisation, hasShowYourStyle, hasWeaponAdept, hasWeaponExpertise, hasFallingUpwards, hasWeaponMastery } from "./specialist-features.mjs";
@@ -497,6 +502,9 @@ Hooks.once("ready", () => {
       previewProgression: previewMedicProgression,
       applyProgression: applyMedicProgression,
       open: openMedicControls,
+      openSelfDefence: openMedicSelfDefence,
+      previewSelfDefence: previewSelfDefenceProtocol,
+      applySelfDefence: applySelfDefenceProtocol,
       use: medicUses.command,
       previewUse: medicUses.preview,
       uses: medicUses.uses,
@@ -884,6 +892,11 @@ Hooks.once("ready", () => {
   registerMarksmanSheetHooks();
   registerMarksmanResolution();
   registerMedicHooks();
+  registerMedicArts();
+  registerTherapistHooks();
+  registerWardHooks();
+  registerWitchcraftHooks();
+  registerArtRelayHooks();
   Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(medicUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Medic relay", error)));
   registerMedicSheetHooks();
   registerSpecialistHooks();
@@ -905,6 +918,8 @@ Hooks.once("ready", () => {
   // --- Supporter (U2) ready hooks: end ---
   ResourcePools.registerResourcePoolHooks();
   TriggerEvents.registerTriggerEventHooks();
+  // Observe the settled native damage state after the shared event hooks.
+  registerArtCorrelation();
   registerWorldRuleHooks(game.ak5e);
   registerVanguardSheetHooks();
   registerVanguardResolution();

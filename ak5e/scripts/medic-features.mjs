@@ -17,6 +17,9 @@ import {
   medicSpellDC,
   medicSpellAttackMod,
   martialDC,
+  lifeSupportMax,
+  artsPointsForLevel,
+  maxArtLevel,
   flag
 } from "./medic-rules.mjs";
 import {
@@ -30,6 +33,16 @@ import {
   registerLifeSupportPool
 } from "./resource-pools.mjs";
 import { need, values, gmActive } from "./operation-kernel.mjs";
+import { grantFor, registerArtCastOptions, registerArtGrant } from "./arts-casting.mjs";
+import { artsState, quoteArt } from "./arts-rules.mjs";
+import { supporterArtsMembers } from "./supporter-arts.mjs";
+import { resolvePoolArtData } from "./caster-setup.mjs";
+import { appendArtReceipt, captureArtChanges, createReceiptItems, receiptItemRecord } from "./arts-ledger.mjs";
+
+/** Healing Arts Pool id (Ch. 5); Urgency of Treatment applies only to these Arts (U3-3). */
+export const HEALING_ARTS_POOL_ID = "special-art-pool-healing-arts-4211";
+const URGENCY_ID = "urgency-of-treatment";
+const SELF_DEFENCE_SOURCE = "Self-Defence Protocol";
 
 /* ---------------------------------------------------------------- Resource Pools */
 
@@ -102,6 +115,218 @@ export const lifeSupport = actor => getPool(actor, "lifeSupport");
 export const spendLifeSupport = (actor, amount, reason) => spendPool(actor, "lifeSupport", amount, { reason });
 export const refundLifeSupport = (actor, amount, reason) => refundPool(actor, "lifeSupport", amount, { reason });
 export const setLifeSupport = (actor, value, reason) => setPool(actor, "lifeSupport", value, { reason });
+
+/* ---------------------------------------------------------------- Native Medic Arts (U3-2/U3-3/U3-4) */
+
+/** Native Arts flags a Medic needs (contract item 1). Pure: the caller decides when to write them. */
+export function medicArtsFlags(actor, level, ability) {
+  const previousCasting = flag(actor, "casting") ?? {};
+  const previousArts = flag(actor, "artsPoints") ?? null;
+  const chosen = ["int", "wis", "cha"].includes(ability) ? ability
+    : (["int", "wis", "cha"].includes(previousCasting.ability) ? previousCasting.ability : medicSpellcastingAbility(actor));
+  const maximum = artsPointsForLevel(level), maximumArtLevel = maxArtLevel(level);
+  return {
+    casting: { ...previousCasting, version: 1, enabled: true, ability: chosen,
+      recovery: previousCasting.recovery ?? "long", castingUnit: previousCasting.castingUnit ?? "" },
+    artsPoints: { ...(previousArts ?? {}), maximum, maximumArtLevel,
+      value: previousArts && Number.isFinite(Number(previousArts.value)) ? Number(previousArts.value) : maximum,
+      ninthLevelCast: previousArts?.ninthLevelCast === true }
+  };
+}
+
+/** Current and maximum Life Support without requiring the pool registry to be loaded. */
+function lifeSupportState(actor) {
+  try {
+    registerLifeSupportPool();
+    const pool = getPool(actor, "lifeSupport");
+    return { value: Number(pool.value) || 0, max: Number(pool.max) || 0 };
+  } catch {
+    const stored = actor?.flags?.ak5e?.resourcePools?.lifeSupport ?? {};
+    const max = Number(stored.max) || lifeSupportMax(medicLevel(actor) ?? 1);
+    return { value: Number.isFinite(Number(stored.value)) ? Number(stored.value) : max, max };
+  }
+}
+
+const healingArt = item => {
+  const art = item?.getFlag?.("ak5e", "art") ?? item?.flags?.ak5e?.art ?? {};
+  const pool = art.pool ?? item?.getFlag?.("ak5e", "pool") ?? item?.flags?.ak5e?.pool;
+  return pool === HEALING_ARTS_POOL_ID;
+};
+
+/** The cast level the Urgency discount caps at: the selected cast level when the dialog or API
+ * names one (U3-3, C3:4656 "that casting"), else the Art's base level. Sanitized to a safe int;
+ * quoteArt itself rejects an out-of-range level and the caller falls back to the base level. */
+function castLevelOf(item, context) {
+  const base = Number(item?.system?.level);
+  const safeBase = Number.isSafeInteger(base) && base >= 0 && base <= 9 ? base : 0;
+  const raw = Number(context?.usage?.level ?? context?.usage?.ak5eLevel);
+  if (!Number.isSafeInteger(raw)) return undefined;
+  return Math.min(9, Math.max(safeBase, raw));
+}
+
+/** The AP cost this Art would have at the cast level before Urgency, used to cap the discount honestly. */
+function healingBaseCost(actor, item, level) {
+  try {
+    const state = artsState(actor);
+    const base = Number(item?.system?.level);
+    const grant = grantFor(item, actor, {});
+    try {
+      return quoteArt(state, base, level ?? base, grant, {}).cost;
+    } catch {
+      return quoteArt(state, base, base, grant, {}).cost;
+    }
+  } catch { return null; }
+}
+
+/** 1 AP per 10 Life Support actually spent, capped by the casting's remaining cost (floored at 0). */
+function urgencyQuote(actor, item, selection, level) {
+  const requested = Math.max(0, Math.floor((Number(selection?.lifeSupport) || 0) / 10) * 10);
+  if (!requested) return {};
+  const available = lifeSupportState(actor).value;
+  const spendable = Math.min(requested, available);
+  // Units follow the printed rate (1 AP per 10 LS actually spent). Every quoted row floors its own
+  // cost at 0, so upcast rows show the full cast-level discount even before a level is selected.
+  const units = Math.max(0, Math.floor(spendable / 10));
+  // Only whole units up to the casting's remaining cost ever leave the pool (no fractional overspend).
+  const remaining = healingBaseCost(actor, item, level);
+  const payable = remaining === null ? units : Math.min(units, Math.max(0, remaining));
+  return { discounts: units ? [{ amount: units, source: "Urgency of Treatment" }] : [], lifeSupportCost: payable * 10 };
+}
+
+function urgencyValidate(actor, item, selection, level) {
+  const warnings = [];
+  const wanted = Number(selection?.lifeSupport) || 0;
+  const requested = Math.max(0, Math.floor(wanted / 10) * 10);
+  if (wanted % 10 !== 0) warnings.push({ id: "round", text: "Urgency of Treatment spends Life Support in multiples of 10; the request is rounded down." });
+  if (!requested) return { warnings, errors: [] };
+  const available = lifeSupportState(actor).value;
+  if (requested > available) warnings.push({ id: "short", text: `Only ${available} Life Support is available; the Urgency request is clamped to ${Math.floor(available / 10) * 10}.` });
+  const base = healingBaseCost(actor, item, level);
+  const spendable = Math.min(requested, available);
+  if (base !== null && spendable > base * 10) {
+    warnings.push({ id: "excess", text: `${spendable - base * 10} Life Support would be wasted; this Art costs only ${base} AP.` });
+  }
+  return { warnings, errors: [] };
+}
+
+function urgencyConsume(actor, item, selection, updates, receipt, level) {
+  const requested = Math.max(0, Math.floor((Number(selection?.lifeSupport) || 0) / 10) * 10);
+  const quoted = urgencyQuote(actor, item, selection, level);
+  const cost = quoted.lifeSupportCost ?? 0;
+  if (receipt) {
+    receipt.lifeSupportCost = cost;
+    receipt.lifeSupportRequested = requested;
+    receipt.lifeSupportShortfall = Math.max(0, requested - cost);
+  }
+  if (!cost) return;
+  // Compose from the pending cast update, never overwrite a staged provider write from a live snapshot.
+  const pending = Number(updates?.actor?.["flags.ak5e.resourcePools.lifeSupport.value"]);
+  const available = Number.isFinite(pending) ? pending : lifeSupportState(actor).value;
+  updates.actor ??= {};
+  updates.actor["flags.ak5e.resourcePools.lifeSupport.value"] = Math.max(0, Math.min(available, available - cost));
+}
+
+/** Cast-option provider: offered only for a Medic's Healing Arts Pool Arts (U3-3). */
+function medicCastOptions(actor, item, activity, context) {
+  if (!medicEnabled(actor) || !hasUrgencyOfTreatment(actor) || !healingArt(item)) return null;
+  // The engine passes the cast context through; the discount caps at the selected cast level.
+  const level = castLevelOf(item, context);
+  return {
+    id: URGENCY_ID,
+    label: "Urgency of Treatment",
+    fields: [{ name: "lifeSupport", label: "Life Support", type: "number", min: 0, step: 10 }],
+    validate: selection => urgencyValidate(actor, item, selection, level),
+    quote: selection => urgencyQuote(actor, item, selection, level),
+    consume: (selection, updates, receipt) => urgencyConsume(actor, item, selection, updates, receipt, level)
+  };
+}
+
+/** Grant adapter: an Art created by Self-Defence Protocol carries its AP reduction (U3-4). */
+function medicArtGrant(actor, item) {
+  const grant = item?.getFlag?.("ak5e", "medicArtGrant") ?? item?.flags?.ak5e?.medicArtGrant;
+  if (!grant || grant.source !== SELF_DEFENCE_SOURCE) return {};
+  return { reduction: selfDefenceProtocolReduction(actor), source: SELF_DEFENCE_SOURCE };
+}
+
+let medicArtsRegistered = false;
+/** Idempotent: registers the Urgency quote/validate/consume provider and the Self-Defence grant. */
+export function registerMedicArts() {
+  if (medicArtsRegistered) return false;
+  medicArtsRegistered = true;
+  registerLifeSupportPool();
+  registerArtCastOptions(medicCastOptions);
+  registerArtGrant(medicArtGrant);
+  return true;
+}
+
+/** Read-only preview of the chosen Standard Arts Pool (levelled Arts up to 5th plus cantrips). */
+export async function previewSelfDefenceProtocol(actor, { poolId } = {}) {
+  need(actor?.isOwner, "Choose an owned Medic.");
+  need(actor?.documentName === "Actor" && !actor.pack, "Choose a live Actor.");
+  need(typeof poolId === "string" && poolId, "Choose a Standard Arts Pool.");
+  const members = supporterArtsMembers(poolId);
+  const existing = values(actor.items).filter(item => item.type === "spell");
+  const creates = [], known = [], missing = [];
+  for (const member of members) {
+    const present = existing.find(item => {
+      const grant = item.getFlag?.("ak5e", "medicArtGrant") ?? item.flags?.ak5e?.medicArtGrant;
+      return grant?.name === member.name || String(item.name ?? "").toLowerCase() === member.name.toLowerCase();
+    });
+    if (present) { known.push(member.name); continue; }
+    const data = await resolvePoolArtData(member.name, member.level, [poolId]);
+    if (!data) { missing.push({ name: member.name, level: member.level }); continue; }
+    data.system = { ...data.system, prepared: 2, method: "ak5e" };
+    data.flags = { ...(data.flags ?? {}) };
+    data.flags.ak5e = { ...(data.flags.ak5e ?? {}),
+      medicArtGrant: { source: SELF_DEFENCE_SOURCE, poolId, name: member.name } };
+    // Assign the id before creation so the undo receipt can name exactly the Arts this use granted.
+    data._id = globalThis.foundry?.utils?.randomID?.() ?? `medic-sdp-${poolId}-${member.level}-${member.name}`;
+    creates.push(data);
+  }
+  const reduction = selfDefenceProtocolReduction(actor);
+  const previousPool = flag(actor, "medic")?.selfDefenceProtocol?.poolId ?? null;
+  const warnings = [];
+  // A missing source prerequisite is advisory (WORKFLOW 3.2): warn, never block. The confirmed apply
+  // carries this warning onto the receipt and result so the table sees the override.
+  if (!hasSelfDefenceProtocol(actor)) {
+    warnings.push("Self-Defence Protocol is a Medic level 5 feature and this character does not currently meet that prerequisite; continuing is a confirmed override (warning only).");
+  }
+  if (missing.length) warnings.push(`${missing.length} chosen-pool Arts need a GM-approved spell mapping: ${missing.map(entry => entry.name).join(", ")}.`);
+  if (previousPool && previousPool === poolId) {
+    warnings.push("Self-Defence Protocol must choose a Standard Arts Pool you have not chosen previously; the same pool is already recorded (warning only).");
+  }
+  const contextKey = JSON.stringify([actor.uuid, poolId, reduction, creates.map(data => data.name), known]);
+  return {
+    poolId, pool: poolId, reduction, creates, existing: known, missing, contextKey,
+    warnings
+  };
+}
+
+/** Apply the exact previewed grant. Owned Arts are never duplicated or overwritten. */
+export async function applySelfDefenceProtocol(actor, { poolId, confirmed, contextKey } = {}) {
+  need(confirmed === true, "Confirm the previewed Self-Defence Protocol first.");
+  const plan = await previewSelfDefenceProtocol(actor, { poolId });
+  need(plan.contextKey === contextKey, "The character changed since the preview; preview the Self-Defence Protocol again.");
+  const updates = { "flags.ak5e.medic.selfDefenceProtocol": { poolId, source: SELF_DEFENCE_SOURCE, reduction: plan.reduction } };
+  const changes = captureArtChanges(actor, updates);
+  const items = plan.creates.map(receiptItemRecord).filter(Boolean);
+  let receipt = null;
+  if (changes.length || items.length) {
+    receipt = {
+      id: `medic-self-defence-${String(actor.id ?? actor.uuid).replace(/[^A-Za-z0-9_-]/g, "")}-${Date.now().toString(36)}`,
+      name: "Self-Defence Protocol", level: medicLevel(actor), cost: 0, source: SELF_DEFENCE_SOURCE,
+      actorUuid: actor.uuid, changes, items, warnings: [...plan.warnings]
+    };
+    updates["flags.ak5e.artReceipts"] = appendArtReceipt(actor, receipt, changes);
+  }
+  await actor.update(updates);
+  await createReceiptItems(actor, receipt?.id, plan.creates);
+  return { poolId, reduction: plan.reduction, granted: plan.creates.map(data => data.name),
+    missing: plan.missing.map(entry => entry.name),
+    warnings: [...plan.warnings],
+    receipt: receipt ? structuredClone(receipt) : null };
+}
+
 
 export const resuscitation = actor => getPool(actor, "resuscitation");
 export const spendResuscitation = (actor, amount = 1, reason) => spendPool(actor, "resuscitation", amount, { reason });
