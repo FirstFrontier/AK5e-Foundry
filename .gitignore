@@ -37,3 +37,12 @@ pnpm-debug.log*
 
 # Worker worktrees (Claude Code agent isolation)
 /.claude/worktrees/
+
+# Agent runtime (local-only): orchestration configs, skills, lanes, reports.
+# Kept on disk in live checkouts; never committed.
+/.agents/
+/.claude/
+/.codex/
+
+# OpenClaw session backup archives: never committed.
+*-openclaw-backup.tar.gz
