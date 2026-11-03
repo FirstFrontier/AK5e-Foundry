@@ -2,7 +2,7 @@
 
 Authority: `03_chapter_3_character_classes.txt` — Defender L896–1219, Artshield L1223–1292, Dreadnought L1324–1361; Chapter 1 (Martial DC L211, Damage Reduction, "no Action required" L291); Chapter 6 L15/L79 (Elite, Leader). Stable IDs are those of the existing catalogues; this batch adds Actor workflows and does not replace packs.
 
-Status: **implemented, unit-tested, and verified in a rendered Foundry 13.351 / dnd5e 5.3.3 session** (disposable `standard-test` World, 2026-10-10: 18/18 live checks plus a server-restart persistence check). Known limits are listed in `FOUNDRY_SMOKE_TEST.md` ("Defender, Dreadnought and Artshield live run") and `BUGS.md` (B-080 to B-087).
+Status: **implemented, unit-tested, and verified in a rendered Foundry 13.351 / dnd5e 5.3.3 session** (disposable `standard-test` World, 2026-10-10: 18/18 live checks plus a server-restart persistence check). Known limits are listed in `FOUNDRY_SMOKE_TEST.md` ("Defender, Dreadnought and Artshield live run") and `bugs/` (B-080 to B-087; B-086 is in `bugs/pending/`, the rest in `bugs/fixed/`).
 
 Feature setup is opt-in: *Defender controls › Review feature setup* (or `game.ak5e.defender.preview/apply`) previews and applies. Nothing is imported on render, on class drop, or from a lifecycle hook. Feature setup enables Defender support, sets the Reaction maximum (2 from level 13), creates the managed effects below and adds the two native activities **only when missing**; an edited effect or activity is kept and reported. *Class progression setup* separately previews native HP, proficiencies, equipment, ASIs and all 42 Talent/Module choices. Operator Skills retain their existing chooser.
 

@@ -16,7 +16,9 @@ test("AP costs follow selected level, not the base Art level", () => {
   assert.equal(quoteArt(state, 0, 0).cost, 0);
   assert.throws(() => quoteArt(state, 0, 1), /Cantrips/);
   assert.throws(() => quoteArt(state, 3, 2), /Cast level/);
-  assert.throws(() => quoteArt({ ...state, value: 2 }, 3, 3), /only 2/);
+  const short = quoteArt({ ...state, value: 2 }, 3, 3);
+  assert.equal(short.shortfall, 1);
+  assert.equal(short.remaining, 0);
   assert.throws(() => quoteArt({ ...state, maximumArtLevel: 2 }, 3, 3), /maximum Art level/);
 });
 

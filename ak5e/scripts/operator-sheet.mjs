@@ -31,7 +31,7 @@ export function openOperatorSkillChoices(actor, { automatic = false } = {}) {
   if (advancingActors.has(actor.uuid)) return automatic ? Promise.resolve(false) : Promise.reject(new Error(spText("FinishAdvancement")));
   if (choiceDialogs.has(actor.uuid)) return choiceDialogs.get(actor.uuid);
   const view = getOperatorSkillChoices(actor);
-  if (!view.applicable || !view.pending.length && !view.blocked.length && !view.slots.some(slot => slot.recovery)) return Promise.resolve(false);
+  if (!view.applicable || !view.pending.length && !view.blocked.length && !view.slots.some(slot => slot.recovery || slot.status === "chosen" && slot.replacementKey)) return Promise.resolve(false);
   const signature = JSON.stringify([view.classId, view.branchName, view.pending.map(slot => slot.key), view.blocked,
     view.slots.filter(slot => slot.recovery).map(slot => slot.key)]);
   if (automatic && (advancingActors.has(actor.uuid) || seenPrompts.get(actor.uuid)?.has(signature))) return Promise.resolve(false);
@@ -54,28 +54,31 @@ async function skillChoicesDialog(actor) {
   for (;;) {
     const view = getOperatorSkillChoices(actor);
     if (!actor.isOwner || !isLiveProgressionActor(actor)) throw new Error(spText("OwnerRequired"));
-    const offered = view.slots.filter(slot => slot.status === "pending" || slot.recovery);
+    const offered = view.slots.filter(slot => slot.status === "pending" || slot.recovery || slot.status === "chosen" && slot.replacementKey);
+    const slotControl = (slot, index) => slot.key === `${view.classId}:${slot.tier}` ? slot.tier.toLowerCase() : `extra-${index}`;
     if (!view.applicable || !offered.length && !view.blocked.length) return false;
     for (const slot of offered) if (slot.recovery) selected.set(slot.key, slot.selection.sourceId);
+    for (const slot of offered) if (slot.replacementKey && slot.selection && !selected.has(slot.key)) selected.set(slot.key, slot.selection.sourceId);
     const content = `<div class="ak5e-skill-choices"><p>${esc(spText("ChoiceHint"))}</p>
       ${!view.branchName ? `<p>${esc(spText("BranchHint"))}</p>` : ""}
       ${view.blocked.map(reason => `<p class="ak5e-choice-warning" role="alert">${esc(spText(reason))}</p>`).join("")}
-      ${offered.map(slot => `<section><h3>${esc(spText(slot.tier))} · ${esc(spText("Level"))} ${slot.level}</h3>
-        ${field("Skill", select(`skill-${slot.tier.toLowerCase()}`, [["", spText("SelectSkill")], ...(slot.recovery ? CHAPTER_THREE_CLASSES.filter(entry => entry.id === slot.selection.sourceId) : slot.options).map(entry => [entry.id, `${entry.name} (${entry.operatorSkill.cost} SP; ${entry.operatorSkill.source})`])], selected.get(slot.key) ?? ""))}
-        <article class="ak5e-choice-preview" data-tier="${slot.tier}" aria-live="polite"></article></section>`).join("")}</div>`;
+      ${offered.map((slot, index) => `<section><h3>${esc(slot.label ?? spText(slot.tier))} · ${esc(spText("Level"))} ${slot.level}</h3>
+        ${field("Skill", select(`skill-${slotControl(slot, index)}`, [["", spText("SelectSkill")], ...(slot.recovery ? CHAPTER_THREE_CLASSES.filter(entry => entry.id === slot.selection.sourceId) : slot.options).map(entry => [entry.id, `${entry.name} (${entry.operatorSkill.cost} SP; ${entry.operatorSkill.source})`])], selected.get(slot.key) ?? ""))}
+        <article class="ak5e-choice-preview" data-tier="${esc(slot.tier)}" data-slot-index="${index}" aria-live="polite"></article></section>`).join("")}</div>`;
     const result = await dialog(`${spText("ChooseSkills")} — ${actor.name}`, content, [
-      { action: "learnSkills", label: spText("LearnSkills"), callback: (_event, button) => offered.map(slot => ({ key: slot.key,
-        sourceId: button.form.elements[`skill-${slot.tier.toLowerCase()}`].value })) },
+      { action: "learnSkills", label: spText("LearnSkills"), callback: (_event, button) => offered.map((slot, index) => ({ key: slot.key,
+        sourceId: button.form.elements[`skill-${slotControl(slot, index)}`].value, ...(slot.replacementKey ? { replacementKey: slot.replacementKey } : {}) })) },
       { action: "later", label: spText("ChooseLater"), callback: () => null }
     ], { position: { width: 680 }, render: (_event, app) => {
       choiceApplications.set(actor.uuid, app);
       const update = () => {
         let complete = offered.length > 0 && !view.blocked.length;
-        for (const slot of offered) {
-          const control = app.element.querySelector(`[name="skill-${slot.tier.toLowerCase()}"]`);
+        for (const [index, slot] of offered.entries()) {
+          const control = app.element.querySelector(`[name="skill-${slotControl(slot, index)}"]`);
           control.disabled = slot.recovery;
           const entry = (slot.recovery ? CHAPTER_THREE_CLASSES : slot.options).find(entry => entry.id === control.value);
-          app.element.querySelector(`[data-tier="${slot.tier}"]`).innerHTML = entry?.content ?? "";
+          const preview = slot.key === `${view.classId}:${slot.tier}` ? `[data-tier="${slot.tier}"]` : `[data-slot-index="${index}"]`;
+          app.element.querySelector(preview).innerHTML = entry?.content ?? "";
           complete &&= Boolean(entry);
         }
         app.element.querySelector('[data-action="learnSkills"]').disabled = !complete;

@@ -4,6 +4,8 @@ import { learnedSkills, operatorState, skillDefinition, spInteger, eventIdentity
 import { registerOperatorSheetHooks, openOperatorSkills, openOperatorSkillChoices } from "./operator-sheet.mjs";
 import { getOperatorSkillChoices, progressionWithChoices } from "./operator-progression.mjs";
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
+import { vanguardProfile } from "./vanguard-rules.mjs";
+import { notifyVanguardOperatorCommit } from "./vanguard-extensions.mjs";
 import { skillTargetProfile, validateSkillPrerequisites } from "./operator-target-profiles.mjs";
 import { profileForSkill, nativePhaseActivities, prepareSkillActivation, prepareSkillPhase, validateSkillResolution, resolutionReceipt,
   skillTemplateData, publicResolution, displaySkillResolution, rollSkillPhase, populateSkillTargets, advanceSkillArea, syncSkillTemplates } from "./operator-targeting.mjs";
@@ -11,10 +13,23 @@ export { openOperatorSkills, openOperatorSkillChoices, getOperatorSkillChoices }
 
 const list = collection => Array.from(collection?.values?.() ?? collection ?? []);
 const flag = (document, key) => document?.getFlag?.("ak5e", key) ?? document?.flags?.ak5e?.[key];
+async function cleanupReplacedSkills(actor, replacements, state) {
+  const references = Object.values(state.progression?.choices ?? {}).map(choice => choice?.itemId);
+  const remove = [];
+  for (const replacement of replacements ?? []) {
+    const item = actor.items.get(replacement.previousItemId);
+    const marker = flag(item, "operatorSkillChoice");
+    if (item && marker?.key === replacement.key && marker.sourceId === replacement.previousSourceId && !references.includes(item.id)) remove.push(item.id);
+  }
+  if (remove.length) await actor.deleteEmbeddedDocuments("Item", remove);
+}
 const isSkillTemplate = (template, activationId, skillUuid) => flag(template, "skillActivation") === activationId && flag(template, "skillOrigin")?.skillUuid === skillUuid;
 const damageSnapshots = new WeakMap();
 const restRequests = new WeakMap();
 const consumedOrigins = new Set();
+// These are ordinary play actions on an Actor the user owns. They must still work
+// when no GM client is connected; catalogue/admin and pool maintenance stay GM-run.
+const OWNER_LOCAL_PLAY_COMMANDS = new Set(["activate", "end", "resolvePhase"]);
 let installed = false;
 const safely = promise => Promise.resolve(promise).catch(error => { console.error("AK5e | Operator Skills", error); ui.notifications.error(error.message); });
 export const spText = key => game.i18n.localize(`AK5E.Operator.${key}`);
@@ -61,8 +76,14 @@ export function operatorContext(actor) {
 
 const serial = keyedSerial();
 
-async function save(actor, state) {
-  if (!operates()) throw new Error(spText("GMRequired"));
+export function isOwnerLocalOperatorCommand(actor, request, user = game.user) {
+  const hasVanguardClass = list(actor?.items).some(item => flag(item, "chapterThreeId") === "class-vanguard");
+  return Boolean(!user?.isGM && user?.id === game.user?.id && hasVanguardClass && OWNER_LOCAL_PLAY_COMMANDS.has(request?.command)
+    && actor?.testUserPermission?.(user, "OWNER"));
+}
+
+async function save(actor, state, ownerLocalRequest = null, ownerLocalUser = game.user) {
+  if (!operates() && !isOwnerLocalOperatorCommand(actor, ownerLocalRequest, ownerLocalUser)) throw new Error(spText("GMRequired"));
   // Derived counts/rates are never authoritative persisted inputs.
   const { counts, rates, ...stored } = state;
   // Unlinked token deltas must store even fields currently equal to the base Actor.
@@ -74,20 +95,28 @@ async function save(actor, state) {
 
 /** All new SP writes use the elected GM's per-Actor queue. */
 export async function executeOperatorCommand(actor, request, user = game.user) {
-  if (!operates()) throw new Error(spText("GMRequired"));
+  const ownerLocal = isOwnerLocalOperatorCommand(actor, request, user);
+  if (!operates() && !ownerLocal) throw new Error(spText("GMRequired"));
   owned(actor, user);
   if (!request?.id || typeof request.id !== "string") throw new Error("An SP command requires a stable ID.");
   return serial(actor, async () => {
-    if (!operates()) throw new Error(spText("GMRequired"));
+    if (!operates() && !ownerLocal) throw new Error(spText("GMRequired"));
     owned(actor, user);
     let state = getIntegratedOperatorState(actor);
     const previous = state.operations.find(operation => operation.id === request.id);
-    if (previous) return { state, result: ["activate", "resolvePhase"].includes(request.command) && previous.result?.activationId
-      ? { ...previous.result, replayed: true } : previous.result };
+    if (previous) {
+      if (previous.result?.replacements?.length) await cleanupReplacedSkills(actor, previous.result.replacements, state);
+      const profile = vanguardProfile(actor);
+      if (profile.applicable) for (const event of state.operatorEvents ?? []) if (event.activationId === request.id) {
+        await notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId, event: Object.freeze(structuredClone(event)), state: "present", reason: "replay", requestId: request.id, initiatingUserId: user.id });
+      }
+      return { state, result: ["activate", "resolvePhase"].includes(request.command) && previous.result?.activationId
+        ? { ...previous.result, replayed: true } : previous.result };
+    }
     const data = request.data ?? {};
     const context = operatorContext(actor);
     if (skillExpired(state.active, context)) state = queueEndingPhase(actor, state);
-    let result = true;
+    let result = true, operatorEvent = null;
     switch (request.command) {
       case "enable": state = operatorState({ ...state, enabled: data.enabled !== false }, actorOperatorSkills(actor)); break;
       case "learn": {
@@ -111,21 +140,33 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
       }
       case "chooseSkills": {
         if (!isLiveProgressionActor(actor)) throw new Error(spText("ChoiceActorRequired"));
-        let view = getOperatorSkillChoices(actor);
+        let view = getOperatorSkillChoices(actor, { ignoreRequestId: request.id });
         if (!view.applicable || !view.contextKey) throw new Error(spText("ChoiceActorRequired"));
         if (data.contextKey !== view.contextKey) throw new Error(spText("StaleChoices"));
         if (view.blocked.length) throw new Error(spText(view.blocked[0]));
         const selections = data.selections;
         if (!Array.isArray(selections) || !selections.length || new Set(selections.map(choice => choice?.key)).size !== selections.length) throw new Error(spText("SelectAllSkills"));
-        const toCreate = [];
+        const toCreate = [], replacements = [];
         for (const choice of selections) {
           const slot = view.slots.find(slot => slot.key === choice?.key);
-          if (!slot || slot.status === "locked" || slot.status === "chosen" && slot.selection.sourceId !== choice.sourceId
+          const replacement = slot?.status === "chosen" && slot.selection.sourceId !== choice.sourceId;
+          if (replacement && (!choice.replacementKey || choice.replacementKey !== slot.replacementKey || !slot.options.some(entry => entry.id === choice.sourceId)
+            || state.operations.some(operation => operation.result?.replacements?.some(entry => entry.replacementKey === choice.replacementKey)))) throw new Error(spText("InvalidSkillChoice"));
+          if (!slot || slot.status === "locked" || slot.status === "chosen" && slot.selection.sourceId !== choice.sourceId && !replacement
             || slot.status === "pending" && !slot.options.some(entry => entry.id === choice.sourceId)) throw new Error(spText("InvalidSkillChoice"));
-          if (slot.status === "chosen") continue;
+          if (slot.status === "chosen" && !replacement) continue;
           const entry = slot.options.find(entry => entry.id === choice.sourceId);
+          if (replacement) replacements.push({ replacementKey: choice.replacementKey, key: slot.key,
+            previousSourceId: slot.selection.sourceId, previousItemId: slot.selection.itemId, sourceId: choice.sourceId });
+          const recovered = list(actor.items).find(item => { const marker = flag(item, "operatorSkillChoice");
+            return marker?.requestId === request.id && marker.key === slot.key && marker.sourceId === choice.sourceId; });
+          if (recovered) continue;
           const itemData = operatorSkillItemData(entry);
-          itemData.flags.ak5e.operatorSkillChoice = { key: slot.key, sourceId: entry.id };
+          itemData.flags.ak5e.operatorSkillChoice = { key: slot.key, sourceId: entry.id, requestId: request.id,
+            ...(replacement ? { replacementKey: choice.replacementKey } : {}),
+            ...(slot.ignoreCharging === true ? { ignoreCharging: true } : {}) };
+          // The slot says "ignore the Charging Method for that Skill": the learned Skill contributes no charging method.
+          if (slot.ignoreCharging === true) itemData.flags.ak5e.operatorSkill.ignoreCharging = true;
           toCreate.push(itemData);
         }
         if (view.pending.some(slot => !selections.some(choice => choice.key === slot.key))) throw new Error(spText("SelectAllSkills"));
@@ -133,11 +174,18 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         // Recover interrupted creation/Actor saves from embedded choice markers on retry.
         if (!operates()) throw new Error(spText("GMRequired"));
         owned(actor, user);
-        view = getOperatorSkillChoices(actor);
+        view = getOperatorSkillChoices(actor, { ignoreRequestId: request.id });
         if (view.contextKey !== data.contextKey) throw new Error(spText("StaleChoices"));
-        if (selections.some(choice => view.slots.find(slot => slot.key === choice.key)?.selection?.sourceId !== choice.sourceId)) throw new Error(spText("ChoiceCommitFailed"));
-        state = operatorState({ ...state, progression: progressionWithChoices(state.progression, view) }, actorOperatorSkills(actor));
-        result = selections.map(choice => ({ key: choice.key, ...view.slots.find(slot => slot.key === choice.key).selection }));
+        if (selections.some(choice => !replacements.some(entry => entry.key === choice.key) && view.slots.find(slot => slot.key === choice.key)?.selection?.sourceId !== choice.sourceId)) throw new Error(spText("ChoiceCommitFailed"));
+        const progression = progressionWithChoices(state.progression, view);
+        for (const replacement of replacements) {
+          const item = list(actor.items).find(candidate => { const marker = flag(candidate, "operatorSkillChoice"); return marker?.requestId === request.id && marker.key === replacement.key && marker.sourceId === replacement.sourceId; });
+          if (!item) throw new Error(spText("ChoiceCommitFailed"));
+          progression.choices[replacement.key] = { sourceId: replacement.sourceId, itemId: item.id };
+        }
+        state = operatorState({ ...state, progression }, actorOperatorSkills(actor));
+        const chosen = selections.map(choice => ({ key: choice.key, ...progression.choices[choice.key] }));
+        result = replacements.length ? { choices: chosen, replacements } : chosen;
         break;
       }
       case "sync":
@@ -151,7 +199,11 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         const item = actor.items.get(skill.itemId);
         const resolution = await validateSkillResolution(actor, item, data, user);
         // Validate SP before creating any persistent geometry.
+        const beforeSP = state.points;
         const activated = activateSkillState(state, skill, { ...context, id: request.id });
+        operatorEvent = { id: `${request.id}:activation`, activationId: request.id, kind: "activation", sourceId: skill.sourceId,
+          skillUuid: item.uuid, name: skill.name, cost: skill.cost, spBefore: beforeSP, spAfter: activated.points,
+          spSpent: beforeSP - activated.points, committed: true, createdAt: Date.now() };
         if (resolution) {
           const receipts = state.resolutions ?? [];
           const receipt = resolutionReceipt(resolution, data, request.id, item, user);
@@ -159,7 +211,7 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
             flags: { ak5e: { privateSkillSelection: { activationId: request.id, selectedTargetUuids: data.targetTokenUuids ?? [], narrativeTokenUuids: data.narrativeTokenUuids ?? [] } } } });
           receipt.privateMessageUuid = privateSelection.uuid;
           // A prepared receipt survives a disconnect between template creation and the SP commit.
-          await save(actor, { ...state, resolutions: [...receipts.filter(old => old.activationId !== request.id), receipt] });
+          await save(actor, { ...state, resolutions: [...receipts.filter(old => old.activationId !== request.id), receipt] }, ownerLocal ? request : null, user);
           const scene = resolution.scene;
           const templateData = scene ? skillTemplateData(resolution, request.id, user.id) : [];
           const existing = scene ? list(scene.templates).filter(template => isSkillTemplate(template, request.id, item.uuid)) : [];
@@ -184,7 +236,14 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         state = activateSkillState(state, { ...data, name: data.name ?? data.id, duration: data.duration ?? "Manual" }, { ...context, id: request.id });
         break;
       }
-      case "end": state = queueEndingPhase(actor, state); break;
+      case "end": {
+        const active = state.active;
+        state = queueEndingPhase(actor, state);
+        if (active?.activationId) operatorEvent = { id: `${active.activationId}:end`, activationId: active.activationId,
+          kind: "end", sourceId: active.id, skillUuid: active.uuid ?? null, name: active.name,
+          spBefore: state.points, spAfter: state.points, spSpent: 0, committed: true, createdAt: Date.now() };
+        break;
+      }
       case "resolvePhase": {
         if (!state.enabled) throw new Error(spText("EnableFirst"));
         const receipt = state.resolutions?.find(receipt => receipt.activationId === data.activationId && receipt.status === "committed");
@@ -332,10 +391,12 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
       }
       default: throw new Error("Unknown Operator Skill operation.");
     }
+    const operatorEvents = state.operatorEvents ?? [];
+    if (operatorEvent && !operatorEvents.some(event => event.id === operatorEvent.id)) state = { ...state, operatorEvents: [...operatorEvents, operatorEvent] };
     state = { ...state, operations: [...state.operations, { id: request.id, result }] };
     owned(actor, user);
     let committed;
-    try { committed = await save(actor, state); }
+    try { committed = await save(actor, state, ownerLocal ? request : null, user); }
     catch (error) {
       if (request.command === "activate") {
         const receipt = state.resolutions?.find(receipt => receipt.activationId === request.id);
@@ -343,6 +404,12 @@ export async function executeOperatorCommand(actor, request, user = game.user) {
         if (scene && receipt?.templateIds?.length) await scene.deleteEmbeddedDocuments("MeasuredTemplate", receipt.templateIds);
       }
       throw error;
+    }
+    if (result?.replacements?.length) await cleanupReplacedSkills(actor, result.replacements, committed);
+    if (operatorEvent && !(operatorEvents.some(event => event.id === operatorEvent.id))) {
+      const profile = vanguardProfile(actor);
+      if (profile.applicable) await notifyVanguardOperatorCommit({ actor, actorUuid: actor.uuid, branchId: profile.branchId,
+        event: Object.freeze(structuredClone(operatorEvent)), state: "present", reason: "commit", requestId: request.id, initiatingUserId: user.id });
     }
     await cleanupEndedSkillTemplates(actor, committed);
     if (request.command === "activate") {
@@ -415,9 +482,12 @@ export async function handleOperatorRequest(message, _options, userId) {
 
 export async function submitOperatorCommand(actor, command, data = {}, id = newId()) {
   owned(actor);
-  const gm = activeGM();
-  if (!gm) throw new Error(spText("GMRequired"));
   const request = { id, actorUuid: actor.uuid, command, data };
+  const gm = activeGM();
+  if (!gm) {
+    if (!isOwnerLocalOperatorCommand(actor, request)) throw new Error(spText("GMRequired"));
+    return (await executeOperatorCommand(actor, request)).result;
+  }
   if (operates()) return (await executeOperatorCommand(actor, request)).result;
   // A real document provides a server-attributed initiating user; no socket impersonation.
   const message = await ChatMessage.implementation.create({ content: spText("Request"), whisper: [gm.id, game.user.id],

@@ -4,7 +4,7 @@ This file lists behaviour that is **implemented but not yet verified** the way W
 rendered Foundry VTT 13 + D&D5e session, as a player, in a clean World, or by a human at the table.
 
 **Where other things go:**
-- Known defects: `BUGS.md`.
+- Known defects: `bugs/pending/` (rules in `bugs/README.md`).
 - Open rules questions: `ak5e/DECISIONS.md`.
 - Planned work: `TODO.md`.
 - Evidence from completed runs: `ak5e/FOUNDRY_SMOKE_TEST.md`.
@@ -12,7 +12,7 @@ rendered Foundry VTT 13 + D&D5e session, as a player, in a clean World, or by a 
 **How to use:**
 - Add items under the relevant heading. Name what was already verified and how, so the gap is clear.
 - When an item is verified, tick it and note the date, the run and where the evidence lives.
-- If verification finds a defect, open a `BUGS.md` entry instead.
+- If verification finds a defect, open a `bugs/pending/` file instead (see `bugs/README.md`).
 - Use only disposable or private copies of test Worlds, and `launchTestBrowser()` for every Playwright Chromium run.
 
 ## Juggernaut, Protector and Sentry (2026-10-11)
@@ -33,7 +33,7 @@ rendered Foundry VTT 13 + D&D5e session, as a player, in a clean World, or by a 
 - [ ] Overwhelming Might on a **critical hit**: the extra Force roll should double like the weapon's dice. It is added as a separate roll configuration copied from the first roll.
 - [ ] Superheavy while not wearing Heavy Armour, rendered: no halving, and the panel says the Barrier does not protect.
 - [ ] Shatterstorm applied to several chosen Creatures with the roll card's native damage controls.
-- [ ] Superheavy when the GM and the Juggernaut's player apply Damage at the same moment (cross-client race; see BUGS.md B-092).
+- [ ] Superheavy when the GM and the Juggernaut's player apply Damage at the same moment (cross-client race; see bugs/pending B-092).
 
 ### Protector
 
@@ -76,4 +76,4 @@ rendered Foundry VTT 13 + D&D5e session, as a player, in a clean World, or by a 
 - [ ] A second player client that owns neither the Defender nor the target (observer view): cards, prompts and panel permissions.
 - [ ] Encounter-window locking of these receipts at combat start and end (undo shown as locked).
 - [ ] Cards and dialogs in the light theme. The screenshots were reviewed in the default dark interface with parchment cards.
-- [ ] A visible scroll affordance on the Defender panel once BUGS.md B-095 is addressed.
+- [ ] A visible scroll affordance on the Defender panel once bugs/pending B-095 is addressed.

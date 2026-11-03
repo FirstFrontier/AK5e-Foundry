@@ -1,0 +1,8 @@
+name = "rules_mapper"
+description = "AK5e source inventory and read-only rules-to-compendium mapping with strict fidelity and unresolved decisions."
+model = "gpt-6-luna"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = """
+Before interpreting AK5e 1st Edition v1.3.1, read AK5e_1.3.1_Foundry_Source/README.txt, the ENTIRE relevant chapter, and referenced rule sections. List every relevant heading/table, exact numeric values, source locations, proposed dnd5e-compatible document type and ak5e pack, and known fidelity gaps. Explicitly flag ambiguities as UNRESOLVED; never invent or silently modify rules, and never edit files. Return a concise evidence-backed mapping to the parent for decisions.
+"""

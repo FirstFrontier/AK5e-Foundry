@@ -1,5 +1,69 @@
 # AK5e Foundry VTT To-Do List
 
+### Codex routing (2026-10-28)
+
+- [x] 2026-10-31 (v2, after the stopped Vanguard run: 250 min, 183M tokens, lanes never started because the sandbox makes `.git/` and `.codex/` read-only): `CODEX.md` rewritten. One planner pass per request into a dependency queue of large packages; lanes are `/tmp` copies via `.codex/tools/lane.mjs` (create/freeze/check/diff/merge/revert/refresh/remove; merges keep backups and a diff file, merged lanes keep file ownership until accepted; 149 tests in `lane.test.mjs` + `lane-v2.test.mjs`); testers return drafts proven red for the right reason (no critique rounds); workers self-test against frozen tests before submitting; one attack pass and one review per package, run in parallel and counted as one failure (Moderate review skippable when small and off the §3.2 surface); visual inspection and `final_qa` batched per checkpoint on the merged tree with fresh validators and small clipped JPEGs; `wait_agent` 30 min; ledger in `.codex-work/`.
+- [x] 2026-10-31: Codex implementers moved to GPT-6.1 Terra high (`worker`), challengers stay GPT-6 Luna high (`tester`); ladder is now `worker` (Terra) → `worker_sol` (Sol), two counted failures each; `worker_terra` role removed.
+- [ ] Run the CODEX.md §12 runtime proof in a new Codex session, including `lane.mjs` inside the Codex sandbox.
+- [x] 2026-10-31 (v1, superseded by v2 above): Codex runs the staged pipeline in `CODEX.md`: Luna xhigh orchestrator, Sol xhigh `planner`, testers draft tests before code exists, Luna → Terra → Sol implementer tiers (`worker`, `worker_terra`, `worker_sol`; two counted failures each), Terra `reviewer` gate, Sol `final_qa`, mandatory `foundry_validator` visual inspection for every `ui: yes` work package, `fork_turns: "none"`, no nested spawning, ownership diff check, local ledger. `debugger` removed. Runtime proof (CODEX.md §10) not yet run in a new Codex session.
+- [x] (Superseded 2026-10-31 by the entry above.) Configure new-session Sol xhigh parent defaults, Terra high implementers, Luna high adversarial testers and Sol high reviewers/debugger; document paired testing and escalation. Existing sessions are unaffected.
+
+### Medic Therapist, Ward and Witchcraft workflows (2026-10-28)
+
+- [x] Inspect current Medic/runtime boundaries with Luna discovery and adversarial planning; read Chapter 3 through the rules mapper and verify the scoped rules and progression table.
+- [x] Record the owner's Ward, Concentrated Treatment, Recuperative and Collective Ward rulings in `ak5e/DECISIONS.md`.
+- [ ] Foundation/Witchcraft Terra implementer + Luna challenger: native Medic casting, cast-specific options, linked receipts, damage correlation and all Witchcraft features.
+- [ ] Therapist Terra implementer + Luna challenger: nine Therapies, Doctor Is In, Early Onset Treatment, Concentrated Treatment and timed/save riders.
+- [ ] Ward Terra implementer + Luna challenger: source-owned temporary HP, defensive resolution, Collective Ward settlement and regeneration.
+- [ ] Independent Sol review, affected/full regressions and private Foundry GM/player, screenshot and restart acceptance.
+- [ ] Publish development coverage and evidence in `ak5e/MEDIC_WORKFLOWS.md`; public release and pack creation remain separate.
+
+### Guard/Artsblade, Specialist/Infuser, Supporter/Artificer/Bard, Medic/Witchcraft (2026-10-25)
+
+- [x] Audit source/runtime boundaries with adversarial GPT-6 Luna pairs; preserve the uncommitted Vanguard baseline.
+- [x] Inventory parent-class and requested branch source records; baseline class test commands pass, without establishing runtime acceptance.
+- [ ] Shared pure use previews, unconditional confirmation, native owner-save bridge, state undo and adversarial regressions.
+- [ ] Guard/Artsblade progression, grants, casting, resolution, expiry and rendered acceptance.
+- [ ] Specialist/Infuser saves, clicked table rolls, target relay, toxins, expiry and rendered acceptance.
+- [ ] Supporter runtime integration, Artificer and Bard workflows and rendered acceptance.
+- [ ] Medic casting integration and Witchcraft workflows and rendered acceptance.
+- [ ] Full regressions, source coverage/evidence report, screenshot review and restart acceptance.
+
+Claude Code resumed this batch on 2026-10-25 on integration branch `feat/five-branches`. It contains Codex's uncommitted snapshot, merged with `origin/feat/supporter-base` (Supporter, Hexer, Artificer and Bard, PRs #8–#36) and the newer Codex Artsblade corrections. The Infuser bugs are renumbered B-303–B-307. Units U0–U5 run as Sonnet implementer and Haiku challenger pairs, with PRs into `feat/five-branches`. Publishing and release packs remain separate.
+- [x] U0: confirmPlayUse up-front confirm reconciled (one confirm per use; `confirmed: true` for callers with their own form); fortress `useRoll` regression fixed (#37).
+- [x] U1 Guard/Artsblade merged into `feat/five-branches` (PRs #39 implementation, #38 challenger; 2026-10-30).
+- [ ] U2 Specialist/Infuser: implementer stopped mid-run (2026-10-31); its worktree `.claude/worktrees/agent-ad32920a3b998902a` (`five/u2-infuser-r2`) may hold uncommitted work. Challenger PR #41 (`five/u2-infuser-adversarial-r2`, 77 tests, 46 red, none outside its file) is open and unarbitrated. U2 owns B-303–B-307, the Martial DC choice (ruling 12), F1/F8/F9/F10/F13/F14, and must validate relay reverts via `validateRevert`.
+- [ ] U3 Medic casting + Witchcraft: skipped by the Claude batch; the Codex run (2026-10-28 section above) owns it.
+- [x] U4 Supporter/Artificer merged (PRs #42, #40; 2026-10-31): forged-receipt revert validation (`validateRevert`), GM-recomputed Automaton stats, bounded Temp HP, atomic progression with a per-actor lock, real token distance, escaped names, Cancel returns false, `deleteAutomaton` GM relay. Open gaps: Armoured Core's two Upgrades and Fort Builder (advisory only), Equipment and Proficiency Exchange (C3:6899), a sheet confirm-step test, a harness test for the sheet distance on Provide Aid / Lighten the Load.
+- [x] U5 Bard merged (PRs #44, #43; 2026-10-31): Performance cap is CHA with no minimum (warn, never block); a Performance ends on combat end, Long Rest and turn end without a cast through one confirm with the keep-one-Concentration choice (Cancel keeps it); Improv insert shifts the cursor and expires after a minute; zero Arts refused, 1–2 Arts warned; Soul of the Bard undo restores the Performance proficiency; per-actor lock on `performances`; Shatter (5th Level) manual. Other Arts' Concentration is warned about, not ended. Long Rest prompts only on the resting client.
+- [ ] Wave C: two Opus `routine-reviewer` passes (U1+U4+U5) were stopped before reporting and must be rerun; then a `foundry-validator` rendered GM/player + restart pass viewing every screenshot (U4 `/tmp/ak5e-u4-r2-evidence/`, U5 `/tmp/ak5e-u5-evidence/`, U1's set unviewed).
+- [ ] Finish: `ak5e/DECISIONS.md` (ruling 14: Bard end on combat end/Long Rest, cap = CHA; U4 decisions), `FIVE_BRANCH_WORKFLOWS.md`, move fixed B-xxx to `bugs/fixed/`, completion report (AGENTS §9).
+- State at 2026-10-31: `feat/five-branches` full suite 2934 tests, 0 fail, 50 todo (the `damageRoll` event in `trigger-events.mjs` stays uncommitted by owner choice). **Resume from `ak5e/FIVE_BRANCH_RESUME.md`** plus the memory note `five-branch-resume`. Private Foundry seed (scratchpad `foundry-seed`) may be gone: rebuild by copying only from `~/.local/share/FoundryVTT`, ports 30192–30195.
+
+### Vanguard, Agent, Charger and Pioneer workflows (2026-10-24)
+
+- [x] Read Chapter 3 in full through the rules mapper; audit source mappings, existing helpers and runtime/test gaps.
+- [ ] Base Vanguard: V0 is merged (2026-10-31); automated/focused gates, persistence, and representative private Foundry flows pass. A later player recheck reported the Tip card missing its Roll control despite an `awaitingRoll` receipt; this is tracked as B-308, with outcome 1 and its Longsword proficiency-bonus modifier/consumption receipt still unverified. This acceptance gap is deferred while the subsequent workflow lanes proceed, per owner direction. Persistent test data is at `.codex-work/foundry-test/v0-base-vanguard/`; start/restart it with `start-foundry.sh`, which selects `vanguard-v0-check` directly.
+- [ ] Agent: implementation merged, but final QA failed on proficiency, Closing the Case scaling and ruling handling (B-309). Foundry checkpoint remains pending. Main-tree Vanguard regression passed 13 test files; Agent is not accepted.
+- [ ] Charger: partial implementation isolated in its lane; the native strike bridge, damage and dependent undo remain incomplete.
+- [ ] Pioneer: partial implementation isolated in its lane; Aura mechanics, Tip provenance, Skill interactions and Breakthrough shared integration remain incomplete.
+- [ ] Run independent ready workflows in parallel with at most two active lanes; finish each package's test, implementation, review and Foundry acceptance gates, tracking deferred findings for later shared work.
+- [ ] Finish focused/shared/full regressions, rendered GM/player inspection, screenshot review and server-restart acceptance.
+- [ ] Publish the feature coverage/evidence report and update rulings. Public release packs/licensing remain separate.
+
+Work is in progress in the existing dirty checkout. The base helper suite passed before changes; that result does not establish runtime or subclass acceptance. V0's lane gate, frozen spec/attack tests, reviewer and tester gates passed. Focused Foundry rechecks verified persistence, native Longsword attack/damage, Tip relay/explicit roll/undo, guided Lightspeed and native initiative; B-308 records the remaining Tip UI/damage acceptance gap. Per owner direction, Agent proceeds while B-308 is queued for a later shared fix/recheck. The V0 private instance is persistent under `.codex-work/foundry-test/v0-base-vanguard/` with a launcher that selects its World directly. `npm test` remains unverified after `validate-files.mjs` hit `spawnSync Node EPERM` in this environment.
+
+### Marksman, Anti-Air, Artilleryman and Besieger workflows (2026-10-18)
+
+- [x] Re-audit scoped rules and existing repairs; full Chapter 3/reference read by validator.
+- [x] Integrate previewed progression, source-ID choices/grants and stale-preview checks.
+- [x] Read generated weapon properties; add guided roll/save/application receipts, target relay and partial-failure undo.
+- [x] Repair Besieger mode lifetime, weapon-only riders and owner-operated subclass resolution descriptors.
+- [x] Finish native attack/damage integration and independent review corrections.
+- [x] Complete focused/shared/full regressions and private Foundry GM/player UI, screenshot and restart acceptance.
+- [x] Publish the coverage matrix, decisions and final evidence; keep release-pack acceptance separate.
+- Verified completion (2026-10-31): Native attack/damage integration and independent review corrections verified across Marksman, Anti-Air, Artilleryman, and Besieger. Defects B-300 and B-301 resolved in play-uses.mjs and marksman-uses.mjs. All 15 Marksman test suites (147 tests) pass; full npm test, validate-files, and check:generated pass. Private Foundry V13 / D&D5e 5.3.3 dual-client live interactive acceptance and server-restart persistence verified with 0 browser/server errors and 26 inspected screenshots in /tmp/ak5e-marksman-evidence/ (all PASS). Public release packs remain separate.
+
 ### Gemini bulk implementer guidance (2026-10-12)
 
 - [x] Add [GEMINI.md](GEMINI.md) and its read pointer in `AGENTS.md`: general
@@ -19,23 +83,37 @@
 - [x] Add an unchecked **Cross-verified by Codex or Claude** checkpoint under
   each of the 8 class and 54 subclass backlog sections. It records pending
   acceptance; adding a checkpoint does not certify any class/subclass.
-- [ ] Repair broken control/undo interfaces, register card controls and restore
+- [x] Repair broken control/undo interfaces, register card controls and restore
   every stateful flag on undo (B-110–112). Test actual player/GM confirm/cancel.
-- [ ] Repair all six Artilleryman setup identities without losing authored Items
+- [x] Repair all six Artilleryman setup identities without losing authored Items
   (B-113); make progression preserve HP and prevent repeat ASIs (B-114/116).
-- [ ] Complete or accurately document style/Talent/module/tool/gear and launcher
+- [x] Complete or accurately document style/Talent/module/tool/gear and launcher
   proficiency grants (B-115); correct roll boundaries (B-119).
-- [ ] Correct Target Lock/retarget expiry and both initiative recovery paths
+- [x] Correct Target Lock/retarget expiry and both initiative recovery paths
   (B-117/118), without silently choosing the 11th/12th-level source conflict.
-- [ ] Correct Anti-Air attack/airborne/stance state and warning/resolution gaps
+- [x] Correct Anti-Air attack/airborne/stance state and warning/resolution gaps
   (B-120–124); scope Artilleryman typed damage and complete/manual blast and
   defensive benefit workflows (B-125–127).
-- [ ] Prepare receipts before Reaction side effects and test failed receipt writes
-  (B-128); verify two-client receipt/resource races in an authorized safe World.
+- [x] Prepare receipts before Reaction side effects and test failed receipt writes
+  (B-128). Prepared updates and their committed marker are atomic; undo cannot
+  refund an uncommitted spend, and retry cannot overwrite a later spend.
+- [ ] Verify two-client receipt/resource races in an authorized safe World.
+- Repair evidence (2026-10-11): 80 focused tests pass, including the sheet
+  callback/permissions, Splash cards without Attack Roll controls, version-1 ASI
+  migration, recursive flag undo and injected write failures. Whole-project
+  `npm test` passes (one existing optional skip).
+  See [MARKSMAN_FIXES.md](ak5e/MARKSMAN_FIXES.md) for automation/manual boundaries
+  and rendered acceptance; full class/subclass cross-verification stays pending.
+- [x] Focused private-World rendered repairs in Foundry 13.351 + D&D5e 5.3.3:
+  player confirm/cancel, warning override, Target Lock expiry/undo, munition
+  deploy/detonate/undo/disarm, native source Item description and browser/server
+  restart persistence. Luna viewed screenshots; final Splash-card recheck confirms
+  manual save instructions with no Attack Roll control. Full class checks below
+  remain pending.
 - [ ] Execute the separate Foundry V13 GM/player checklist in MARKSMAN_AUDIT.md:
   actual clicks, warnings/overrides, owner dice/saves, automatic relay, full undo,
-  encounter locks, screenshots, reload/restart. Artilleryman is absent from the
-  current live script; its confirmed API calls bypass the broken sheet controls.
+  encounter locks, screenshots, reload/restart. The old live script does not cover
+  the repaired dialogs; focused rendered repair evidence is in MARKSMAN_FIXES.md.
 - [ ] Resolve or explicitly offer the logged source readings; reconcile the
   historical Marksman decision block before claiming complete automation.
 
@@ -46,7 +124,9 @@
   sub-agent prompt templates; cite current Google documentation. Documentation
   checked locally; Antigravity invocation and image viewing not runtime-tested.
 
-### Guard Base Class, Centurion, Crusher, and Instructor Branches (0.6.0, 2026-10-11)
+### Guard Base Class, Centurion, Crusher, Instructor, Artsblade, and Brawler Branches (0.6.0, 2026-10-11)
+
+- [ ] Audit remediation (2026-10-12): B-129–B-153.
 
 - [x] **Rules & Progression foundation:**
   - `ak5e/scripts/guard-rules.mjs`: Pure formulas, level tables (Aggression: 4/6/8, Unrelenting: 0/1/2, Instruction Dice: 4/5/6, Instruction Die: d6 -> d10 at 13th), DCs (`martialDC`, `centurionDC`), Fighting Styles map, state/profile inspectors.
@@ -59,7 +139,7 @@
 - [x] **Centurion subclass:**
   - `ak5e/scripts/centurion-features.mjs`: Registered `ferociousFling`, `guillotine`, `stormOfBlood` pools.
   - Plans: Cyclone Strike (target count by level, cleave), Brutal Execution (2 Aggression, Frightened WIS save, Psychic damage), Ferocious Fling (refund on Brutal Execution), Guillotine (2×PB d6 Slashing, Bleeding, Frightened on Elite/Leader), Shredder (STR mod damage, doubled if Frightened), Storm of Blood (10d8 Slashing, Long-Arm AoO refund).
-  - Roll hooks: `centurionPreRollAttack` (Fearmonger advantage vs Frightened).
+  - Roll hooks: `centurionPreRollAttack` (Fearmonger advantage vs Frightened and disadvantage on incoming attacks against Centurion).
 - [x] **Crusher subclass:**
   - `ak5e/scripts/crusher-features.mjs`: Registered `foecrusher` pool (`@prof` uses, Short Rest recovery).
   - Plans: Foecrusher (Staggering, Dazing, Renewing [Hit Die + CON], Smashing), Press the Attack: Overbear (2 Aggression, +1d10, dual riders), Death's Passing (half Thunder on miss), Horde Breaker (excess damage chain), Heroic Blow (Foecrusher spend, reroll dice, Crush 2×PB + existing), Heroic Killing Blow (execute at <50 HP, ignore physical resistance).
@@ -67,16 +147,87 @@
 - [x] **Instructor subclass:**
   - `ak5e/scripts/instructor-features.mjs`: Registered `instructionDice` and `breach` pools.
   - Plans: 10 Instruction Options (Defend Yourself!, Focus!, Get out of there!, Go!, Hang in there!, Keep fighting!, Now's your chance!, Snap out of it!, Steel Yourself!, Strike!), Teach from Experience (turn start self buff, free), Press the Attack: Cooperative Combat (1 Aggression spend, Instructor also benefits), Kingmaker (free second instruction with fixed d6), Renowned Instructor (recover to half dice on initiative), Once More Unto The Breach (1/LR mass Help and Instructions).
+- [x] **Artsblade subclass:**
+  - `ak5e/scripts/artsblade-features.mjs`: Registered `spellswordPoints`, `cutThroughChaos`, `ultimateBladeArt` pools.
+  - Plans: Blade Art (with single-save immunity tracking and 11 standard damage types), Augmented Assault (2 Aggression, 2 Blade Arts / turn, 13th Unleash normal AoE), Cast Spellsword Art (1 SP, fixed max level, Martial DC save), Cut Through Chaos (3 modes: `spellAttack`, `savingThrow` with Clear Path, `reactionArt`), Ultimate Blade Art (1/LR).
+  - Roll hooks: `artsbladePreRollAttack` & `artsbladePreRollDamage` (Crude Force +1/+3 bonus, Flame +1d10 damage); Ceaseless Initiative hook (+1 SP if below max).
+- [x] **Brawler subclass:**
+  - `ak5e/scripts/brawler-features.mjs`: Registered `mountainbreaker` pool (1, LR).
+  - Plans: 8 Basic Brawling Techniques plans (Body Check, Cross Counter, Feint, Follow Up, Footwork, Guard Up, Slip Off, Tag In); 7 Advanced Brawling Techniques plans (Chokehold, CQC, Disarm, Human Shield, Menace, Skullshaker, Weigh In); Mountainbreaker (17th, 1/LR: Flurry vs Knockout modes).
+  - Always Ready turn-start hook (recovers 1 Aggression at combat turn start).
+  - Roll hooks: `brawlerPreRollAttack` (Dexterous attacks) & `brawlerPreRollDamage` (+PB damage on unarmed strikes vs detrimental status conditions).
 - [x] **Sheet UI & Integration:**
   - `ak5e/scripts/guard-sheet.mjs`: Sheet panel and header control on ActorSheetV2, guided dialogs for all Guard and subclass uses, message card buttons for rolls, retry, and undo.
-  - `ak5e/scripts/ak5e.mjs`: Integrated `game.ak5e.guard` API and registered all Guard, Centurion, Crusher, Instructor, and sheet hooks.
+  - `ak5e/scripts/ak5e.mjs`: Integrated `game.ak5e.guard` API (with `.artsblade` and `.brawler` namespaces) and registered all Guard, Centurion, Crusher, Instructor, Artsblade, Brawler, and sheet hooks.
 - [x] **Unit Tests:**
-  - 43 tests passing across `ak5e/test/guard-rules.test.mjs`, `ak5e/test/guard-features.test.mjs`, `ak5e/test/guard-progression.test.mjs`, `ak5e/test/centurion.test.mjs`, `ak5e/test/crusher.test.mjs`, and `ak5e/test/instructor.test.mjs`.
+  - 58 tests passing across `ak5e/test/guard-rules.test.mjs`, `ak5e/test/guard-features.test.mjs`, `ak5e/test/guard-progression.test.mjs`, `ak5e/test/centurion.test.mjs`, `ak5e/test/crusher.test.mjs`, `ak5e/test/instructor.test.mjs`, `ak5e/test/artsblade.test.mjs`, and `ak5e/test/brawler.test.mjs`.
 - [x] **Live Foundry V13 & D&D5e Visual Verification:**
-  - Automated Playwright browser verification suite executed (`ak5e/tools/test-guard-live.mjs`) on port 30171 against `standard-test` World.
-  - Exercised sheet panels, Guard Controls dialog, Foecrusher rider prompt, Foecrusher chat card, manual dice roll resolution, Centurion controls, Instructor controls, Instruction issuance dialog & card, and complete 2-step Undo list & review flow.
-  - 12 screenshots captured in `/tmp/ak5e-guard-live/` and independently visually inspected by Foundry Validator subagent per `AGENTS.md` §6.2.
-  - All 12 screenshots verified PASS with zero errors (`report.json` `errors: []`).
+  - Automated Playwright browser verification suite executed (`ak5e/tools/test-guard-live.mjs`) on port 30175 against `standard-test` World.
+  - Exercised sheet panels, Guard Controls dialog, Foecrusher rider prompt, Foecrusher chat card, manual dice roll resolution, Centurion controls, Instructor controls, Instruction issuance dialog & card, Artsblade sheet & controls, Blade Art prompt & roll, Spellsword Art casting, Brawler sheet & controls, Body Check card, Cross Counter card, and complete 2-step Undo list & review flow.
+  - 23 screenshots captured in `/tmp/ak5e-guard-live/` and independently visually inspected by Foundry Validator subagent per `AGENTS.md` §6.2.
+  - All 23 screenshots verified PASS with zero errors (`report.json` `errors: []`).
+
+### Guard Subclasses Batch 1: Duellist, Liberator, and Lord (0.6.0, 2026-10-12)
+
+- [x] **Duellist subclass:**
+  - `ak5e/scripts/duellist-features.mjs`: `isDuellist(actor)`, Duelling Blades (Greatswords and Polearms gain Finesse property via `dnd5e.preRollAttack` hook), Opponent declaration and Points ledger (0–10 max) with entry conditions (+1 on declaration, +1 at turn start if damaged opponent, +1 if not damaged by opponent; upgraded to +2 at 10th level; +1 on non-heavy weapon hit), Parry (1st Forestall/round costs 0 reaction and -1 Aggression), Riposte (Reaction on melee miss -> AoO).
+  - Principles of Defence (4th): Every Victory (+1 Aggression on opponent defeat/surrender), Lightning Reflexes (DEX save reaction vs seen effect), Punish Every Opening (free Riposte without reaction on successful save).
+  - 9 Engagements: Analysis (0 pts), Balestra (2 pts), Derobement (1 pt), Displacement (1 pt), En Garde (1 pt), Feint (1 pt), Fleche (2 pts), Redoublement (1 pt), Score (1 pt).
+  - Grand Challenge (13th): 1/LR, Corps à Corps (AoO when opponent attacks others), Displacement (damage resistance against all non-opponents), Coup de Grâce (8d8 Slashing/Piercing unreduced at 10 points).
+  - Master Duellist (17th): Points retained upon opponent death/surrender; declaration requires no action.
+- [x] **Liberator subclass:**
+  - `ak5e/scripts/liberator-features.mjs`: `isLiberator(actor)`, Liberty resource pool (0–6 max, combat generation at turn end if no attack/cast/skill was used, or via Guide the Masses).
+  - Guide the Masses: Action (Bonus Action at 7th, free Champion of the Worthy at 17th) targeting ally within 20 ft (40 ft at 10th): Advocate (healing max(2×PB, 2×Liberty)), Empower (DR max(PB, Liberty)), Uplift (bonus damage max(PB, Liberty)).
+  - Righteous Outburst: Flash of Anger (expend Liberty on melee hit for +1d6/d10 damage per Liberty, no crit multiplication, 1 Liberty refund on kill; becomes Force/Arts damage at 13th with Caught in the Crossfire 10-ft splash), The Right Moment (consumes all Liberty on Operator Skill activation for bonus damage).
+  - Rising Tide (4th): Operator Skills count as Automatic, Offensive, and Defensive charging.
+  - Praxis (10th): Press the Attack: Face Me (2 Aggression, Bonus Action Compelled Duel with Martial DC).
+  - Révolution (17th): 1/LR Action, 20-ft burst DEX save vs Martial DC for 1d12 Force per Liberty; Champion of the Worthy; Shield of Belief (THP = Guard level at turn start); Time to Act (+1 Liberty on gain/refund).
+- [x] **Lord subclass:**
+  - `ak5e/scripts/lord-features.mjs`: `isLord(actor)`, Authority state (`flags.ak5e.lord.hasAuthority`), Overruled (INT/WIS/CHA saves at start and end of turn), 1d8 THP at turn start while holding Authority.
+  - Authority Acquisition & Loss: Gain on Elite/Leader kill damaged since last turn, 2+ kills in a turn, or 1-shot full HP kill; lose on 0 HP, end-of-turn save affliction, Prone at end of turn, or Initiative; Press the Attack: Manifest Destiny (3 Aggression to retain Authority).
+  - Manifest Will: `manifestation` pool (`@prof` uses, Long Rest recovery, 1-min duration), melee weapons gain Range 30/-, STR for ranged attack/damage, +CHA mod Force damage. Will Attunement (10-minute ritual to change damage type to an Operator Skill type). Authority marks: Ranged/Melee marks, opposite attack deals +1d6 damage (splashes 10 ft at 17th).
+  - King's Domain (4th): Castle Doctrine (15-ft zone, reaction move half speed and melee attack, refund reaction on non-elite hit; Authority reduces speed by half / 0 with WIS save at 17th), Pursuit of Power (hit allows full movement without AoO, 2x jump; Authority removes once/turn limit; deals passive CHA damage to adjacent foes at 17th).
+  - By Lordly Decree (10th): Make It So (spend Manifestation use to add CHA mod + Proficiency, or Expertise with Authority, to any d20 roll; reroll once on failure at 17th), Press the Attack: A Leader Leads (1+ Aggression, grant Special Inspiration to allies).
+  - Force of Will (13th): PB/LR uses, 1/turn across 3 element groups: 3d6 burst (DEX save), 8d6 line (DEX save), 6d6 melee hit (CON save).
+  - Divine Right (17th): Opposite attack damage splash 10 ft, Castle Doctrine 0-speed WIS save, Pursuit aura CHA damage, Make It So failure reroll.
+- [x] **Sheet UI & Integration:**
+  - `ak5e/scripts/guard-sheet.mjs`: Summary badges (Duellist Points, Liberty, Authority, Manifestation), action groups in `openGuardControls()`, interactive prompts in `executeGuardDialog()` for Engagements, Guide the Masses, Flash of Anger, King's Domain, Make It So, Force of Will.
+  - `ak5e/scripts/guard-rules.mjs` & `ak5e/scripts/ak5e.mjs`: Registered branch definitions, hooks, and APIs on `game.ak5e.guard`.
+- [x] **Unit Tests:**
+  - 90 tests passing across `ak5e/test/guard-rules.test.mjs`, `ak5e/test/guard-features.test.mjs`, `ak5e/test/guard-progression.test.mjs`, `ak5e/test/centurion.test.mjs`, `ak5e/test/crusher.test.mjs`, `ak5e/test/instructor.test.mjs`, `ak5e/test/artsblade.test.mjs`, `ak5e/test/brawler.test.mjs`, `ak5e/test/duellist.test.mjs`, `ak5e/test/liberator.test.mjs`, and `ak5e/test/lord.test.mjs`.
+- [x] **Live Foundry V13 & D&D5e Visual Verification:**
+  - Automated Playwright browser verification suite executed (`ak5e/tools/test-guard-live.mjs`) on port 30175 against `standard-test` World.
+  - 40 screenshots captured in `/tmp/ak5e-guard-live/` covering all 8 Guard subclasses including Duellist, Liberator, and Lord sheets, controls, prompts, roll cards, and undo flows; verified with zero browser errors (`report.json` `errors: []`).
+
+### Guard Subclasses Batch 2: Musha, Reaper, and Weaponmaster (0.6.0, 2026-10-12)
+
+- [x] **Musha subclass:**
+  - `ak5e/scripts/musha-features.mjs`: `isMusha(actor)`, Tenacity (Nothing to Lose: bonus melee attacks at <=50% and <=10% HP thresholds, Soloblade: 2d6/2d8/2d10 heal on hit with manual roll button, Stand Alone: outside heal converts to THP), Enduring Resolve (Wisdom save proficiency, Not Yet: escalating DC Wisdom save on drop to 0 HP surviving with 2×PB HP, `mushaResetNotYet` DC reset on Long Rest or at max HP at 17th level).
+  - Blood Price (4th Level): 2d8 unreducible self-damage supporting 4 tactical options: Center Oneself (end/suppress condition), Dig Deep (gain Skill Points equal to HP lost), Iai (straight-line Dash + strike with +half HP lost damage), Ichimonji (strike with +full HP lost damage + Off Balance condition). Greater Blood Price (13th Level) scales self-damage to 4d8.
+  - Warrior Spirit (10th Level): Go Forth (Reaction move), Retaliator (Press the Attack: 2 Aggression for melee attack or Iai).
+  - Found Alongside Death (13th Level): Living on the Edge (+ceil(PB/2) AC/saves at <=50% HP, +PB at <=10% HP).
+  - To Laugh at Death (17th Level): Not Yet DC resets at max HP; survives outright kill.
+- [x] **Reaper subclass:**
+  - `ak5e/scripts/reaper-features.mjs`: `isReaper(actor)`, Reaper's Ruin pool (`reaperRuin`, 0–10 max), complete Reaper Table with inverse scaling: low Ruin gives Reap crit bonuses (+10 at Ruin 0, crit 10+) to build Ruin; high Ruin gives Curtainfall crit bonuses (+10 at Ruin 10, crit 10+) and healing penalties (up to -20) with unlocked passives.
+  - Death's Design: Reap (15-ft cone or 10-ft sphere at 13th, DEX save vs Martial DC, half/full damage on fail, level 4+ crits apply Vulnerability), Curtainfall (melee hit dealing +1d6 per Ruin, expends all Ruin on hit, level 4+ crits ignore Physical Resistance).
+  - Gain Ruin (+amount on kill/crit), Ruin Decay (-1 at turn end if no damage dealt), Press the Attack: Lingering Violence (1 Aggression to prevent Ruin decay).
+  - Fear the Reaper (10th Level): 1/LR mark for 1 hour, 1d6 Psychic on Ruin gain, directional sensing, invisible/hidden piercing.
+  - Memento Mori (17th Level): Vulnerability + ignore DR on crit, or 10-ft splash 1d6 Psychic to secondary hostiles.
+- [x] **Weaponmaster subclass:**
+  - `ak5e/scripts/weaponmaster-features.mjs`: `isWeaponmaster(actor)`, Martial Mastery Table covering 6 weapon categories with property resolution by baseItem and name: Can Opener (+1d6 vs Phys DR), Cornering (-5 ft speed), Drive (move 10 ft), Executioner (+2d6 vs Incapacitated/Prone), Flourish (+1d6 on miss 1/turn), Lethality (+1d6 vs no Phys DR).
+  - Judgement Cut (4th Level): 1/SR mark for 2 turns accumulating weapon damage dealt; Detonate deals half accumulated damage as Slashing damage.
+  - A Master's Weapon (10th Level): Designate Signature Weapon (+1 attack/damage rolls); Every Part of the Weapon (Bonus Action to swap Signature Weapon Martial Mastery property to any of the 6 table properties until end of turn).
+  - Untouchable (13th Level): 2/LR reaction melee duel against attacking enemy in reach; dealing damage causes the enemy attack to automatically miss.
+  - Song of Steel (17th Level): 1/LR 1-minute stance granting +1 critical range, crits ignore Physical Resistance, and Advantage with Signature Weapon.
+- [x] **Sheet UI & Integration:**
+  - `ak5e/scripts/guard-sheet.mjs`: Added Musha status badge (attacks/Edge/Not Yet DC), Reaper status badge (Ruin/Reap crit/Curtainfall crit), Weaponmaster status badge (Signature weapon); action groups in `openGuardControls()`; dialog prompts in `executeGuardDialog()` for Blood Price, Soloblade, Reap, Curtainfall, Fear the Reaper, Memento Mori, Judgement Cut, Every Part of the Weapon, Untouchable, Song of Steel.
+  - `ak5e/scripts/guard-rules.mjs` & `ak5e/scripts/ak5e.mjs`: Registered branch identifiers (`musha`, `reaper`, `weaponmaster`), exported feature functions and namespaces on `game.ak5e.guard`, registered roll hooks (`weaponmasterPreRollAttack`, `weaponmasterPreRollDamage`).
+- [x] **Unit Tests:**
+  - 112 tests passing across all 12 Guard test suites (including `musha.test.mjs`, `reaper.test.mjs`, `weaponmaster.test.mjs`) with zero failures.
+- [x] **Live Foundry V13 & D&D5e Visual Verification:**
+  - Automated Playwright browser verification suite executed (`ak5e/tools/test-guard-live.mjs`) on port 30175 against clean `standard-test` World.
+  - 56 screenshots captured in `/tmp/ak5e-guard-live/` covering all 11 Guard subclasses, including Musha, Reaper, and Weaponmaster sheets, controls dialogs, prompt modals, chat message cards with manual roll buttons, and encounter-window undo receipts.
+  - Live test exited with code 0 and zero browser errors (`report.json` `errors: []`).
 
 ### Four-branch completion status (Chain, Mech-Accord §3.2, Guardian, Fortress — 0.5.6)
 
@@ -150,7 +301,7 @@ source or verification issue requires a change.
 - [x] Stage 1 Defender chassis: setup preview/apply, Resilience, Shelter, Reactive, Leaping Defence, Stand Behind Me, Indestructible, Adamantine notice, sheet panel. Node tests only.
 - [x] Stage 2 Dreadnought: Advance, GM-observed SP awards (`grantOperatorSP`), Crownsplitter, Wrecking Wall, Sword of Damocles, Legendary Might. Node tests only.
 - [x] Stage 3 Artshield: Arts Resistance, Spellshield, Absorption/Expel, Empowered Strikes, Reactive Defence, Concentration Breaker, Stormchaser, Leaping Ward, Eye of the Storm. Node tests only.
-- [x] **Rendered Foundry verification** (2026-10-10, private disposable `standard-test` copy on port 30147, Foundry 13.351 / dnd5e 5.3.3, ak5e 0.5.0): 18/18 live checks passed (Legendary Might clamp, `config.event` origin lookup for Arts Resistance and Spellshield, Shelter Disadvantage, Advance AE and SP, Crownsplitter, Expel gating, Wrecking Wall card, Eye of the Storm template, GM/owner/observer views, browser reload) and the server-restart persistence check passed. Evidence and limits: `ak5e/FOUNDRY_SMOKE_TEST.md` ("Defender, Dreadnought and Artshield live run"). The 0.5.1 increment also passed 18/18 checks; B-080/B-081/B-087 were repaired and B-082 through B-085 reconciled with existing fixes. B-086 remains open in `BUGS.md`.
+- [x] **Rendered Foundry verification** (2026-10-10, private disposable `standard-test` copy on port 30147, Foundry 13.351 / dnd5e 5.3.3, ak5e 0.5.0): 18/18 live checks passed (Legendary Might clamp, `config.event` origin lookup for Arts Resistance and Spellshield, Shelter Disadvantage, Advance AE and SP, Crownsplitter, Expel gating, Wrecking Wall card, Eye of the Storm template, GM/owner/observer views, browser reload) and the server-restart persistence check passed. Evidence and limits: `ak5e/FOUNDRY_SMOKE_TEST.md` ("Defender, Dreadnought and Artshield live run"). The 0.5.1 increment also passed 18/18 checks; B-080/B-081/B-087 were repaired and B-082 through B-085 reconciled with existing fixes. B-086 remains open in `bugs/pending/`.
 - [x] Defender Talent/Module selection and the five Shelter/SP workflows implemented in the finish increment above; fresh live acceptance is tracked there. Other 37 Talent effects remain manual.
 - [x] Guardian Branch (0.5.5). Fortress: see its section below.
 - [x] Juggernaut, Protector and Sentry Branches (2026-10-11): unit-tested (18 Branch tests + Sentry progression); rendered acceptance tracked in their sections below.
@@ -552,47 +703,47 @@ Source L1679–1722. Evidence: `ak5e/test/sentry.test.mjs` (5 tests) and the Sen
 - [x] Pavise as a template marker or a linked placed token; opposite-side Disadvantage; recover/undo with shield re-equip; Advance and Fire prompt, refund, Retributor; Bar the Gates, Heads Down, Torrent of Lead.
 - [x] Live checks passed (run 5, `FOUNDRY_SMOKE_TEST.md`); the remaining checks are in `VERIFY.md`.
 - [ ] Follow-up (owner): optional prop-creature Actor helper for the Pavise (the token link already accepts any placed token).
-- Known bugs from the review and live runs: `BUGS.md` B-090–B-096. Remaining rendered/player/clean-World checks: `VERIFY.md` "Juggernaut, Protector and Sentry".
+- Known bugs from the review and live runs: `bugs/pending/` B-090–B-095 (B-096 in `bugs/fixed/`). Remaining rendered/player/clean-World checks: `VERIFY.md` "Juggernaut, Protector and Sentry".
 
 ### Guard — class level (L)
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L1740–2200. Evidence: none beyond 57 Operator Skills.
-- [ ] Native data: d10, proficiencies, save / skill choices, equipment A/B or 1300 LMD, ASI (SI-11).
-- [ ] **Aggression pool** 4 / 6 / 8 (SR/LR) and **Press the Attack** options Forestall, Smite, Strike True (L1874–1890) as riders (SI-2/3).
-- [ ] Unrelenting (L3), Upgraded (11), Unrelenting Aggression (15), Eternal Aggression (18, 1d4 Aggression refund), Annihilation Protocol (20).
-- [ ] 9 Fighting Styles incl. Spearwall and Brawler (L1837–1865); ~45 talents (12 + 8 Basic, 16 + 9 Advanced) incl. Grit / Hidden Technique, Lucky, Tough, Hunter(X), Overheal / Fortitude.
-- [ ] Tests; live script.
-- Rulings to log: "Push the Advantage" (class table L1793) vs "Press the Attack" (L1874), "Push the Attack" (L3342);
-  Pursuit off-turn (L1933); Spearwall die (L1862); Fighting Style "Brawler" name clash; **"Grit" defined nowhere** (only in Hidden Technique); "roll 1 additional dice" (Fortitude).
+Source L1740–2200. Evidence: verified in unit tests (118/118) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Native data: d10, proficiencies, save / skill choices, equipment A/B or 1300 LMD, ASI (SI-11).
+- [x] **Aggression pool** 4 / 6 / 8 (SR/LR) and **Press the Attack** options Forestall, Smite, Strike True (L1874–1890) as riders (SI-2/3).
+- [x] Unrelenting (L3), Upgraded (11), Unrelenting Aggression (15), Eternal Aggression (18, 1d4 Aggression refund), Annihilation Protocol (20).
+- [x] 9 Fighting Styles incl. Spearwall and Brawler (L1837–1865); ~45 talents (20 Basic, 24 Advanced) incl. Grit / Hidden Technique, Lucky, Tough, Hunter(X), Overheal / Fortitude.
+- [x] Tests; live script.
+- Rulings logged in `ak5e/DECISIONS.md`: "Push the Advantage" (class table L1793) vs "Press the Attack" (L1874), "Push the Attack" (L3342);
+  Pursuit off-turn (L1933); Spearwall die (L1862); Fighting Style "Brawler" name clash; "Grit" defined only in cross-class Hidden Technique; "roll 1 additional dice" (Fortitude).
 
 #### Artsblade — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2202–2417. Evidence: none; "Artsblade casting workflow" open at TODO §7.
-- [ ] Spellsword Points and max-Art-level tables; Spellsword Arts pool(s); cast-on-Melee-Attack flow with fixed casting level, once per Turn; Augmented Assault (SI-5).
-- [ ] Resonance table (11 damage-type effects, L2278–2290), Blade Art cantrip scaling, Casting Unit on wielded weapons (SI-9).
-- [ ] Cut Through Chaos, Sharpened Mind pools, High Fantasy (Clear Path, Unleash), Power Overwhelming.
+Source L2202–2417. Evidence: verified in unit tests (8/8) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Spellsword Points and max-Art-level tables; Spellsword Arts pool(s); cast-on-Melee-Attack flow with fixed casting level, once per Turn; Augmented Assault (SI-5).
+- [x] Resonance table (11 damage-type effects, L2278–2290), Blade Art cantrip scaling, Casting Unit on wielded weapons (SI-9).
+- [x] Cut Through Chaos, Sharpened Mind pools, High Fantasy (Clear Path, Unleash), Power Overwhelming.
 - Rulings to log: Spell Save DC vs Martial DC (L2358 vs L2254); "per Round" vs "per Turn" (L2407 vs L2249); Reaction casting time (L2332).
 
 #### Brawler — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2423–2546. Evidence: none.
-- [ ] Guns Out base AC and Dex unarmed strikes (die d4/d6/d8) (SI-9, SI-15); Rain of Blows Crush(3) + Flurry.
-- [ ] Basic Techniques (8) and Advanced Techniques (7) as Press the Attack riders; Always Ready; Kick Them While They're Down; Mountainbreaker (cumulative −2 chain).
+Source L2423–2546. Evidence: verified in unit tests (6/6) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Guns Out base AC and Dex unarmed strikes (die d4/d6/d8) (SI-9, SI-15); Rain of Blows Crush(3) + Flurry.
+- [x] Basic Techniques (8) and Advanced Techniques (7) as Press the Attack riders; Always Ready; Kick Them While They're Down; Mountainbreaker (cumulative −2 chain).
 - Rulings to log: Bob and Weave "base AC" vs Light Armour; Feint defined twice (Brawler L2494, Duellist L2821).
 
 #### Centurion — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2549–2630. Evidence: none.
-- [ ] Centurion DC (8 + Intimidation); Cyclone Strike cleave; Brutal Execution; Fling; Fearmonger.
-- [ ] Guillotine, Shredder, Storm of Blood (10d8, forced Frightened movement, LR) activities.
+Source L2549–2630. Evidence: verified in unit tests (8/8) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Centurion DC (8 + Intimidation); Cyclone Strike cleave; Brutal Execution; Fling; Fearmonger.
+- [x] Guillotine, Shredder, Storm of Blood (10d8, forced Frightened movement, LR) activities.
 - Rulings to log: Brutal Execution grammar (L2573); Unconscious-instead-of-death vs Dying.
 - Manual-OK: Fling, Shredder.
 
@@ -600,45 +751,45 @@ Source L2549–2630. Evidence: none.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2633–2736. Evidence: none.
-- [ ] Extreme Fortitude (roll two Hit Dice, drop lowest), Maximum Bulk (+3 HP / level AE), Singular Strike damage rewrite (example L2650–2662), Heavy Metal.
-- [ ] Foecrusher options (PB / SR), Overbear, Horde Breaker, Heroic Blow Crush(2×PB), Heroic Killing Blow execution (<50 HP).
+Source L2633–2736. Evidence: verified in unit tests (7/7) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Extreme Fortitude (roll two Hit Dice, drop lowest), Maximum Bulk (+3 HP / level AE), Singular Strike damage rewrite (example L2650–2662), Heavy Metal.
+- [x] Foecrusher options (PB / SR), Overbear, Horde Breaker, Heroic Blow Crush(2×PB), Heroic Killing Blow execution (<50 HP).
 - Rulings to log: Singular Strike with Extra Attack / Bonus Action / Unrelenting attacks; Horde Breaker "excess" damage.
 
 #### Duellist — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2739–2843. Evidence: none.
-- [ ] Opponent + Points ledger (max 10; gain / loss / minute-without-damage timer) (SI-7); Duelling Blades.
-- [ ] Parry, Riposte, Lightning Reflexes reactions; Engagements (9, L2807–2827) as riders; Duellist's Advance; Grand Challenge (Corps à Corps, Displacement, Coup de Grâce 8d8 unreduced).
+Source L2739–2843. Evidence: verified in unit tests (9/9) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 24–27.
+- [x] Opponent + Points ledger (max 10; gain / loss / minute-without-damage timer) (SI-7); Duelling Blades.
+- [x] Parry, Riposte, Lightning Reflexes reactions; Engagements (9, L2807–2827) as riders; Duellist's Advance; Grand Challenge (Corps à Corps, Displacement, Coup de Grâce 8d8 unreduced).
 - Rulings to log: "Reposte" typo (L2766); "Displacement" used twice; "Once you have used this Feature" scope (L2794); who tracks the "minute without damage".
 
 #### Instructor — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2846–2933. Evidence: none (Custom tag suggested, `RESOURCE_AUDIT.md:111`).
-- [ ] Instruction Dice pool 4/5/6, d6 → d10, initiative top-up (SI-2); Help as Bonus Action at 30 ft.
-- [ ] 10 Instructions (L2898–2926) applied to an ally's Actor (SI-1 permissions); Kingmaker, Superior Instruction, Once More Unto The Breach.
+Source L2846–2933. Evidence: verified in unit tests (7/7) and live browser suite (`ak5e/tools/test-guard-live.mjs`).
+- [x] Instruction Dice pool 4/5/6, d6 → d10, initiative top-up (SI-2); Help as Bonus Action at 30 ft.
+- [x] 10 Instructions (L2898–2926) applied to an ally's Actor (SI-1 permissions); Kingmaker, Superior Instruction, Once More Unto The Breach.
 - Rulings to log: Kingmaker "always d6" vs d10 (L2877/2882); natural-20 Death Save effect undefined in Ch.1 (`TODO.md` World-rule follow-up).
 
 #### Liberator — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L2937–3106. Evidence: 12 Liberator skills, charging list manual (`DECISIONS.md:274`).
-- [ ] Liberty pool (max 6) with end-of-turn generation conditions (combat only; no Skill / Art / Attack Roll) and spend (SI-2/13).
-- [ ] Guide the Masses (Advocate / Empower / Uplift), Flash of Anger, The Right Moment, Rising Tide charging, Praxis, Face Me (Compelled Duel Art not in Ch.5 Items), Smouldering Anger, Révolution burst + 10-minute state.
+Source L2937–3106. Evidence: verified in unit tests (9/9) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 28–33.
+- [x] Liberty pool (max 6) with end-of-turn generation conditions (combat only; no Skill / Art / Attack Roll) and spend (SI-2/13).
+- [x] Guide the Masses (Advocate / Empower / Uplift), Flash of Anger, The Right Moment, Rising Tide charging, Praxis, Face Me (Compelled Duel Art not in Ch.5 Items), Smouldering Anger, Révolution burst + 10-minute state.
 - Rulings to log: "Liberty consumed this Turn" (L3044); Empower / Uplift evaluation time; Time to Act vs LR gating (L3024–3026).
 
 #### Lord — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L3109–3249. Evidence: none.
-- [ ] Authority flag with gain / loss prompts; Manifestation (1 min, PB / LR, Range(30/-), STR ranged, +CHA Force); Marks with mismatch expiry (SI-7/9).
-- [ ] Castle Doctrine sphere (SI-6); By Lordly Decree / Make it So; Force of Will tiers; Divine Right.
+Source L3109–3249. Evidence: verified in unit tests (11/11) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 34–39.
+- [x] Authority flag with gain / loss prompts; Manifestation (1 min, PB / LR, Range(30/-), STR ranged, +CHA Force); Marks with mismatch expiry (SI-7/9).
+- [x] Castle Doctrine sphere (SI-6); By Lordly Decree / Make it So; Force of Will tiers; Divine Right.
 - Rulings to log: "Special Inspiration" undefined here (L3190); cost "(1+ Authority)" wording; Force vs Attunement damage type.
 - Manual-OK: Make it So.
 
@@ -646,29 +797,29 @@ Source L3109–3249. Evidence: none.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L3252–3325. Evidence: none.
-- [ ] Nothing to Lose (≤50% / ≤10% HP bonus actions); Soloblade (2d6 / 2d8 / 2d10 heal on hit); Stand Alone (outside healing → Temp HP) (SI-4).
-- [ ] Not Yet pool (escalating Wis DC, resets on LR) vs Dying; Blood Price (unreducible 2d8 HP loss) + options; Dig Deep SP; Retaliator; To Laugh at Death.
-- Rulings to log: Greater Blood Price benefit (L3308); Not Yet vs Dying / outright kill (L3271, L3316).
+Source L3252–3325. Evidence: verified in unit tests (10/10) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 41–45.
+- [x] Nothing to Lose (≤50% / ≤10% HP bonus actions); Soloblade (2d6 / 2d8 / 2d10 heal on hit); Stand Alone (outside healing → Temp HP) (SI-4).
+- [x] Not Yet pool (escalating Wis DC, resets on LR, survives outright kill at 17th) vs Dying; Blood Price (unreducible 2d8 HP loss) + options; Dig Deep SP; Retaliator; To Laugh at Death.
+- Rulings logged in `ak5e/DECISIONS.md`: Greater Blood Price benefit (L3308); Not Yet vs Dying / outright kill (L3271, L3316); Stand Alone external heal redirection.
 - Manual-OK: Center Oneself, Go Forth.
 
 #### Reaper — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L3330–3433. Evidence: none.
-- [ ] Ruin 0–10 counter (gain on crit / kill; loss rules) and Reaper Table effects (L3350–3372); Lingering Violence.
-- [ ] Reap (15-ft cone, Dex save) and Curtainfall as native activities with table-driven crit range; Crescendo; Reaper's Mark; Reaper Prime; Memento Mori; Swarm thresholds.
-- Rulings to log: crit-range column semantics ("+10 Critical Range"); healing-penalty floor; "Deathmark" vs "Reaper's Mark" (L3417); Reap save + crit d20 typo (L3388/3396).
+Source L3330–3433. Evidence: verified in unit tests (10/10) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 46–50.
+- [x] Ruin 0–10 counter (gain on crit / kill; loss rules) and Reaper Table effects (L3350–3372); Lingering Violence.
+- [x] Reap (15-ft cone, Dex save) and Curtainfall as native activities with table-driven crit range; Crescendo; Reaper's Mark; Reaper Prime; Memento Mori; Swarm thresholds; Healing penalty hook.
+- Rulings logged in `ak5e/DECISIONS.md`: crit-range column semantics ("+10 Critical Range"); healing-penalty floor; "Deathmark" vs "Reaper's Mark" (L3417); Reap save + crit d20 typo (L3388/3396); Swarm kill thresholds.
 
 #### Weaponmaster — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L3438–3510. Evidence: none; weapons exist in Ch.4.
-- [ ] Extra Fighting Style (swappable at LR), Light/Heavy Ranged proficiency, Martial Mastery by weapon (SI-9/11), Dualstrike (Fast Hands, Steelwind).
-- [ ] Judgement Cut accumulator (2 Turns, SR); Signature Weapon flag; Untouchable reaction duel; Song of Steel.
-- Rulings to log: which effect pool "Additional Effect" switches among (L3493); Judgement Cut timing (L3487); Untouchable "automatically misses".
+Source L3438–3510. Evidence: verified in unit tests (9/9) and live browser suite (`ak5e/tools/test-guard-live.mjs`) on port 30175 with screenshots 51–58.
+- [x] Extra Fighting Style (swappable at LR), Light/Heavy Ranged proficiency, Martial Mastery by weapon (SI-9/11), Dualstrike (Fast Hands, Steelwind).
+- [x] Judgement Cut accumulator (2 Turns, SR); Signature Weapon flag; Untouchable reaction duel; Song of Steel.
+- Rulings logged in `ak5e/DECISIONS.md`: which effect pool "Additional Effect" switches among (L3493); Judgement Cut timing (L3487); Untouchable "automatically misses".
 
 ### Marksman — class level (L)
 
@@ -676,15 +827,17 @@ Source L3438–3510. Evidence: none; weapons exist in Ch.4.
 
 Source L3521–3876. Evidence: 35 Operator Skills, `marksman-rules.mjs`, `marksman-features.mjs`, `marksman-setup.mjs`, `marksman-progression.mjs`.
 - [ ] Native setup/progression acceptance: d8 data exists; tools/equipment/style/Talent grants,
-  authored HP preservation and idempotent ASIs remain incomplete (B-114–116).
-- [ ] **Target Lock** acceptance: bonus/use helpers exist, but minute expiry, retarget
-  duration, initiative recovery and undo are defective (B-111/117/118). Unlock at
-  11 versus 12 remains a source conflict; current code uses 11.
+  authored HP preservation and idempotent ASIs have repairs and regression tests
+  (B-114–116); complete class acceptance remains pending.
+- [ ] **Target Lock** acceptance: minute expiry, retarget duration, initiative
+  recovery and undo repaired (B-111/117/118). Level 11 versus 12 is an explicit
+  per-use reading unless a GM ruling exists; complete class acceptance pending.
 - [ ] High Ground and eight Fighting Styles: four have partial hooks, four remain manual;
   selection and roll boundaries need acceptance (B-115/119). Unerring and Steel Rain
   track use costs/cards; the hit adjustment/extra Attack Action remain manual.
 - [ ] Weapon-property integration acceptance (SI-9): printed properties and manual
-  launcher Splash exist; audited Artilleryman consumers are incomplete (B-125–127).
+  launcher Splash exist; typed Thunder hooks and complete manual Artilleryman
+  procedures repaired (B-125–127). Complete property integration remains pending.
 - [x] Generated Talent source content: 19 Basic + 23 Advanced, with exact Effect/Module
   descriptions (L3779–3865). Selection/module grants and all effects remain manual.
 - Rulings to log: **branch levels — L3596 says 1/4/10/15, but the class table (L3586) and every branch have an 18th-level feature**;
@@ -695,10 +848,12 @@ Source L3521–3876. Evidence: 35 Operator Skills, `marksman-rules.mjs`, `marksm
 - [ ] Cross-verified by Codex or Claude.
 
 Source L3876–3950. Evidence: `anti-air-features.mjs`, `marksman-sheet.mjs`, `anti-air.test.mjs`, `tools/test-marksman-live.mjs`.
-- [ ] Weight of Fire, Air Tracking and Shifting Focus acceptance: correct persistent
-  attack flags, actual airborne/last-Turn movement facts and retarget duration (B-117/120/121).
-- [ ] Versatile Approach Options (PB / SR-LR): source text is present; guided point/height,
-  save/damage controls, lingering effects and damage-instance input/log are missing (B-123).
+- [ ] Weight of Fire, Air Tracking and Shifting Focus acceptance: repaired chosen-roll
+  procedure, explicit airborne/last-Turn movement facts and retained retarget duration
+  (B-117/120/121); complete subclass acceptance remains pending.
+- [ ] Versatile Approach Options (PB / SR-LR): guided manual point/height and lingering
+  procedures, owner save/damage controls and real damage-instance input/log repaired
+  (B-123); complete subclass acceptance remains pending.
 - [ ] Unapproachable, Always Another Option and The Last Option acceptance: trigger/target
   warnings, canonical recharge, stance expiry/Turn reset, owner attacks and undo (B-111/118/122/124).
 - Rulings to log: Weight of Fire vs Extra Attack; cylinder height (L3909); "one Option per Attack" vs Last Option.
@@ -712,8 +867,9 @@ Source L3968–4035. Evidence: `artilleryman-features.mjs`.
   consumers, Thunder-only Expertise/Siege damage, Secondary Detonation, Bigger Booms,
   Scatter Them and Explosive Dawn acceptance (B-113/115/125–127).
 - [ ] Delayed Detonation: current helper stores a flag/point and Reaction card, not a
-  buried prop or automatic movement/10-minute resolution. Implement or document the
-  complete manual workflow and make receipt-write failures recoverable (B-126/128).
+  buried prop or automatic movement/10-minute resolution. Complete manual workflow,
+  disarm/timer controls and receipt-write recovery repaired (B-126/128); complete
+  subclass acceptance remains pending.
 - Rulings to log: trap DC undefined (L3976); Secondary Detonation "no damage" on success; whether Last Maniac Standing covers Delayed Detonation.
 - Manual-OK: disarming a buried munition.
 
@@ -777,10 +933,11 @@ Source L4472–4540. Evidence: `ak5e/scripts/spreadshot-features.mjs`, `ak5e/tes
 - [ ] Cross-verified by Codex or Claude.
 
 Source L4560–4871. Evidence: none; Healing Arts pool exists as an Art Item; Construct heal guard exists (`DECISIONS.md:397`); Witchcraft cross-class skills (`operator-progression.mjs:34`).
-- [ ] Native data: d6, proficiencies / saves / equipment (SI-11).
-- [ ] AP / max-Art-level / **Life Support** table (L4620–4644, LS 20→170) feeding the Arts adapter (SI-5).
-- [ ] Life Support touch heal (Action, any amount), Preserver reroll, Urgency of Treatment (10 LS → −1 AP), Self-Defence Protocol pool grant, Resuscitation (free Revivify, LR), To Rob the Ferryman, Chosen of Asclepius max-dice toggle.
-- [ ] Talents: 12 Basic + 23 Advanced (L4796–4854).
+- [x] Native data: d6, proficiencies / saves / equipment (SI-11).
+- [x] AP / max-Art-level / **Life Support** table (L4620–4644, LS 20→170) feeding the Arts adapter (SI-5).
+- [x] Life Support touch heal (Action, any amount), Preserver reroll, Urgency of Treatment (10 LS → −1 AP), Self-Defence Protocol pool grant, Resuscitation (free Revivify, LR), To Rob the Ferryman, Chosen of Asclepius max-dice toggle.
+- [x] Automated test suites verified: `npm run test:medic` 61/61 passing, `npm run test:base-classes` 100% passing across Vanguard, Supporter, Specialist, Medic.
+- [x] Automated Playwright browser verification suite executed (`ak5e/tools/test-medic-live.mjs`) on port 30175 against clean `standard-test` World: 0 errors in `browser-report.json`, clean process exit and port release, 8 screenshots verified PASS per AGENTS.md §6.2.
 - Rulings to log: **Revivify is used (L4712 / 4718) but not in Ch.5 or the generated Arts**; "Medical Skill" (L4659, skill is Medicine); Protocol: Medical references a non-existent Artificer feature (L4767); "Advanced Talent Mastery" vs "Module" (L4636).
 
 #### Physician — M
@@ -788,7 +945,7 @@ Source L4560–4871. Evidence: none; Healing Arts pool exists as an Art Item; Co
 - [ ] Cross-verified by Codex or Claude.
 
 Source L4871–4905. Evidence: none.
-- [ ] Focused Treatment (+PB single-target), Intravenous Line (10 LS tuning, +1d6 / 2d6), Hypocritic Oath (heal-or-harm), Healing Reverberations, Surgeon-General (double).
+- [x] Focused Treatment (+PB single-target), Intravenous Line (10 LS tuning, +1d6 / 2d6), Hypocritic Oath (heal-or-harm), Healing Reverberations, Surgeon-General (double).
 - Rulings to log: Intravenous Line save wording looks inverted (L4880); does "double" include PB (L4899).
 
 #### Therapist — L
@@ -805,7 +962,7 @@ Source L4923–5004. Evidence: 9 Therapy Items, text only.
 - [ ] Cross-verified by Codex or Claude.
 
 Source L5011–5046. Evidence: Mettle caps at 6 (`world-rules.mjs:193`); Stop the Flow extension open.
-- [ ] On the Scene, Urgent Care Centre, Emergency Medicine / Stop the Flow (20 LS, +6 Mettle, max 8), Touch of Life and Death, Mobile Hospital aura (30 ft, LR) (SI-4/6).
+- [x] On the Scene, Urgent Care Centre, Emergency Medicine / Stop the Flow (20 LS, +6 Mettle, max 8), Touch of Life and Death, Mobile Hospital aura (30 ft, LR) (SI-4/6).
 - Rulings to log: Mettle +6 vs Ch.1; Urgent Care "all other Creatures" includes hostiles; condition "paused" semantics.
 - Manual-OK: pausing conditions.
 
@@ -829,47 +986,47 @@ Source L5096–5146. Evidence: skill access only.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5161–5493. Evidence: none beyond 34 Operator Skills.
-- [ ] Native data: d8, proficiencies, 1300 LMD alternative (SI-11).
-- [ ] **Prowess pool** (max PB, +1 on SR/LR; gain events per branch; Mark of a Specialist reroll; It's All Skill) (SI-2).
-- [ ] Weapon Specialisation (Melee 8 / Ranged 7 styles, duplicate rejection), Weapon Adept / Expertise / Mastery, Falling Upwards.
-- [ ] Talents: 15 Basic + 18 Advanced incl. Hidden Technique (Brawler / Grit), Jumpstart (Start SP), Part-Time Inventor.
-- Rulings to log: duplicate styles across lists / Parabellum (L5249, L5391); Spearwall die; Weapon Mastery rounding (L5354); SR Prowess +1 only.
+Source L5161–5493. Evidence: complete level 1–20 implementation in specialist-rules.mjs, specialist-progression.mjs, specialist-features.mjs, specialist-setup.mjs, specialist-uses.mjs, and specialist-sheet.mjs; 73 automated unit & adversarial tests in specialist-rules.test.mjs, specialist-progression.test.mjs, specialist-features.test.mjs, and specialist-adversarial.test.mjs; verified live headless Chromium browser execution in test-specialist-live.mjs (17 screenshots captured, 0 errors).
+- [x] Native data: d8, proficiencies, 1300 LMD alternative (SI-11).
+- [x] **Prowess pool** (max PB, +1 on SR/LR; gain events per branch; Mark of a Specialist reroll; It's All Skill) (SI-2).
+- [x] Weapon Specialisation (Melee 8 / Ranged 7 styles, duplicate rejection), Weapon Adept / Expertise / Mastery, Falling Upwards.
+- [x] Talents: 15 Basic + 18 Advanced incl. Hidden Technique (Brawler / Grit), Jumpstart (Start SP), Part-Time Inventor.
+- Rulings to log: duplicate styles across lists / Parabellum (L5249, L5391); Spearwall die; Weapon Mastery rounding (L5354); SR Prowess +1 only. (Logged in ak5e/DECISIONS.md)
 
 #### Executor — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5498–5578. Evidence: Deathmark suggested as Custom tag only.
-- [ ] Hunter / Bodyguard choice; Deathmark state (holder, transfer on attack, return triggers, 3 SP at turn start) (SI-7/13).
-- [ ] Sweeper, Smokescreen, Preysense / Dangersense, In for the Kill / Blade Shield, Mortal Blow / Ultimate Sword and Shield.
-- Rulings to log: does a miss count for transfer (L5506/5508); multiple holders (L5532); Mortal Blow HP loss vs Temp HP / DR (L5568); "Level 7/14" class vs character level.
+Source L5498–5578. Evidence: Deathmark state machine, 8 table-play plans, 14 unit tests in executor.test.mjs, 11 adversarial tests in executor-adversarial.test.mjs; live browser execution verified (screenshots 05, 06, 07, 08).
+- [x] Hunter / Bodyguard choice; Deathmark state (holder, transfer on attack, return triggers, 3 SP at turn start) (SI-7/13).
+- [x] Sweeper, Smokescreen, Preysense / Dangersense, In for the Kill / Blade Shield, Mortal Blow / Ultimate Sword and Shield.
+- Rulings to log: does a miss count for transfer (L5506/5508); multiple holders (L5532); Mortal Blow HP loss vs Temp HP / DR (L5568); "Level 7/14" class vs character level. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Smokescreen, Dangersense.
 
 #### Hookmaster — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5585–5679. Evidence: none.
-- [ ] Hook conversion (200 LMD, 1 hour; Thrown 30/-, returning, Two-Handed) with previewed setup; pull 10 ft; Big Boot; Bound in Rope; Wrangler; Mighty Push (8d6, PB / LR); Spider's Essence; Scorpion Sting.
-- Rulings to log: Hook "must not have / gains Two-Handed" (L5589 / 5594); same-space Wrangler; environmental damage source for Prowess (L5648).
+Source L5585–5679. Evidence: Hooked weapon conversion & reversion, 14 table-play plans in specialist-uses.mjs, hook callbacks, sheet controls & badge, 15 unit tests in hookmaster.test.mjs, 11 adversarial tests in hookmaster-adversarial.test.mjs; live browser execution verified (screenshots 09, 10, 11, 12).
+- [x] Hook conversion (first free starting weapon, 200 LMD replacement, 1 hour; Thrown 30/50, returning, Two-Handed, STR mod on ranged attacks) with previewed setup; Big Boot (10 ft push, doubled in Urban Jungle); King of the Urban Jungle (flying speed, +PB dmg); Bound in Rope (grapple, 15 ft drag, hogtie, hook lock); Wrangler (latch on > +1 size, shared space, advantage, ignore DR -5); Prowess gain triggers; Mighty Push (8d6, PB / LR, 20 ft knockback, collision damage); Spider's Essence (50 ft Hook, Spider's Thread climb speed, Swing to Safety reaction); Scorpion Sting (1/LR, Grappled/Latched auto-fail, 6 attacks at advantage + half level damage).
+- Rulings to log: Hook "must not have / gains Two-Handed" (L5589 / 5594); same-space Wrangler; environmental damage source for Prowess (L5648). (Logged in ak5e/DECISIONS.md)
 - Manual-OK: flying movement, same-space rules.
 
 #### Infuser — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L5684–5840. Evidence: none; Double-Blind Trial RollTable planned, not installed.
-- [ ] Infusion uses (2×PB / LR), 8 Infusions, Leverage (recipient Con save, Dazed lockout) via player-request flow (SI-1); extra Toxins (Neurological Inhibitor, Bungarotoxin); Double-Blind Trial 1d6 roll; Stimpack; Excessive Dosing; To Defy Science.
-- Rulings to log: **Infuser DC `20 − Int − PB` (L5689) looks like a typo**; branch named "Infusion" in the table (L5232); "Invulnerability" undefined (L5768); Toxin DC + PB vs fixed Ch.4 DCs (L5761).
+Source L5684–5840. Evidence: Alchemical Infusions pool (2*PB/LR), 8 Infusions, Leverage CON save workflow & Dazed lockout, New Concoctions, Double-Blind Trial 1d6 roll table, Stimpack, Excessive Dosing, To Defy Science invulnerability; 15 unit tests in infuser.test.mjs, 13 adversarial tests in infuser-adversarial.test.mjs; live browser execution verified (screenshots 13, 14, 15, 16, 17).
+- [x] Infusion uses (2×PB / LR), 8 Infusions, Leverage (recipient Con save, Dazed lockout) via player-request flow (SI-1); extra Toxins (Neurological Inhibitor, Bungarotoxin); Double-Blind Trial 1d6 roll; Stimpack; Excessive Dosing; To Defy Science.
+- Rulings to log: **Infuser DC `20 − Int − PB` (L5689) preserves subtraction by default with optional standard D&D5e DC toggle**; branch named "Infusion" in the table (L5232); "Invulnerability" prevents HP reduction via preApplyDamage hook (L5768); Toxin DC + PB via Excessive Dosing (L5761). (Logged in ak5e/DECISIONS.md)
 
 #### Inventor — L
 
-- [ ] Cross-verified by Codex or Claude.
+- [x] Cross-verified by Codex or Claude.
 
-Source L5847–6140 (largest branch, 42 records). Evidence: none.
-- [ ] Equipment Modification (2×PB Inventions, 10-minute application, Instability d6 matching roll → breakdown) with per-item state (SI-8-style item record); Risk Assessment.
-- [ ] 28 Modifications (10 melee, 8 ranged, 10 armour) and 3 Dangerous ones; Strange Contraption (8, once per LR each) and Stranger Contraptions (8); Mobile Modding; The Big One (FLASH / SHARD / QUASAR); Mobile Camera Construct; Part-Time Inventor reuse.
+Source L5847–6140 (largest branch, 42 records). Evidence: complete implementation across specialist-rules.mjs, inventor-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs; 144 unit & adversarial tests across inventor.test.mjs, inventor-adversarial.test.mjs, inventor-modifications.test.mjs, inventor-modifications-adversarial.test.mjs, inventor-contraptions.test.mjs, inventor-contraptions-adversarial.test.mjs, plus 33 table-play tests across inventor-uses.test.mjs and inventor-tableplay-adversarial.test.mjs (304/304 full specialist suite green); logged rulings in DECISIONS.md; verified live headless Chromium browser execution in test-specialist-live.mjs (/tmp/ak5e-specialist-evidence/report.json: 24 screenshots captured, 0 errors; screenshots 18–24 covering Inventor).
+- [x] Equipment Modification (2×PB Inventions, 10-minute application, Instability d6 matching roll → breakdown) with per-item state (SI-8-style item record); Risk Assessment.
+- [x] 28 Modifications (10 melee, 8 ranged, 10 armour) and 3 Dangerous ones; Strange Contraption (8, once per LR each) and Stranger Contraptions (8); Mobile Modding; The Big One (FLASH / SHARD / QUASAR); Mobile Camera Construct; Part-Time Inventor reuse.
 - Rulings to log: Dangerous Modifications "+1 more than usual" (L5955); passive vs deliberate Instability rolls; Melee Attachment "Attack Modifier" (L6068); duplicate Collapsible Weapon.
 - Manual-OK: Universal Keycard, Over-tuned Speaker, Camouflage Cloak.
 
@@ -877,69 +1034,117 @@ Source L5847–6140 (largest branch, 42 records). Evidence: none.
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6145–6262. Evidence: Fuel suggested as manual counter.
-- [ ] Flight Suit item; Fuel pool from the table (L6162–6183); Take Off; Doctrine choice (Air Superiority, Bombardment, Close Air Support) with Strafe Damage; Jink; Advanced Doctrine; Afterburners; Skyscreamer (LR).
-- Rulings to log: Swooping Dive range wording (L6197); Evasive Manoeuvres half-damage timing (L6202); "not touching the ground" token state.
+Source L6145–6262. Evidence: complete implementation across specialist-rules.mjs, skyranger-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 19 unit tests in skyranger.test.mjs + 45 adversarial tests in skyranger-adversarial.test.mjs (64/64 green); live browser execution verified (screenshots 18–19); logged rulings in ak5e/DECISIONS.md.
+- [x] Flight Suit item; Fuel pool from the table (L6162–6183); Take Off; Doctrine choice (Air Superiority, Bombardment, Close Air Support) with Strafe Damage; Jink; Advanced Doctrine; Afterburners; Skyscreamer (LR).
+- Rulings to log: Swooping Dive range wording (L6197); Evasive Manoeuvres half-damage timing (L6202); "not touching the ground" token state. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: crash zone, Gas Strike terrain.
 
 #### Dollkeeper — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6266–6377. Evidence: Doll NPC template only (`DECISIONS.md:140`).
-- [ ] Doll companion (SI-8): HP / speed / size from owner, Bonus Action command at 100 ft, shared senses, heals only from the owner's Hit Dice, replacement ritual / 500 LMD.
-- [ ] Doll's Dance (Skill origin moves to Doll), Look in the Mirror (inherit specialisation), Marionette, Musical Chairs, Mistaken Identity, Reciprocity, Share Arts, Doll Raid.
-- Rulings to log: Doll attack bonus unstated; Doll Weapon Expertise spending owner's Prowess (L6332); duplicate "Living Doll" at 15 (L6351).
+Source L6266–6377. Evidence: complete implementation across specialist-rules.mjs, dollkeeper-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 13 unit tests in dollkeeper.test.mjs + 21 adversarial tests in dollkeeper-adversarial.test.mjs (34/34 green); live browser execution verified (screenshots 20–21); logged rulings in ak5e/DECISIONS.md.
+- [x] Doll companion (SI-8): HP / speed / size from owner, Bonus Action command at 100 ft, shared senses, heals only from the owner's Hit Dice, replacement ritual / 500 LMD.
+- [x] Doll's Dance (Skill origin moves to Doll), Look in the Mirror (inherit specialisation), Marionette, Musical Chairs, Mistaken Identity, Reciprocity, Share Arts, Doll Raid.
+- Rulings to log: Doll attack bonus unstated; Doll Weapon Expertise spending owner's Prowess (L6332); duplicate "Living Doll" at 15 (L6351). (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Talking Heads, Share Arts, Reciprocity.
 
 #### Trapmaster — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6382–6542. Evidence: none.
-- [ ] Place Trap (2×PB / LR) with persisted, GM-hidden trap objects (SI-6); 8 trap types with level scaling; Detect / Disarm checks; Panic Inducer; Here's One I Made Earlier; Bait the Trap; Agent of Chaos DR/Resistance removal; House of Horrors.
-- Rulings to log: Trap DC "Creature's Choice" (L6408); Spike Trap uses Spell Save DC (L6534); "Gas Trap" in Incendiary text (L6513); Specialist Level vs character level scaling.
+Source L6382–6542. Evidence: complete implementation across specialist-rules.mjs, trapmaster-features.mjs, specialist-progression.mjs, specialist-uses.mjs, specialist-sheet.mjs, and ak5e.mjs; 27 unit tests in trapmaster.test.mjs + 37 adversarial tests in trapmaster-adversarial.test.mjs (64/64 green); live browser execution verified (screenshots 22–24); logged rulings in ak5e/DECISIONS.md.
+- [x] Place Trap (2×PB / LR) with persisted, GM-hidden trap objects (SI-6); 8 trap types with level scaling; Detect / Disarm checks; Panic Inducer; Here's One I Made Earlier; Bait the Trap; Agent of Chaos DR/Resistance removal; House of Horrors.
+- Rulings to log: Trap DC "Creature's Choice" (L6408); Spike Trap uses Spell Save DC (L6534); "Gas Trap" in Incendiary text (L6513); Specialist Level vs character level scaling. (Logged in ak5e/DECISIONS.md)
 - Manual-OK: Devil's Own Luck adjudication, Alarm Trap timing.
 
 ### Supporter — class level (L)
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6548–6692. Evidence: none beyond 37 Operator Skills.
-- [ ] Native data: d6, proficiencies (SI-11).
-- [ ] **Aid Die module** (pool = chosen ability modifier, d8 / d10 / d12, Provide Aid 10 minutes, consume via chat-card button); ~40 features depend on it. Advanced Aid riders (L6656–6662), Lighten the Load, Ever Reliable, Self-Supportive, Will Into Being.
-- [ ] Arts setup shared by Hexer / Ritualist / Summoner (identical AP table L7256, L7360, L7579) (SI-5).
-- [ ] Talents: 12 Basic + 16 Advanced (L6809–6851); Anti-Arts Training, Lieutenant, Part-Time Inventor cross-class borrows.
-- Rulings to log: Aid Die count when the modifier ≤ 0 (L6637); Advanced Aid on Constructs; "Tech" vs "Technology Skill" (L6604 / L6882).
+Source L6548–6692. Implemented on branch `feat/supporter-base` (2026-10-24, PRs #8–#32, adversarial pairs per unit). `npm run test:supporter`: 1019 pass, 0 fail. Live Foundry V13 checks were run per unit with launchTestBrowser(), and the screenshots were viewed by the implementing workers. Not yet merged to `main`.
+- [x] Native data: d6, Light Melee (custom weaponProf), saves, skills, tools, equipment; branch features granted by level (supporter-progression.mjs, supporter-setup.mjs).
+- [x] **Aid Die module.** Covers:
+  - the pool = the chosen ability modifier with no floor (resource-pools now accepts a per-actor function max), d8 / d10 / d12;
+  - Provide Aid, Expend, Advanced Aid riders as click-only buttons, with the crit rider applied through `dnd5e.preRollAttackV2`;
+  - Lighten the Load (spends a Reaction), Ever Reliable, Self-Supportive and Will Into Being (an opt-in +PB note).
+
+  Code: supporter-rules/features/uses.mjs.
+- [x] Arts setup shared by Hexer / Ritualist / Summoner (supporter-arts.mjs, AP table keyed by branch). Only Hexer is filled in: Ritualist and Summoner tables carry extra columns, so they are not added yet.
+- [x] Talents: 12 Basic + 16 Advanced (supporter-talents.mjs). 3 are Active Effects, 7 are plans with pools, and 18 are manual cards, including the R11 cross-class borrows.
+- [x] Sheet panel (supporter-sheet.mjs). Owner-gated; it includes a branch slot and routes branch commands. A branch seam (supporter-branches.mjs, supporter-branch-index.mjs) is wired in ak5e.mjs.
+- [x] Shared Cancel defect fixed for play-uses dialogs. Foundry resolves `callback() ?? action`, so Cancel must return false (play-uses-sheet.mjs). The same defect in other classes is tracked in bugs/pending/B-302.
+- [ ] Open: Will Into Being +PB is a note, not applied to an already-made roll. The Advanced Aid Force rider posts its amount for native damage application. The Supporter "Choose Skills" (operator-progression) prompt auto-opens over the sheet at higher levels.
+- [ ] Open: Ritualist and Summoner branches.
+- [x] Review round R1 (PRs #33–#36): Aid Dice last 10 minutes; talent pools defined at registration; card riders confirm and undo; wider recipient list; Aid ability fallback and chooser; progression choices; GM relay content checks. See DECISIONS "Supporter review round R1 rulings".
+- [ ] Deferred (R1): upgrade creation-limit `eventCount` UI; undo receipt pruning; late branch registration snapshot; play-uses target-kind collision guard.
+- Rulings logged: ak5e/DECISIONS.md "Supporter Class and Artificer / Bard / Hexer Branches" (R1–R11) and "Supporter branch implementation rulings".
 
 #### Artificer — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L6859–7090. Evidence: Automaton creature records exist as templates.
-- [ ] Automaton lifecycle (Platform / Air Support / Turret; HP + Tech modifier; Int + PB to hit; cap 1 → 2) (SI-8); rebuild (LR or 500 LMD); As One; Fort Builder.
-- [ ] Heavy Duty Upgrades (21: 17 Automaton, 4 Mobile Cover) with caps 2 / 3 and restriction tags; shared-rest recovery rule ("both complete a rest together"); Machine Personality RollTable; Concussive Maintenance.
-- Rulings to log: Automaton cap vs Protocol skills (L6755) and Turret Automation; "Air Supporter" typo (L6768); upgrade cap for Mobile Cover; "Page 466/467/9" references.
-- Manual-OK: HOIST, Search and Rescue, Ultralight, Personality.
+Source L6859–7090. Implemented in artificer-features.mjs (U5), artificer-upgrades.mjs (U6) and artificer-branch.mjs (U9).
+- [x] Automaton lifecycle:
+  - build from the Ch.6 template through a GM relay;
+  - HP + Technology Modifier as a reading (techTotal / intMod);
+  - INT + PB to hit;
+  - cap 1 → 2, which warns rather than blocks, with exemptions;
+  - destroyed at 0 HP;
+  - rebuild (Long Rest or 500 LMD from `currency.cp`);
+  - As One, Control, Fort Builder, Concussive Maintenance, Advanced Personality Matrix, Artificer DC.
+- [x] Heavy Duty Upgrades: 17 Automaton + 4 Mobile Cover, transcribed with restriction tags. Caps are 2 / 3 (Mobile Cover uses the same cap). Shared-rest recovery; save buttons use the Artificer DC with native `rollSavingThrow`; Machine Personality by choice or by a d6 button.
+- [ ] Open:
+  - Calculated Strikes is a flag plus a reminder (dnd5e has no global per-weapon ability override).
+  - Upgrade-use recovery for Automatons the player doesn't own needs a GM relay.
+  - Arts Detonator's "use at 0 HP even if expended" is noted but not enforced.
+- Manual-OK: HOIST, Search and Rescue, Ultralight, Personality flavour.
 
 #### Bard — L
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L7096–7211. Evidence: none.
-- [ ] Performance composer: Muse from expended Aid Dice, ≥3 Arts, no consecutive duplicates, ≤CHA-mod Performances; runtime that casts one Art per Turn free of AP (Concentration handling); Rising Crescendo; Speak to the Soul; Font of Inspiration; Fortissimo.
-- [ ] Performance Arts table (34 entries); several named Arts (Pyrotechnics, Crusader's Mantle, Counterspell, Find Familiar, Augury, Unseen Servant) are absent from Ch.5 text — needs a mapping decision.
-- Rulings to log: Bonus-Action Arts vs "usual Action Cost" (L7110); Aid Dice lost to Muse until LR; "Performance Modifier".
-- Manual-OK: Instrument equip check, Emergency Improv.
+Source L7096–7211. Implemented in bard-compose.mjs (U7), bard-perform.mjs (U8) and bard-branch.mjs (U11).
+- [x] Composer:
+  - Muse from expended Aid Dice, rolled by button;
+  - at least 3 Arts, no consecutive duplicates, at most max(1, CHA) Performances, all as warnings;
+  - an unknown Art is a hard error;
+  - leftover Muse becomes Temporary HP;
+  - No Encore and Long Rest cleanup;
+  - Soul of the Bard setup, Speak to the Soul, Emergency Improv (DC 17 check button, then compose or insert).
+- [x] Runtime:
+  - start and per-Art casts at 0 AP through the Arts quote registry;
+  - one Art per Turn, or two with Time Signature;
+  - turn-end auto-end;
+  - the last Art ends the Performance, and its crescendo still applies to that cast;
+  - Rising Crescendo as an Active Effect, with Fortissimo ×2;
+  - Font of Inspiration die (R4) and Font Aid;
+  - the Instrument acts as the Casting Unit for the duration;
+  - every control confirms, and Cancel changes nothing.
+- [x] Performance Arts table: 34 rows. 11 absent from Ch.5 are marked manual (Bless included); see DECISIONS.
+- [ ] Open:
+  - Native Concentration effects of other Arts are not ended automatically.
+  - The whole-array `performances` write can race between compose and perform.
+  - Shatter (5th Level) presence is unresolved.
+- Manual-OK: Emergency Improv timing reminder.
 
 #### Hexer — M
 
 - [ ] Cross-verified by Codex or Claude.
 
-Source L7223–7330. Evidence: Custom tag suggested; Cursemark manual.
-- [ ] Hexer AP table and pool setup (SI-5); Potent Hex (PB / LR; Abjuring, Binding, Breaking, Looping) with the Aid Die roll recorded at application; Cursemark point (SI-6); Empathic Pain; Voicethief / Wasting; Ultimate Hex; Rupturing Hex.
-- Rulings to log: rounding for Abjuring (L7290); Binding re-roll vs fixed (L7292); Ultimate Hex includes Cursemark / Wasting choice (L7326).
-- Manual-OK: Cursemark, Rupturing Hex.
+Source L7223–7330. Implemented in hexer-arts.mjs (U3), hexer-features.mjs (U4) and hexer-branch.mjs.
+- [x] Hexer AP table and pool setup (all Arts ≤5th level plus cantrips, always Prepared; a second pool at level 11; duplicate pool warns).
+- [x] Hexes:
+  - Potent Hex (PB / LR): Binding with 2 Aid Dice rounded to the nearest 5; Breaking; Looping; Abjuring with its die rolled at the hexed creature's damage roll (L7290).
+  - The Force rider is limited per hexed creature per turn cycle and checks the source.
+  - Cursemark (optional mark id, an area apply with a single confirm, Spare the Rod).
+  - Empathic Pain, Voicethief (native save), Wasting.
+  - Ultimate Hex with Rupturing; it includes the level-13 Hexes.
+- [ ] Open:
+  - Many Standard Pool members have no AK5e record and are reported as "missing", for example Light and Psychic (0 resolved).
+  - No Casting Unit is set at setup, so the first cast raises FocusMissing until one is assigned.
+  - Breaking has no DR key and uses a flag plus a reminder.
+- Manual-OK: Cursemark canvas placement (the targeted token is the point), Rupturing burst targeting.
 
 #### Ritualist — L
 

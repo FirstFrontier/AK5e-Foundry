@@ -97,7 +97,7 @@ test("Primal and Splash are supported Caster branches", () => {
 
 test("Residual Suffering applies the table Condition until the end of the Caster's next Turn and spends one use", async () => {
   const { actor, target } = setup();
-  assert.deepEqual(getCasterView(actor).residual, { id: "residualSuffering", label: "Residual Suffering", value: 4, max: 4, over: 0, overMax: false });
+  assert.deepEqual(getCasterView(actor).residual, { id: "residualSuffering", label: "Residual Suffering", value: 4, max: 4, over: 0, overMax: false, corrupt: false });
   const result = await residual(actor, {}, "op1");
   assert.equal(result.condition, "Burning");
   const [effect] = tags(target);

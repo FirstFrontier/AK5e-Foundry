@@ -200,7 +200,7 @@ test("Hooks apply Deadshot doubled PB, Lethal crit reduction, and Vital Strike d
           enabled: true,
           deadshotActive: true,
           vitalStrikeActive: true,
-          targetLock: { active: true, targetUuid: "Target.Locked.1" }
+          targetLock: { active: true, targetUuid: "Target.Locked.1", expiresAt: Date.now() / 1000 + 60 }
         }
       }
     }

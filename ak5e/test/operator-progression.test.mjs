@@ -275,6 +275,44 @@ test("unmanaged classes, unknown Branches and multiclass Actors do not produce g
   assert.deepEqual(getOperatorSkillChoices(invalid).blocked, ["InvalidClassLevel"]);
 });
 
+test("B-011: the Choose Skills dialog never opens over a Vanguard (or any class) that has nothing to choose", async () => {
+  // Vanguard is a managed class with its own Operator Skills (35 in the catalogue), so it is "applicable",
+  // but at level 1 every tier is still locked: no pending, blocked or recovery slot, hence no dialog.
+  const vanguard = actor("Vanguard", 1); addBranch(vanguard, "Vanguard: Standard Bearer");
+  const view = getOperatorSkillChoices(vanguard);
+  assert.equal(view.applicable, true); assert.equal(view.className, "Vanguard"); assert.equal(view.branchName, "Standard Bearer");
+  assert.deepEqual(view.slots.map(slot => slot.status), ["locked", "locked", "locked"]);
+  assert.deepEqual([view.pending, view.blocked], [[], []]); assert.equal(view.promptKey, null);
+  assert.equal(view.slots.some(slot => slot.recovery), false);
+  // A class the module does not manage, a non-character, and an Actor with no class are not applicable at all.
+  const unmanaged = actor(null); addItem(unmanaged, { type: "class", name: "Wizard", system: { levels: 14 } });
+  const npc = actor("Vanguard", 14); npc.type = "npc";
+  const classless = actor(null);
+  for (const other of [unmanaged, npc, classless]) {
+    const result = getOperatorSkillChoices(other);
+    assert.equal(result.applicable, false); assert.deepEqual([result.slots, result.pending, result.blocked], [[], [], []]);
+  }
+  // Neither the automatic (sheet render / progression) nor the manual path may open a dialog for those Actors.
+  const observed = mockDialogs([]);                                   // any dialog.wait call fails "Unexpected automatic dialog"
+  for (const other of [vanguard, unmanaged, classless]) {
+    assert.equal(await sheet.openOperatorSkillChoices(other, { automatic: true }), false);
+    assert.equal(await sheet.openOperatorSkillChoices(other), false);
+  }
+  assert.equal(observed.length, 0);
+  // Genuine trigger: from level 2 an unchosen Basic tier is pending, with only Vanguard Basic options.
+  vanguard.items.values().next().value.system.levels = 2;
+  const unlocked = getOperatorSkillChoices(vanguard);
+  assert.deepEqual(unlocked.pending.map(slot => slot.tier), ["Basic"]);
+  assert.ok(unlocked.pending[0].options.length > 0);
+  assert.ok(unlocked.pending[0].options.every(entry => entry.parentClass === "Vanguard" && entry.operatorSkill.tier === "Basic"));
+  // Once the Basic tier is learned the dialog has nothing left to offer.
+  addItem(vanguard, runtime.operatorSkillItemData(unlocked.pending[0].options[0]));
+  const learned = getOperatorSkillChoices(vanguard);
+  assert.deepEqual([learned.pending, learned.blocked], [[], []]); assert.equal(learned.promptKey, null);
+  assert.equal(await sheet.openOperatorSkillChoices(vanguard, { automatic: true }), false);
+  assert.equal(observed.length, 0);
+});
+
 test("committed changes coalesce, native advancement waits for completion, clones and other owners never get duplicate automatic prompts", async () => {
   sheet.registerOperatorSheetHooks();
   const pc = actor("Caster", 1), cls = pc.items.values().next().value;

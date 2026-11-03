@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { guardFixture, world } from "./guard-fixture.mjs";
 import {
-  isCenturion, defineCenturionPools, registerCenturionHooks
+  isCenturion, defineCenturionPools, registerCenturionHooks, centurionPreRollAttack
 } from "../scripts/centurion-features.mjs";
 import { guardUses } from "../scripts/guard-uses.mjs";
 import { centurionDC, martialDC } from "../scripts/guard-rules.mjs";
@@ -140,3 +140,29 @@ test("Storm of Blood (17th) rolls 10d8 Slashing and sets DC", async () => {
   const receipt = guardUses.receipt(actor, "storm-1");
   assert.equal(receipt.formula, "10d8");
 });
+
+test("Fearmonger grants Advantage against Frightened targets and Disadvantage on incoming attacks", () => {
+  const documents = setupWorld();
+  const centurion = guardFixture({ level: 4, branch: "centurion" });
+  const enemy = {
+    uuid: "Actor.enemyFrightened",
+    id: "enemyFrightened",
+    name: "Frightened Goblin",
+    statuses: new Set(["frightened"]),
+    flags: { ak5e: {} }
+  };
+  documents.set(enemy.uuid, enemy);
+
+  // 1. Centurion attacks Frightened enemy -> Advantage
+  globalThis.game.user.targets = new Set([{ actor: enemy }]);
+  const atkConfig1 = { subject: { actor: centurion }, rolls: [{ options: {} }] };
+  centurionPreRollAttack(atkConfig1);
+  assert.equal(atkConfig1.rolls[0].options.advantage, true);
+
+  // 2. Frightened enemy attacks Centurion -> Disadvantage
+  globalThis.game.user.targets = new Set([{ actor: centurion }]);
+  const atkConfig2 = { subject: { actor: enemy }, rolls: [{ options: {} }] };
+  centurionPreRollAttack(atkConfig2);
+  assert.equal(atkConfig2.rolls[0].options.disadvantage, true);
+});
+

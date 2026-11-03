@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Fix the low-severity pool and trigger bugs B-005, B-021–B-026 and B-032: per-kind
+  receipt history, long-rest recovery precedence, result-only rest dedupe, visible
+  corrupt pool values (`getPool().corrupt`), own-property pool/limiter lookups,
+  deterministic pool tests, dnd5e 5.3 `senses.ranges` on Arts Master drones, and
+  attack hit/miss judged against the targets and AC dnd5e stored for the roll.
+
+- Repair Marksman/Anti-Air/Artilleryman audit defects B-110–128: working confirmed
+  sheet/card controls, reversible flag changes and prepared Reaction receipts,
+  safe Artilleryman feature repair, incremental HP/ASI progression, minute-long
+  Target Lock/Last Option, canonical initiative recovery and correct roll scopes.
+  Add explicit STR/DEX Martial DC choice and a per-use level-11/12 reading.
+  Blast geometry, saves/conditions, Siege Attacker and defensive benefits have
+  complete visible manual procedures where native automation is incomplete.
+  See `MARKSMAN_FIXES.md` for tests, rendered evidence and remaining limitations.
+
 - Defender increment: add the Juggernaut, Protector and Sentry Branches on the
   Defender use engine (`juggernaut-*`, `protector-*` and `sentry-*` features and
   sheets). They are selectable in Defender progression.

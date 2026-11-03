@@ -304,6 +304,9 @@ Chromium headless mode and requests hardware acceleration with `--enable-gpu`.
 - Keep **`TODO.md` current throughout the work**: mark completed segments,
   add newly discovered tasks, split work when that improves tracking, and
   remove items no longer relevant.
+- Track defects as one file each in `bugs/pending/` and, once fixed, `bugs/fixed/`;
+  follow `bugs/README.md`. Read only the bug files your task needs: `ls bugs/pending`,
+  never `bugs/fixed/` wholesale. Cite bugs by ID in assignments and other docs.
 - Do not mass-import the book before a vertical slice has been tested.
 - Do not invent missing mechanics, falsely claim automation, or silently resolve
   ambiguous source text.
@@ -315,7 +318,7 @@ Chromium headless mode and requests hardware acceleration with `--enable-gpu`.
 
 1. **Understand:** read the requested source and relevant code/docs, inspect `git status`, and check existing tests.
 2. **Plan proportionately:** define observed behavior, rules authority, Foundry representation, affected files/packs, risks, and acceptance criteria. Avoid long plans for trivial edits.
-3. **Delegate selectively:** follow [AGENTS.md](AGENTS.md) when outsourcing bounded discovery, implementation or test tasks; keep ambiguous AK5e rules interpretation with the main agent and log decisions.
+3. **Delegate selectively:** follow [AGENTS.md](AGENTS.md) when outsourcing bounded discovery, implementation or test tasks; keep ambiguous AK5e rules interpretation with the main agent and log decisions. Claude Code instead works as a parallel team by default (one head, at most 4 Sonnet/Haiku workers, up to two parallel lanes each with an implementer + challenger pair) per [CLAUDE.md](CLAUDE.md). Codex runs ready independent packages in parallel, up to two active lanes, through the staged pipeline in [CODEX.md](CODEX.md) (tests drafted before code, review gate, bounded implementer escalation).
 4. **Implement a small coherent patch:** follow existing architecture, avoid unrelated refactors, preserve stable IDs and module compatibility, and update `TODO.md`.
 5. **Test:** run appropriate lint/static tests, unit checks, pack/manifest validation and Foundry integration tests; do not stop at compilation.
 6. **Observe:** render in the real Foundry V13 + D&D5e application when any visible behavior/content may have changed. Use the required `launchTestBrowser()` helper for all Playwright Chromium tests.

@@ -18,7 +18,7 @@ export const GUARD_BRANCH_IDS = Object.freeze({
   "subclass-guard-weaponmaster": "weaponmaster"
 });
 
-export const IMPLEMENTED_GUARD_BRANCHES = Object.freeze(["centurion", "crusher", "instructor"]);
+export const IMPLEMENTED_GUARD_BRANCHES = Object.freeze(["artsblade", "brawler", "centurion", "crusher", "duellist", "instructor", "liberator", "lord", "musha", "reaper", "weaponmaster"]);
 
 /** Aggression column: 4 at 1st level, 6 at 7th, 8 at 14th (L1877-1879). */
 export const AGGRESSION_STEPS = Object.freeze({ 1: 4, 7: 6, 14: 8 });
@@ -98,7 +98,8 @@ function stepValue(steps, level) {
 
 export function checkLevel(level) {
   const n = Number(level);
-  if (!Number.isInteger(n) || n < 1 || n > 20) throw new RangeError("Guard level must be an integer from 1 to 20.");
+  if (!["number", "string"].includes(typeof level) || (typeof level === "string" && !level.trim())
+    || !Number.isFinite(n) || !Number.isInteger(n) || n < 1 || n > 20) throw new RangeError("Guard level must be an integer from 1 to 20.");
   return n;
 }
 
@@ -109,13 +110,22 @@ export const instructionDiceMax = level => stepValue(INSTRUCTION_DICE_STEPS, che
 /** Instruction Die size (L2859 vs L2882): d6 from 1st, d10 from 13th (Superior Instruction). */
 export const instructionDieFaces = level => checkLevel(level) >= 13 ? 10 : 6;
 
-/** Martial DC (Ch.1 L211): 8 + PB + higher of STR or DEX modifier. */
-export function martialDC(actor) {
+/** The character's stored Martial DC ability choice (Ch.1 L211-212: "their Strength or Dexterity Bonus (their Choice)"),
+ * or null when nothing has been chosen. Stored under flags.ak5e.guard.martialDCAbility. */
+export function martialDCChoice(actor) {
+  const ability = flag(actor, "guard")?.martialDCAbility;
+  return ability === "str" || ability === "dex" ? ability : null;
+}
+
+/** Martial DC (Ch.1 L211-212): 8 + PB + the Strength or Dexterity Modifier the character chose. `ability` overrides the
+ * stored choice for one use. Only when nothing is chosen does it fall back to the higher of the two (callers warn
+ * before relying on that default). */
+export function martialDC(actor, ability = flag(actor, "guard")?.martialDCAbility) {
   const system = actor?.system ?? {};
   const pb = Number(system.attributes?.prof ?? 2);
-  const str = Number(system.abilities?.str?.mod ?? 0);
-  const dex = Number(system.abilities?.dex?.mod ?? 0);
-  return 8 + pb + Math.max(str, dex);
+  const mod = key => Number(system.abilities?.[key]?.mod ?? 0);
+  if (ability === "str" || ability === "dex") return 8 + pb + mod(ability);
+  return 8 + pb + Math.max(mod("str"), mod("dex"));
 }
 
 /** Centurion DC (Ch.3 L2554-2555): 8 + Intimidation Modifier. */
@@ -147,8 +157,8 @@ export function guardProfile(actor) {
   if (!guardClass) return empty;
   if (classes.length > 1) return { ...empty, applicable: true, blocked: ["MultipleClasses"] };
 
-  const rawLevel = Number(guardClass.system?.levels);
-  const level = Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
+  const inputLevel = guardClass.system?.levels, rawLevel = Number(inputLevel);
+  const level = ["number", "string"].includes(typeof inputLevel) && Number.isFinite(rawLevel) && Number.isInteger(rawLevel) && rawLevel >= 1 && rawLevel <= 20 ? rawLevel : null;
   if (level === null) return { ...empty, applicable: true, blocked: ["InvalidClassLevel"] };
 
   const branches = items.filter(i => i.type === "subclass");
@@ -156,7 +166,7 @@ export function guardProfile(actor) {
   let branch = null, branchId = null;
   if (branchItem) {
     branchId = flag(branchItem, "chapterThreeId") ?? null;
-    branch = GUARD_BRANCH_IDS[branchId] ?? null;
+    branch = typeof branchId === "string" && Object.hasOwn(GUARD_BRANCH_IDS, branchId) ? GUARD_BRANCH_IDS[branchId] : null;
     if (!branch && branchItem.name) {
       const match = branchItem.name.replace(/^Guard:\s*/i, "").trim().toLowerCase();
       branch = Object.values(GUARD_BRANCH_IDS).includes(match) ? match : null;

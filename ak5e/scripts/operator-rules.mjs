@@ -18,7 +18,10 @@ export function skillDefinition(data = {}) {
   if (!/^(Instant|\d+ Rounds?|Until Long Rest|1 Attack|Manual)$/.test(duration)) throw new Error("Choose an Instant, round, Until Long Rest, one-Attack, or Manual duration.");
   if (/^0+ Rounds?$/.test(duration)) throw new Error("A timed Skill needs at least one round.");
   if (!/^(Action|Bonus Action|Reaction|No Action Required)$/.test(data.activation ?? "")) throw new Error("Choose an activation cost.");
-  return { ...data, cost, start, methods: [...new Set(data.methods)], duration, enabled: data.enabled !== false };
+  // `ignoreCharging` (for example Pioneer's Breakthrough Skill, "ignore the Charging Method for that Skill") is kept only when true.
+  const { ignoreCharging, ...rest } = data;
+  return { ...rest, cost, start, methods: [...new Set(data.methods)], duration, enabled: data.enabled !== false,
+    ...(ignoreCharging === true ? { ignoreCharging: true } : {}) };
 }
 
 export function learnedSkills(items = []) {
@@ -29,7 +32,8 @@ export function learnedSkills(items = []) {
     if (!metadata || metadata.enabled === false) continue;
     const key = metadata.sourceId ?? item.getFlag?.("ak5e", "chapterThreeId") ?? item.flags?.ak5e?.chapterThreeId ?? item.id;
     if (seen.has(key)) continue;
-    const definition = skillDefinition(metadata);
+    const choice = item.getFlag?.("ak5e", "operatorSkillChoice") ?? item.flags?.ak5e?.operatorSkillChoice;
+    const definition = skillDefinition(choice?.ignoreCharging === true ? { ...metadata, ignoreCharging: true } : metadata);
     seen.add(key);
     result.push({ ...definition, itemId: item.id, uuid: item.uuid, name: item.name, sourceId: key });
   }
@@ -40,7 +44,8 @@ export function operatorState(stored = {}, skills = []) {
   const enabled = stored.enabled === true;
   const maximum = enabled ? Math.max(0, ...skills.map(skill => skill.cost)) : Math.max(0, Number(stored.maximum) || 0);
   const start = enabled ? Math.max(0, ...skills.map(skill => skill.start)) : Number(stored.start) || 0;
-  const counts = Object.fromEntries(CHARGING_METHODS.map(method => [method, skills.filter(skill => skill.methods.includes(method)).length]));
+  // A Skill that ignores its Charging Method adds nothing to any rate (it still counts for SP Cost and Start SP).
+  const counts = Object.fromEntries(CHARGING_METHODS.map(method => [method, skills.filter(skill => !skill.ignoreCharging && skill.methods.includes(method)).length]));
   return { ...stored, enabled, maximum, start: bound(start, maximum), points: bound(stored.points, maximum), active: stored.active ?? null,
     counts, rates: { automatic: counts.automatic * 2, offensive: counts.offensive, defensive: counts.defensive * 2 },
     receipts: stored.receipts ?? [], operations: stored.operations ?? [], pendingEvents: stored.pendingEvents ?? [] };

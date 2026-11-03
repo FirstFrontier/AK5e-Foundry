@@ -832,7 +832,7 @@ Not verified or not clean:
 
 A second, independent run of `ak5e/tools/test-defender-live.mjs` on its own copy of the World
 (`/tmp/ak5e-defender-mine`, port 30148, stopped and restarted by PID), after the fixes in
-`BUGS.md` B-F08 to B-F11 (rest ordering, manual-disable respect, leaf-level state writes):
+`bugs/fixed/` B-F08 to B-F11 (rest ordering, manual-disable respect, leaf-level state writes):
 
 - [x] 18/18 checks PASS, twice, with no console errors other than the 14-22 recorded Standard
   Bearer baseline messages (B-080, listed separately in `knownBaselineErrors`).

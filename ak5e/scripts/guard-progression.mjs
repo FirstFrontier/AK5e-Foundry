@@ -4,12 +4,17 @@
  */
 import { CHAPTER_THREE_CLASSES } from "./chapter-three-content.mjs";
 import { CHAPTER_FOUR_EQUIPMENT } from "./chapter-four-content.mjs";
+import { CHAPTER_FIVE_ARTS } from "./chapter-five-content.mjs";
 import { sourceEntryData } from "./caster-setup.mjs";
+import { standardPools } from "./caster-rules.mjs";
 import {
   GUARD_CLASS_ID, GUARD_BRANCH_IDS, FIGHTING_STYLES, checkLevel, guardProfile,
   guardState, flag as guardFlag
 } from "./guard-rules.mjs";
+import { WEAPONMASTER_FIGHTING_STYLES } from "./weaponmaster-features.mjs";
 import { need } from "./operation-kernel.mjs";
+import { commitGuardChanges, undoGuardChange } from "./guard-setup.mjs";
+import { guardUses } from "./guard-uses.mjs";
 
 export const GUARD_PROGRESS_FLAG = "guardProgression";
 export const GUARD_TALENT_FLAG = "guardTalent";
@@ -43,6 +48,8 @@ const DEFAULT_STATE = Object.freeze({
   choices: {},
   hpLevels: [],
   asiLevels: [],
+  startingEquipmentSlots: [],
+  artsTouchedApplied: false,
   operations: [],
   receipts: {},
   plans: {}
@@ -131,20 +138,82 @@ function sourceData(entry, kind = "feature") {
   return data;
 }
 
-function equipmentData(entry) {
+function equipmentData(entry, slot) {
   const source = worldItem(entry.id);
+  let data;
   if (source) {
-    const data = toSource(source);
+    data = toSource(source);
     data.flags ??= {};
     data.flags.ak5e ??= {};
-    data.flags.ak5e.guardProgressionGrant = { sourceId: entry.id, kind: "startingEquipment" };
-    return data;
+  } else {
+    data = sourceEntryData(entry);
+    data.flags ??= {};
+    data.flags.ak5e ??= {};
   }
-  const data = sourceEntryData(entry);
-  data.flags ??= {};
-  data.flags.ak5e ??= {};
-  data.flags.ak5e.guardProgressionGrant = { sourceId: entry.id, kind: "startingEquipment" };
+  data.flags.ak5e.guardProgressionGrant = { sourceId: entry.id, kind: "startingEquipment", slot };
+  data.flags.ak5e.guardStartingSlot = slot;
   return data;
+}
+
+function manualArtsItem(member, pools) {
+  const pool = pools[0];
+  const key = `manual:${member.name.toLowerCase()}`;
+  return {
+    name: member.name,
+    type: "spell",
+    img: "icons/svg/book.svg",
+    system: { level: Number(member.level), description: { value: `<p>AK5e ${pool.name}, level ${member.level} Art.</p><p>This manual source entry records the printed Art name and level because the source registry has no native Art Item for it. Resolve the Art from the AK5e source text or an owner supplied rules source. Do not substitute a different Art.</p>` } },
+    flags: { ak5e: {
+      guardProgressionGrant: { kind: "artsbladeArt", poolIds: pools.map(value => value.id), artLevel: Number(member.level), manual: true },
+      guardManualArtKey: key,
+      guardArtsPools: pools.map(value => value.id),
+      artsKind: "manual-source-art",
+      sourceHeading: pool.name,
+      rawSource: `${member.name} (${member.level === 0 ? "Cantrip" : `Level ${member.level}`})`
+    } }
+  };
+}
+
+function artsbladePoolItems(actor, choices, level) {
+  // Sword and Sorcery grants levelled Arts through fifth level; Sharpened
+  // Mind's two additional pools grant only levelled Arts through third level.
+  // Keep each pool's legitimate ceiling before deduplicating shared members.
+  const ceilings = new Map();
+  for (const key of choices.artPools ?? []) ceilings.set(String(key).toLowerCase(), 5);
+  if (level >= 10) for (const key of choices.additionalArtPools ?? []) {
+    const poolKey = String(key).toLowerCase();
+    ceilings.set(poolKey, Math.max(ceilings.get(poolKey) ?? 0, 3));
+  }
+  const pools = [...ceilings].map(([key, ceiling]) => ({
+    pool: standardPools.find(pool => pool.id.includes(`-${key}-arts-`)), ceiling
+  })).filter(entry => entry.pool);
+  const sourceIds = new Set(entries(actor.items).map(item => flag(item, "chapterFiveId")).filter(Boolean));
+  const names = new Set(entries(actor.items).filter(item => item.type === "spell").map(item => item.name?.toLowerCase()));
+  const members = new Map();
+  for (const { pool, ceiling } of pools) for (const member of pool.members) {
+    if (Number(member.level) < 1 || Number(member.level) > ceiling) continue;
+    const key = member.sourceId ? `source:${member.sourceId}` : `manual:${member.name.toLowerCase()}`;
+    const current = members.get(key) ?? { member, pools: [] };
+    current.pools.push(pool);
+    members.set(key, current);
+  }
+  const result = [];
+  for (const { member, pools: memberPools } of members.values()) {
+    if (member.sourceId) {
+      if (sourceIds.has(member.sourceId)) continue;
+      const entry = CHAPTER_FIVE_ARTS.find(candidate => candidate.id === member.sourceId && candidate.kind === "art");
+      if (!entry) continue;
+      const data = sourceEntryData(entry);
+      data.flags.ak5e.guardProgressionGrant = { kind: "artsbladeArt", sourceId: entry.id, poolIds: memberPools.map(pool => pool.id), artLevel: Number(member.level) };
+      data.flags.ak5e.guardArtsPools = memberPools.map(pool => pool.id);
+      result.push(data);
+    } else {
+      // An existing same-name spell is retained as the Actor's authored Art.
+      if (names.has(member.name.toLowerCase())) continue;
+      result.push(manualArtsItem(member, memberPools));
+    }
+  }
+  return result;
 }
 
 function attachedTalentChoices(actor) {
@@ -165,6 +234,13 @@ const option = (value, label, details = {}) => ({ value, label, ...details });
 const field = (key, label, options, count = 1, selected = null, requiredAt = 1) => ({ key, label, options, count, selected, requiredAt });
 
 export function guardChoices(actor, supplied = {}) {
+  need(supplied && typeof supplied === "object" && !Array.isArray(supplied), "Invalid Guard progression choice: supply a choices object.");
+  for (const key of ["skills", "artPools", "additionalArtPools"]) if (Object.hasOwn(supplied, key)) {
+    need(Array.isArray(supplied[key]), `Invalid Guard progression choice: ${key} must be a list.`);
+  }
+  for (const key of ["hp", "asi", "talents", "startingEquipment"]) if (Object.hasOwn(supplied, key)) {
+    need(supplied[key] && typeof supplied[key] === "object" && !Array.isArray(supplied[key]), `Invalid Guard progression choice: ${key} must be an object.`);
+  }
   const state = readState(actor), saved = state.choices ?? {};
   const result = { ...structuredClone(saved), ...structuredClone(supplied ?? {}) };
   result.skills = [...(Array.isArray(supplied.skills) ? supplied.skills : saved.skills ?? [])];
@@ -174,15 +250,97 @@ export function guardChoices(actor, supplied = {}) {
   result.hp = { ...(saved.hp ?? {}), ...(supplied.hp ?? {}) };
   result.startingEquipment = { ...(saved.startingEquipment ?? {}), ...(supplied.startingEquipment ?? {}) };
   result.talents = { ...(saved.talents ?? {}), ...(supplied.talents ?? {}) };
+  result.artPools = [...(supplied.artPools ?? saved.artPools ?? [])];
+  result.additionalArtPools = [...(supplied.additionalArtPools ?? saved.additionalArtPools ?? [])];
   result.fightingStyle = supplied.fightingStyle ?? saved.fightingStyle ?? null;
-  const level = levelOf(guardClass(actor));
-  if (level) {
-    result.asi ??= {};
-    result.hp ??= {};
-    for (const n of ASI_LEVELS.filter(v => v <= level)) result.asi[n] ??= { mode: "existing" };
-    for (let n = 1; n <= level; n++) result.hp[n] ??= { mode: "existing" };
-  }
+  result.weaponmasterAdditionalFightingStyle = supplied.weaponmasterAdditionalFightingStyle ?? saved.weaponmasterAdditionalFightingStyle ?? null;
+  result.martialDCAbility = supplied.martialDCAbility ?? saved.martialDCAbility ?? null;
+  // HP and ASI levels are NOT defaulted here. A level counts as taken only when its choice was actually supplied
+  // (an explicit { mode: "existing" } is a supplied choice); the sheet shows "existing" as the unselected default.
   return result;
+}
+
+const ABILITY_KEYS = Object.freeze(["str", "dex", "con", "int", "wis", "cha"]);
+const HIT_DIE = 10;
+
+/**
+ * Validate supplied choices against the class options before anything is previewed or written. Throws on malformed
+ * input; out-of-range HP rolls are clamped and unavailable levels are ignored, both with a warning. Returns the
+ * normalised HP rolls and the supplied levels to mark as taken.
+ */
+function validateGuardChoices(choices, level, warnings) {
+  const reject = message => { throw new Error(`Invalid Guard progression choice: ${message}`); };
+  const saves = Array.isArray(choices.saves) ? choices.saves : [choices.saves];
+  const saveKeys = SAVES.map(([, key]) => key);
+  if (saves.some(value => value !== undefined && value !== null)) {
+    if (saves.length !== 1 || !saveKeys.includes(saves[0])) reject(`choose one saving throw from ${saveKeys.join(", ")} (Strength is automatic).`);
+  }
+  const skillKeys = SKILLS.map(([, key]) => key);
+  const skills = choices.skills ?? [];
+  if (!Array.isArray(skills)) reject("skills must be a list.");
+  if (skills.some(key => !skillKeys.includes(key))) reject(`skills must come from the Guard list: ${skillKeys.join(", ")}.`);
+  if (new Set(skills).size !== skills.length) reject("the same skill was chosen more than once.");
+  if (skills.length > 3) reject("choose three skills.");
+  if (choices.tool != null && !TOOLS.includes(choices.tool)) reject(`${choices.tool} is not a listed Kit proficiency.`);
+  if (choices.fightingStyle != null && !Object.hasOwn(FIGHTING_STYLES, choices.fightingStyle)) reject(`${choices.fightingStyle} is not a Guard Fighting Style.`);
+  if (choices.branch != null && !Object.hasOwn(GUARD_BRANCH_IDS, choices.branch)) reject(`${choices.branch} is not a Guard Branch.`);
+  if (choices.martialDCAbility != null && !["str", "dex"].includes(choices.martialDCAbility)) reject("the Martial DC ability must be Strength or Dexterity.");
+
+  const equipment = choices.startingEquipment ?? {};
+  if (equipment.mode != null && !["items", "cash"].includes(equipment.mode)) reject("starting equipment mode must be items or cash.");
+  const permittedEquipment = {
+    weapon1: entry => entry.kind === "weapon" && ["Heavy Melee Weapons", "Light Melee Weapons"].includes(entry.tableData?.category),
+    weapon2: entry => (entry.kind === "weapon" && entry.tableData?.category === "Light Melee Weapons") || (entry.kind === "equipment" && entry.tableData?.category === "Light Shields"),
+    armour: entry => ["equipment-reinforced-outfit-1", "equipment-combat-gear-5"].includes(entry.id)
+  };
+  for (const [slot, allowed] of Object.entries(permittedEquipment)) if (equipment[slot] != null) {
+    if (typeof equipment[slot] !== "string" || !EQUIPMENT.some(entry => entry.id === equipment[slot] && allowed(entry))) reject(`choose a listed starting ${slot}.`);
+  }
+  for (const [slot, value] of Object.entries(choices.talents ?? {})) {
+    const tier = slot.startsWith("basic") ? "basic" : "advanced";
+    if (!["basic", "basicModule", "advanced", "advancedModule"].includes(slot)) reject("choose a listed Guard talent slot.");
+    if (typeof value !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,80}$/.test(value)) reject("choose a listed Guard talent or its Module upgrade.");
+    if (value === "upgrade") {
+      if (!slot.endsWith("Module")) reject("only a Module talent slot can use its upgrade.");
+      continue;
+    }
+    // An unlisted but well-formed ID is not granted (the pre-existing behaviour) and is surfaced as a warning.
+    if (!TALENTS.some(entry => entry.id === value && entry.classOption.tier.toLowerCase() === tier)) {
+      warnings.push(`Ignoring an unlisted Guard talent for ${slot}: ${value}.`);
+    }
+  }
+
+  const asi = {}, hp = {}, hpLevels = [], asiLevels = [];
+  for (const [key, choice] of Object.entries(choices.asi ?? {})) {
+    const n = Number(key);
+    if (!ASI_LEVELS.includes(n)) reject(`level ${key} is not an Ability Score Improvement level.`);
+    if (n > level) { warnings.push(`Ignoring the level ${n} Ability Score Improvement: this character is level ${level}.`); continue; }
+    if (choice?.mode === "existing" && !choice.increases) { asi[n] = { mode: "existing" }; asiLevels.push(n); continue; }
+    const increases = choice?.increases;
+    const valid = Array.isArray(increases) && increases.every(item => item && ABILITY_KEYS.includes(item.ability) && Number.isInteger(item.amount))
+      && new Set(increases.map(item => item.ability)).size === increases.length
+      && ((increases.length === 1 && increases[0].amount === 2) || (increases.length === 2 && increases.every(item => item.amount === 1)));
+    if (!valid) reject(`level ${n} Ability Score Improvement must be +2 to one ability or +1 to two different abilities (str, dex, con, int, wis, cha).`);
+    asi[n] = { increases: increases.map(({ ability, amount }) => ({ ability, amount })) };
+    asiLevels.push(n);
+  }
+  for (const [key, choice] of Object.entries(choices.hp ?? {})) {
+    const n = Number(key);
+    if (!Number.isInteger(n) || n < 1) reject(`${key} is not a Guard level.`);
+    if (n > level) { warnings.push(`Ignoring the level ${n} Hit Point choice: this character is level ${level}.`); continue; }
+    if (choice?.mode === "existing") { hp[n] = { mode: "existing" }; hpLevels.push(n); continue; }
+    if (!["fixed", "rolled"].includes(choice?.mode)) reject(`level ${n} Hit Points must be existing, fixed or rolled.`);
+    const raw = choice.roll ?? (n === 1 ? HIT_DIE : 6);
+    const roll = Number(raw);
+    if (raw === null || raw === "" || typeof raw === "boolean" || !Number.isFinite(roll)) reject(`level ${n} Hit Point roll "${raw}" is not a number.`);
+    if (choice.mode === "fixed" && roll !== (n === 1 ? HIT_DIE : 6)) reject(`level ${n} fixed Hit Points must use ${n === 1 ? HIT_DIE : 6} before Constitution.`);
+    if (n === 1 && choice.mode !== "fixed") reject("level 1 Hit Points are fixed at 10 before Constitution.");
+    const clamped = Math.min(HIT_DIE, Math.max(1, Math.floor(roll)));
+    if (clamped !== roll) warnings.push(`Level ${n} Hit Point roll ${roll} is outside 1 to ${HIT_DIE} (the Guard Hit Die); using ${clamped}.`);
+    hp[n] = { mode: choice.mode, roll: clamped };
+    hpLevels.push(n);
+  }
+  return { asi, hp, asiLevels, hpLevels };
 }
 
 function asiOptions(actor) {
@@ -242,6 +400,8 @@ export function inspectGuardFields(actor, choices = {}) {
   const attached = branchItem(actor);
   const currentChoices = guardChoices(actor, choices);
   const isCrusher = currentChoices.branch === "subclass-guard-crusher" || attached?.name?.toLowerCase().includes("crusher");
+  const isWeaponmaster = currentChoices.branch === "subclass-guard-weaponmaster" || attached?.name?.toLowerCase().includes("weaponmaster");
+  const isArtsblade = currentChoices.branch === "subclass-guard-artsblade" || attached?.name?.toLowerCase().includes("artsblade");
   const fields = [];
 
   if (!attached) {
@@ -250,8 +410,17 @@ export function inspectGuardFields(actor, choices = {}) {
   }
 
   fields.push(field("fightingStyle", "Choose your Fighting Style", Object.entries(FIGHTING_STYLES).map(([key, style]) => option(key, `${style.name}: ${style.description}`)), 1, currentChoices.fightingStyle ?? null));
+  if (isWeaponmaster) {
+    fields.push(field("weaponmasterAdditionalFightingStyle", "Art of War: Additional Fighting Style (Guard or Marksman, swappable on Long Rest)", Object.entries(WEAPONMASTER_FIGHTING_STYLES).map(([key, style]) => option(key, `${style.name}: ${style.description}`)), 1, currentChoices.weaponmasterAdditionalFightingStyle ?? null));
+  }
+  if (isArtsblade) {
+    const pools = ["corrosion", "crude", "earth", "electric", "flame", "fluid", "frost", "light", "psychic", "spatial", "wind"];
+    fields.push(field("artPools", "Sword and Sorcery: Choose one Standard Arts Pool", pools.map(key => option(key, key[0].toUpperCase() + key.slice(1))), 1, currentChoices.artPools?.[0] ?? null));
+    if (level >= 10) fields.push(field("additionalArtPools", "Sharpened Mind, Sharpened Weapon: Choose two other Standard Arts Pools", pools.filter(key => key !== currentChoices.artPools?.[0]).map(key => option(key, key[0].toUpperCase() + key.slice(1))), 2, currentChoices.additionalArtPools ?? []));
+  }
   fields.push(field("saves", "Choose one additional Saving Throw proficiency (Strength is automatic)", SAVES.map(([name, key]) => option(key, name)), 1, currentChoices.saves?.[0] ?? null));
   fields.push(field("skills", "Choose three Guard skills", SKILLS.map(([name, key]) => option(key, name)), 3, currentChoices.skills ?? []));
+  fields.push(field("martialDCAbility", "Martial DC: Strength or Dexterity modifier (your choice; Chapter 1)", [option("str", "Strength"), option("dex", "Dexterity")], 1, currentChoices.martialDCAbility ?? null));
   fields.push(field("tool", "Choose a Kit proficiency (Maintenance Kit is standard)", TOOLS.map(name => option(name, name)), 1, currentChoices.tool ?? "Maintenance Kit"));
 
   fields.push(field("startingEquipment.mode", "Choose printed starting equipment or 1300 LMD", [option("items", "Starting equipment"), option("cash", "1300 LMD")], 1, currentChoices.startingEquipment?.mode ?? null));
@@ -300,10 +469,31 @@ export function inspectGuardFields(actor, choices = {}) {
 }
 
 function actorSnapshotKey(actor, choices, profile) {
+  const itemState = entries(actor?.items).map(item => {
+    const data = item?.toObject ? item.toObject() : item;
+    return {
+      id: item.id ?? data?._id ?? null,
+      type: item.type ?? data?.type ?? null,
+      name: item.name ?? data?.name ?? null,
+      system: data?.system ?? item.system ?? {},
+      flags: data?.flags ?? item.flags ?? {},
+      source: {
+        chapterThreeId: flag(item, "chapterThreeId"),
+        chapterFourId: flag(item, "chapterFourId"),
+        chapterFiveId: flag(item, "chapterFiveId"),
+        guardStartingSlot: flag(item, "guardStartingSlot"),
+        guardProgressionGrant: flag(item, "guardProgressionGrant"),
+        guardManualArtKey: flag(item, "guardManualArtKey")
+      }
+    };
+  }).sort((a, b) => String(a.id).localeCompare(String(b.id)));
   return JSON.stringify([
     actor.uuid,
     profile.level,
     profile.branch,
+    sourceSystem(actor),
+    actor.flags?.ak5e ?? actor._source?.flags?.ak5e ?? { guardProgression: flag(actor, GUARD_PROGRESS_FLAG) ?? null },
+    itemState,
     choices.saves,
     choices.skills,
     choices.tool,
@@ -312,20 +502,35 @@ function actorSnapshotKey(actor, choices, profile) {
     choices.hp,
     choices.asi,
     choices.talents
+    , choices.artPools,
+    choices.additionalArtPools,
+    choices
   ]);
 }
 
 /** Pure preview of Guard progression. Writes nothing. */
 export async function previewGuardProgression(actor, suppliedChoices = {}) {
   const profile = guardProfile(actor);
-  need(actor?.isOwner && profile.applicable, "Choose an owned character with the Guard class.");
+  need(actor?.isOwner && profile.applicable && !profile.blocked.length, "Choose an owned character with a valid single Guard class.");
   const level = profile.level;
   const choices = guardChoices(actor, suppliedChoices);
   const pending = [], warnings = [], writes = {}, createItems = [], updateItems = [];
+  const priorState = readState(actor);
+  if (priorState.startingEquipmentApplied && priorState.choices?.startingEquipment?.mode) {
+    need(choices.startingEquipment.mode === priorState.choices.startingEquipment.mode,
+      "Starting equipment or LMD was already granted; undo its progression receipt before changing that choice.");
+  }
+  // Malformed input is rejected here, before anything is previewed, applied or written.
+  const checked = validateGuardChoices(choices, level, warnings);
+  choices.asi = checked.asi;
+  choices.hp = checked.hp;
 
   const attachedBranch = branchItem(actor);
   const selectedBranchId = choices.branch ?? (attachedBranch ? flag(attachedBranch, "chapterThreeId") : null);
   const isCrusher = selectedBranchId === "subclass-guard-crusher";
+  const isArtsblade = selectedBranchId === "subclass-guard-artsblade";
+  if (isArtsblade && !choices.artPools?.[0]) pending.push("artPools");
+  if (isArtsblade && level >= 10 && choices.additionalArtPools?.length !== 2) pending.push("additionalArtPools");
 
   // Validate saves
   if (!choices.saves?.length) pending.push("saves");
@@ -349,6 +554,24 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     }
   }
 
+  // Grant the source Artsblade feature Items at their actual Guard levels. The chosen
+  // Standard Pools remain in progression state so the play panel can restrict choices.
+  if (isArtsblade) {
+    const artsbladeFeatures = CHAPTER_THREE_CLASSES.filter(entry => entry.kind === "subclass-feature" && entry.parentBranch === "Artsblade"
+      && ((entry.level != null && entry.level <= level) || entry.id === "subclass-feature-guard-artsblade-blade-art-6708"
+        || entry.id === "subclass-feature-guard-artsblade-artsblade-table-1152"
+        || entry.id === "subclass-feature-guard-artsblade-resolving-spellsword-arts-2822"));
+    for (const entry of artsbladeFeatures) {
+      if (entries(actor.items).some(item => flag(item, "chapterThreeId") === entry.id)) continue;
+      createItems.push(sourceData(entry, "subclassFeature"));
+    }
+    if (!priorState.artsTouchedApplied) {
+      const currentArts = Number(sourceSystem(actor).skills?.arc?.value ?? 0);
+      writes["system.skills.arc.value"] = currentArts >= 1 ? 2 : 1;
+    }
+    createItems.push(...artsbladePoolItems(actor, choices, level));
+  }
+
   // Fighting Style item
   if (choices.fightingStyle) {
     const styleDef = FIGHTING_STYLES[choices.fightingStyle];
@@ -362,20 +585,26 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   }
 
   // Starting equipment items
+  const startingSlotsAdded = [];
   if (choices.startingEquipment?.mode === "items") {
     const eqKeys = ["weapon1", "weapon2", "armour"];
     for (const key of eqKeys) {
       const eqId = choices.startingEquipment[key];
-      if (eqId) {
+      if (eqId && !priorState.startingEquipmentSlots.includes(key)
+        && !entries(actor.items).some(item => flag(item, "guardStartingSlot") === key)) {
         const eqEntry = EQUIPMENT.find(e => e.id === eqId);
-        if (eqEntry) createItems.push(equipmentData(eqEntry));
+        if (eqEntry) { createItems.push(equipmentData(eqEntry, key)); startingSlotsAdded.push(key); }
       }
     }
     // Grant Maintenance kit
     const kitEntry = EQUIPMENT.find(e => e.id === "tool-maintenance-kit-5");
-    if (kitEntry) createItems.push(equipmentData(kitEntry));
-  } else if (choices.startingEquipment?.mode === "cash") {
+    if (kitEntry && !priorState.startingEquipmentSlots.includes("kit")
+      && !entries(actor.items).some(item => flag(item, "guardStartingSlot") === "kit")) {
+      createItems.push(equipmentData(kitEntry, "kit")); startingSlotsAdded.push("kit");
+    }
+  } else if (choices.startingEquipment?.mode === "cash" && !priorState.startingEquipmentApplied) {
     const beforeCp = Number(sourceSystem(actor).currency?.cp ?? 0);
+    need(Number.isFinite(beforeCp) && Number.isInteger(beforeCp) && beforeCp >= 0 && Number.isSafeInteger(beforeCp + 1300), "The LMD balance must be a finite non-negative integer.");
     writes["system.currency.cp"] = beforeCp + 1300;
   }
 
@@ -385,6 +614,10 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   const currentSaves = new Set(system.traits?.saves?.value ?? []);
   currentSaves.add("str");
   if (choices.saves?.[0]) currentSaves.add(choices.saves[0]);
+  // Musha Enduring Resolve: Wisdom Saving Throw proficiency (Ch. 3 L3271)
+  if (selectedBranchId === "subclass-guard-musha") {
+    currentSaves.add("wis");
+  }
   writes["system.traits.saves.value"] = Array.from(currentSaves);
 
   // Armour: light, medium, shield
@@ -395,10 +628,25 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   writes["system.traits.armorProf.value"] = Array.from(currentArmour);
 
   // Weapons: custom note "All Melee Weapons"
-  const currentCustomWeapons = String(system.traits?.weaponProf?.custom ?? "").trim();
+  let currentCustomWeapons = String(system.traits?.weaponProf?.custom ?? "").trim();
   if (!currentCustomWeapons.includes("All Melee Weapons")) {
-    writes["system.traits.weaponProf.custom"] = currentCustomWeapons ? `${currentCustomWeapons}; All Melee Weapons` : "All Melee Weapons";
+    currentCustomWeapons = currentCustomWeapons ? `${currentCustomWeapons}; All Melee Weapons` : "All Melee Weapons";
   }
+
+  // Weaponmaster Art of War: All Light Ranged and Heavy Ranged weapons proficiency (Ch. 3 L3440)
+  if (selectedBranchId === "subclass-guard-weaponmaster") {
+    if (!currentCustomWeapons.includes("All Light Ranged Weapons")) {
+      currentCustomWeapons += "; All Light Ranged Weapons";
+    }
+    if (!currentCustomWeapons.includes("All Heavy Ranged Weapons")) {
+      currentCustomWeapons += "; All Heavy Ranged Weapons";
+    }
+    if (choices.weaponmasterAdditionalFightingStyle) {
+      writes["flags.ak5e.weaponmaster.additionalFightingStyle"] = choices.weaponmasterAdditionalFightingStyle;
+    }
+  }
+  writes["system.traits.weaponProf.custom"] = currentCustomWeapons;
+  if (choices.martialDCAbility) writes["flags.ak5e.guard.martialDCAbility"] = choices.martialDCAbility;
 
   // Skills
   for (const skillKey of (choices.skills ?? [])) {
@@ -414,6 +662,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   // Ability score increases
   const abilityIncreases = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
   for (const n of ASI_LEVELS.filter(v => v <= level)) {
+    if (priorState.asiLevels.includes(n)) continue;
     const asiChoice = choices.asi?.[n];
     if (asiChoice?.increases) {
       for (const inc of asiChoice.increases) {
@@ -424,6 +673,7 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   for (const [abl, inc] of Object.entries(abilityIncreases)) {
     if (inc > 0) {
       const current = currentAbility(actor, abl);
+      if (current + inc > 20) warnings.push(`${abl.toUpperCase()} ${current} + ${inc} is above 20; Ability Score Improvement cannot raise a score above 20.`);
       writes[`system.abilities.${abl}.value`] = Math.min(20, current + inc);
     }
   }
@@ -432,18 +682,18 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
   let hpGainTotal = 0;
   const conMod = Math.floor((currentAbility(actor, "con") + abilityIncreases.con - 10) / 2);
   for (let n = 1; n <= level; n++) {
+    if (priorState.hpLevels.includes(n)) continue;
     const hpChoice = choices.hp?.[n];
+    // An unsupplied level adds nothing and stays untaken; only a supplied, non-"existing" choice adds Hit Points.
     if (hpChoice && hpChoice.mode !== "existing") {
-      const roll = Number(hpChoice.roll ?? (n === 1 ? 10 : 6));
-      hpGainTotal += Math.max(1, roll + conMod);
-    }
-    if (isCrusher && hpChoice?.mode !== "existing") {
+      hpGainTotal += Math.max(1, hpChoice.roll + conMod);
       // Maximum Bulk: +3 HP per level
-      hpGainTotal += 3;
+      if (isCrusher) hpGainTotal += 3;
     }
   }
   if (hpGainTotal > 0) {
     const currentMax = Number(system.attributes?.hp?.max ?? 0);
+    need(Number.isFinite(currentMax) && Number.isInteger(currentMax) && currentMax >= 0 && Number.isSafeInteger(currentMax + hpGainTotal), "The Hit Point maximum must be a finite non-negative integer.");
     writes["system.attributes.hp.max"] = currentMax + hpGainTotal;
   }
 
@@ -486,6 +736,19 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     }
   }
 
+  // Setup retries and level-up previews can encounter source Items already owned.
+  // Deduplicate every planned grant by stable source ID, including equipment.
+  const existingSourceIds = new Set(entries(actor.items).filter(item => !flag(item, "guardStartingSlot"))
+    .flatMap(item => [flag(item, "chapterThreeId"), flag(item, "chapterFourId")]).filter(Boolean));
+  const plannedSourceIds = new Set();
+  for (let index = createItems.length - 1; index >= 0; index--) {
+    const item = createItems[index], sourceId = item.flags?.ak5e?.chapterThreeId ?? item.flags?.ak5e?.chapterFourId;
+    const slot = item.flags?.ak5e?.guardStartingSlot;
+    if (slot) continue;
+    if (sourceId && (existingSourceIds.has(sourceId) || plannedSourceIds.has(sourceId))) createItems.splice(index, 1);
+    else if (sourceId) plannedSourceIds.add(sourceId);
+  }
+
   // Context key for verification
   const contextKey = actorSnapshotKey(actor, choices, profile);
 
@@ -503,8 +766,11 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
     createItems,
     updateItems,
     progression: {
-      hpLevels: Object.keys(choices.hp ?? {}).map(Number),
-      asiLevels: Object.keys(choices.asi ?? {}).map(Number),
+      hpLevels: checked.hpLevels.filter(n => !priorState.hpLevels.includes(n)),
+      asiLevels: checked.asiLevels.filter(n => !priorState.asiLevels.includes(n)),
+      startingEquipmentApplied: !priorState.startingEquipmentApplied && Boolean(choices.startingEquipment?.mode),
+      startingEquipmentSlots: startingSlotsAdded,
+      artsTouchedApplied: isArtsblade && !priorState.artsTouchedApplied,
       talentSelections
     },
     contextKey
@@ -514,14 +780,20 @@ export async function previewGuardProgression(actor, suppliedChoices = {}) {
 /** Apply Guard progression. Idempotent and validates confirmation and contextKey. */
 export async function applyGuardProgression(actor, { confirmed, contextKey, ...suppliedChoices } = {}) {
   need(confirmed === true, "Confirm the previewed Guard progression setup first.");
+  return guardUses.serial(actor, async () => {
   const plan = await previewGuardProgression(actor, suppliedChoices);
   need(!plan.pending.length, `Complete all pending Guard choices before applying: ${plan.pending.join(", ")}`);
-  need(plan.contextKey === contextKey, "The character changed since the preview; preview the Guard progression setup again.");
+  need(typeof contextKey === "string" && contextKey.length > 0 && plan.contextKey === contextKey, "The character changed since the preview; preview the Guard progression setup again.");
 
   const state = readState(actor);
   state.choices = plan.choices;
   state.hpLevels = [...new Set([...state.hpLevels, ...plan.progression.hpLevels])];
   state.asiLevels = [...new Set([...state.asiLevels, ...plan.progression.asiLevels])];
+  // Cash is written atomically with this state update. Item grants are marked
+  // only after their embedded documents have been created; on a partial batch
+  // failure the next preview can safely grant only the still-missing source IDs.
+  state.startingEquipmentApplied ||= plan.choices.startingEquipment?.mode === "cash";
+  state.artsTouchedApplied ||= plan.progression.artsTouchedApplied;
 
   const actorUpdates = {
     ...plan.writes,
@@ -530,19 +802,17 @@ export async function applyGuardProgression(actor, { confirmed, contextKey, ...s
     "flags.ak5e.guard.fightingStyle": plan.choices.fightingStyle
   };
 
-  await actor.update(actorUpdates);
-
-  if (plan.createItems.length) {
-    await actor.createEmbeddedDocuments("Item", plan.createItems);
+  const completedState = structuredClone(state);
+  if (plan.choices.startingEquipment?.mode === "items") {
+    completedState.startingEquipmentSlots = [...new Set([...state.startingEquipmentSlots, ...plan.progression.startingEquipmentSlots])];
+    if (["weapon1", "weapon2", "armour", "kit"].every(slot => completedState.startingEquipmentSlots.includes(slot))) completedState.startingEquipmentApplied = true;
   }
-  if (plan.updateItems.length) {
-    await actor.updateEmbeddedDocuments("Item", plan.updateItems);
-  }
-
+  const receipt = await commitGuardChanges(actor, "progression", actorUpdates, plan.createItems,
+    { [`flags.ak5e.${GUARD_PROGRESS_FLAG}`]: completedState });
   return {
-    level: plan.level,
-    branch: plan.branchName,
-    created: plan.createItems.map(i => i.name),
-    updated: plan.updateItems.map(i => i.name)
+    level: plan.level, branch: plan.branchName, created: plan.createItems.map(i => i.name),
+    updated: plan.updateItems.map(i => i.name), receiptId: receipt.id, receipt
   };
+  });
 }
+export const undoGuardProgression = undoGuardChange;

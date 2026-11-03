@@ -21,8 +21,8 @@ export const IMPLEMENTED_MARKSMAN_BRANCHES = Object.freeze([
   "heavyshot", "hunter", "spreadshot"
 ]);
 
-/** Target Lock attack roll bonus: +1 at 1st level, +2 at 11th (L3648, L3673). */
-export const TARGET_LOCK_BONUS = Object.freeze({ 1: 1, 11: 2 });
+/** Target Lock attack roll bonus: +1 at 1st level, +2 with Enhanced Target Lock. */
+export const TARGET_LOCK_BONUS = Object.freeze({ 1: 1, 12: 2 });
 
 /** Explosive Expertise Thunder damage dice on Splash(X) weapons: 1 at 1st, 2 at 7th, 3 at 14th (L3978). */
 export const EXPLOSIVE_EXPERTISE_DICE = Object.freeze({ 1: 1, 7: 2, 14: 3 });
@@ -173,18 +173,23 @@ export function marksmanState(actor) {
   return { ...DEFAULT_STATE, ...raw };
 }
 
-/** Martial DC: 8 + PB + max(STR mod, DEX mod) (Ch.1 L211). */
-export function martialDC(actor) {
+/** Martial DC: 8 + PB + the chosen STR or DEX modifier (Ch.1 L211). */
+export function martialDC(actor, ability = flag(actor, "marksman")?.martialDcAbility) {
   const prof = Number(actor?.system?.attributes?.prof ?? 2);
-  const strMod = Number(actor?.system?.abilities?.str?.mod ?? 0);
-  const dexMod = Number(actor?.system?.abilities?.dex?.mod ?? 0);
-  return 8 + prof + Math.max(strMod, dexMod);
+  const selected = ability === "str" || ability === "dex" ? ability : null;
+  if (!selected) return null;
+  return 8 + prof + Number(actor?.system?.abilities?.[selected]?.mod ?? 0);
 }
 
-/** Target Lock attack bonus: +1 at 1st, +2 at 11th. */
-export function targetLockBonus(actor) {
+/** Target Lock attack bonus: +1 at 1st, +2 at 12th, or at 11th by GM ruling. */
+export function targetLockBonus(actor, enhancedLevel = null) {
   const level = marksmanLevel(actor);
-  return stepValue(TARGET_LOCK_BONUS, level);
+  const rulingLevel = Number(marksmanState(actor).rulings?.enhancedTargetLockLevel?.value);
+  const selectedLevel = Number(enhancedLevel);
+  const unlock = selectedLevel === 11 || selectedLevel === 12 ? selectedLevel
+    : level >= 12 ? 12
+      : level === 11 && rulingLevel === 11 ? 11 : 12;
+  return level >= unlock ? 2 : 1;
 }
 
 /** Explosive Expertise Thunder damage dice count for Splash(X) weapons. */
@@ -193,13 +198,28 @@ export function explosiveExpertiseDice(actor) {
   return stepValue(EXPLOSIVE_EXPERTISE_DICE, level);
 }
 
-/** Checks whether the actor has an active Target Lock on a given target token or actor UUID. */
-export function isTargetLocked(actor, targetUuid) {
-  if (!targetUuid) return false;
+/** World time in seconds, matching Foundry's one-minute duration convention. */
+export function marksmanWorldTime() {
+  const value = Number(globalThis.game?.time?.worldTime);
+  return Number.isFinite(value) ? value : Date.now() / 1000;
+}
+
+/** Legacy locks without expiry are inactive, so old flags can never grant permanent bonuses. */
+export function isTargetLockActive(actor, now = marksmanWorldTime()) {
   const state = marksmanState(actor);
   const lock = state.targetLock;
-  if (!lock || !lock.active) return false;
-  return lock.targetUuid === targetUuid;
+  const expiresAt = Number(lock?.expiresAt);
+  if (!lock?.active || !Number.isFinite(expiresAt)) return false;
+  // Earlier Anti-Air code stored Date.now() milliseconds. Honor those only until their real expiry;
+  // new Target Locks use world-time seconds and cannot become permanent after a migration.
+  const legacyMilliseconds = expiresAt > 10_000_000_000;
+  return expiresAt > (legacyMilliseconds ? Date.now() : now);
+}
+
+/** Checks whether the actor has an unexpired Target Lock on the given target. */
+export function isTargetLocked(actor, targetUuid, now = marksmanWorldTime()) {
+  if (!targetUuid || !isTargetLockActive(actor, now)) return false;
+  return marksmanState(actor).targetLock.targetUuid === targetUuid;
 }
 
 /** Checks whether the actor has a given Fighting Style selected or granted. */

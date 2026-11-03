@@ -39,7 +39,7 @@ branches are not certified. This audit itself edited only documentation.
 
 ## Prioritized findings
 
-Each finding also appears in `../BUGS.md`. High/Medium follow that file's severity
+Each finding also appears in `../bugs/fixed/` (B-110–128). High/Medium follow that file's severity
 convention. Recommendations describe future fixes, not changes made here.
 
 ### B-110 — High: feature and undo controls call incompatible interfaces

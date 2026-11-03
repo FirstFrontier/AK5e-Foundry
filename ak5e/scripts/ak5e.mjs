@@ -9,7 +9,9 @@ import { classContentFlags, classContentUpdate } from "./class-content-installat
 import { AssetLibraryConfig, getAsset, listAssets, openAssetLibrary } from "./asset-library.mjs";
 import { registerOriginConfig, registerOriginHooks, openOriginSetup, openActorOrigins } from "./origin-setup.mjs";
 import { registerSheetThemeHooks, openSheetTheme, resolveSheetTheme, setSheetTheme, SHEET_THEMES } from "./sheet-themes.mjs";
-import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt } from "./arts-casting.mjs";
+import { registerArtsConfig, registerArtsHooks, openActorArts, configureActorArts, previewActorArts, configureArt, adjustActorArts, setActorArtsValue, recoverActorArts, undoLastArt, openArtUndoList, undoArtReceipt } from "./arts-casting.mjs";
+import { registerArtRelayHooks } from "./arts-ledger.mjs";
+import { registerArtCorrelation } from "./art-correlation.mjs";
 import { applyFeatureTag, applyTagPreset, removeFeatureTag, resolveFeatureTag, setTagCounter, featureTags, openFeatureTagSetup } from "./feature-tags.mjs";
 import { sourceTagPresets } from "./tag-presets.mjs";
 import { registerWorldRuleSettings, configureWorldConditions, registerWorldRuleHooks, refreshConditionReferences, openWorldRuleControl,
@@ -53,14 +55,34 @@ import { inspectGuardFields, previewGuardProgression, applyGuardProgression } fr
 import { getGuardView, registerGuardHooks } from "./guard-features.mjs";
 import { guardUses, recordGuardRuling } from "./guard-uses.mjs";
 import { openGuardControls, registerGuardSheetHooks } from "./guard-sheet.mjs";
+import { vanguardSheetApi, registerVanguardSheetHooks, vanguardUses, recordVanguardRuling, openVanguardProgression } from "./vanguard-sheet.mjs";
+import { registerAgentFeatureHooks } from "./agent-features.mjs";
+import { registerAgentVanguardExtension } from "./agent-sheet.mjs";
+import { registerChargerFeatureHooks } from "./charger-features.mjs";
+import { registerChargerVanguardExtension } from "./charger-sheet.mjs";
+import { registerPioneerFeatureHooks, registerPioneerVanguardExtension } from "./pioneer-features.mjs";
+import { previewVanguardSetup, applyVanguardSetup } from "./vanguard-setup.mjs";
+import { vanguardChoices, inspectVanguardFields, previewVanguardProgression, applyVanguardProgression } from "./vanguard-progression.mjs";
+import { vanguardProfile, calculateVanguardProfile, martialDC as vanguardMartialDC } from "./vanguard-rules.mjs";
+import { registerVanguardResolution, vanguardPreRollDamage } from "./vanguard-resolution.mjs";
 import { isCenturion, registerCenturionHooks } from "./centurion-features.mjs";
 import { isCrusher, registerCrusherHooks } from "./crusher-features.mjs";
 import { isInstructor, registerInstructorHooks } from "./instructor-features.mjs";
+import { isArtsblade, registerArtsbladeHooks, maxArtLevel, bladeArtFormula, ARTS_POOLS } from "./artsblade-features.mjs";
+import { isBrawler, registerBrawlerHooks, bobAndWeaveAC, artOfTheFistDie } from "./brawler-features.mjs";
+import { isDuellist, registerDuellistHooks } from "./duellist-features.mjs";
+import { isLiberator, registerLiberatorHooks } from "./liberator-features.mjs";
+import { isLord, registerLordHooks } from "./lord-features.mjs";
+import { isMusha, registerMushaHooks, solobladeFormula, getNotYetDC, getNothingToLoseAttacks, livingOnTheEdgeBonus, mushaPreApplyDamageHook } from "./musha-features.mjs";
+import { isReaper, registerReaperHooks, getRuin, getReaperTableEntry, getReapCritThreshold, getCurtainfallCritThreshold, calculateSwarmKills, reaperPreApplyDamageHook } from "./reaper-features.mjs";
+import { isWeaponmaster, registerWeaponmasterHooks, MARTIAL_MASTERY_TABLE, getWeaponMasteryProperty, WEAPONMASTER_FIGHTING_STYLES, isWeaponmasterProficient, getWeaponmasterView } from "./weaponmaster-features.mjs";
 import { previewMarksmanSetup, applyMarksmanSetup } from "./marksman-setup.mjs";
 import { inspectMarksmanFields, previewMarksmanProgression, applyMarksmanProgression } from "./marksman-progression.mjs";
 import { registerMarksmanHooks, targetLockPool, unerringPool, steelRainPool } from "./marksman-features.mjs";
 import { marksmanUses, recordMarksmanRuling } from "./marksman-uses.mjs";
 import { openMarksmanControls, registerMarksmanSheetHooks } from "./marksman-sheet.mjs";
+import { openMarksmanProgression } from "./marksman-progression-sheet.mjs";
+import { registerMarksmanResolution } from "./marksman-resolution.mjs";
 import { isArtilleryman, registerArtillerymanHooks, artillerymanSplashDC } from "./artilleryman-features.mjs";
 import { isBesieger, registerBesiegerHooks, inSiegeMode } from "./besieger-features.mjs";
 import { isAntiAir, registerAntiAirHooks } from "./anti-air-features.mjs";
@@ -69,6 +91,232 @@ import { isFlinger, registerFlingerHooks, boundWeaponsList } from "./flinger-fea
 import { isHeavyshot, registerHeavyshotHooks } from "./heavyshot-features.mjs";
 import { isHunter, registerHunterHooks, inLetTheLightIn } from "./hunter-features.mjs";
 import { isSpreadshot, registerSpreadshotHooks, getLoadedShells, getShellInventory } from "./spreadshot-features.mjs";
+import * as medicRules from "./medic-rules.mjs";
+import { isMedic, isPhysician, isTriage, calculateMedicProfile } from "./medic-rules.mjs";
+import { registerTherapistHooks } from "./therapist-features.mjs";
+import { registerWardHooks } from "./ward-features.mjs";
+import { registerWitchcraftHooks } from "./witchcraft-features.mjs";
+import { getMedicView, registerMedicHooks, registerMedicArts, previewSelfDefenceProtocol, applySelfDefenceProtocol } from "./medic-features.mjs";
+import { previewMedicSetup, applyMedicSetup } from "./medic-setup.mjs";
+import { inspectMedicFields, previewMedicProgression, applyMedicProgression } from "./medic-progression.mjs";
+import { medicUses, recordMedicRuling } from "./medic-uses.mjs";
+import { openMedicControls, openMedicSelfDefence, registerMedicSheetHooks } from "./medic-sheet.mjs";
+import * as specialistRules from "./specialist-rules.mjs";
+import { isSpecialist, isExecutor, isHookmaster, isInfuser, isInventor, isSkyranger, isDollkeeper, isTrapmaster, calculateInventorDC, calculateTrapDC, calculateSpecialistProfile, specialistProfile, specialistLevel, specialistBranch } from "./specialist-rules.mjs";
+import { registerSpecialistHooks, hasWeaponSpecialisation, getWeaponSpecialisation, hasShowYourStyle, hasWeaponAdept, hasWeaponExpertise, hasFallingUpwards, hasWeaponMastery } from "./specialist-features.mjs";
+import { previewSpecialistSetup, applySpecialistSetup } from "./specialist-setup.mjs";
+import { inspectSpecialistFields, previewSpecialistProgression, applySpecialistProgression } from "./specialist-progression.mjs";
+import { specialistUses, recordSpecialistRuling, getSpecialistRuling } from "./specialist-uses.mjs";
+import { openSpecialistControls, registerSpecialistSheetHooks } from "./specialist-sheet.mjs";
+// --- Supporter (U2) imports: start ---
+import * as supporterRules from "./supporter-rules.mjs";
+import { calculateSupporterProfile, supporterProfile } from "./supporter-rules.mjs";
+import { registerSupporterHooks } from "./supporter-features.mjs";
+import { previewSupporterSetup, applySupporterSetup } from "./supporter-setup.mjs";
+import { inspectSupporterFields, previewSupporterProgression, applySupporterProgression } from "./supporter-progression.mjs";
+import { supporterUses, recordSupporterRuling } from "./supporter-uses.mjs";
+import { initSupporterBranches, supporterBranchApis } from "./supporter-branches.mjs";
+import "./supporter-branch-index.mjs";
+import { openSupporterControls, registerSupporterSheetHooks } from "./supporter-sheet.mjs";
+import { registerSupporterTalentPlans } from "./supporter-talents.mjs";
+// --- Supporter (U2) imports: end ---
+import {
+  registerExecutorHooks,
+  getExecutorPath,
+  setExecutorPath,
+  getDeathmarkState,
+  setDeathmark,
+  recallDeathmark,
+  clearDeathmark,
+  calculateDeathmarkDamageBonus,
+  hasInEveryShadow,
+  hasSweeper,
+  hasSmokescreen,
+  hasPreysense,
+  hasDangersense,
+  hasInForTheKill,
+  hasBladeShield,
+  hasMortalBlow,
+  hasUltimateSwordAndShield,
+  applyInEveryShadow
+} from "./executor-features.mjs";
+import {
+  registerHookmasterHooks,
+  isHookedWeapon,
+  isProficientWithHook,
+  getHookedWeapon,
+  calculateHookRange,
+  getCreatureSize,
+  getSizeValue,
+  isNoMoreThanOneSizeLarger,
+  isMoreThanOneSizeLarger,
+  canConvertWeaponToHook,
+  getWeaponDamageTypes,
+  getHookmasterState,
+  isHookLocked,
+  convertHookedWeapon,
+  revertHookedWeapon,
+  hasBigBoot,
+  hasKingOfUrbanJungle,
+  hasBoundInRope,
+  hasWrangler,
+  hasMightyPush,
+  hasSpidersEssence,
+  hasLongerHook,
+  hasSpidersThread,
+  hasSwingToSafety,
+  hasScorpionSting
+} from "./hookmaster-features.mjs";
+import {
+  registerInfuserHooks,
+  calculateInfuserDC,
+  getActiveInfusion,
+  calculateInfusionRange,
+  hasPrincipleOfDoubleEffect,
+  hasNewConcoctions,
+  hasDoubleBlindTrial,
+  hasStimpack,
+  hasExcessiveDosing,
+  hasToDefyScience,
+  getToxinDC,
+  INFUSIONS,
+  DOUBLE_BLIND_TABLE
+} from "./infuser-features.mjs";
+import {
+  registerInventorHooks,
+  calculateInstability,
+  evaluateBreakdownRoll,
+  applyEquipmentModification,
+  removeEquipmentModification,
+  repairBrokenEquipment,
+  isBrokenEquipment,
+  hasEquipmentModification,
+  hasStrangeContraption,
+  hasMobileModding,
+  hasRiskAssessment,
+  hasStrangerContraptions,
+  hasTheBigOne,
+  MODIFICATIONS_CATALOG,
+  defineInventorPools
+} from "./inventor-features.mjs";
+import {
+  registerSkyrangerHooks,
+  isWearingFlightSuit,
+  canUseFlightSuitToFly,
+  createFlightSuitItem,
+  calculateFuelMax,
+  getFuel,
+  getFuelMax,
+  spendFuel,
+  refundFuel,
+  getStrafeDamageFormula,
+  getStrafeDamageDiceCount,
+  calculateStrafeDamage,
+  isFlying,
+  getFlyingSpeed,
+  isTargetAerial,
+  executeTakeOff,
+  endFlight,
+  selectAirDoctrine,
+  getActiveAirDoctrines,
+  hasAirDoctrine,
+  executeAAMissile,
+  executeBombingRun,
+  executeSwoopingDive,
+  executeEvasiveManoeuvres,
+  resolveEvasiveManoeuvresIncomingAttack,
+  checkSkyrangerProwessGain,
+  executeCrashAoE,
+  executeAfterburnersAura,
+  activateSkyscreamer,
+  deactivateSkyscreamer,
+  createCoreCannonItem,
+  createCoreSaberItem,
+  undoSkyrangerAction
+} from "./skyranger-features.mjs";
+import {
+  registerDollkeeperHooks,
+  getDollkeeperLevel,
+  getOwnerPB,
+  hasLivingDoll,
+  hasPullTheStrings,
+  hasMusicalChairs,
+  hasMasquerade,
+  hasLivingDoll15,
+  hasArtistryIsViolence,
+  getActorPosition,
+  setActorPosition,
+  calculateDistance,
+  defineDollkeeperPools,
+  isLivingDoll,
+  createDollCompanionData,
+  synchronizeDoll,
+  getDollStrikeAttackCount,
+  calculateDollStrikeBonus,
+  calculateDollStrikeDamageFormula,
+  hasMurderousMarionetteAdvantage,
+  validateDollCommand,
+  executeDollCommand,
+  linkHitDiceHealing,
+  rebuildDoll,
+  canUseDollsDance,
+  applyLookInTheMirror,
+  validateMarionette,
+  executeMarionette,
+  validateMusicalChairs,
+  executeMusicalChairs,
+  checkDollkeeperProwessGain,
+  validateMistakenIdentity,
+  executeMistakenIdentity,
+  executeTalkingHeads,
+  executeReciprocity,
+  canShareArts,
+  executeShareArts,
+  validateDollRaid,
+  executeDollRaid,
+  undoDollkeeperAction
+} from "./dollkeeper-features.mjs";
+import {
+  registerTrapmasterHooks,
+  TRAPS_CATALOG,
+  hasEnvironmentalWarfare,
+  hasPanicInducer,
+  hasHeresOneIMadeEarlier,
+  hasBaitTheTrap,
+  hasAgentOfChaos,
+  hasHouseOfHorrors,
+  calculateDetectionDC,
+  calculateDisarmDC,
+  getTrap,
+  getTrapDamageFormula,
+  getTrapDamageType,
+  getTrapSaveInfo,
+  checkTrapDetection,
+  evaluateDisarmAttempt,
+  hasSleightOfHandExpertise,
+  applySleightOfHandGrant,
+  defineTrapmasterPools,
+  validateTrapPlacement,
+  plantTrap,
+  executeDevilsOwnLuck,
+  applyIrritatingDistraction,
+  hasIrritatingDistraction,
+  evaluateTrapSaveRollOptions,
+  checkJesterGraceTriggerImmunity,
+  checkJesterGraceSaveAdvantage,
+  executeWarningPoint,
+  triggerDelayedTrap,
+  recordTrapSaveFailure,
+  checkTurnStartProwessGain,
+  onCreatureReducedToZeroByTrap,
+  executeComeAndGetMe,
+  applyAgentOfChaos,
+  checkAgentOfChaosBypass,
+  evaluateAgentOfChaosDamage,
+  executePartyFavours,
+  undoTrapmasterOperation
+} from "./trapmaster-features.mjs";
+
 
 const MODULE_ID = "ak5e";
 const CONTENT_VERSION = "0.2.4";
@@ -137,6 +385,14 @@ Hooks.once("ready", () => {
   }
 
   game.ak5e = Object.freeze({
+    vanguard: Object.freeze({
+      preview: previewVanguardSetup, apply: applyVanguardSetup,
+      choices: vanguardChoices, inspect: vanguardProfile, profile: calculateVanguardProfile,
+      open: vanguardSheetApi.open, openSetup: vanguardSheetApi.openSetup, openProgression: openVanguardProgression,
+      command: vanguardUses.command, uses: vanguardUses.uses, previewUndo: vanguardUses.previewUndo,
+      recordRuling: recordVanguardRuling, choicesForProgression: inspectVanguardFields,
+      previewProgression: previewVanguardProgression, applyProgression: applyVanguardProgression, martialDC: vanguardMartialDC, vanguardPreRollDamage
+    }),
     caster: Object.freeze({ preview: previewCasterSetup, apply: applyCasterSetup, choices: getCasterSetupChoices,
       inspect: getCasterView, open: openCasterControls, openSetup: openCasterSetup, command: casterCommand,
       cast: castCasterArt, createDrone: createCasterDrone, linkDrone: linkCasterDrone, requestDrone: requestCasterDrone, syncDrones: syncCasterDrones,
@@ -157,12 +413,57 @@ Hooks.once("ready", () => {
       applyProgression: applyGuardProgression,
       open: openGuardControls,
       use: guardUses.command,
+      previewUse: guardUses.preview,
       uses: guardUses.uses,
       previewUndo: guardUses.previewUndo,
       recordRuling: recordGuardRuling,
       isCenturion,
       isCrusher,
-      isInstructor
+      isInstructor,
+      isArtsblade,
+      isBrawler,
+      isDuellist,
+      isLiberator,
+      isLord,
+      isMusha,
+      isReaper,
+      isWeaponmaster,
+      artsblade: Object.freeze({
+        isArtsblade,
+        maxArtLevel,
+        bladeArtFormula,
+        pools: ARTS_POOLS
+      }),
+      brawler: Object.freeze({
+        isBrawler,
+        bobAndWeaveAC,
+        artOfTheFistDie
+      }),
+      musha: Object.freeze({
+        isMusha,
+        solobladeFormula,
+        getNotYetDC,
+        getNothingToLoseAttacks,
+        livingOnTheEdgeBonus,
+        mushaPreApplyDamageHook
+      }),
+      reaper: Object.freeze({
+        isReaper,
+        getRuin,
+        getReaperTableEntry,
+        getReapCritThreshold,
+        getCurtainfallCritThreshold,
+        calculateSwarmKills,
+        reaperPreApplyDamageHook
+      }),
+      weaponmaster: Object.freeze({
+        isWeaponmaster,
+        MARTIAL_MASTERY_TABLE,
+        getWeaponMasteryProperty,
+        WEAPONMASTER_FIGHTING_STYLES,
+        isWeaponmasterProficient,
+        getWeaponmasterView
+      })
     }),
     marksman: Object.freeze({
       preview: previewMarksmanSetup,
@@ -171,6 +472,7 @@ Hooks.once("ready", () => {
       previewProgression: previewMarksmanProgression,
       applyProgression: applyMarksmanProgression,
       open: openMarksmanControls,
+      openProgression: openMarksmanProgression,
       use: marksmanUses.command,
       uses: marksmanUses.uses,
       previewUndo: marksmanUses.previewUndo,
@@ -190,6 +492,275 @@ Hooks.once("ready", () => {
       isSpreadshot,
       getLoadedShells,
       getShellInventory
+    }),
+    medic: Object.freeze({
+      preview: previewMedicSetup,
+      apply: applyMedicSetup,
+      inspect: getMedicView,
+      calculateProfile: calculateMedicProfile,
+      choices: inspectMedicFields,
+      previewProgression: previewMedicProgression,
+      applyProgression: applyMedicProgression,
+      open: openMedicControls,
+      openSelfDefence: openMedicSelfDefence,
+      previewSelfDefence: previewSelfDefenceProtocol,
+      applySelfDefence: applySelfDefenceProtocol,
+      use: medicUses.command,
+      previewUse: medicUses.preview,
+      uses: medicUses.uses,
+      previewUndo: medicUses.previewUndo,
+      recordRuling: recordMedicRuling,
+      isMedic,
+      isPhysician,
+      isTriage,
+      rules: medicRules
+    }),
+    // --- Supporter (U2) API block: start ---
+    supporter: Object.freeze({
+      preview: previewSupporterSetup,
+      apply: applySupporterSetup,
+      inspect: supporterProfile,
+      calculateProfile: calculateSupporterProfile,
+      choices: inspectSupporterFields,
+      previewProgression: previewSupporterProgression,
+      applyProgression: applySupporterProgression,
+      open: openSupporterControls,
+      use: supporterUses.command,
+      uses: supporterUses.uses,
+      previewUndo: supporterUses.previewUndo,
+      recordRuling: recordSupporterRuling,
+      rules: supporterRules,
+      branches: supporterBranchApis()
+    }),
+    // --- Supporter (U2) API block: end ---
+    specialist: Object.freeze({
+      preview: previewSpecialistSetup,
+      apply: applySpecialistSetup,
+      inspect: specialistProfile,
+      calculateProfile: calculateSpecialistProfile,
+      choices: inspectSpecialistFields,
+      previewProgression: previewSpecialistProgression,
+      applyProgression: applySpecialistProgression,
+      open: openSpecialistControls,
+      use: specialistUses.command,
+      previewUse: specialistUses.preview,
+      uses: specialistUses.uses,
+      previewUndo: specialistUses.previewUndo,
+      recordRuling: recordSpecialistRuling,
+      ruling: getSpecialistRuling,
+      isSpecialist,
+      isExecutor,
+      isHookmaster,
+      isInfuser,
+      isInventor,
+      isSkyranger,
+      isDollkeeper,
+      isTrapmaster,
+      calculateTrapDC,
+      rules: specialistRules,
+      features: Object.freeze({
+        hasWeaponSpecialisation,
+        getWeaponSpecialisation,
+        hasShowYourStyle,
+        hasWeaponAdept,
+        hasWeaponExpertise,
+        hasFallingUpwards,
+        hasWeaponMastery
+      }),
+      executor: Object.freeze({
+        getPath: getExecutorPath,
+        setPath: setExecutorPath,
+        getDeathmark: getDeathmarkState,
+        setDeathmark,
+        recallDeathmark,
+        clearDeathmark,
+        calculateDamageBonus: calculateDeathmarkDamageBonus,
+        hasInEveryShadow,
+        hasSweeper,
+        hasSmokescreen,
+        hasPreysense,
+        hasDangersense,
+        hasInForTheKill,
+        hasBladeShield,
+        hasMortalBlow,
+        hasUltimateSwordAndShield,
+        applyInEveryShadow
+      }),
+      hookmaster: Object.freeze({
+        isHookedWeapon,
+        isProficientWithHook,
+        getHookedWeapon,
+        calculateHookRange,
+        getCreatureSize,
+        getSizeValue,
+        isNoMoreThanOneSizeLarger,
+        isMoreThanOneSizeLarger,
+        canConvertWeaponToHook,
+        getWeaponDamageTypes,
+        getState: getHookmasterState,
+        isHookLocked,
+        convertHookedWeapon,
+        revertHookedWeapon,
+        hasBigBoot,
+        hasKingOfUrbanJungle,
+        hasBoundInRope,
+        hasWrangler,
+        hasMightyPush,
+        hasSpidersEssence,
+        hasLongerHook,
+        hasSpidersThread,
+        hasSwingToSafety,
+        hasScorpionSting
+      }),
+      infuser: Object.freeze({
+        calculateDC: calculateInfuserDC,
+        getActiveInfusion,
+        calculateRange: calculateInfusionRange,
+        hasPrincipleOfDoubleEffect,
+        hasNewConcoctions,
+        hasDoubleBlindTrial,
+        hasStimpack,
+        hasExcessiveDosing,
+        hasToDefyScience,
+        getToxinDC,
+        INFUSIONS,
+        DOUBLE_BLIND_TABLE
+      }),
+      inventor: Object.freeze({
+        calculateDC: calculateInventorDC,
+        calculateInstability,
+        evaluateBreakdownRoll,
+        applyEquipmentModification,
+        removeEquipmentModification,
+        repairBrokenEquipment,
+        isBrokenEquipment,
+        hasEquipmentModification,
+        hasStrangeContraption,
+        hasMobileModding,
+        hasRiskAssessment,
+        hasStrangerContraptions,
+        hasTheBigOne,
+        MODIFICATIONS_CATALOG,
+        defineInventorPools
+      }),
+      skyranger: Object.freeze({
+        isSkyranger,
+        isWearingFlightSuit,
+        canUseFlightSuitToFly,
+        createFlightSuitItem,
+        calculateFuelMax,
+        getFuel,
+        getFuelMax,
+        spendFuel,
+        refundFuel,
+        getStrafeDamageFormula,
+        getStrafeDamageDiceCount,
+        calculateStrafeDamage,
+        isFlying,
+        getFlyingSpeed,
+        isTargetAerial,
+        executeTakeOff,
+        endFlight,
+        selectAirDoctrine,
+        getActiveAirDoctrines,
+        hasAirDoctrine,
+        executeAAMissile,
+        executeBombingRun,
+        executeSwoopingDive,
+        executeEvasiveManoeuvres,
+        resolveEvasiveManoeuvresIncomingAttack,
+        checkSkyrangerProwessGain,
+        executeCrashAoE,
+        executeAfterburnersAura,
+        activateSkyscreamer,
+        deactivateSkyscreamer,
+        createCoreCannonItem,
+        createCoreSaberItem,
+        undoSkyrangerAction
+      }),
+      dollkeeper: Object.freeze({
+        isDollkeeper,
+        getDollkeeperLevel,
+        getOwnerPB,
+        hasLivingDoll,
+        hasPullTheStrings,
+        hasMusicalChairs,
+        hasMasquerade,
+        hasLivingDoll15,
+        hasArtistryIsViolence,
+        getActorPosition,
+        setActorPosition,
+        calculateDistance,
+        defineDollkeeperPools,
+        isLivingDoll,
+        createDollCompanionData,
+        synchronizeDoll,
+        getDollStrikeAttackCount,
+        calculateDollStrikeBonus,
+        calculateDollStrikeDamageFormula,
+        hasMurderousMarionetteAdvantage,
+        validateDollCommand,
+        executeDollCommand,
+        linkHitDiceHealing,
+        rebuildDoll,
+        canUseDollsDance,
+        applyLookInTheMirror,
+        validateMarionette,
+        executeMarionette,
+        validateMusicalChairs,
+        executeMusicalChairs,
+        checkDollkeeperProwessGain,
+        validateMistakenIdentity,
+        executeMistakenIdentity,
+        executeTalkingHeads,
+        executeReciprocity,
+        canShareArts,
+        executeShareArts,
+        validateDollRaid,
+        executeDollRaid,
+        undoDollkeeperAction
+      }),
+      trapmaster: Object.freeze({
+        isTrapmaster,
+        TRAPS_CATALOG,
+        hasEnvironmentalWarfare,
+        hasPanicInducer,
+        hasHeresOneIMadeEarlier,
+        hasBaitTheTrap,
+        hasAgentOfChaos,
+        hasHouseOfHorrors,
+        calculateTrapDC,
+        calculateDetectionDC,
+        calculateDisarmDC,
+        getTrap,
+        getTrapDamageFormula,
+        getTrapDamageType,
+        getTrapSaveInfo,
+        checkTrapDetection,
+        evaluateDisarmAttempt,
+        hasSleightOfHandExpertise,
+        applySleightOfHandGrant,
+        defineTrapmasterPools,
+        validateTrapPlacement,
+        plantTrap,
+        executeDevilsOwnLuck,
+        applyIrritatingDistraction,
+        hasIrritatingDistraction,
+        evaluateTrapSaveRollOptions,
+        checkJesterGraceTriggerImmunity,
+        checkJesterGraceSaveAdvantage,
+        executeWarningPoint,
+        triggerDelayedTrap,
+        recordTrapSaveFailure,
+        checkTurnStartProwessGain,
+        onCreatureReducedToZeroByTrap,
+        executeComeAndGetMe,
+        applyAgentOfChaos,
+        checkAgentOfChaosBypass,
+        evaluateAgentOfChaosDamage,
+        executePartyFavours,
+        undoTrapmasterOperation
+      })
     }),
     openStandardBearer, submitStandardCommand, getStandardView, previewStandardUpdate, standardDamagePreview,
     // SI-2/3/4/12 kernels: calculation and event APIs for branch implementations.
@@ -216,6 +787,8 @@ Hooks.once("ready", () => {
     setActorArtsValue,
     recoverActorArts,
     undoLastArt,
+    openArtUndoList,
+    undoArtReceipt,
     conditions: Object.freeze(Object.fromEntries(STATUS_EFFECTS.map(effect => [effect.key, effect]))),
     openWorldRuleControl, previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
     previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup,
@@ -296,6 +869,14 @@ Hooks.once("ready", () => {
   registerCenturionHooks();
   registerCrusherHooks();
   registerInstructorHooks();
+  registerArtsbladeHooks();
+  registerBrawlerHooks();
+  registerDuellistHooks();
+  registerLiberatorHooks();
+  registerLordHooks();
+  registerMushaHooks();
+  registerReaperHooks();
+  registerWeaponmasterHooks();
   Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(guardUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Guard relay", error)));
   registerGuardSheetHooks();
   registerMarksmanHooks();
@@ -309,9 +890,45 @@ Hooks.once("ready", () => {
   registerSpreadshotHooks();
   Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(marksmanUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Marksman relay", error)));
   registerMarksmanSheetHooks();
+  registerMarksmanResolution();
+  registerMedicHooks();
+  registerMedicArts();
+  registerTherapistHooks();
+  registerWardHooks();
+  registerWitchcraftHooks();
+  registerArtRelayHooks();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(medicUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Medic relay", error)));
+  registerMedicSheetHooks();
+  registerSpecialistHooks();
+  registerExecutorHooks();
+  registerHookmasterHooks();
+  registerInfuserHooks();
+  registerInventorHooks();
+  registerSkyrangerHooks();
+  registerDollkeeperHooks();
+  registerTrapmasterHooks();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(specialistUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Specialist relay", error)));
+  registerSpecialistSheetHooks();
+  // --- Supporter (U2) ready hooks: start ---
+  registerSupporterHooks();
+  registerSupporterTalentPlans();
+  initSupporterBranches();
+  Hooks.on("createChatMessage", (message, options, userId) => Promise.resolve(supporterUses.handleRelay(message, options, userId)).catch(error => console.error("AK5e | Supporter relay", error)));
+  registerSupporterSheetHooks();
+  // --- Supporter (U2) ready hooks: end ---
   ResourcePools.registerResourcePoolHooks();
   TriggerEvents.registerTriggerEventHooks();
+  // Observe the settled native damage state after the shared event hooks.
+  registerArtCorrelation();
   registerWorldRuleHooks(game.ak5e);
+  registerVanguardSheetHooks();
+  registerVanguardResolution();
+  registerAgentFeatureHooks();
+  registerAgentVanguardExtension();
+  registerChargerFeatureHooks();
+  registerChargerVanguardExtension();
+  registerPioneerFeatureHooks();
+  registerPioneerVanguardExtension();
 });
 
 function registerStatusEffects() {

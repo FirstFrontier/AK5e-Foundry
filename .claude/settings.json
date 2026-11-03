@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(codex --version)",
+      "Read(//home/patch/.codex/**)",
+      "Read(//home/patch/.codex/sessions/**)",
+      "Read(//home/patch/.vscode/**)",
+      "Bash(find / -name codex -type f -perm -u+x)",
+      "Bash(cd ~/.codex/sessions && grep -oh '\"thread_source\":\"[a-z_]*\"' -r . | sort | uniq -c; grep -l 'view_image\\\\|local_image\\\\|input_image' -r . | wc -l; grep -oh '\"name\":\"[a-z_]*image[a-z_]*\"' -r . | sort | uniq -c)",
+      "Bash(cd ~/.claude/projects *)",
+      "Read(//home/patch/.claude/projects/**)",
+      "Bash(ls -t /tmp/*.png /home/patch/AK5e-Foundry/ak5e/test/**/*.png 2>/dev/null | head -3)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

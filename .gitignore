@@ -34,3 +34,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Keep ak5e/packs/ and its LevelDB files tracked when release packs are added.
+
+# Worker worktrees (Claude Code agent isolation)
+/.claude/worktrees/

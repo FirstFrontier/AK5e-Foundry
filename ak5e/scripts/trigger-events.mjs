@@ -5,6 +5,7 @@
  *
  * Verified against installed dnd5e 5.3.3 (dnd5e.mjs) and Foundry 13.351:
  *  - dnd5e.postRollAttack (rolls, { subject })          callAll, roller's client only     dnd5e.mjs:28597, 20416
+ *  - dnd5e.rollDamage (rolls, { subject })               callAll, roller's client only    dnd5e.mjs:17570, 21192
  *  - dnd5e.rollSavingThrow (rolls, { ability, subject }) callAll, roller's client only    dnd5e.mjs:37534
  *  - dnd5e.rollConcentration (rolls, { subject })        callAll, roller's client only    dnd5e.mjs:37743
  *  - dnd5e.preApplyDamage (actor, amount, updates, options) Hooks.call (CANCELLABLE)       dnd5e.mjs:36739
@@ -21,8 +22,8 @@
 import { keyedSerial, gmActive, need, flag } from "./operation-kernel.mjs";
 import { tagActors, tagHasExpired } from "./feature-tags.mjs";
 
-export const AK5E_EVENT_KINDS = Object.freeze(["apSpent", "artCast", "attack", "hit", "crit", "hitTaken", "save", "initiative",
-  "turnStart", "turnEnd", "kill", "combatEnd"]);
+export const AK5E_EVENT_KINDS = Object.freeze(["apSpent", "artCast", "attack", "hit", "crit", "damageRoll", "hitTaken", "save",
+  "initiative", "turnStart", "turnEnd", "kill", "combatEnd", "hpRestored"]);
 export const RIDER_FLAG = "triggerRiders";
 export const REACTION_FLAG = "reactionBudget";
 // Same trigger vocabulary as feature-tags tagExpiry(), so tagHasExpired() applies unchanged.
@@ -92,6 +93,74 @@ const combatContext = (combat = game.combat) => combat?.started
 
 const tokenUuidOf = actor => actor?.isToken ? actor.token?.uuid ?? null : null;
 
+/** Token disposition from the document, or null when this client cannot see it. */
+const actorDisposition = actor => {
+  const value = Number(actor?.token?.disposition);
+  return Number.isFinite(value) ? value : null;
+};
+
+/** Source-vs-target allegiance for the correlation payload (contract item 5). Opposite non-zero
+ * dispositions are hostile; the same disposition, either side neutral (0), or one unknown side is not. */
+export function hostileToward(sourceActor, targetUuids = []) {
+  const source = actorDisposition(sourceActor);
+  if (source === null) return null;
+  if (source === 0) return false;
+  let known = false;
+  for (const uuid of targetUuids) {
+    const doc = globalThis.fromUuidSync?.(uuid);
+    const target = doc?.documentName === "Token" ? doc.actor : doc;
+    const disposition = actorDisposition(target);
+    if (disposition === null) continue;
+    known = true;
+    if (disposition !== 0 && Math.sign(disposition) !== Math.sign(source)) return true;
+  }
+  return known ? false : null;
+}
+
+/** Art correlation from the cast receipt the source Actor recorded (contract item 5). The cast is
+ * identified only by its explicit `castId`; `lastArtCast` is a fallback for the same id, never a guess. */
+function artCastFields(actor, castId, receipt = null) {
+  if (!castId) return { isArt: false, artLevel: null, apSpent: null };
+  const known = receipt ?? castReceipt(actor, castId);
+  return { isArt: true, artLevel: known?.level ?? null, apSpent: known?.cost ?? null };
+}
+
+/** The cast receipt carrying this id, from the Actor's ledger (survives later casts) or its
+ * `lastArtCast` pointer. Explicit id only; a mismatch returns null. */
+export function castReceipt(actor, castId) {
+  if (!actor || !castId) return null;
+  const ledger = actor.getFlag?.("ak5e", "artReceipts") ?? actor.flags?.ak5e?.artReceipts ?? [];
+  const found = ledger.find?.(entry => entry.id === castId);
+  if (found) return found;
+  const last = actor.getFlag?.("ak5e", "lastArtCast") ?? actor.flags?.ak5e?.lastArtCast;
+  return last?.id === castId ? last : null;
+}
+
+const messageFlag = (message, scope, key) => message?.flags?.[scope]?.[key] ?? message?.getFlag?.(scope, key) ?? null;
+
+/** Explicit cast id for a roll/application message. Reads the message's own `flags.ak5e.castId`
+ * first, then the cast card it names through `flags.dnd5e.originatingMessage`. Never uses the
+ * newest cast as a guess. */
+export function castIdForMessage(message) {
+  if (!message) return null;
+  const direct = messageFlag(message, "ak5e", "castId");
+  if (typeof direct === "string" && direct) return direct;
+  const originId = messageFlag(message, "dnd5e", "originatingMessage");
+  if (!originId) return null;
+  const messages = globalThis.game?.messages;
+  const origin = messages?.get?.(originId) ?? Array.from(messages ?? []).find(entry => entry?.id === originId) ?? null;
+  if (!origin) return null;
+  const receipt = messageFlag(origin, "ak5e", "artCast");
+  return receipt?.id ?? null;
+}
+
+/** Best-effort: stamp the explicit cast id on a secondary (damage/heal) message, once. */
+function stampCastId(message, castId) {
+  if (!castId || !message?.id || typeof message.update !== "function") return;
+  if (messageFlag(message, "ak5e", "castId") === castId) return;
+  fire(message.update({ "flags.ak5e.castId": castId }));
+}
+
 function currentTargets() {
   const describe = globalThis.dnd5e?.utils?.getTargetDescriptors;
   if (typeof describe === "function") return describe();
@@ -103,6 +172,22 @@ function currentTargets() {
       ac: actor.statuses?.has?.("coverTotal") ? null : actor.system?.attributes?.ac?.value ?? null });
   }
   return [...targets.values()];
+}
+
+/** The targets (and the AC each had) when the attack was rolled, not when the hook runs (B-032).
+ * 1. dnd5e's own snapshot: the activity stores getTargetDescriptors() at the start of rollAttack in the
+ *    message flags (dnd5e.mjs:16785, `messageFlags`), and buildPost sets `roll.parent` to that message
+ *    (dnd5e.mjs:68489). This covers any number of targets.
+ * 2. Otherwise, with exactly one current target, the AC dnd5e put in `roll.options.target`
+ *    (dnd5e.mjs:28466, 68346) is the AC it used, so it overrides the live AC.
+ * 3. Otherwise (no message, several targets) fall back to the current targets. */
+export function attackTargets(roll) {
+  const stored = roll?.parent?.flags?.dnd5e?.targets;
+  if (Array.isArray(stored)) return stored.filter(t => t?.uuid).map(t => ({ ...t, ac: t.ac ?? null }));
+  const current = currentTargets(), rolledAc = roll?.options?.target;
+  if (current.length === 1 && rolledAc !== null && rolledAc !== undefined && rolledAc !== "" && Number.isFinite(Number(rolledAc)))
+    return [{ ...current[0], ac: Number(rolledAc) }];
+  return current;
 }
 
 /** Mirrors dnd5e's chat-card evaluation (dnd5e.mjs:69480):
@@ -166,7 +251,7 @@ export async function handlePostRollAttack(rolls, data = {}) {
   seenRolls.add(roll);
   const subject = data.subject ?? null, actor = subject?.actor ?? null;
   const attackId = randomId();
-  const targets = currentTargets().map(t => ({ uuid: t.uuid, name: t.name ?? "", ac: t.ac ?? null, hit: attackHits(roll, t.ac) }));
+  const targets = attackTargets(roll).map(t => ({ uuid: t.uuid, name: t.name ?? "", ac: t.ac ?? null, hit: attackHits(roll, t.ac) }));
   const base = { attackId, actorUuid: actor?.uuid ?? null, tokenUuid: tokenUuidOf(actor), itemUuid: subject?.item?.uuid ?? null,
     activityUuid: subject?.uuid ?? null, total: roll.total ?? null, critical: Boolean(roll.isCritical), fumble: Boolean(roll.isFumble),
     targets, targetUuids: targets.map(t => t.uuid), userId: game.user?.id ?? null, ...combatContext(),
@@ -200,6 +285,27 @@ export async function handleSavingThrow(rolls, data = {}, { concentration = fals
     raw: { rolls, actor } });
 }
 
+/** One `damageRoll` per evaluated damage/healing roll set (dnd5e.rollDamage), on the roller's client. The legacy
+ * chat-card path (dnd5e.mjs:21192) sends no `subject`, so actor/item/activity are then null. Rolls are reported as
+ * rolled; the damage is not applied here (see `hitTaken` for applied damage). */
+export async function handleRollDamage(rolls, data = {}) {
+  const roll = rolls?.[0];
+  if (!roll || seenRolls.has(roll)) return;                // dedupe: one event per evaluated roll set
+  seenRolls.add(roll);
+  const subject = data.subject ?? null, actor = subject?.actor ?? null, id = randomId();
+  const parts = [...rolls].map(r => ({ formula: r.formula ?? null, total: Number(r.total) || 0,
+    types: [...new Set([r.options?.type, ...(r.options?.types ?? [])].filter(Boolean))] }));
+  const targets = attackTargets(roll).map(t => t.uuid);
+  const castId = messageFlag(roll?.parent, "ak5e", "castId") ?? castIdForMessage(roll?.parent);
+  const receipt = castId ? castReceipt(actor, castId) : null;
+  stampCastId(roll?.parent, castId);
+  await emitAk5eEvent("damageRoll", { eventId: `damageRoll:${id}`, actorUuid: actor?.uuid ?? null, tokenUuid: tokenUuidOf(actor),
+    itemUuid: subject?.item?.uuid ?? null, activityUuid: subject?.uuid ?? null, total: parts.reduce((sum, p) => sum + p.total, 0),
+    critical: [...rolls].some(r => r.isCritical), rolls: parts, targetUuids: targets, userId: game.user?.id ?? null,
+    castId, sourceActorUuid: actor?.uuid ?? receipt?.actorUuid ?? null, ...artCastFields(actor, castId, receipt), hostile: hostileToward(actor, targets),
+    ...combatContext(), raw: { rolls, subject, actor } });
+}
+
 /** Synchronous; READS ONLY. Never returns false, never writes options or updates. */
 export function capturePreApplyDamage(actor, _amount, _updates, options) {
   if (!actor?.uuid || !options || typeof options !== "object") return;
@@ -210,23 +316,40 @@ export function capturePreApplyDamage(actor, _amount, _updates, options) {
   damageBefore.set(options, map);
 }
 
-function originActorUuid(message) {
+function originActor(message) {
   try {
-    const speakerActor = message?.speaker && globalThis.ChatMessage?.implementation?.getSpeakerActor?.(message.speaker);
-    return speakerActor?.uuid ?? null;
+    const speaker = message?.speaker;
+    return speaker ? globalThis.ChatMessage?.implementation?.getSpeakerActor?.(speaker) ?? null : null;
   } catch { return null; }
 }
+function originActorUuid(message) { return originActor(message)?.uuid ?? null; }
 
 export async function handleApplyDamage(actor, amount, options) {
-  if (!actor?.uuid || !options || typeof options !== "object" || !(Number(amount) > 0)) return;
+  if (!actor?.uuid || !options || typeof options !== "object") return;
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value === 0) return;
   const seen = damageSeen.get(options) ?? new Set();
   if (seen.has(actor.uuid)) return;                       // dedupe per (options, actor)
   seen.add(actor.uuid); damageSeen.set(options, seen);
   const before = damageBefore.get(options)?.get(actor.uuid) ?? null;
-  const hpAfter = Number(actor.system?.attributes?.hp?.value) || 0;
   const message = options.originatingMessage ?? options.origin ?? null;
+  const castId = castIdForMessage(message);
+  if (value < 0) {
+    // Healing: report the HP actually restored, clamped at the maximum and excluding temporary HP.
+    const hpAfterRestore = Number(actor.system?.attributes?.hp?.value) || 0;
+    const restored = before ? Math.max(0, hpAfterRestore - before.hp) : 0;
+    if (!before || restored <= 0) return;
+    await emitAk5eEvent("hpRestored", { eventId: `hpRestored:${randomId()}`, actorUuid: actor.uuid, tokenUuid: tokenUuidOf(actor),
+      sourceActorUuid: originActorUuid(message), castId, amount: restored, hpBefore: before.hp, hpAfter: hpAfterRestore,
+      messageUuid: message?.uuid ?? null, userId: game.user?.id ?? null, ...combatContext(), raw: { actor, message } });
+    return;
+  }
+  const hpAfter = Number(actor.system?.attributes?.hp?.value) || 0;
+  const source = originActor(message);
+  const receipt = castId ? castReceipt(source, castId) : null;
   const base = { actorUuid: actor.uuid, tokenUuid: tokenUuidOf(actor), amount: Number(amount),
     hpBefore: before?.hp ?? null, hpAfter, sourceActorUuid: originActorUuid(message), messageUuid: message?.uuid ?? null,
+    castId, ...artCastFields(source, castId, receipt), hostile: hostileToward(source, [actor.uuid]),
     userId: game.user?.id ?? null, ...combatContext(), raw: { actor, message } };
   const id = randomId();
   await emitAk5eEvent("hitTaken", { ...base, eventId: `hitTaken:${id}` });
@@ -285,6 +408,7 @@ export function registerTriggerEventHooks() {
   if (!registry || installedOn.has(registry)) return false;
   installedOn.add(registry);
   registry.on("dnd5e.postRollAttack", (rolls, data) => { fire(handlePostRollAttack(rolls, data)); });
+  registry.on("dnd5e.rollDamage", (rolls, data) => { fire(handleRollDamage(rolls, data)); });
   registry.on("dnd5e.rollSavingThrow", (rolls, data) => { fire(handleSavingThrow(rolls, data)); });
   registry.on("dnd5e.rollConcentration", (rolls, data) => { fire(handleSavingThrow(rolls, data, { concentration: true })); });
   registry.on("dnd5e.preApplyDamage", (actor, amount, updates, options) => { capturePreApplyDamage(actor, amount, updates, options); });

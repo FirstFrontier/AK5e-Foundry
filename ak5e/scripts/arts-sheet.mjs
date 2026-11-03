@@ -126,6 +126,7 @@ function decorateRows(actor, tab, app) {
     const ap = availability.modes.find(m => m.value === "ap");
     const base = ap?.quotes.find(q => q.level === item.system.level);
     if (base) badge.append(node("span", t("Cost", base)));
+    if (base?.shortfall) badge.append(node("span", `AP short by ${base.shortfall} (only ${artsState(actor).value} AP); Use anyway is available in the casting dialog.`, "ak5e-arts-warning"));
     if (grant.free) {
       badge.append(node("span", grant.free.maximum === null ? t("UnlimitedFree")
         : t("FreeRemaining", { remaining: Math.max(0, grant.free.maximum - grant.free.spent), maximum: grant.free.maximum })));
@@ -134,7 +135,7 @@ function decorateRows(actor, tab, app) {
     if (!availability.castable) badge.append(node("span", artsErrorText(availability.error), "ak5e-arts-warning"));
     else if (!base && ap?.error && !grant.onlyFree) badge.append(node("span", artsErrorText(ap.error)));
     if (!item.system.activities?.size) badge.append(node("span", t("NoActivity")));
-    row.dataset.ak5eCastable = String(availability.castable && Boolean(item.system.activities?.size));
+    row.dataset.ak5eCastable = String(availability.castable && !availability.quote?.shortfall && Boolean(item.system.activities?.size));
     // Keep the native name/activity click and expand controls intact.
     (row.querySelector(".item-row > .item-name") ?? row.querySelector(".item-name") ?? row).append(badge);
     for (const control of row.querySelectorAll('[data-action="prepare"]')) control.classList.add("ak5e-arts-hide");

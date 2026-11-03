@@ -1,7 +1,7 @@
 /** SI-2 resource-pool kernel: class-table / level / PB / ability maxima, over-maximum values,
  * recovery triggers, delta-based spend / refund, and a once-per-turn/round limiter.
  * Registry entries (definePool) are code; actor state lives only under
- * flags.ak5e.resourcePools.<poolId> = { value, last, receipts } and
+ * flags.ak5e.resourcePools.<poolId> = { value, last, receipts (event keys, newest 24 per kind) } and
  * flags.ak5e.resourcePools._limits.<key> = { cycle, who }. Pool ids must start with a letter,
  * so "_limits" can never collide. Reading never writes. Nothing here touches
  * flags.ak5e.featureTracking or native system.uses, and nothing registers at import time.
@@ -12,9 +12,12 @@
  *  - refund / gain: clamped to max unless overMax (then it may exceed max). setPool clamps likewise.
  *  - recovery amount: 'full' raises to max (never lowers), 'toMax' sets to max exactly (drops any
  *    excess), 'toInitial' sets to the initial value, a whole number n adds n (clamp as refund).
- *    Per pool and call, only the FIRST matching recovery entry applies.
+ *    Per pool and call, only ONE recovery entry applies: the caller's trigger order decides (a long
+ *    rest passes ['lr','sr'], so an lr entry beats an sr entry whatever order the pool lists them
+ *    in); within one trigger the first entry whose 'when' passes is used.
  */
 import { flag, values, need, gmActive, keyedSerial } from "./operation-kernel.mjs";
+import { specialistLevel, prowessEarlyUnlocked } from "./specialist-rules.mjs";
 
 export const TRIGGERS = ["sr", "lr", "initiative", "turnStart", "turnEnd", "combatEnd"];
 export const LIMITER_SCOPES = ["turn", "round", "creaturePerTurn"];
@@ -22,6 +25,11 @@ const ABILITIES = ["str", "dex", "con", "int", "wis", "cha"];
 const VARIABLE = /^(prof|level|classLevel|details\.level|attributes\.prof|abilities\.(str|dex|con|int|wis|cha)\.(mod|value))$/;
 const RECEIPT_LIMIT = 24;
 const serial = keyedSerial();
+const recoveryRouters = [];
+/** Class integrations may serialize their own pool recovery with their play commands. */
+export function registerPoolRecoveryRouter(matches, recover) {
+  if (!recoveryRouters.some(router => router.matches === matches)) recoveryRouters.push({ matches, recover });
+}
 
 /* ---------------------------------------------------------------- safe formulas */
 
@@ -135,6 +143,8 @@ const whole = (value, label) => { need(typeof value === "number" && Number.isInt
 
 function normalizeMax(max, id) {
   if (typeof max === "number") return { kind: "fixed", value: whole(max, `Pool ${id} max`) };
+  /** Per-actor resolver, for maxima no formula can express (e.g. an ability the player chose). */
+  if (typeof max === "function") return { kind: "function", resolve: max };
   if (typeof max === "string") {
     const formula = compileFormula(max);
     for (const name of formula.variables) need(VARIABLE.test(name), `Unknown variable @${name} in the max of pool ${id}.`);
@@ -144,7 +154,7 @@ function normalizeMax(max, id) {
     need(max.length > 0, `Pool ${id} level table is empty.`);
     return { kind: "array", table: max.map((v, i) => whole(v, `Pool ${id} level ${i + 1}`)) };
   }
-  need(max && typeof max === "object", `Pool ${id} needs a max (integer, level table or formula).`);
+  need(max && typeof max === "object", `Pool ${id} needs a max (integer, level table, formula or function).`);
   const rows = Object.entries(max).map(([level, v]) => {
     need(/^[1-9]\d*$/.test(level), `Pool ${id} level keys must be positive whole numbers.`);
     return [Number(level), whole(v, `Pool ${id} level ${level}`)];
@@ -209,6 +219,7 @@ export function resolveMax(def, actor) {
   const { max } = def;
   let result;
   if (max.kind === "fixed") result = max.value;
+  else if (max.kind === "function") result = max.resolve(actor);
   else if (max.kind === "formula") result = max.formula.evaluate(poolVariables(actor, def));
   else {
     const basis = def.levelBasis ?? (def.classId ? "classLevel" : "level");
@@ -221,19 +232,32 @@ export function resolveMax(def, actor) {
   return result;
 }
 
-const stored = (actor, id) => flag(actor, "resourcePools")?.[id] ?? {};
+/** Own-property read: ids / keys such as "constructor" or "toString" must never resolve to inherited members. */
+const ownEntry = (object, key) => object && typeof object === "object" && Object.hasOwn(object, key) ? object[key] : undefined;
+const stored = (actor, id) => ownEntry(flag(actor, "resourcePools"), id) ?? {};
+const storedLimit = (actor, key) => ownEntry(ownEntry(flag(actor, "resourcePools"), "_limits"), key);
+
+/** A stored value that is present but not a non-negative integer (float, negative, string, null...). Never-stored (undefined) is fresh, not corrupt. */
+const isCorrupt = value => value !== undefined && !(Number.isInteger(value) && value >= 0);
 
 function snapshot(actor, def) {
   const max = resolveMax(def, actor), record = stored(actor, def.id);
-  const raw = Number.isInteger(record.value) && record.value >= 0 ? record.value : def.initial === "max" ? max : def.initial;
+  const corrupt = isCorrupt(record.value);
+  const raw = !corrupt && record.value !== undefined ? record.value : def.initial === "max" ? max : def.initial;
   const value = def.overMax ? raw : Math.min(raw, max);
-  return { max, value, over: Math.max(0, value - max), initial: def.initial === "max" ? max : def.initial, record };
+  return { max, value, over: Math.max(0, value - max), initial: def.initial === "max" ? max : def.initial, record, corrupt };
+}
+
+/** The fallback is kept, but never silent: one warning per pool per mutating call. The write that follows replaces the bad value. */
+function warnCorrupt(def, before) {
+  if (!before.corrupt) return;
+  console.warn("AK5e | Resource pools", `Pool "${def.id}" had an invalid stored value (${JSON.stringify(before.record.value) ?? String(before.record.value)}); using ${before.value} instead.`);
 }
 
 /** Current state of one pool. Never writes. */
 export function getPool(actor, id) {
-  const def = requirePool(id), { max, value, over } = snapshot(actor, def);
-  return { id, label: def.label, value, max, over, overMax: def.overMax };
+  const def = requirePool(id), { max, value, over, corrupt } = snapshot(actor, def);
+  return { id, label: def.label, value, max, over, overMax: def.overMax, corrupt };
 }
 
 /** Whether the pool belongs to this Actor: def.appliesTo(actor) or, absent that, stored state exists. */
@@ -248,6 +272,14 @@ async function write(actor, update) {
 function checkActor(actor) { need(actor && typeof actor.update === "function" && !actor.pack, "Choose a live Actor."); }
 const poolPath = id => `flags.ak5e.resourcePools.${id}`;
 const remember = (record, receipts) => ({ ...record, receipts });
+/** Event kind = the eventKey text before its first ":" (turnStart, turnEnd, initiative, ...). */
+const receiptKind = key => String(key).split(":", 1)[0];
+/** Append a receipt, then keep only the newest RECEIPT_LIMIT of each kind (order preserved), so a busy kind cannot evict another's history. */
+function addReceipt(receipts, key) {
+  const all = [...receipts, key], seen = new Map();
+  for (let i = all.length - 1; i >= 0; i -= 1) { const kind = receiptKind(all[i]), n = (seen.get(kind) ?? 0) + 1; seen.set(kind, n); if (n > RECEIPT_LIMIT) all[i] = undefined; }
+  return all.filter(entry => entry !== undefined);
+}
 
 function amountOf(amount) {
   need(typeof amount === "number" && Number.isInteger(amount) && amount >= 0, "Enter a whole number of 0 or more.");
@@ -259,11 +291,12 @@ async function change(actor, id, op, amount, { reason = "" } = {}) {
   const n = amountOf(amount);
   return serial(actor, async () => {
     const def = requirePool(id), before = snapshot(actor, def);
+    warnCorrupt(def, before);
     let value;
     if (op === "spend") { need(n <= before.value, `Not enough ${def.label}: ${n} needed, ${before.value} available.`); value = before.value - n; }
     else if (op === "set") value = def.overMax ? n : Math.min(before.max, n);
     else value = def.overMax ? before.value + n : Math.min(before.max, before.value + n);
-    if (value !== before.value) {
+    if (value !== before.value || before.corrupt) {                                // a corrupt record is rewritten even when the fallback equals the result
       await write(actor, { [poolPath(id)]: { ...before.record, value, last: { op, amount: n, reason: String(reason).slice(0, 200), before: before.value, after: value } } });
     }
     return { id, op, before: before.value, after: value, applied: value - before.value, max: before.max, over: Math.max(0, value - before.max) };
@@ -299,13 +332,15 @@ export async function recoverPool(actor, trigger, { poolIds, eventKey, context =
     for (const def of defs) {
       try {
         const before = snapshot(actor, def), receipts = Array.isArray(before.record.receipts) ? before.record.receipts : [];
+        warnCorrupt(def, before);
         if (eventKey && receipts.includes(eventKey)) { results.push({ id: def.id, skipped: "receipt", before: before.value, after: before.value }); continue; }
-        const entry = def.recovery.find(r => triggers.includes(r.on) && (!r.when || r.when(actor, { trigger: r.on, eventKey, ...context })));
+        let entry;
+        for (const t of triggers) { entry = def.recovery.find(r => r.on === t && (!r.when || r.when(actor, { trigger: t, eventKey, ...context }))); if (entry) break; }
         if (!entry) continue;
         const value = applyRecovery(entry, before, def);
-        if (value !== before.value || eventKey) {
+        if (value !== before.value || eventKey || before.corrupt) {
           update[poolPath(def.id)] = remember({ ...before.record, value, last: { op: "recover", trigger: entry.on, amount: entry.amount, before: before.value, after: value } },
-            eventKey ? [...receipts, eventKey].slice(-RECEIPT_LIMIT) : receipts);
+            eventKey ? addReceipt(receipts, eventKey) : receipts);
         }
         results.push({ id: def.id, trigger: entry.on, before: before.value, after: value, applied: value - before.value, max: before.max });
       } catch (error) { results.push({ id: def.id, error: error.message }); }
@@ -347,7 +382,7 @@ export function once({ scope, key }) {
     return { cycle: limiterCycle(ctx.combat ?? activeCombat(actor), actor, scope, { worldTime: ctx.worldTime ?? globalThis.game?.time?.worldTime }), creature: ctx.creature };
   };
   const blocked = (actor, c) => {
-    const mark = flag(actor, "resourcePools")?._limits?.[key];
+    const mark = storedLimit(actor, key);
     return mark?.cycle === c.cycle && (scope !== "creaturePerTurn" || (mark.who ?? []).includes(c.creature));
   };
   const mark = async (actor, ctx) => {
@@ -355,7 +390,7 @@ export function once({ scope, key }) {
     return serial(actor, async () => {
       const c = context(actor, ctx);
       if (blocked(actor, c)) return false;
-      const previous = flag(actor, "resourcePools")?._limits?.[key];
+      const previous = storedLimit(actor, key);
       const who = scope === "creaturePerTurn" ? [...(previous?.cycle === c.cycle ? previous.who ?? [] : []), c.creature] : [];
       await write(actor, { "flags.ak5e.resourcePools._limits": { [key]: { cycle: c.cycle, who } } });
       return true;
@@ -383,7 +418,11 @@ export function restTriggers(config = {}) {
 }
 
 const event = (...parts) => parts.join(":");
-const poolRun = (actor, trigger, eventKey, context) => actor ? safely(recoverPool(actor, trigger, { eventKey, context })) : undefined;
+const poolRun = (actor, trigger, eventKey, context) => {
+  if (!actor) return undefined;
+  const router = recoveryRouters.find(router => router.matches(actor));
+  return safely(router ? router.recover(actor, trigger, { eventKey, context }) : recoverPool(actor, trigger, { eventKey, context }));
+};
 
 /** updateCombat(combat, changed, options, userId): Foundry sets combat.previous / combat.current before this hook fires. */
 export const onUpdateCombat = guarded(function onUpdateCombat(combat, changed, options) {
@@ -414,12 +453,13 @@ export const onDeleteCombat = guarded(function onDeleteCombat(combat) {
 /**
  * dnd5e.restCompleted(actor, result, config). The system calls this only on the client that ran the
  * rest (a player's own client for a player rest), so a GM-only gate would miss it; like
- * recoverFeatureTrackers it requires ownership instead. The same result object is applied once.
+ * recoverFeatureTrackers it requires ownership instead. Dedupe is by the `result` object only: the
+ * same result object is applied once, and a fresh result is always a new rest even when `config` is
+ * reused. A non-object result cannot be deduped, so it is processed every time.
  */
 export const onRestCompleted = guarded(function onRestCompleted(actor, result, config = {}) {
   if (!actor?.isOwner) return;
-  const token = result && typeof result === "object" ? result : config;
-  if (token && typeof token === "object") { if (seenRests.has(token)) return; seenRests.add(token); }
+  if (result && typeof result === "object") { if (seenRests.has(result)) return; seenRests.add(result); }
   const triggers = restTriggers(config);
   if (triggers.length) return poolRun(actor, triggers, undefined, { rest: config });
 });
@@ -435,3 +475,40 @@ export function registerResourcePoolHooks() {
   Hooks.on("dnd5e.restCompleted", onRestCompleted);
   return true;
 }
+
+/** Register the Medic Life Support pool (Ch. 3 L4620–4648). Idempotent. */
+export function registerLifeSupportPool() {
+  if (getPoolDefinition("lifeSupport")) return getPoolDefinition("lifeSupport");
+  return definePool({
+    id: "lifeSupport",
+    label: "Life Support",
+    classId: "class-medic",
+    levelBasis: "classLevel",
+    max: { 1: 20, 2: 35, 4: 50, 6: 65, 8: 80, 10: 95, 12: 110, 14: 125, 16: 140, 18: 155, 20: 170 },
+    overMax: true,
+    initial: "max",
+    recovery: [{ on: "lr", amount: "toMax" }]
+  });
+}
+
+/** Register the Specialist Prowess pool (Ch. 3 L5312–5320). Idempotent. */
+export function registerProwessPool() {
+  if (getPoolDefinition("prowess")) return getPoolDefinition("prowess");
+  return definePool({
+    id: "prowess",
+    label: "Prowess",
+    classId: "class-specialist",
+    levelBasis: "classLevel",
+    max: "@prof",
+    initial: 0,
+    appliesTo: actor => {
+      const lvl = specialistLevel(actor);
+      return (lvl !== null && lvl !== undefined && lvl >= 4) || prowessEarlyUnlocked(actor);
+    },
+    recovery: [
+      { on: "lr", amount: 1 },
+      { on: "sr", amount: 1 }
+    ]
+  });
+}
+
