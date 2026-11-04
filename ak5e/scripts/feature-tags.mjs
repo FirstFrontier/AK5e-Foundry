@@ -383,7 +383,7 @@ export async function saveAegirRelationship(source, item, values, targetUuid) {
 async function dialog(options) {
   let closed;
   const render = options.render;
-  const result = await foundry.applications.api.DialogV2.wait({ ...options, rejectClose: false, render: (event, app) => {
+  const result = await foundry.applications.api.DialogV2.wait({ ...options, classes: ["ak5e-dialog-window"], rejectClose: false, render: (event, app) => {
     closed = new Promise(resolve => app.addEventListener("close", resolve, { once: true }));
     render?.(event, app);
   } });
@@ -467,7 +467,7 @@ export function renderFeatureTags(app, element) {
   section.append(heading);
   if (canAdd) {
     const add = document.createElement("button");
-    add.type = "button"; add.textContent = localize("Add");
+    add.type = "button"; add.className = "ak5e-btn-secondary"; add.textContent = localize("Add");
     add.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); safely(openFeatureTagSetup(actor)); });
     section.append(add);
   }
@@ -499,6 +499,7 @@ export function renderFeatureTags(app, element) {
       if (label === "Edit" && !effect) continue;
       const button = document.createElement("button");
       button.type = "button";
+      button.className = "ak5e-btn-secondary";
       button.textContent = localize(label);
       if (!["Edit", "Remove"].includes(label)) button.title = localize("ConfirmEvent");
       button.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); safely(Promise.resolve().then(action)); });

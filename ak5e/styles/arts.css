@@ -1,14 +1,14 @@
-.ak5e-arts-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
-.ak5e-arts-controls button { width: auto; padding: 0.25rem 0.6rem; }
+.ak5e-arts-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ak5e-arts-controls button { width: auto; min-height: 28px; padding: 4px 10px; }
 .ak5e-arts-controls span { font-size: 0.8rem; }
-.tab[data-tab="spells"] > .ak5e-arts-controls { padding: 0.75rem; margin-bottom: 0.75rem; border: 1px solid var(--dnd5e-color-gold, #9f9275); border-radius: 4px; flex: 0 0 auto; }
+.tab[data-tab="spells"] > .ak5e-arts-controls { padding: 12px; margin-bottom: 12px; background: var(--ak5e-panel-bg); border: 1px solid var(--ak5e-outline); border-radius: 8px; flex: 0 0 auto; }
 .ak5e-arts-dialog label { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; margin: 0.6rem 0; }
 .ak5e-arts-dialog label > :is(select, input:not([type="checkbox"])) { width: 55%; }
 .ak5e-arts-dialog ul { max-height: 16rem; overflow-y: auto; }
 .ak5e-arts-hide, .ak5e-arts-filtered { display: none !important; }
 .ak5e-ap-bar, .ak5e-focus-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
 .ak5e-ap-bar input { width: 4.5rem; flex: 0 0 4.5rem; }
-.ak5e-ap-bar button, .ak5e-focus-row button, .ak5e-arts-references button, .ak5e-arts-recovery button { width: auto; padding: 0.2rem 0.4rem; }
+.ak5e-ap-bar button, .ak5e-focus-row button, .ak5e-arts-references button, .ak5e-arts-recovery button { width: auto; min-height: 28px; padding: 4px 10px; }
 .ak5e-arts-header { margin-top: 0.4rem; font-size: 0.8rem; max-width: 100%; }
 .dnd5e2.sheet.actor .sheet-header .ak5e-arts-header { display: flex; flex-direction: row; flex-wrap: wrap; }
 .dnd5e2.sheet.actor .sheet-header .ak5e-arts-header input { height: 1.8rem; width: 3.5rem; flex: 0 0 3.5rem; }
@@ -18,7 +18,7 @@
 .ak5e-art-row .item-name { flex-wrap: wrap; }
 .ak5e-art-row .ak5e-art-status { flex-basis: 100%; }
 .ak5e-art-row .item-controls { flex-wrap: wrap; }
-.ak5e-art-rules { font-size: 0.7rem; width: auto; }
+.ak5e-art-rules { font-size: 0.7rem; width: auto; min-height: 28px; padding: 4px 10px; }
 .ak5e-arts-warning { font-weight: bold; }
 .ak5e-castable-filter { display: inline-flex; gap: 0.4rem; align-items: center; font-size: 0.8rem; }
 .ak5e-castable-filter input { width: auto; }

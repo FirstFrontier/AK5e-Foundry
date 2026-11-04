@@ -78,7 +78,7 @@ body.theme-dark .dnd5e2.sheet.actor.character[data-ak5e-sheet-theme],
   border-color: var(--ak5e-border);
 }
 
-.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-arts-controls, .ak5e-operator-skills) {
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-arts-controls) {
   background-color: color-mix(in srgb, var(--ak5e-surface-alt) 74%, transparent);
 }
 
@@ -87,7 +87,7 @@ body.theme-dark .dnd5e2.sheet.actor.character[data-ak5e-sheet-theme],
   outline-offset: 2px;
 }
 
-.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-ap-bar, .ak5e-operator-skills, .ak5e-origins-section) {
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] :is(.ak5e-ap-bar) {
   border-color: var(--ak5e-border);
 }
 
@@ -118,3 +118,21 @@ body.theme-dark .dnd5e2.sheet.actor.character[data-ak5e-sheet-theme],
 .ak5e-theme-dialog .ak5e-theme-option:focus-within { outline: 2px solid var(--color-border-highlight); }
 .ak5e-theme-dialog .ak5e-theme-option input { margin: 0; }
 .ak5e-theme-dialog .ak5e-theme-swatch { display: block; width: 38px; height: 22px; flex: none; border: 1px solid #777; border-radius: 3px; }
+
+/* Keep AK5e section rules gold on themed character sheets; D&D5e otherwise
+   repaints every h3 border with the nation accent colour. */
+.dnd5e2.sheet.actor.character[data-ak5e-sheet-theme] .sheet-body :is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits
+) > :is(h3, h5) {
+  border-bottom-color: var(--ak5e-gold-soft);
+}

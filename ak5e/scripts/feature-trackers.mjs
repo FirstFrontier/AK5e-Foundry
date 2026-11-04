@@ -289,7 +289,7 @@ export async function adjustCharacterResource(actor, key, delta) {
 async function trackerDialog(options) {
   let closed;
   const render = options.render;
-  const result = await foundry.applications.api.DialogV2.wait({ ...options, render: (event, dialog) => {
+  const result = await foundry.applications.api.DialogV2.wait({ ...options, classes: ["ak5e-dialog-window"], render: (event, dialog) => {
     closed = new Promise(resolve => dialog.addEventListener("close", resolve, { once: true }));
     render?.(event, dialog);
   } });
@@ -350,9 +350,10 @@ export async function openFeatureCounterSetup(actor) {
     } }] });
 }
 
-function actionButton(label, fn) {
+function actionButton(label, fn, className = "ak5e-btn-secondary") {
   const button = document.createElement("button");
   button.type = "button";
+  button.className = className;
   button.textContent = label;
   button.addEventListener("click", event => { event.preventDefault(); event.stopPropagation(); safely(Promise.resolve().then(fn)); });
   return button;
@@ -394,7 +395,7 @@ export function renderFeatureTrackers(app, element) {
           busy.add(key);
           try { await adjustCharacterResource(actor, tracker.key, delta); }
           finally { busy.delete(key); }
-        });
+        }, "ak5e-btn-stepper");
         button.disabled = Boolean(tracker.active);
         button.setAttribute("aria-label", `${localize(delta === -1 ? "Spend" : "Restore")} ${tracker.label}`);
         row.append(button);
@@ -430,9 +431,9 @@ export function renderFeatureTrackers(app, element) {
             if (current) await setFeatureCounter(actor, current.item.id, current.key, Math.min(current.maximum, Math.max(0, current.value + delta)));
           } finally { busy.delete(key); }
         };
-        const spend = actionButton("−", change(-1));
+        const spend = actionButton("−", change(-1), "ak5e-btn-stepper");
         spend.setAttribute("aria-label", `${localize("Spend")} ${tracker.label}`);
-        const restore = actionButton("+", change(1));
+        const restore = actionButton("+", change(1), "ak5e-btn-stepper");
         restore.setAttribute("aria-label", `${localize("Restore")} ${tracker.label}`);
         row.append(spend, restore);
       }

@@ -295,3 +295,651 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ------------------------------------------------------------------------
+   AK5e sheet design system
+   One visual language for every injected surface: section headers, three
+   button tiers, panels, callouts and chips. Base rhythm is 8px; the gold
+   accent matches the rules buttons (#c9a227).
+   ------------------------------------------------------------------------ */
+:root {
+  --ak5e-gold: #c9a227;
+  --ak5e-gold-soft: rgba(201, 162, 39, 0.6);
+  --ak5e-outline: rgba(201, 162, 39, 0.45);
+  --ak5e-panel-bg: rgba(0, 0, 0, 0.25);
+  --ak5e-panel-radius: 8px;
+  --ak5e-panel-pad: 12px;
+  --ak5e-gap: 12px;
+  --ak5e-primary-bg: linear-gradient(180deg, #d9b74a, #c9a227);
+  --ak5e-primary-text: #1b1a14;
+  --ak5e-notice-bg: rgba(201, 162, 39, 0.14);
+  --ak5e-chip-bg: rgba(255, 255, 255, 0.06);
+}
+
+body.theme-light,
+.themed.theme-light {
+  --ak5e-panel-bg: rgba(0, 0, 0, 0.05);
+  --ak5e-notice-bg: rgba(159, 122, 0, 0.12);
+  --ak5e-chip-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* Section headers: one pattern for every AK5e surface and dialog. */
+.ak5e-section-title,
+:is(.dnd5e2.sheet.actor, .application) :is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls,
+  .ak5e-concentration-breaker-panel,
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-defender-panel,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel,
+  .ak5e-operator-dialog,
+  .ak5e-tracker-dialog,
+  .ak5e-origin-dialog,
+  .ak5e-skill-choices
+) > :is(h3, h5),
+:is(.dnd5e2.sheet.actor, .application) :is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-skill-choices
+) :is(h3, h5) {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: inherit;
+  margin: 0 0 8px;
+  padding: 0 0 4px;
+  border-bottom: 1px solid var(--ak5e-gold-soft);
+}
+
+/* Panels and cards. */
+:is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls,
+  .ak5e-pioneer-aura-recipient,
+  .ak5e-concentration-breaker-panel,
+  .ak5e-arts-references,
+  .ak5e-arts-recovery
+) {
+  display: block;
+  box-sizing: border-box;
+  background: var(--ak5e-panel-bg);
+  border: 1px solid var(--ak5e-outline);
+  border-radius: var(--ak5e-panel-radius);
+  padding: var(--ak5e-panel-pad);
+  margin: 0 0 var(--ak5e-gap);
+}
+
+/* Secondary tier: compact inline controls, one height per row. */
+:is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls,
+  .ak5e-pioneer-aura-recipient,
+  .ak5e-concentration-breaker-panel,
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-caster-dialog-content,
+  .ak5e-defender-panel,
+  .ak5e-defender-form,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel,
+  .ak5e-standard-form,
+  .ak5e-operator-dialog,
+  .ak5e-tracker-dialog,
+  .ak5e-origin-dialog,
+  .ak5e-play-use,
+  .ak5e-arts-controls,
+  .ak5e-arts-references,
+  .ak5e-arts-recovery,
+  .ak5e-ap-bar,
+  .ak5e-focus-row,
+  .ak5e-arts-dialog,
+  .ak5e-theme-dialog
+) button,
+.ak5e-btn-secondary,
+.ak5e-btn-stepper {
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  min-height: 28px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--ak5e-outline);
+  border-radius: 4px;
+  background: var(--ak5e-chip-bg);
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+:is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls,
+  .ak5e-pioneer-aura-recipient,
+  .ak5e-concentration-breaker-panel,
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-caster-dialog-content,
+  .ak5e-defender-panel,
+  .ak5e-defender-form,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel,
+  .ak5e-standard-form,
+  .ak5e-operator-dialog,
+  .ak5e-tracker-dialog,
+  .ak5e-origin-dialog,
+  .ak5e-play-use,
+  .ak5e-arts-controls,
+  .ak5e-arts-references,
+  .ak5e-arts-recovery,
+  .ak5e-ap-bar,
+  .ak5e-focus-row,
+  .ak5e-arts-dialog,
+  .ak5e-theme-dialog
+) button:hover:not(:disabled),
+.ak5e-btn-secondary:hover:not(:disabled),
+.ak5e-btn-stepper:hover:not(:disabled) {
+  border-color: var(--ak5e-gold);
+  background: rgba(201, 162, 39, 0.18);
+}
+
+/* Primary tier: the panel's commit/configure action, full width. */
+:is(
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls
+) > button,
+.ak5e-feature-trackers > button:first-of-type,
+.ak5e-origins-section > .ak5e-origins-button,
+.ak5e-btn-primary {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  margin: var(--ak5e-gap) 0 0;
+  padding: 12px;
+  border: 1px solid #8f7418;
+  border-radius: 4px;
+  background: var(--ak5e-primary-bg);
+  color: var(--ak5e-primary-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  text-shadow: none;
+  cursor: pointer;
+}
+
+:is(
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls
+) > button:hover:not(:disabled),
+.ak5e-feature-trackers > button:first-of-type:hover:not(:disabled),
+.ak5e-origins-section > .ak5e-origins-button:hover:not(:disabled),
+.ak5e-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e4c35b, #d4ad32);
+  color: var(--ak5e-primary-text);
+  border-color: #8f7418;
+}
+
+/* Button rows: equal heights, 8px rhythm. */
+:is(
+  .ak5e-button-row,
+  .ak5e-supporter-button-row,
+  .ak5e-standard-buttons
+) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+:is(
+  .ak5e-feature-trackers,
+  .ak5e-feature-tags,
+  .ak5e-operator-skills,
+  .ak5e-origins-section,
+  .ak5e-medic-sheet-panel,
+  .ak5e-guard-sheet-panel,
+  .ak5e-specialist-sheet-panel,
+  .ak5e-supporter-sheet-panel,
+  .ak5e-caster-sheet-panel,
+  .ak5e-defender-sheet-panel,
+  .ak5e-vanguard-benefits,
+  .ak5e-standard-controls,
+  .ak5e-standard-recipient-controls,
+  .ak5e-pioneer-aura-recipient,
+  .ak5e-concentration-breaker-panel,
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-caster-dialog-content,
+  .ak5e-defender-panel,
+  .ak5e-defender-form,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel,
+  .ak5e-standard-form,
+  .ak5e-operator-dialog,
+  .ak5e-tracker-dialog,
+  .ak5e-origin-dialog,
+  .ak5e-play-use
+) :is(.ak5e-button-row, .ak5e-supporter-button-row, .ak5e-standard-buttons) > button {
+  flex: 0 1 auto;
+  margin: 0;
+}
+
+/* Stepper tier: square, tabular counters. */
+:is(.ak5e-feature-tracker button[aria-label], .ak5e-btn-stepper) {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dialog windows opened from an AK5e surface (window-level class). */
+.ak5e-dialog-window .form-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ak5e-outline);
+}
+
+.ak5e-dialog-window .form-footer > button {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-height: 28px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--ak5e-outline);
+  border-radius: 4px;
+  background: var(--ak5e-chip-bg);
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.ak5e-dialog-window .form-footer > button:hover:not(:disabled) {
+  border-color: var(--ak5e-gold);
+  background: rgba(201, 162, 39, 0.18);
+}
+
+.ak5e-feature-tracker,
+.ak5e-tracker-dialog {
+  font-variant-numeric: tabular-nums;
+}
+
+.ak5e-feature-tracker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ak5e-outline);
+}
+
+.ak5e-feature-tracker:last-of-type {
+  border-bottom: 0;
+}
+
+.ak5e-feature-tracker .ak5e-tracker-name {
+  flex: 1 1 9rem;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.ak5e-feature-tracker .ak5e-tracker-summary {
+  flex: 1 1 100%;
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Counters and values as chips. */
+.ak5e-feature-tracker > span:not(.ak5e-tracker-name):not(.ak5e-tracker-summary),
+.ak5e-chip,
+.ak5e-pool-badge,
+.ak5e-medic-badge,
+.ak5e-specialist-badge,
+.ak5e-supporter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  border: 1px solid var(--ak5e-outline);
+  border-radius: 999px;
+  background: var(--ak5e-chip-bg);
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(
+  .ak5e-medic-badges,
+  .ak5e-specialist-badges,
+  .ak5e-supporter-badges,
+  .ak5e-guard-pools-summary,
+  .ak5e-marksman-pools-summary,
+  .ak5e-medic-pools-summary,
+  .ak5e-specialist-pools-summary
+) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+/* Notices: a callout, never a bare paragraph. */
+:is(
+  .ak5e-tracker-notice,
+  .ak5e-supporter-warning,
+  .ak5e-choice-warning,
+  .ak5e-defender-notice,
+  .ak5e-standard-owner-reminder,
+  .ak5e-guard-unconfigured,
+  .ak5e-medic-unconfigured,
+  .ak5e-marksman-unconfigured,
+  .ak5e-specialist-unconfigured,
+  .ak5e-supporter-unconfigured
+) {
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 12px;
+  border: 0;
+  border-left: 3px solid var(--ak5e-gold);
+  border-radius: 0 4px 4px 0;
+  background: var(--ak5e-notice-bg);
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+:is(
+  .ak5e-guard-unconfigured,
+  .ak5e-medic-unconfigured,
+  .ak5e-marksman-unconfigured,
+  .ak5e-specialist-unconfigured,
+  .ak5e-supporter-unconfigured
+) > p {
+  margin: 0 0 8px;
+}
+
+/* Quiet notes stay quiet; they are hints, not warnings. */
+:is(
+  .ak5e-medic-note,
+  .ak5e-specialist-note,
+  .ak5e-supporter-note,
+  .ak5e-supporter-notes,
+  .ak5e-caster-note,
+  .ak5e-caster-manual,
+  .ak5e-defender-note,
+  .ak5e-guard-note
+) {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Dialog form rhythm. */
+:is(
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-defender-panel,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel,
+  .ak5e-operator-dialog,
+  .ak5e-tracker-dialog,
+  .ak5e-origin-dialog
+) :is(
+  .ak5e-guard-action-group,
+  .ak5e-medic-action-group,
+  .ak5e-marksman-action-group,
+  .ak5e-specialist-action-group,
+  .ak5e-supporter-action-group,
+  .ak5e-skill-choices section
+) {
+  margin: 0 0 var(--ak5e-gap);
+}
+
+:is(.ak5e-guard-dialog, .ak5e-medic-controls-dialog, .ak5e-marksman-panel) h5 {
+  margin-bottom: 8px;
+}
+
+/* Dialog status headers (actor name / level) stay secondary to section titles. */
+:is(
+  .ak5e-guard-dialog,
+  .ak5e-medic-controls-dialog,
+  .ak5e-marksman-panel,
+  .ak5e-specialist-controls-dialog,
+  .ak5e-supporter-controls-dialog,
+  .ak5e-caster-panel,
+  .ak5e-defender-panel,
+  .ak5e-vanguard-controls,
+  .ak5e-standard-panel
+) > :is(.ak5e-guard-status, .ak5e-medic-status, .ak5e-marksman-status, .ak5e-specialist-status, .ak5e-supporter-status) > h4 {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 8px;
+  color: inherit;
+}
+
+/* Standard Bearer recipient rows. */
+.ak5e-standard-recipient-benefit {
+  padding: 8px 0;
+  border-top: 1px solid var(--ak5e-outline);
+}
+
+.ak5e-standard-recipient-benefit:first-of-type {
+  border-top: 0;
+}
+
+/* Class-branch fragments rendered inside the Medic / Supporter panels. */
+:is(.ak5e-supporter-sheet-panel, .ak5e-medic-controls-dialog, .ak5e-medic-sheet-panel) :is(
+  .ak5e-bard-panel,
+  .ak5e-bard-perform,
+  .ak5e-artificer-panel,
+  .ak5e-artificer-upgrades,
+  .ak5e-hexer-panel,
+  .ak5e-hexer-arts-panel,
+  .ak5e-ward-section,
+  .ak5e-therapist-panel,
+  .ak5e-witchcraft
+) {
+  box-sizing: border-box;
+  border-top: 1px solid var(--ak5e-outline);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+:is(
+  .ak5e-bard-panel,
+  .ak5e-bard-perform,
+  .ak5e-artificer-panel,
+  .ak5e-artificer-upgrades,
+  .ak5e-hexer-panel,
+  .ak5e-hexer-arts-panel,
+  .ak5e-ward-section,
+  .ak5e-therapist-panel,
+  .ak5e-witchcraft
+) > :is(h3, h4, h5) {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: inherit;
+  margin: 0 0 8px;
+  padding: 0 0 4px;
+  border-bottom: 1px solid var(--ak5e-gold-soft);
+}
+
+/* Branch chips, notes and button rows. */
+.ak5e-artificer-badge,
+.ak5e-hexer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 2px 8px;
+  border: 1px solid var(--ak5e-outline);
+  border-radius: 999px;
+  background: var(--ak5e-chip-bg);
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.ak5e-artificer-badges,
+.ak5e-hexer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+:is(
+  .ak5e-ward-note,
+  .ak5e-artificer-note,
+  .ak5e-hexer-note,
+  .ak5e-therapist-note,
+  .ak5e-witchcraft-meta,
+  .ak5e-standard-benefit-note
+) {
+  margin: 8px 0;
+  font-size: 11px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+.ak5e-therapist-status {
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+:is(.ak5e-ward-controls, .ak5e-hexer-button-row, .ak5e-artificer-button-row, .ak5e-guard-management) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+:is(.ak5e-therapist-panel, .ak5e-witchcraft, .ak5e-ward-section) :is(ul) {
+  margin: 8px 0;
+  padding-inline-start: 1.4rem;
+}
+
+.ak5e-medic-notes {
+  margin-top: 12px;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.8;
+}

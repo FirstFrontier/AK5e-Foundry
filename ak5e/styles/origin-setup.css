@@ -36,56 +36,31 @@
 .ak5e-origin-dialog textarea { display: block; width: 100%; margin-top: 0.5rem; }
 .ak5e-origins-section {
   width: 100%;
-  padding: 0.65rem;
-  border: 1px solid var(--dnd5e-color-gold, #9f9275);
-  border-radius: 4px;
 }
-.ak5e-origins-section h3,
-.ak5e-feature-trackers h3 { margin: 0 0 0.5rem; }
 .ak5e-origin-summary {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
 }
-.ak5e-origin-summary > span { flex: 0 0 5.5rem; font-size: 0.75rem; }
-.ak5e-origin-summary > button { flex: 1; overflow-wrap: anywhere; }
-.ak5e-origins-section .ak5e-origins-button { width: 100%; margin-top: 0.4rem; }
-.ak5e-feature-trackers { margin-top: 1rem; }
-.ak5e-tracker-notice { font-size: 0.8rem; line-height: 1.4; margin: 0.5rem 0; }
-.ak5e-feature-tracker {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--dnd5e-color-gold, #9f9275);
-}
-.ak5e-feature-tracker .ak5e-tracker-name { flex: 1 1 9rem; overflow-wrap: anywhere; }
-.ak5e-feature-tracker button { width: auto; flex: 0 0 auto; min-width: 1.8rem; }
-.ak5e-feature-tracker .ak5e-tracker-summary {
-  flex: 1 1 100%;
-  white-space: pre-wrap;
+.ak5e-origin-summary > span { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.ak5e-origin-summary > button {
+  justify-self: start;
+  max-width: 100%;
   overflow-wrap: anywhere;
-  font-size: 0.85rem;
+  text-align: left;
+  text-transform: none;
 }
-.ak5e-feature-trackers > button { width: 100%; margin-top: 0.5rem; }
-.ak5e-feature-tags > button { width: 100%; margin-bottom: 0.5rem; }
+.ak5e-origins-section .ak5e-origins-button { width: 100%; margin-top: 12px; }
+.ak5e-feature-trackers { margin-top: 0; }
 .ak5e-feature-tags .ak5e-feature-tracker input { flex: 0 0 3.5rem; width: 3.5rem; }
-.ak5e-feature-tags h3 { font-size: 0.85rem; text-transform: uppercase; }
 .ak5e-tag-preview { white-space: pre-wrap; }
 .ak5e-tracker-dialog label { display: block; margin: 0.75rem 0; }
 .ak5e-tracker-dialog :is(input:not([type=checkbox]), select, textarea) { display: block; width: 100%; margin-top: 0.3rem; }
 .ak5e-tracker-dialog textarea { resize: vertical; }
 .ak5e-tracker-dialog p { line-height: 1.5; }
 .ak5e-tracker-dialog { max-height: 65vh; overflow-y: auto; }
-.ak5e-origins-section button { height: auto; min-height: 1.8rem; }
-.ak5e-origins-section h3,
-.ak5e-feature-trackers h3 {
-  font-family: var(--dnd5e-font-roboto, sans-serif);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
+.ak5e-tracker-dialog > p { margin: 8px 0; }
 @media (max-width: 600px) {
   .ak5e-origin-dialog .ak5e-origin-options { grid-template-columns: 1fr; }
 }

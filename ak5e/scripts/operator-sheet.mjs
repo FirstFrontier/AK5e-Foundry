@@ -15,7 +15,7 @@ const input = (name, value, attributes = "") => `<input name="${name}" value="${
 
 async function dialog(title, content, buttons, options = {}) {
   let closed;
-  const result = await foundry.applications.api.DialogV2.wait({ ...options, window: { title }, content: `<div class="ak5e-operator-dialog">${content}</div>`,
+  const result = await foundry.applications.api.DialogV2.wait({ ...options, window: { title }, classes: ["ak5e-dialog-window"], content: `<div class="ak5e-operator-dialog">${content}</div>`,
     rejectClose: false, buttons, render: (event, application) => {
       closed = new Promise(resolve => application.addEventListener("close", resolve, { once: true }));
       options.render?.(event, application);
@@ -252,10 +252,11 @@ export function renderOperatorSkills(app, element) {
   section.className = "ak5e-operator-skills";
   const heading = document.createElement("h3"); heading.textContent = spText("Title"); section.append(heading);
   if (actor.isOwner && choices.applicable) {
-    for (const reason of choices.blocked) { const warning = document.createElement("p"); warning.textContent = spText(reason); section.append(warning); }
+    for (const reason of choices.blocked) { const warning = document.createElement("p"); warning.className = "ak5e-choice-warning"; warning.textContent = spText(reason); section.append(warning); }
     if (choices.pending.length || choices.blocked.length || choices.slots.some(slot => slot.recovery)) section.append(button("ChooseSkills", () => openOperatorSkillChoices(actor)));
   }
   const summary = document.createElement("p");
+  summary.className = "ak5e-chip";
   summary.textContent = `${state.points}/${state.maximum} SP · ${spText("Start")}: ${state.start}`;
   section.append(summary);
   const rates = document.createElement("p");
