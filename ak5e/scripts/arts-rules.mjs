@@ -1,10 +1,69 @@
 /** AK5e Chapter 1 / Chapter 5 casting rules. Pure calculations, no Foundry writes. */
 import { worldRulesEnabled } from "./world-rule-state.mjs";
+import { PlayReading } from "./play-undo.mjs";
 export const ARTS_METHOD = "ak5e";
 export const ARTS_VERSION = 1;
 
 export class ArtsRuleError extends Error {
   constructor(key, message, data = {}) { super(message); this.key = key; this.data = data; }
+}
+
+/** Source-limit readings a per-use confirmation may relax (WORKFLOW.md §3.2 "Use anyway"). */
+export const ART_LIMIT_KEYS = Object.freeze(["LevelCap", "NinthUsed"]);
+export const ART_LIMIT_WARNING_IDS = Object.freeze({ LevelCap: "maximumArtLevel", NinthUsed: "ninthLevel" });
+export const ART_LIMIT_OVERRIDE_MESSAGE = "Invalid per-use Art limit override.";
+const LIMIT_OVERRIDE_FIELDS = ["level", "mode", "keys"];
+const plainObject = value => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+};
+/** Read only an own data property; an accessor (or an inherited value) is never permission. */
+const ownData = (source, key) => {
+  const descriptor = Object.getOwnPropertyDescriptor(source, key);
+  if (!descriptor) return { present: false };
+  if (!Object.hasOwn(descriptor, "value")) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  return { present: true, value: descriptor.value };
+};
+/**
+ * Validate an internal per-quote limit override. It is never a setting, grant or persisted permission: it
+ * only names the selected tuple this quote may relax, and malformed input is an internal TypeError rather
+ * than a gameplay rule. Returns the matching key set, or null when the override is well formed but scoped to
+ * another level or mode (so `artsChoices` cannot authorize every level it probes).
+ */
+export function artLimitOverride(options, level, mode) {
+  const source = options ?? {};
+  // The permission object must be an own data property of the options envelope. An inherited or
+  // accessor `limitOverride` could answer differently on each read, so it is never approval.
+  if (!Object.hasOwn(source, "limitOverride")) {
+    if ("limitOverride" in Object(source)) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+    return null;
+  }
+  const option = ownData(source, "limitOverride");
+  const override = option.value;
+  if (!plainObject(override)) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  const own = Reflect.ownKeys(override);
+  if (own.length !== LIMIT_OVERRIDE_FIELDS.length || !LIMIT_OVERRIDE_FIELDS.every(field => Object.hasOwn(override, field))) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  const read = key => {
+    const field = ownData(override, key);
+    if (!field.present) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+    return field.value;
+  };
+  const overrideLevel = read("level"), overrideMode = read("mode"), keys = read("keys");
+  if (!Number.isSafeInteger(overrideLevel) || overrideLevel < 0 || overrideLevel > 9) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  if (typeof overrideMode !== "string" || !["ap", "free", "ritual"].includes(overrideMode)) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  if (!Array.isArray(keys) || !keys.length) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  // Read every entry through its own data descriptor: a hole falling back to a prototype getter is not a key.
+  const keyValues = [];
+  for (let index = 0; index < keys.length; index++) {
+    const entry = ownData(keys, String(index));
+    if (!entry.present) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+    keyValues.push(entry.value);
+  }
+  if (keyValues.some(key => typeof key !== "string" || !ART_LIMIT_KEYS.includes(key))) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  if (new Set(keyValues).size !== keyValues.length) throw new TypeError(ART_LIMIT_OVERRIDE_MESSAGE);
+  if (overrideLevel !== level || overrideMode !== mode) return null;
+  return new Set(keyValues);
 }
 
 export function integer(value, label, min = 0, max = Number.MAX_SAFE_INTEGER) {
@@ -67,11 +126,17 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
   if (base === 0 && level !== 0) throw new Error("Cantrips cannot be upcast.");
   const mode = options.mode ?? "ap";
   if (!["ap", "free", "ritual"].includes(mode)) throw new Error("Unknown casting mode.");
+  // Validate the per-use limit override before any source reading, so malformed input never becomes approval.
+  const limitKeys = artLimitOverride(options, level, mode);
+  const limitWarnings = [];
   if (grant.blocked) throw new ArtsRuleError("Blocked", grant.blocked, { reason: grant.blocked });
   let maximum = state.maximumArtLevel;
   if (grant.caster?.maximumArtLevel !== undefined) maximum = Math.min(maximum, grant.caster.maximumArtLevel);
   let cost = level;
   let freeRemaining = null;
+  let growingPower = undefined, surchargeValue = 0, readingValue = null;
+  // Modifiers are collected locally: the options envelope is an input and is never mutated.
+  let modifiers = [];
   if (mode === "free") {
     if (!grant.free) throw new Error("This Art has no configured free casting grant.");
     maximum = integer(grant.free.level, "Free cast maximum level", base, 9);
@@ -94,10 +159,15 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
     const surcharge = integer(options.surcharge ?? 0, "Arts surcharge", 0, 9);
     const minimum = integer(grant.minimumCost ?? 0, "Minimum Arts Point cost", 0, 9);
     // Splash Economics of Violence (Ch.3 L853): area Arts of 5th level or lower, after Growing Power, minimum 1.
-    const economics = caster?.economics && options.area !== null && level <= 5;
+    // The used activity must be reviewed as an area first: absent options.area (undefined) takes no
+    // discount; an explicit null (reviewed non-area) also takes none. Only a reviewed area string counts.
+    const economics = caster?.economics && typeof options.area === "string" && options.area.length > 0 && level <= 5;
     const combined = (growing || signature || economics) && (reduction || minimum || surcharge || signature && growing);
     if (combined && !["discountsThenSurcharge", "surchargeThenDiscounts"].includes(caster?.costOrder)) {
-      throw new ArtsRuleError("CasterRuling", "The GM must record an AP cost-order ruling for these combined modifiers.");
+      throw new PlayReading("costOrder", "The AP cost-order for these combined modifiers (Growing Power, Savant, Economics, reductions, surcharge)", [
+        { value: "discountsThenSurcharge", label: "Discounts then surcharge" },
+        { value: "surchargeThenDiscounts", label: "Surcharge then discounts" }
+      ]);
     }
     const nominal = base === 0 ? 0 : level;
     const surchargeFirst = caster?.costOrder === "surchargeThenDiscounts";
@@ -108,7 +178,7 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
     if (base === 0 && !caster) cost = 0;
     const modifiedCost = cost;
     if (options.overrideCost !== undefined) cost = integer(options.overrideCost, "Reviewed repeat-cast AP cost", 0);
-    options.modifiers = [growing && { source: "Growing Power", amount: -growing }, signature && { source: "Savant", amount: -signature },
+    modifiers = [growing && { source: "Growing Power", amount: -growing }, signature && { source: "Savant", amount: -signature },
       economised && { source: "Economics of Violence", amount: -economised },
       reduction && { source: grant.source || "Configured Art reduction", amount: -reduction }, surcharge && { source: "Arts Translocation", amount: surcharge },
       options.overrideCost !== undefined && { source:"GM-reviewed repeat cost", amount:cost-modifiedCost }].filter(Boolean);
@@ -118,22 +188,34 @@ export function quoteArt(state, baseLevel, selectedLevel, grant = {}, options = 
       const amount = integer(discount.amount ?? 0, "Arts Point discount", 0, 99);
       if (!amount || cost <= 0) continue;
       const applied = Math.min(amount, cost); cost -= applied;
-      options.modifiers.push({ source: discount.source ?? "Discount", amount: -applied });
+      modifiers.push({ source: discount.source ?? "Discount", amount: -applied });
     }
+    growingPower = { eligible: growing > 0, discount: growing, minimum }; surchargeValue = surcharge; readingValue = caster?.costOrder ?? null;
   }
   if (mode !== "ap" && options.surcharge) {
-    if (!grant.caster?.costOrder) throw new ArtsRuleError("CasterRuling", "The GM must review a drone-origin free or ritual cast's AP cost.");
+    if (!grant.caster?.costOrder) throw new PlayReading("costOrder", "The AP cost-order for this drone-origin free or ritual cast's surcharge", [
+      { value: "discountsThenSurcharge", label: "Discounts then surcharge" },
+      { value: "surchargeThenDiscounts", label: "Surcharge then discounts" }
+    ]);
     cost = integer(options.surcharge, "Arts surcharge", 0, 9);
   }
   if (mode !== "ap" && options.overrideCost !== undefined) cost = integer(options.overrideCost, "Reviewed repeat-cast AP cost", 0);
   // Overwhelming Detonation (Ch.3 L842) expends additional AP on top of the cast's cost; no discount reduces it.
   const extraAP = integer(options.extraAP ?? 0, "Additional Arts Points", 0, 12);
-  if (extraAP) { cost += extraAP; options.modifiers = [...(options.modifiers ?? []), { source: "Overwhelming Detonation", amount: extraAP }]; }
-  if (level > maximum) throw new ArtsRuleError("LevelCap", `This casting exceeds maximum Art level ${maximum}.`, { maximum });
-  if (level === 9 && state.ninthLevelCast) throw new ArtsRuleError("NinthUsed", "A 9th-level Art has already been cast since the last Long Rest.");
+  if (extraAP) { cost += extraAP; modifiers = [...modifiers, { source: "Overwhelming Detonation", amount: extraAP }]; }
+  const suppressed = limitKeys ?? new Set();
+  if (level > maximum) {
+    if (!suppressed.has("LevelCap")) throw new ArtsRuleError("LevelCap", `This casting exceeds maximum Art level ${maximum}.`, { maximum });
+    limitWarnings.push({ id: ART_LIMIT_WARNING_IDS.LevelCap, text: `This casting exceeds maximum Art level ${maximum}.` });
+  }
+  if (level === 9 && state.ninthLevelCast) {
+    if (!suppressed.has("NinthUsed")) throw new ArtsRuleError("NinthUsed", "A 9th-level Art has already been cast since the last Long Rest.");
+    limitWarnings.push({ id: ART_LIMIT_WARNING_IDS.NinthUsed, text: "A 9th-level Art has already been cast since the last Long Rest." });
+  }
   const shortfall = Math.max(0, cost - state.value);
-  return { baseLevel: base, level, cost, shortfall, mode, freeRemaining, modifiers: options.modifiers ?? [],
-    origin: options.origin ?? null, remaining: Math.max(0, state.value - cost), ninthLevelCast: state.ninthLevelCast || level === 9 };
+  return { baseLevel: base, level, cost, shortfall, mode, freeRemaining, modifiers,
+    origin: options.origin ?? null, remaining: Math.max(0, state.value - cost), ninthLevelCast: state.ninthLevelCast || level === 9,
+    growingPower, surcharge: surchargeValue, reading: readingValue, ...(limitWarnings.length ? { limitWarnings } : {}) };
 }
 
 /** One read-only quote catalogue for sheets and usage dialogs. */

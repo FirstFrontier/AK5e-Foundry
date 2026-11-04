@@ -50,7 +50,7 @@ test("Caster cast quotes include Growing Power, Savant, translocation surcharge,
   const options = casterQuoteOptions(actor, item, selection);
   assert.equal(options.surcharge, 1);
   assert.equal(options.origin, "Scene.s.Token.drone");
-  assert.throws(() => quoteArt(artsState(actor), 1, 2, grant, { ...options, mode: "ap" }), error => error.key === "CasterRuling");
+  assert.throws(() => quoteArt(artsState(actor), 1, 2, grant, { ...options, mode: "ap" }), error => error.name === "AK5eReading" && error.key === "costOrder");
 
   grant.caster.costOrder = "discountsThenSurcharge";
   const quote = quoteArt(artsState(actor), 1, 2, grant, { ...options, mode: "ap" });
@@ -67,12 +67,20 @@ test("Caster cast quotes include Growing Power, Savant, translocation surcharge,
     "Growing Power does not reduce an Art cast at the current maximum level");
 });
 
-test("repeat-cast cost interactions require an explicit GM ruling; overrides cannot be supplied by users", () => {
+test("repeat-cast cost interactions use an explicit per-use reading; overrides cannot be supplied by users", () => {
   const actor = fixture({ level: 20 });
   const item = art(actor, { level: 1 });
   const turn = casterTurn(actor);
   actor.flags.ak5e.caster.casts = [{ id: "prior", itemId: item.id, level: 1, turn, activation: "action", targets: [], completed: true }];
-  assert.throws(() => validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior" }), /GM must record a ruling/);
+  assert.throws(() => validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior" }), error => error.name === "AK5eReading" && error.key === "doublecastCost");
+  assert.throws(() => validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior", reading: "1" }),
+    error => error.name === "AK5eReading" && error.key === "doublecastCost",
+    "a numeric reading is rejected, never priced (spec R10: only named normal/free readings)");
+  const normal = validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior", reading: "normal" });
+  assert.equal(normal.overrideCost, undefined, "normal keeps the existing second-Art quote rather than a forced price");
+  const freeReading = validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior", reading: "free" });
+  assert.equal(freeReading.overrideCost, 0, "the free reading produces the internal zero override");
+  assert.equal(actor.flags.ak5e.caster.rulings.doublecastCost, undefined, "a player's per-use reading is never stored as a ruling");
   actor.flags.ak5e.caster.rulings.doublecastCost = { value: "free", source: "Reviewed printed wording and free repeat policy." };
   const context = validateCasterContext(actor, item, { repeat: "doublecast", previousCastId: "prior" });
   assert.equal(context.overrideCost, 0);

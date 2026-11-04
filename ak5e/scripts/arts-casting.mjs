@@ -1,10 +1,10 @@
 import { ARTS_METHOD, ArtsRuleError, adoptedSpellData, artsChoices, artsState, castingConfig, integer, quoteArt, recoveryValue, restArtsUpdates } from "./arts-rules.mjs";
 import { worldRulesEnabled } from "./world-rule-state.mjs";
 import { registerArtsSheetHooks } from "./arts-sheet.mjs";
-import { casterGrant, casterQuoteOptions, prepareCasterActivity, casterConsumption, completeCasterConsumption, completeCasterUse, markCasterCastFailure } from "./caster-casting.mjs";
+import { casterEnabled, casterGrant, casterQuoteOptions, prepareCasterActivity, casterConsumption, completeCasterConsumption, completeCasterUse, markCasterCastFailure, validateCasterContext } from "./caster-casting.mjs";
 import { casterStateSerial } from "./caster-primal-splash.mjs";
 import { artReceiptUndoAllowed, artReceiptWindow, appendArtReceipt, captureArtChanges, previewArtUndo, previewLinkedArtUndo, revertLinkedRelay, undoArtChanges } from "./arts-ledger.mjs";
-import { isLocked } from "./play-undo.mjs";
+import { isLocked, requireOverrides } from "./play-undo.mjs";
 import { getReactions, refundReaction, spendReaction, REACTION_FLAG } from "./trigger-events.mjs";
 export { renderArtsControls } from "./arts-sheet.mjs";
 
@@ -299,8 +299,13 @@ function combinedQuoteOptions(...sources) {
   return options;
 }
 function quoteOptions(actor, item, usage) {
-  return combinedQuoteOptions(casterQuoteOptions(actor, item, usage), optionQuote(actor, item, usage),
+  const options = combinedQuoteOptions(casterQuoteOptions(actor, item, usage), optionQuote(actor, item, usage),
     ...quoteSources.map(source => source(actor, item, usage) ?? {}), usage);
+  // A caller, provider or provider-returned override is never authority: only this session's approved tuple is.
+  delete options.limitOverride;
+  const approval = sessionApproval(actor, item, usage);
+  if (approval) options.limitOverride = limitOverride(approval.level, approval.mode, approval.keys);
+  return options;
 }
 
 /** Quote contributions (discounts, lifeSupportCost) from registered cast-option providers. */
@@ -321,6 +326,172 @@ function optionQuote(actor, item, usage) {
   }
   if (!collected.discounts.length) delete collected.discounts;
   return collected;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * CR2: confirmed per-use source-limit seam (WORKFLOW.md §3.2 "Use anyway").
+ *
+ * A Caster's confirmed LevelCap / NinthUsed warning is carried by `usage.ak5eCaster.overrides`, the
+ * existing Caster confirmation protocol. This seam inspects the selected native tuple with an internal
+ * two-key quote override, asks for every warning the owner has not accepted, and stores the approval on
+ * the in-memory cast session only. Nothing here is a setting, grant, Actor flag or stored ruling.
+ * ------------------------------------------------------------------------------------------- */
+const CAST_MODES = new Set(["ap", "free", "ritual"]);
+const SEAM_LIMIT_KEYS = { maximumArtLevel: "LevelCap", ninthLevel: "NinthUsed" };
+const SEAM_MESSAGE_IDS = new Set(["maximumArtLevel", "ninthLevel", "apShortfall"]);
+const shortfallText = quote => `Not enough Arts Points for this cast: ${quote.cost} required, ${quote.shortfall} short. Use anyway to spend every remaining Arts Point.`;
+/** The seam labels a quote actually produces: cap/ninth first, then an accepted shortfall. */
+const seamWarningsFor = quote => [...(quote.limitWarnings ?? []),
+  ...((quote.limitWarnings?.length && quote.shortfall > 0) ? [{ id: "apShortfall", text: shortfallText(quote) }] : [])];
+const plainData = value => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+};
+const castMode = value => { if (!CAST_MODES.has(value)) throw new Error("Unknown casting mode."); return value; };
+const limitOverride = (level, mode, keys) => ({ level, mode, keys: [...keys] });
+
+/** Read-only quote of this native tuple with both limit keys relaxed: every applicable cap/ninth warning, never state. */
+function seamLimitReview(actor, item, usage, base) {
+  const level = integer(usage.ak5eLevel ?? usage.level ?? item.system.level, "Cast level", base, 9);
+  const mode = castMode(usage.ak5eMode ?? usage.mode ?? "ap");
+  const state = artsState(actor), grant = grantFor(item, actor, usage);
+  const quote = quoteArt(state, base, level, grant, { ...quoteOptions(actor, item, usage), mode,
+    limitOverride: limitOverride(level, mode, ["LevelCap", "NinthUsed"]) });
+  const warnings = seamWarningsFor(quote);
+  return { level, mode, state, grant, quote, warnings };
+}
+
+/** The source-limit facts an approval is bound to (spec §3.4); missing grant ceilings are `null`. */
+function limitFacts(state, grant, mode) {
+  return { actorMaximumArtLevel: state.maximumArtLevel, casterMaximumArtLevel: grant.caster?.maximumArtLevel ?? null,
+    freeMaximumArtLevel: mode === "free" ? (grant.free?.level ?? null) : null, ninthLevelCast: state.ninthLevelCast };
+}
+const sameFacts = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
+/** Replace only this seam's warning ids/labels in a Caster context; independently validated branch warnings stay. */
+function mergeSeamLabels(context, warnings = []) {
+  if (!context || typeof context !== "object") return context;
+  const texts = warnings.map(warning => warning.text);
+  const keptWarnings = (Array.isArray(context.warnings) ? context.warnings : [])
+    .filter(warning => !(warning && typeof warning === "object" && SEAM_MESSAGE_IDS.has(warning.id)))
+    .filter(warning => !(typeof warning === "string" && texts.includes(warning)));
+  const keptOverridden = (Array.isArray(context.overridden) ? context.overridden : []).filter(text => !texts.includes(text));
+  context.warnings = [...keptWarnings, ...warnings.map(warning => ({ id: warning.id, text: warning.text }))];
+  context.overridden = [...new Set([...keptOverridden, ...texts])];
+  return context;
+}
+
+/** The live session approval for this exact Actor/Item/base level, if one is being cast. */
+function sessionApproval(actor, item, usage) {
+  const approval = sessions.get(usage?.ak5eCastId)?.limitApproval;
+  if (!approval) return null;
+  if (approval.actorUuid !== actor?.uuid || approval.itemId !== item?.id || approval.baseLevel !== item?.system?.level) return null;
+  return approval;
+}
+
+/** The approved tuple from the live cast session only; never caller-supplied display data. */
+function liveReviewedLimit(actor, item, usage) {
+  const approval = sessionApproval(actor, item, usage);
+  if (!approval) return null;
+  return { actorUuid: actor.uuid, itemId: item.id, baseLevel: approval.baseLevel, level: approval.level, mode: approval.mode, warnings: approval.warnings };
+}
+
+/** Reviewed tuple/warnings for the native dialog. Display only: it never authorizes a debit. */
+function reviewedLimit(actor, item, usage) {
+  const live = liveReviewedLimit(actor, item, usage);
+  if (live) return live;
+  // Residual display data may still label a dialog, but only a live session approval fixes a catalogue
+  // tuple or widens availability (see artAvailability).
+  const review = usage?.ak5eLimitReview;
+  if (!plainData(review) || review.actorUuid !== actor?.uuid || review.itemId !== item?.id || review.baseLevel !== item?.system?.level) return null;
+  if (!Number.isSafeInteger(review.level) || !CAST_MODES.has(review.mode) || !Array.isArray(review.warnings)) return null;
+  return review;
+}
+const reviewKeys = review => [...new Set((review?.warnings ?? [])
+  .map(warning => Object.hasOwn(SEAM_LIMIT_KEYS, warning?.id) ? SEAM_LIMIT_KEYS[warning.id] : null).filter(Boolean))];
+
+/** The pre-CR2 preflight probe: an ordinary strict quote of this tuple (spec §3.3 close). */
+function strictArtProbe(activity, usage, session) {
+  const { item } = activity;
+  quoteArt(artsState(activity.actor), session.baseLevel,
+    usage.ak5eLevel ?? usage.level ?? item.system.level,
+    grantFor(item, activity.actor, usage),
+    { ...quoteOptions(activity.actor, item, usage), mode: usage.ak5eMode ?? usage.mode ?? "ap" });
+}
+
+/**
+ * Stage 1–4 of the seam: revalidate the carried Caster context at the actual native tuple, inspect the
+ * source limits, require every unaccepted warning, then store the session-bound approval.
+ */
+function casterLimitReview(activity, usage, session) {
+  delete usage.ak5eLimitReview;
+  const supplied = usage.ak5eCaster;
+  if (!casterEnabled(activity.actor)) {
+    // A non-Caster cannot activate this seam by injecting Caster context.
+    if (supplied !== undefined) throw new Error("Only a configured AK5e Caster can use a Caster cast context.");
+    strictArtProbe(activity, usage, session);
+    return null;
+  }
+  if (!plainData(supplied)) {
+    // Direct native use without the Caster facade stays strictly quoted: probe before any dialog.
+    strictArtProbe(activity, usage, session);
+    return null;
+  }
+  const base = session.baseLevel;
+  const level = integer(usage.ak5eLevel ?? usage.level ?? activity.item.system.level, "Cast level", base, 9);
+  const mode = castMode(usage.ak5eMode ?? usage.mode ?? "ap");
+  const context = validateCasterContext(activity.actor, activity.item, { ...supplied, level, mode });
+  // A caller's override object is never authority; only this seam's validated quote options are.
+  delete context.limitOverride; delete context.ak5eLimitOverride; delete context.ak5eLimitReview;
+  usage.ak5eLevel = level; usage.ak5eMode = mode;
+  const review = seamLimitReview(activity.actor, activity.item, usage, base);
+  const accepted = requireOverrides(review.warnings, context.overrides);
+  if (!review.warnings.length) { usage.ak5eCaster = context; return context; }
+  session.limitApproval = { castId: usage.ak5eCastId, actorUuid: activity.actor.uuid, itemId: activity.item.id, baseLevel: base,
+    level: review.level, mode: review.mode, keys: reviewKeys(review),
+    warnings: accepted.map(warning => ({ id: warning.id, text: warning.text })),
+    limitFacts: limitFacts(review.state, review.grant, review.mode) };
+  // Display-only review data for the native dialog; the live session approval remains the only authority.
+  usage.ak5eLimitReview = { actorUuid: session.limitApproval.actorUuid, itemId: session.limitApproval.itemId, baseLevel: base,
+    level: review.level, mode: review.mode, warnings: session.limitApproval.warnings.map(warning => ({ ...warning })) };
+  mergeSeamLabels(context, session.limitApproval.warnings);
+  usage.ak5eCaster = context;
+  return context;
+}
+
+/** Stage 7: a changed tuple or changed source-limit facts needs fresh review; nothing is proposed. */
+function staleApproval(approval, activity, usage) {
+  const { actor, item } = activity;
+  const stale = message => {
+    const error = new Error(message);
+    error.name = "AK5eStaleCast";
+    error.key = approval.keys.includes("LevelCap") ? "LevelCap" : "NinthUsed";
+    return error;
+  };
+  const base = item.system.level;
+  if (approval.actorUuid !== actor.uuid || approval.itemId !== item.id || approval.baseLevel !== base)
+    return stale("This Art cast was reviewed for a different Art or caster. Review the cast again before using it.");
+  let level, mode;
+  try { level = integer(usage.ak5eLevel ?? base, "Cast level", base, 9); mode = castMode(usage.ak5eMode ?? "ap"); }
+  catch (error) { return stale(`${error.message ?? error} Review the cast again before using it.`); }
+  if (approval.level !== level || approval.mode !== mode)
+    return stale(`This cast was reviewed at level ${approval.level} (${approval.mode}). Review the cast again before using it.`);
+  const state = artsState(actor), grant = grantFor(item, actor, usage);
+  if (!sameFacts(limitFacts(state, grant, mode), approval.limitFacts))
+    return stale("The Art limits for this cast changed after review. Review the cast again before using it.");
+  let review;
+  try { review = seamLimitReview(actor, item, { ...usage, ak5eLevel: level, ak5eMode: mode }, base); }
+  catch (error) { return stale(`${error.message ?? error} Review the cast again before using it.`); }
+  const approved = new Map(approval.warnings.map(warning => [warning.id, warning.text]));
+  const current = new Map(review.warnings.map(warning => [warning.id, warning.text]));
+  const unconfirmed = review.warnings.filter(warning => !approved.has(warning.id));
+  if (unconfirmed.length) return stale(`${unconfirmed.map(warning => warning.text).join(" ")} Review the cast again before using it.`);
+  // A changed label is a changed reviewed condition (for example a larger AP shortfall): the old text
+  // must not be republished as if it described this cast.
+  if (review.warnings.some(warning => approved.get(warning.id) !== warning.text) || approval.warnings.some(warning => !current.has(warning.id)))
+    return stale("The warnings for this cast changed after review. Review the cast again before using it.");
+  return null;
 }
 
 export function registerArtsConfig() {
@@ -361,6 +532,10 @@ function idle(actor) {
 export function grantFor(item, actor = item.actor, usage = {}) {
   const grant = flags(item);
   let result = casterGrant(actor, item, { ...grant, free: grant.free ? { ...grant.free, spent: actor?.getFlag("ak5e", "artFreeUses")?.[item.id] ?? 0 } : undefined });
+  const costOrderReading = usage?.ak5eCostOrder ?? usage?.readings?.costOrder ?? (usage?.readingKey === "costOrder" ? usage?.reading : undefined) ?? usage?.costOrder;
+  if (["discountsThenSurcharge", "surchargeThenDiscounts"].includes(costOrderReading)) {
+    result = { ...result, caster: { ...(result.caster ?? {}), costOrder: costOrderReading } };
+  }
   for (const source of grantSources) {
     const extra = source(actor, item, usage) ?? {};
     // Overlapping grants take the larger AP reduction; they never sum (ruling U3-4).
@@ -397,11 +572,33 @@ function checkFocus(actor, item) {
 export function artAvailability(actor, item, selection = {}) {
   let blocker;
   try { checkFocus(actor, item); } catch (error) { blocker = error; }
+  // An approved session shows only the reviewed tuple: never a silent lower level or another mode.
+  // Out of session the catalogue stays strict even if a caller supplies residual display review data.
+  if (!blocker) {
+    const review = liveReviewedLimit(actor, item, selection);
+    if (review) {
+      const keys = reviewKeys(review);
+      try {
+        const options = quoteOptions(actor, item, selection);
+        const grant = grantFor(item, actor, selection);
+        const quote = quoteArt(artsState(actor), review.baseLevel, review.level, grant,
+          { ...options, mode: review.mode, limitOverride: limitOverride(review.level, review.mode, keys) });
+        if (options.lifeSupportCost !== undefined) return approvedAvailability(review, { ...quote, lifeSupportCost: options.lifeSupportCost });
+        return approvedAvailability(review, quote);
+      } catch (error) { console.warn("AK5e | Arts approved availability", error); }
+    }
+  }
   const options = quoteOptions(actor, item, selection);
   const choices = artsChoices(artsState(actor), item.system.level, grantFor(item, actor, selection), { ...options, blocker });
   // Provider contributions such as Urgency of Treatment's Life Support cost travel with the quote.
   if (choices.quote && options.lifeSupportCost !== undefined) choices.quote = { ...choices.quote, lifeSupportCost: options.lifeSupportCost };
   return choices;
+}
+
+/** One reviewed tuple only: the level/mode the owner already confirmed for this use. */
+function approvedAvailability(review, quote) {
+  const entry = { value: review.mode, quotes: [quote], error: null };
+  return { modes: [entry], mode: review.mode, quotes: [quote], quote, level: review.level, error: null, castable: true };
 }
 
 /** Review data only. No World/Actor writes until configureActorArts is explicitly invoked. */
@@ -775,6 +972,17 @@ export function prepareArtUse(activity, usage, dialog, message) {
   session.activity = activity;
   try { prepareCasterActivity(activity, usage, message); }
   catch (error) { ui.notifications.warn(artsErrorText(error)); return false; }
+  attachSeamLabels(session, activity, usage, message);
+}
+
+/** Reattach the session's approved labels after a Caster context revalidation rewrites `usage.ak5eCaster`. */
+function attachSeamLabels(session, activity, usage, message) {
+  const approval = session?.limitApproval;
+  if (!approval) return;
+  if (approval.actorUuid !== activity.actor?.uuid || approval.itemId !== activity.item?.id) return;
+  mergeSeamLabels(usage.ak5eCaster, approval.warnings);
+  const mirrored = message?.data?.flags?.ak5e?.casterCast;
+  if (mirrored && mirrored !== usage.ak5eCaster) mergeSeamLabels(mirrored, approval.warnings);
 }
 
 export function consumeArt(activity, usage, message, updates) {
@@ -784,7 +992,27 @@ export function consumeArt(activity, usage, message, updates) {
     if (!session || session.committed) throw new Error("This cast has already been processed or is no longer active.");
     own(activity.actor); checkFocus(activity.actor, activity.item);
     const state = artsState(activity.actor);
-    const quote = quoteArt(state, session.baseLevel, usage.ak5eLevel, grantFor(activity.item, activity.actor, usage), { ...quoteOptions(activity.actor, activity.item, usage), mode: usage.ak5eMode });
+    const approval = session.limitApproval;
+    if (approval) {
+      const stale = staleApproval(approval, activity, usage);
+      if (stale) { session.refusal = stale; ui.notifications.warn(stale.message); return false; }
+    }
+    const level = integer(usage.ak5eLevel ?? activity.item.system.level, "Cast level", session.baseLevel, 9);
+    const mode = castMode(usage.ak5eMode ?? "ap");
+    const quote = quoteArt(state, session.baseLevel, level, grantFor(activity.item, activity.actor, usage), { ...quoteOptions(activity.actor, activity.item, usage), mode });
+    // The published labels must describe the committed quote, not only the review-time quote: a changed
+    // shortfall text (same id) is a changed condition and needs fresh confirmation.
+    if (approval) {
+      const expected = seamWarningsFor(quote), approved = new Map(approval.warnings.map(warning => [warning.id, warning.text]));
+      if (expected.length !== approval.warnings.length || expected.some(warning => approved.get(warning.id) !== warning.text)) {
+        const stale = new Error("The warnings for this cast changed after review. Review the cast again before using it.");
+        stale.name = "AK5eStaleCast";
+        stale.key = approval.keys.includes("LevelCap") ? "LevelCap" : "NinthUsed";
+        session.refusal = stale;
+        ui.notifications.warn(stale.message);
+        return false;
+      }
+    }
     const freeSpent = quote.mode === "free" && quote.freeRemaining !== null
       ? (activity.actor.getFlag("ak5e", "artFreeUses")?.[activity.item.id] ?? 0) : null;
     const receipt = {
@@ -796,6 +1024,7 @@ export function consumeArt(activity, usage, message, updates) {
       warnings: []
     };
     const context = artCastContextFor(activity, usage);
+    if (approval) receipt.actualCost = receipt.before - receipt.after;
     receipt.warnings.push(...artCastContextWarnings(activity.actor, context, artCastTargetUuids()).map(warning => warning.text));
     // Confirm-step warnings are published on the card (overrides and provider warnings are public).
     receipt.warnings.push(...(usage.ak5eCastOptionWarnings ?? []).map(text => typeof text === "string" ? text : text?.text).filter(Boolean));
@@ -813,6 +1042,8 @@ export function consumeArt(activity, usage, message, updates) {
       updates.actor[`flags.ak5e.artFreeUses.${activity.item.id}`] = freeSpent + 1;
     }
     casterConsumption(activity, usage, updates, receipt);
+    // Both prepare and consumption revalidate their Caster context; the approved labels are reattached here.
+    if (approval && receipt.caster?.context) mergeSeamLabels(receipt.caster.context, approval.warnings);
     for (const consumer of consumers) consumer(activity, usage, updates, receipt, quote);
     // Cast-option consumption joins the same Actor update, so undoing the cast reverses it too.
     const optionWarnings = applyArtCastOptions(activity, usage, updates, receipt);
@@ -821,6 +1052,7 @@ export function consumeArt(activity, usage, message, updates) {
     // the fields (for example a cast driven by the legacy card path).
     const checked = validateArtCastOptionSelection(activity.actor, activity.item, activity, optionSelections(usage), { usage });
     receipt.warnings.push(...checked.warnings.map(warning => warning.text));
+    if (approval) receipt.warnings.push(...approval.warnings.map(warning => warning.text));
     receipt.warnings = [...new Set(receipt.warnings)];
     receipt.options ??= {};
     const changes = captureArtChanges(activity.actor, updates.actor);
@@ -875,6 +1107,7 @@ export function artsDialogClass(Base) {
       const optionWarnings = await validateArtCastOptions(this.actor, this.item, this.activity ?? null,
         castOptions.options.reduce((all, option) => { all[option.id] = option.selection ?? {}; return all; }, {}), { usage });
       const contextWarnings = artCastContextWarnings(this.actor, castContext, targetUuids);
+      const review = reviewedLimit(this.actor, this.item, usage);
       this.config.ak5eContext = castContext;
       return { ...context, hasScaling: true, spellSlots: null, scaling: null,
         ak5eArts: { modes, mode: choices.mode, options, level: String(choices.level),
@@ -886,7 +1119,9 @@ export function artsDialogClass(Base) {
           // Provider validate warnings already appear in castOptionWarnings; the template renders
           // both lists, so only context warnings and validate warnings not shown above travel here.
           castContextWarnings: [...contextWarnings, ...optionWarnings.warnings.filter(warning =>
-            !castOptions.warnings.some(shown => shown.text === warning.text))],
+            !castOptions.warnings.some(shown => shown.text === warning.text)),
+            ...(review ? review.warnings.map(warning => ({ id: warning.id, text: warning.text })) : [])]
+            .filter((warning, index, all) => all.findIndex(other => other.text === warning.text) === index),
           value: state.value, maximum: state.maximum, source: [grant.source, choices.quote?.shortfall ? `Warning: AP short by ${choices.quote.shortfall}; Use anyway clamps AP to 0.` : ""].filter(Boolean).join(" — "),
           ritual: choices.mode === "ritual", unavailable: !choices.quote,
           reason: choices.error ? artsErrorText(choices.error) : "" } };
@@ -909,12 +1144,15 @@ export function artsDialogClass(Base) {
         : artAvailability(this.actor, this.item, selected);
       data.ak5eLevel = choices.level;
       data.ak5eMode = choices.mode;
+      // The reviewed level/mode are fixed for this overridden use only; changing them means Cancel and re-quote.
+      const review = reviewedLimit(this.actor, this.item, selected);
+      if (review) { data.ak5eLevel = review.level; data.ak5eMode = review.mode; }
       data.ak5eContext = artCastContextFor(this.activity ?? this.item, selected);
       // Warnings are shown on the confirm step and public card; they never block the cast.
       const validation = await validateArtCastOptions(this.actor, this.item, this.activity ?? null, selections, { usage: selected });
       data.ak5eCastOptionWarnings = validation.warnings.map(warning => warning.text);
       data.ak5eContextWarnings = artCastContextWarnings(this.actor, data.ak5eContext, artCastTargetUuids()).map(warning => warning.text);
-      data.scaling = choices.level - base;
+      data.scaling = data.ak5eLevel - base;
       // Parent usage scaling must receive a level delta, never a fabricated slot.
       delete data.spell;
       data.consume = { ...(data.consume ?? this.config.consume ?? {}), spellSlot: false };
@@ -933,9 +1171,12 @@ export function artsDialogClass(Base) {
 
     async _prepareFooterContext(context, options) {
       const result = await super._prepareFooterContext(context, options);
-      const choices = artAvailability(this.actor, this.item, dialogUsage(this.config));
+      const usage = dialogUsage(this.config);
+      const choices = artAvailability(this.actor, this.item, usage);
+      // A confirmed source-limit use is always labelled honestly, even when AP is sufficient.
+      const review = reviewedLimit(this.actor, this.item, usage);
       for (const button of result.buttons ?? []) if (button.action === "use") {
-        button.label = choices.quote?.shortfall ? "Use anyway" : artsText("Cast");
+        button.label = review || choices.quote?.shortfall ? "Use anyway" : artsText("Cast");
         button.disabled = !choices.quote;
       }
       return result;
@@ -1071,11 +1312,26 @@ export function wrapActivityUse(prototype) {
     sessions.set(id, session);
     busy.add(this.actor.uuid);
     try {
-      // The native activity owns the confirmation dialog and commits resources inside `use`.
-      // Serialize that boundary with external Caster receipts/links; release before AP/cast
-      // event handlers run because those handlers acquire the same queue themselves.
+      // Combined modifiers need an explicit per-use cost-order reading (no silent default, no GM block).
+      // If the quote throws PlayReading, ask the player now and carry the pick as ak5eCostOrder.
       const useConfig = { ...usage, ak5eCastId: id, subsequentActions: false };
+      try { casterLimitReview(this, useConfig, session); }
+      catch (probe) {
+        const { isPlayReading } = await import("./play-undo.mjs");
+        if (isPlayReading(probe) && probe.key === "costOrder") {
+          const picked = await dialogPage("No GM ruling — cost order", `<p>${probe.label}: the GM has not ruled on this. Choose a reading for this use only. It is shown on the chat card and is not saved as a ruling.</p><fieldset>${probe.options.map((o, i) => `<label><input type="radio" name="costOrder" value="${o.value}"${i === 0 ? " checked" : ""}> ${o.label}</label>`).join("")}</fieldset>`, [
+            { action: "read", label: "Use this reading", default: true, callback: (_e, btn) => btn.form?.elements?.costOrder?.value ?? null },
+            { action: "cancel", label: "Cancel", callback: () => null }
+          ]);
+          if (!picked) { sessions.delete(id); busy.delete(this.actor.uuid); return null; }
+          useConfig.ak5eCostOrder = picked;
+          // Re-probe after the named reading rather than assuming the quote now succeeds.
+          casterLimitReview(this, useConfig, session);
+        } else throw probe;
+      }
       const result = await casterStateSerial(this.actor, () => original.call(this, useConfig, { ...dialog, configure: true }, message));
+      // A stale approved payload is refused visibly; the refused session proposed no updates.
+      if (!result && session.refusal) throw session.refusal;
       if (session.receipt) {
         await completeCasterConsumption(this.actor, session.receipt);
         if (result) await completeCasterUse(this.actor, session.receipt);

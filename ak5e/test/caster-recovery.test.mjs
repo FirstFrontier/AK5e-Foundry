@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { casterCommand, handleCasterEvent, casterTurnEvent, casterCombatEnd, casterRest, getCasterView, recordCasterRuling } from "../scripts/caster-features.mjs";
 import { onAk5eEvent, offAk5eEvent } from "../scripts/trigger-events.mjs";
-import { casterTurn, castCasterArt, markCasterCastFailure } from "../scripts/caster-casting.mjs";
+import { casterTurn, castCasterArt, casterConsumption, casterGrant, markCasterCastFailure, validateCasterContext } from "../scripts/caster-casting.mjs";
+import { artsState, quoteArt } from "../scripts/arts-rules.mjs";
 
 function setPath(object, path, value) {
   const parts = path.split("."), last = parts.pop(); let target = object;
@@ -68,12 +69,27 @@ function setup({ branch = "core", level = 15, ap = 10, charge = 0, roll = 8, com
   return { actor, documents, get rollCount() { return rollCount; } };
 }
 
+let nativeCastSeq = 0;
 function makeArt(actor, { id = "art", level = 1, activation = "action" } = {}) {
   const item = { id, type: "spell", name: "Reviewed Art", actor,
-    system: { level, activities: new Map([["activity", { id: "activity", activation: { type: activation } }]]) },
+    system: { level, activities: new Map() },
     flags: { ak5e: { art: { enabled: true } } },
     getFlag(scope, key) { return this.flags?.[scope]?.[key]; },
     updateSource(changes) { for (const [path, value] of Object.entries(changes)) setPath(this, path, value); } };
+  // Minimal native-activity completion (attack-suite Activity convention): quotes the real cost from
+  // production, consumes through the Caster consumption path, and commits the one native Actor update.
+  item.system.activities.set("activity", { id: "activity", activation: { type: activation },
+    use: async usage => {
+      const updates = { actor: {} };
+      const quote = quoteArt(artsState(actor), item.system.level, usage.ak5eLevel ?? item.system.level,
+        casterGrant(actor, item, {}), { mode: usage.ak5eMode ?? "ap" });
+      const receipt = { id: `native-${item.id}-${++nativeCastSeq}`, itemId: item.id, level: quote.level, cost: quote.cost };
+      casterConsumption({ actor, item, activation: { type: activation } }, usage, updates, receipt);
+      updates.actor["flags.ak5e.artsPoints.value"] = receipt.after;
+      await actor.update(updates.actor);
+      actor.flags.ak5e.lastArtCast = receipt;
+      return true;
+    } });
   actor.items.set(item.id, item); return item;
 }
 
@@ -100,24 +116,59 @@ function linkedDrone(documents, actor, id, { hp = 24, max = 25, temp = 0 } = {})
   return { drone, token: droneToken, scene };
 }
 
-test("prepared/applying feature receipts and failed consumed casts block new operations; pre-consumption failures spend nothing", async () => {
+test("prepared/applying feature receipts stay pending for retry while unrelated native casts warn and proceed; pre-consumption failures spend nothing", async () => {
   const { actor } = setup({ level: 3, ap: 6 });
   const art = makeArt(actor);
   for (const status of ["prepared", "applying"]) {
     actor.flags.ak5e.caster.operations = [{ id: `pending-${status}`, command: "powerWithin", data: {}, status }];
     const writes = actor.writes.length, ap = actor.flags.ak5e.artsPoints.value;
+    // Same-work retry still needs the same ID: a second powerWithin under a new ID is refused.
     await assert.rejects(casterCommand(actor, "powerWithin", { confirmed: true, restCompleted: true }, `new-${status}`), /interrupted operation/);
-    await assert.rejects(castCasterArt(actor, art.id, { mode: "ap", level: 1 }), /interrupted Caster operation/);
-    assert.equal(actor.writes.length, writes); assert.equal(actor.flags.ak5e.artsPoints.value, ap);
+    // Spec §3.1/R7: the unrelated pending receipt is recovery evidence, never a blanket lock — the
+    // independent native cast warns (Use anyway) and proceeds on its own quote.
+    const notices = [];
+    const notify = globalThis.ui.notifications.warn;
+    globalThis.ui.notifications.warn = message => notices.push(String(message));
+    let result;
+    try {
+      result = await castCasterArt(actor, art.id, { mode: "ap", level: 1 });
+    } finally { globalThis.ui.notifications.warn = notify; }
+    assert.equal(result, true, "an unrelated pending operation must not veto an independent native cast");
+    assert.ok(notices.some(message => message.includes(`pending-${status}`) && message.includes("not blocked")),
+      `the pending receipt must be surfaced as a warning, got: ${JSON.stringify(notices)}`);
+    assert.equal(actor.flags.ak5e.caster.operations.filter(op => op.id === `pending-${status}` && op.status === status).length, 1,
+      "the unrelated receipt stays pending for retry or GM reconciliation");
+    const committed = actor.flags.ak5e.caster.casts.find(cast => cast.itemId === art.id && cast.status === "consumed");
+    assert.ok(committed, "the independent cast committed its own receipt");
+    assert.equal(committed.cost, 1, "level 1 at Caster level 3 pays the base 1 AP (no Growing Power below level 5)");
+    assert.equal(actor.flags.ak5e.artsPoints.value, ap - 1, "the independent cast paid its own quote");
+    assert.ok(actor.writes.length > writes, "the independent cast committed its Actor update");
+    // Use anyway lists the accepted warning on the public card instead of only notifying.
+    const listed = validateCasterContext(actor, art, { mode: "ap", level: 1, overrides: ["interruptedOperation"] });
+    assert.ok(listed.overridden.some(text => text.includes(`pending-${status}`)),
+      "an accepted Use-anyway warning is listed on the public card");
   }
   actor.flags.ak5e.caster.operations = [];
   actor.flags.ak5e.caster.casts = [{ id: "interrupted-cast", status: "failed", completed: false }];
   const before = actor.writes.length;
   await assert.rejects(casterCommand(actor, "powerWithin", { confirmed: true, restCompleted: true }, "after-failed-cast"), /interrupted operation/);
-  await assert.rejects(castCasterArt(actor, art.id, { mode: "ap", level: 1 }), /interrupted Caster operation/);
-  assert.equal(actor.writes.length, before);
+  // R12/ATK-03: the failed receipt stays visible for recovery, but an unrelated Art is not locked.
+  const failedNotices = [];
+  const failedNotify = globalThis.ui.notifications.warn;
+  globalThis.ui.notifications.warn = message => failedNotices.push(String(message));
+  let failedResult;
+  try {
+    failedResult = await castCasterArt(actor, art.id, { mode: "ap", level: 1 });
+  } finally { globalThis.ui.notifications.warn = failedNotify; }
+  assert.equal(failedResult, true, "a failed receipt for another operation must not veto an independent cast");
+  assert.ok(failedNotices.some(message => message.includes("interrupted-cast") && message.includes("not blocked")),
+    `the failed receipt must be surfaced as a warning, got: ${JSON.stringify(failedNotices)}`);
+  assert.ok(actor.flags.ak5e.caster.casts.some(cast => cast.id === "interrupted-cast" && cast.status === "failed"),
+    "the failed receipt stays visible for recovery");
+  assert.ok(actor.writes.length > before, "the independent cast committed its Actor update");
 
   actor.flags.ak5e.caster.casts = [];
+  const tailWrites = actor.writes.length;
   await assert.rejects(casterCommand(actor, "powerWithin", { confirmed: true, restCompleted: false }, "invalid-rest"), /Short Rest/);
   await assert.rejects(castCasterArt(actor, "missing-art", { mode: "ap", level: 1 }), /known Art/);
   const cancelled = makeArt(actor, { id: "cancelled", level: 1 });
@@ -127,7 +178,7 @@ test("prepared/applying feature receipts and failed consumed casts block new ope
   assert.deepEqual(response, { cancelled: true });
   assert.equal(actor.flags.ak5e.artsPoints.value, ap);
   assert.equal(actor.flags.ak5e.caster.operations.length, receiptCount);
-  assert.equal(actor.writes.length, before, "invalid or canceled pre-consumption actions create no receipts or resource updates");
+  assert.equal(actor.writes.length, tailWrites, "invalid or canceled pre-consumption actions create no receipts or resource updates");
 });
 
 test("an interrupted Jury Rigging commit changes nothing; the same ID spends once, and the clicked roll heals once", async () => {
@@ -218,11 +269,28 @@ test("Unending requires level and recorded expenditure policy, refunds fully wit
   approved(low.actor, "unendingBasis", "actualSpend");
   await assert.rejects(casterCommand(low.actor, "unending", { confirmed: true, spendId: "old-spend" }, "unending-low"), /level 18/);
 
+  // Spec R7/OR-3 on a separate actor so the refund ledger below stays exact: with no recorded ruling
+  // the source-consistent actual-expenditure reading is offered for this use — never a GM veto.
+  const bare = setup({ level: 18, ap: 5, roll: 3 });
+  bare.actor.flags.ak5e.caster.spends = [{ id: "unruled-spend", amount: 3, reason: "Art cast", level: 1 }];
+  const unruled = await casterCommand(bare.actor, "unending", { confirmed: true, spendId: "unruled-spend" }, "unending-no-policy")
+    .then(value => ({ value }), error => ({ rejected: error }));
+  assert.equal(unruled.rejected?.name, "AK5eReading", "a missing ruling offers the named actual-expenditure reading for this use");
+  assert.equal(unruled.rejected?.key, "unendingBasis");
+  assert.doesNotMatch(String(unruled.rejected?.message ?? ""), /GM must record a ruling/, "the legacy GM-required veto is superseded");
+  assert.deepEqual((unruled.rejected?.options ?? []).map(option => option.value ?? option), ["actualSpend"],
+    "the only offered reading is the source-consistent actual expenditure");
+  const readingOffer = await casterCommand(bare.actor, "unending", { confirmed: true, spendId: "unruled-spend", reading: "actualSpend" }, "unending-no-policy");
+  assert.equal(readingOffer?.awaitingRoll, true, "the per-use reading makes the offer reachable with no GM online");
+  assert.equal(bare.actor.flags.ak5e.caster.rulings.unendingBasis, undefined, "a player's per-use reading is never stored as a world ruling");
+  assert.equal(bare.rollCount, 0, "still no automatic die");
+
   const { actor } = setup({ level: 18, ap: 5, roll: 3 });
   actor.flags.ak5e.caster.spends = [{ id: "actual-cast-spend", amount: 3, reason: "Art cast", level: 2 }];
-  await assert.rejects(casterCommand(actor, "unending", { confirmed: true, spendId: "actual-cast-spend" }, "unending-no-policy"), /GM must record a ruling/);
   approved(actor, "unendingBasis", "actualSpend");
-  const result = await casterCommand(actor, "unending", { confirmed: true, spendId: "actual-cast-spend" }, "unending-refund");
+  const prepared = await casterCommand(actor, "unending", { confirmed: true, spendId: "actual-cast-spend" }, "unending-refund");
+  assert.equal(prepared.awaitingRoll, true);
+  const result = await casterCommand(actor, "useRoll", { useId: "unending-refund" }, "unending-refund-roll");
   assert.deepEqual({ roll: result.roll, refunded: result.refunded }, { roll: 3, refunded: 3 });
   assert.equal(actor.flags.ak5e.artsPoints.value, 8);
   assert.equal(actor.flags.ak5e.caster.spends.length, 1);
@@ -261,13 +329,19 @@ test("Potent Cantrip halves miss/save damage without extra effects, requires mul
       this.updates.push(structuredClone(changes)); for (const [path, value] of Object.entries(changes)) setPath(this, path, value);
     } };
   fromUuidSync = uuid => uuid === target.uuid ? target : uuid === actor.uuid ? actor : null;
+  // Engine contract (caster-primal-splash.mjs changeTarget): target changes resolve asynchronously
+  // via fromUuid (the GM-relay path), so the harness mirrors the same documents there.
+  globalThis.fromUuid = async uuid => globalThis.fromUuidSync(uuid) ?? null;
   target.failOnce = true;
   const data = { confirmed: true, castId: "potent-miss", targetUuid: target.uuid, outcome: "miss", amount: 9, type: "force", reduction: 0, resistance: false, vulnerability: false, immunity: false, damageReviewed: true };
   await assert.rejects(casterCommand(actor, "potent", data, "potent-retry"), /injected target update failure/);
-  const stored = actor.flags.ak5e.caster.operations.find(op => op.id === "potent-retry");
-  assert.equal(stored.damageResult.final, 4);
+  // Engine contract (caster-primal-splash.mjs): a routed branch use records its receipt in state.undo
+  // (not state.operations); the recorded target change carries the reviewed half damage.
+  const stored = actor.flags.ak5e.caster.undo.find(entry => entry.id === "potent-retry");
+  assert.equal(stored.targets[0].damage.amount, 4);
   const result = await casterCommand(actor, "potent", data, "potent-retry");
-  assert.equal(result.final, 4);
+  // Engine contract (caster-mystic.mjs potent plan): the result reports the applied half as amount.
+  assert.equal(result.amount, 4);
   assert.equal(result.noAdditionalEffects, true);
   assert.equal(target.system.attributes.hp.value, 96);
   assert.equal(target.updates.length, 1, "same-ID retry applies the exact recorded result once");
@@ -276,11 +350,14 @@ test("Potent Cantrip halves miss/save damage without extra effects, requires mul
   const saveTarget = { ...target, id: "save-target", uuid: "Actor.save-target", flags: { ak5e: {} }, system: { attributes: { hp: { value: 100, max: 100, temp: 0 } } }, updates: [], async update(changes) { this.updates.push(structuredClone(changes)); for (const [path, value] of Object.entries(changes)) setPath(this, path, value); } };
   documentsForSave(saveTarget, actor);
   const save = await casterCommand(actor, "potent", { ...data, castId: "potent-save", targetUuid: saveTarget.uuid, outcome: "save", amount: 8 }, "potent-save-op");
-  assert.equal(save.final, 4); assert.equal(save.noAdditionalEffects, true);
-  await assert.rejects(casterCommand(actor, "potent", { ...data, castId: "potent-save", targetUuid: saveTarget.uuid, outcome: "save", amount: 8, multiAttack: true }, "potent-multi"), /GM must record a ruling/);
+  assert.equal(save.amount, 4); assert.equal(save.noAdditionalEffects, true);
+  // Engine contract (caster-mystic.mjs potent plan): a multi-attack Cantrip needs the recorded
+  // potentMultiAttack ruling before automation — the same gate as the monolith, in engine wording
+  // (also pinned by frozen mystic audit-5c).
+  await assert.rejects(casterCommand(actor, "potent", { ...data, castId: "potent-save", targetUuid: saveTarget.uuid, outcome: "save", amount: 8, multiAttack: true }, "potent-multi"), /record a ruling for potentMultiAttack/);
   approved(actor, "potentMultiAttack", true);
   const multi = await casterCommand(actor, "potent", { ...data, castId: "potent-save", targetUuid: saveTarget.uuid, outcome: "save", amount: 8, multiAttack: true }, "potent-multi-approved");
-  assert.equal(multi.final, 4);
+  assert.equal(multi.amount, 4);
 });
 
 function documentsForSave(target, actor) {
@@ -375,12 +452,15 @@ test("branch AP event failure retains a committed receipt and retries only the e
   try {await assert.rejects(casterCommand(actor,"finishRitual",data,"finish-event-test"),/event handling failed/);}
   finally {offAk5eEvent("apSpent",handler);}
   assert.equal(actor.flags.ak5e.artsPoints.value,6);
-  assert.equal(actor.flags.ak5e.caster.operations.at(-1).status,"eventFailed");
+  // Engine contract (caster-primal-splash.mjs AP-event promotion): the committed receipt lives in
+  // state.undo and the failed AP event marks it eventFailed instead of warning only.
+  assert.equal(actor.flags.ak5e.caster.undo.find(entry => entry.id === "finish-event-test").status, "eventFailed");
   assert.ok(getCasterView(actor).pending.some(op=>op.status==="eventFailed"));
   await assert.rejects(casterCommand(actor,"beginRitual",{confirmed:true},"another-ritual"),/Retry or reconcile/);
   await casterCommand(actor,"finishRitual",data,"finish-event-test");
   assert.equal(actor.flags.ak5e.artsPoints.value,6,"retry cannot consume AP again");
-  assert.equal(actor.flags.ak5e.caster.operations.at(-1).status,"complete");
+  // Engine contract: the same-ID retry replays the recorded result and the repaired AP event completes it.
+  assert.equal(actor.flags.ak5e.caster.undo.find(entry => entry.id === "finish-event-test").status, "complete");
 });
 
 test("Mystic Feedback Loop grants from completed AP-funded casts, adds its level-6 gain, caps, and deduplicates", async () => {

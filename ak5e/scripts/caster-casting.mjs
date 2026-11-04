@@ -4,6 +4,7 @@ import { artsState, integer } from "./arts-rules.mjs";
 import { emitAk5eEvent } from "./trigger-events.mjs";
 import { flag, values, need, opaqueKey, esc } from "./operation-kernel.mjs";
 import { requireOverrides } from "./play-undo.mjs";
+import { validateBaseContext, baseConsumption } from "./caster-base.mjs";
 import { mechReading } from "./caster-mech.mjs";
 import { validateChainContext, recordChainUse } from "./caster-chain.mjs";
 import { postCasterUseCard } from "./caster-primal-splash.mjs";
@@ -82,13 +83,42 @@ export function droneOriginWarnings(actor, tokenUuid) {
     warnings.push({ id: "originScene", text: "The caster and drone are not on the same Scene, so the distance cannot be checked." });
   return warnings;
 }
+/** The Art a pending/failed operation is about, when its recorded data names one. */
+function operationItemId(state, operation) {
+  const data = operation?.data ?? {};
+  if (typeof data.itemId === "string" && data.itemId) return data.itemId;
+  if (typeof data.castId === "string" && data.castId)
+    return state.casts?.find?.(cast => cast.id === data.castId)?.itemId ?? null;
+  return null;
+}
 export function validateCasterContext(actor, item, input = {}) {
   if (!casterEnabled(actor)) { need(!Object.keys(input).length, "Complete Caster setup before using branch cast controls."); return {}; }
+  // Base first (AP source limits, Doublecast's named reading); branch options are merged, never discarded.
+  const base = validateBaseContext(actor, item, input);
   const state = casterState(actor), level = casterLevel(actor), branch = casterBranch(actor);
-  need(!state.operations.some(o => ["prepared","applying","eventFailed"].includes(o.status)) && !state.casts.some(c => c.status === "failed"), "Retry or obtain GM reconciliation for the interrupted Caster operation before casting.");
-  const context = { ...input };
-  delete context.overrideCost; // Only source-backed reviewed repeat policies may set this.
-  delete context.area; // Recomputed from the activity actually used.
+  // §3.1/R2/R7: an unfinished or failed earlier operation is recovery evidence, never a blanket Actor
+  // lock. Only genuinely ambiguous same-Art evidence (an unresolved receipt naming the Art being cast
+  // again) still stops for retry/reconciliation; any unrelated operation only warns ("Use anyway"
+  // semantics) and the independent use proceeds. The legacy failed cast/receipt always stays in
+  // `state.casts` (and `getCasterView().pending`) for recovery.
+  const artId = typeof item?.id === "string" && item.id ? item.id : null;
+  const sameArt = operation => Boolean(artId) && (operationItemId(state, operation) === artId || operation?.itemId === artId);
+  const unresolved = [...state.casts.filter(cast => cast.status === "failed"),
+    ...state.operations.filter(operation => ["prepared", "applying", "eventFailed"].includes(operation.status))];
+  need(!unresolved.some(operation => sameArt(operation)),
+    "Retry or obtain GM reconciliation for the interrupted Caster operation before casting this Art again.");
+  const unrelated = unresolved.filter(operation => !sameArt(operation));
+  const recoveryWarnings = unrelated.length ? [{ id: "interruptedOperation", text:
+    `${unrelated.length === 1 ? "An earlier Caster operation is" : `${unrelated.length} earlier Caster operations are`} still unresolved ` +
+    `(${unrelated.map(operation => operation.id ?? "unrecorded").join(", ")}). ` +
+    "The receipt stays available for retry or GM reconciliation; this independent use is not blocked." }] : [];
+  const context = { ...input, ...base };
+  // A branch repeat ('duplicate'/'deathAbove') is a facade option, not a base repeat: keep it.
+  if (input.repeat && input.repeat !== "doublecast") context.repeat = input.repeat;
+  // `overrideCost` is internal metadata: only the validated base reading (or a validated branch
+  // reading below) may set it. Raw input can never buy a price (spec §3.4/R10).
+  if (base.overrideCost !== undefined) context.overrideCost = base.overrideCost;
+  else delete context.overrideCost;
   for (const key of ["overwhelm", "allConsuming"]) if (!context[key]) delete context[key];
   if (Array.isArray(context.safeZone) && !context.safeZone.length) delete context.safeZone;
   if (context.overwhelm !== undefined || context.safeZone || context.allConsuming) {
@@ -154,15 +184,8 @@ export function validateCasterContext(actor, item, input = {}) {
     const previous = state.casts?.find(c => c.id === context.previousCastId);
     need(previous, "Choose a recorded Art cast to repeat.");
     const sameTurn = previous.completed && previous.turn === casterTurn(actor) && ownCasterTurn(actor);
-    if (context.repeat === "doublecast") need(sameTurn, "Choose a completed Art cast during your current Turn.");
-    else if (!sameTurn) mechWarnings.push({ id: "repeatTurn", text: "The repeated Art normally follows a completed Art cast during your current Turn." });
-    if (context.repeat === "doublecast") {
-      need(level >= 20 && previous.activation === "action", "Doublecast requires level 20 and a preceding Action Art.");
-      need(!state.uses?.doublecast, "Doublecast has been used since the last Short Rest.");
-      const policy = casterRuling(actor, "doublecastCost");
-      need(["normal", "free"].includes(policy), "Choose a reviewed Doublecast cost policy.");
-      if (policy === "free") context.overrideCost = 0;
-    } else {
+    if (context.repeat !== "doublecast" && !sameTurn) mechWarnings.push({ id: "repeatTurn", text: "The repeated Art normally follows a completed Art cast during your current Turn." });
+    if (context.repeat !== "doublecast") {
       need(branch === "mech-accord" && context.droneTokenUuid, "Cantrip Duplication and Death from Above repeat an Art through a linked drone.");
       need(["duplicate", "deathAbove"].includes(context.repeat), "Choose Cantrip Duplication or Death from Above.");
       const add = (id, text) => mechWarnings.push({ id, text });
@@ -192,6 +215,20 @@ export function validateCasterContext(actor, item, input = {}) {
   if (mechWarnings.length) {
     const overridden = requireOverrides(mechWarnings, input.overrides).map(warning => warning.text);
     context.overridden = [...new Set([...(context.overridden ?? []), ...overridden])];
+  }
+  // Base source-limit warnings are confirmed once, after the branch hard stops (spec §3.1): the
+  // player sees "Use anyway" for the base limits, and a branch impossibility still stops first.
+  if (base.warnings?.length) {
+    const overridden = requireOverrides(base.warnings, input.overrides).map(warning => warning.text);
+    context.overridden = [...new Set([...(context.overridden ?? []), ...overridden])];
+  }
+  // Recovery evidence is surfaced without ever vetoing an independent use: an explicit override lists
+  // it on the public card, otherwise the player is told the receipt is still available.
+  if (recoveryWarnings.length) {
+    const accepted = new Set(Array.isArray(input.overrides) ? input.overrides : []);
+    const listed = recoveryWarnings.filter(warning => accepted.has(warning.id));
+    if (listed.length) context.overridden = [...new Set([...(context.overridden ?? []), ...listed.map(warning => warning.text)])];
+    else globalThis.ui?.notifications?.warn?.(recoveryWarnings.map(warning => warning.text).join(" "));
   }
   return context;
 }
@@ -256,7 +293,15 @@ export function powerSurge(actor) {
 }
 export function casterConsumption(activity, usage, updates, receipt) {
   if (!casterEnabled(activity.actor)) return;
-  const actor = activity.actor, state = casterState(actor), context = validateCasterContext(actor, activity.item, usage.ak5eCaster ?? {});
+  // Base first (§3.3): base context, named repeat reading and the actual debit facts of this cast.
+  baseConsumption(activity, usage ?? {}, updates, receipt);
+  const actor = activity.actor, state = casterState(actor);
+  // Consumption does not re-confirm the BASE source limits (they were accepted at the pre-use step).
+  // Branch warnings keep their existing re-check below.
+  const input = { ...(usage.ak5eCaster ?? {}) };
+  const baseProbe = validateBaseContext(actor, activity.item, input);
+  const overrides = [...(Array.isArray(input.overrides) ? input.overrides : []), ...(baseProbe.warnings ?? []).map(warning => warning.id)];
+  const context = validateCasterContext(actor, activity.item, { ...input, overrides });
   need(!context.maverick || receipt.cost > 0, "Maverick requires actual AP expenditure on the selected cast.");
   context.area = artArea(activity);
   if (context.overwhelm || context.safeZone || context.allConsuming) need(context.area, "Sculpt Arts and Unavoidable apply to the activity that targets an area.");
@@ -304,19 +349,72 @@ export function casterConsumption(activity, usage, updates, receipt) {
   }
   receipt.caster = cast;
 }
+/** The actual debit of a committed cast: AP before minus AP after, never the quoted cost (§3.1). */
+function actualDebit(receipt) {
+  const before = Number(receipt?.before), after = Number(receipt?.after);
+  if (Number.isSafeInteger(before) && Number.isSafeInteger(after) && before >= 0 && after >= 0 && after <= before) return before - after;
+  const fallback = Number(receipt?.actualCost ?? receipt?.cost ?? 0);
+  return Number.isSafeInteger(fallback) && fallback > 0 ? fallback : 0;
+}
+/** Persist the emitted marker so a repeated completion never posts a second event for one recorded use. */
+async function markReceipt(actor, receipt, key) {
+  receipt[key] = true;
+  const current = actor.getFlag("ak5e", "lastArtCast");
+  if (!current || current.id !== receipt.id) return;
+  try { await actor.update({ "flags.ak5e.lastArtCast": { ...current, [key]: true } }); }
+  catch (error) { console.warn("AK5e | Caster casting receipt marker", error); }
+}
 export async function completeCasterConsumption(actor, receipt) {
   if (!receipt || actor.getFlag("ak5e", "lastArtCast")?.id !== receipt.id) return;
-  if (receipt.cost > 0) {
-    const result=await emitAk5eEvent("apSpent", { actorUuid: actor.uuid, operationId: receipt.id, amount: receipt.cost,
-      level: receipt.level, itemId: receipt.itemId, origin: receipt.caster?.origin ?? null, turn: receipt.caster?.turn ?? casterTurn(actor) });
-    need(!result.errors,"AP was consumed but an expenditure handler failed. Obtain GM reconciliation before continuing.");
-  }
+  if (receipt.spendEmitted === true) return;
+  const amount = actualDebit(receipt);
+  if (amount <= 0) return; // A zero actual debit is not an expenditure (C3:195).
+  const result=await emitAk5eEvent("apSpent", { actorUuid: actor.uuid, operationId: receipt.id, amount,
+    level: receipt.level, itemId: receipt.itemId, origin: receipt.caster?.origin ?? null, turn: receipt.caster?.turn ?? casterTurn(actor) });
+  need(!result.errors,"AP was consumed but an expenditure handler failed. Obtain GM reconciliation before continuing.");
+  await markReceipt(actor, receipt, "spendEmitted");
 }
 export async function completeCasterUse(actor, receipt) {
   if (!receipt || actor.getFlag("ak5e", "lastArtCast")?.id !== receipt.id) return;
-  const result=await emitAk5eEvent("artCast", { actorUuid: actor.uuid, operationId: receipt.id, amount: receipt.cost, level: receipt.level,
+  if (receipt.castEmitted === true) return;
+  const result=await emitAk5eEvent("artCast", { actorUuid: actor.uuid, operationId: receipt.id, amount: actualDebit(receipt), level: receipt.level,
     itemId: receipt.itemId, origin: receipt.caster?.origin ?? null, turn: receipt.caster?.turn ?? casterTurn(actor) });
   need(!result.errors,"The Art completed but a cast handler failed. Obtain GM reconciliation before continuing.");
+  await markReceipt(actor, receipt, "castEmitted");
+}
+/** Array guard for optional warning lists (a non-array is treated as "no warnings"). */
+const warningsOf = value => Array.isArray(value) ? value.filter(entry => entry && typeof entry === "object") : [];
+/**
+ * Base source limits the native Arts quote still enforces as hard stops (spec R2). They are warnings in
+ * the Caster context (`maximumArtLevel`/`ninthLevel`) so the player can confirm "Use anyway"; the native
+ * preflight re-quotes from stored state and cannot be told to accept them for one use.
+ */
+const NATIVE_BASE_LIMITS = Object.freeze({ LevelCap: "maximumArtLevel", NinthUsed: "ninthLevel" });
+/**
+ * Carry a confirmed "Use anyway" through the native preflight's refusal (spec R2/§3.1).
+ * The Arts quote veto checks `flags.ak5e.artsPoints.maximumArtLevel`/`ninthLevelCast` and the grant's own
+ * ceiling; `overrideCost` only replaces the AP price, and no exported Arts option lowers those checks for
+ * one use. So a confirmed override cannot be honored end-to-end from this module without editing `arts-*`
+ * (not owned by this package). Instead of silently dropping the confirmation, the refusal names it, keeps
+ * the source warning, and states that nothing was spent. Returns null for any other error.
+ */
+function confirmedLimitRefusal(error, context) {
+  const limitKey = typeof error?.key === "string" && Object.hasOwn(NATIVE_BASE_LIMITS, error.key) ? error.key : null;
+  const warningId = limitKey ? NATIVE_BASE_LIMITS[limitKey] : null;
+  if (!warningId) return null;
+  const warning = warningsOf(context?.warnings).find(entry => entry.id === warningId);
+  const confirmed = Array.isArray(context?.overridden) ? context.overridden.map(String) : [];
+  if (!warning || !confirmed.includes(warning.text)) return null;
+  const refusal = new Error(`${warning.text} You confirmed Use anyway for this use, but the native Arts quote still enforces the stored limit (${limitKey}), and the native seam rejects a confirmed override fail-closed (no silent success) for it; nothing was spent.`);
+  refusal.name = "AK5eConfirmedOverrideBlocked";
+  refusal.key = limitKey;
+  refusal.warningId = warningId;
+  refusal.warning = warning.text;
+  refusal.confirmedOverride = warning.text;
+  refusal.blockedBy = "arts-rules quote preflight";
+  refusal.spent = false;
+  refusal.cause = error;
+  return refusal;
 }
 export async function castCasterArt(actor, itemId, options = {}) {
   need(actor?.isOwner && casterEnabled(actor), "Complete setup on a Caster you own.");
@@ -326,7 +424,12 @@ export async function castCasterArt(actor, itemId, options = {}) {
   const activity = options.activityId ? item.system.activities.get(options.activityId)
     : values(item.system.activities).find(a => a.activation?.type === "action") ?? values(item.system.activities)[0];
   need(activity, "This Art is a source reference without an activity. Review a native activity before casting.");
-  const result = await activity.use({ ak5eCaster: context, ak5eLevel: options.level ?? item.system.level, ak5eMode: options.mode ?? "ap" });
+  const usage = { ak5eCaster: context, ak5eLevel: options.level ?? item.system.level, ak5eMode: options.mode ?? "ap" };
+  let result;
+  try { result = await activity.use(usage); }
+  // The confirmed base limits travel inside `usage.ak5eCaster` (`warnings`, `overridden`, `overrides`).
+  // A native preflight refusal that contradicts a confirmation is reported, never retried without it.
+  catch (error) { throw confirmedLimitRefusal(error, context) ?? error; }
   const castContext = flag(actor, "lastArtCast")?.caster?.context ?? {}, overridden = castContext.overridden ?? [];
   if (result && castContext.chain) await postCasterUseCard(actor, `${flag(actor, "lastArtCast").id}-chain`);
   // WORKFLOW.md §3.2: overridden warnings and the player's reading for a missing ruling are public.
@@ -456,7 +559,8 @@ export function splashSaveHook(config) {
 export function registerCasterCastingHooks() {
   patchCasterDamage();
   Hooks.on("dnd5e.preRollSavingThrowV2", splashSaveHook);
-  Hooks.on("dnd5e.preRollAttackV2", casterAttackConfig);
+  // `dnd5e.preRollAttackV2` is registered once, by `registerCasterFeatureHooks`, which also runs
+  // `casterAttackConfig` before the drone gate so a double registration can never stack listeners.
   Hooks.on("dnd5e.postDamageRollConfiguration", (rolls, config) => {
     const activity = config.subject, context = flag(activity?.item, "casterCast") ?? {};
     if (context.noCritical) for (const roll of rolls ?? []) { roll.options.isCritical = false; roll.configureDamage?.(); }

@@ -6,7 +6,7 @@ import {
   DEFENDER_CLASS_ID, defenderState, stateChanges, rebaseState, defenderProfile, defenderLevel, reactionMax, leapingRange,
   indestructibleReduction, shelterCost, shelterDisadvantage, SHELTER_FEET, IMPROVED_SHELTER_FEET, RESILIENCE_STEPS, creatureTier
 } from "./defender-rules.mjs";
-import { flag, values, need, keyedSerial } from "./operation-kernel.mjs";
+import { flag, values, need, keyedSerial, opaqueKey } from "./operation-kernel.mjs";
 import { definePool, getPool, getPoolDefinition, spendPool, refundPool } from "./resource-pools.mjs";
 import { onAk5eEvent, spendReaction, refundReaction, setReactionMax } from "./trigger-events.mjs";
 import { withinFeet, distanceFeet, tokenPoint } from "./standard-bearer-rules.mjs";
@@ -327,6 +327,211 @@ export async function adamantineNotice(event) {
       speaker: ChatMessage.implementation.getSpeaker?.({ actor }),
       content: `<p><strong>Adamantine Defence.</strong> This Critical Hit against ${actor.name} becomes a non-Critical Hit. Roll its Damage without the critical dice; the native roll cannot be changed after it is made.</p>` });
   }
+}
+
+/* ------------------------------------------------------------------ base use projection (WP defender-base-03) */
+
+/**
+ * Additive base-use projection (SPEC §3.4): the legacy `flags.ak5e.defender` state and operation entry a strict
+ * command would leave behind, written only behind a persisted base receipt. It never charges a resource, spends or
+ * refunds a Reaction, or writes another Actor; defender-uses.mjs owns the Reaction-budget operations.
+ */
+const BASE_PROJECTION_FLAG = "defenderUsesBaseProjection";
+const BASE_PROJECTED_COMMANDS = Object.freeze(["shelter", "endShelter", "leapingDefence", "leapingRefund", "indestructible", "restoreIndestructible", "resilience"]);
+const cloneOrNull = value => value === undefined ? null : structuredClone(value);
+const sameJson = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+const baseText = value => typeof value === "string" ? value.trim() : "";
+const baseAllyList = list => Array.isArray(list)
+  ? [...new Set(list.filter(uuid => typeof uuid === "string" && uuid.trim().length > 0).map(uuid => uuid.trim()))] : [];
+// Only real, finite numbers are projected; a numeric string or other coercion partner is never accepted as a match.
+const baseNumberOrNull = value => value === undefined || value === null || value === "" ? null
+  : (typeof value === "number" && Number.isFinite(value) ? value : null);
+
+/** The narrow immutable feature data each base command projects; never a write path supplied by a caller. */
+const BASE_INTENT = Object.freeze({
+  shelter: data => ({ activation: data.activation === "action" || data.activation === "bonus" ? data.activation : null,
+    allies: baseAllyList(data.allies), alliesConfirmed: data.alliesConfirmed === true, positionConfirmed: data.positionConfirmed === true,
+    anchorPoint: data.anchorPoint === true, tokenUuid: baseText(data.tokenUuid) || null }),
+  endShelter: () => ({}),
+  leapingDefence: data => ({ attackId: baseText(data.attackId), attackConfirmed: data.attackConfirmed === true,
+    rangeConfirmed: data.rangeConfirmed === true, moveConfirmed: data.moveConfirmed === true, allyTokenUuid: baseText(data.allyTokenUuid) || null }),
+  leapingRefund: data => ({ leapOperationId: baseText(data.leapOperationId) }),
+  indestructible: data => ({ damageId: baseText(data.damageId), reduction: baseNumberOrNull(data.reduction), amount: baseNumberOrNull(data.amount),
+    type: baseText(data.type) || null, hostileConfirmed: data.hostileConfirmed === true }),
+  restoreIndestructible: () => ({}),
+  resilience: data => ({ mode: baseText(data.mode), amount: baseNumberOrNull(data.amount), reason: baseText(data.reason) })
+});
+
+/** Opaque, deterministic key for one base receipt's projection marker (never a caller-chosen path). */
+export function defenderBaseProjectionKey(useId, key = "base") {
+  need(typeof useId === "string" && useId.length > 0 && useId.length <= 80, "A base use ID is required.");
+  return opaqueKey(`${useId}:${String(key ?? "base")}`);
+}
+
+function persistedBaseReceipt(actor, useId) {
+  const state = flag(actor, "defenderUses");
+  const receipts = Array.isArray(state?.undo) ? state.undo : [];
+  return receipts.find(entry => entry?.id === useId) ?? null;
+}
+
+function projectedShelter(actor, intent, useId) {
+  const profile = defenderProfile(actor), level = defenderLevel(actor);
+  const radius = intent.anchorPoint && profile.branch === "protector" && Number.isInteger(level) && level >= 4 ? IMPROVED_SHELTER_FEET : SHELTER_FEET;
+  const own = primaryToken(actor, intent.tokenUuid);
+  // Shelter never protects the Defender (C3:991-994): a declared self token is dropped, never projected.
+  const allies = intent.allies.filter(uuid => uuid !== own?.uuid);
+  return { active: true, allies, defenderTokenUuid: own?.uuid ?? null,
+    declaredTurn: defenderTurn(), activation: intent.activation, operationId: useId, radius };
+}
+
+function projectedOperation(receipt, intent, extra = {}) {
+  return { id: receipt.id, command: receipt.command, data: structuredClone(intent), status: "complete",
+    result: receipt.result === undefined ? null : structuredClone(receipt.result), baseUseId: receipt.id, ...extra };
+}
+
+function baseOperations(state) {
+  const list = Array.isArray(state?.operations) ? state.operations : [];
+  return list.map(operation => operation && typeof operation === "object" ? structuredClone(operation) : operation);
+}
+
+const findOperation = (operations, id) => operations.findIndex(operation => operation && (operation.baseUseId === id || operation.id === id));
+
+function refundedParent(operations, receiptId, effectiveReceiptId) {
+  const at = findOperation(operations, receiptId);
+  if (at < 0 || operations[at].status === "undone") return null;
+  return { at, patch: { refunded: false, refundedBy: null, ...(effectiveReceiptId ? { baseReactionReceiptId: effectiveReceiptId } : {}) } };
+}
+
+/**
+ * The persisted refund marker's own receipt for this parent: the receipt it refunded or the spend its undo made.
+ * A caller-supplied effective ID is never trusted on its own; a marker recorded for a different parent (a relinked or
+ * forged child) verifies nothing, so a residual Reaction can never be transferred to another Leap's lineage.
+ */
+function verifiedRefundReceipt(stored, intent, effectiveReceiptId) {
+  const reaction = stored?.reaction ?? null;
+  if (!reaction || reaction.parentOperationId !== intent.leapOperationId) return null;
+  if (typeof effectiveReceiptId !== "string" || effectiveReceiptId.length === 0) return null;
+  return effectiveReceiptId === reaction.receiptId || effectiveReceiptId === reaction.undoSpendReceiptId ? effectiveReceiptId : null;
+}
+
+/** One shelter-lifecycle history entry that still stands (never an undone one: unwinding it was this receipt's job). */
+const shelterLifecycle = operation => Boolean(operation) && operation.status !== "undone" &&
+  (operation.command === "shelter" || operation.command === "endShelter");
+
+/** The engine's own receipt journal (`flags.ak5e.defenderUses.undo`): kept for the whole encounter window, unlike the
+ *  capped 40-entry legacy operation list this projection writes into. */
+function baseUseJournal(actor) {
+  const journal = flag(actor, "defenderUses")?.undo;
+  return Array.isArray(journal) ? journal : [];
+}
+
+/**
+ * True when a later, still-applied Shelter or End Shelter use supersedes this one (an older undo must not resurrect).
+ * The capped legacy window is not proof of absence: once this use falls out of it, every entry left is newer and any
+ * lifecycle entry supersedes it. The base receipt journal, which outlives the window and records uses whose legacy
+ * entry may not be projected yet, is consulted too. With no position in either record, this use is treated as
+ * superseded rather than restoring a Shelter whose ownership cannot be verified.
+ */
+function laterShelterUse(actor, operations, useId) {
+  const at = findOperation(operations, useId);
+  if (at >= 0) {
+    if (operations.slice(at + 1).some(shelterLifecycle)) return true;
+  } else if (operations.some(shelterLifecycle)) return true;
+  const journal = baseUseJournal(actor), own = journal.findIndex(entry => entry?.id === useId);
+  if (own >= 0 && journal.slice(own + 1).some(shelterLifecycle)) return true;
+  return at < 0;
+}
+
+/**
+ * Project one persisted base use onto the legacy Defender state and operation history. `revert` restores only the
+ * leaves this receipt changed, keeps later operations, and reports whether anything was still owned by the use.
+ * Only the owning Actor is ever written; a forged receipt, command or data set is refused before any write.
+ */
+export async function projectDefenderBaseUse(actor, input = {}, options = {}) {
+  need(actor && actor.documentName === "Actor" && actor.isOwner === true && !actor.pack, "Only the owning Defender may project a base use.");
+  const { useId, command, data } = input ?? {};
+  need(typeof useId === "string" && useId.length > 0 && useId.length <= 80, "A base use ID is required.");
+  need(typeof command === "string" && Object.hasOwn(BASE_INTENT, command) && BASE_PROJECTED_COMMANDS.includes(command),
+    "Only a recorded Defender base use is projected.");
+  const receipt = persistedBaseReceipt(actor, useId);
+  need(receipt && receipt.id === useId && receipt.command === command, "Only a persisted, matching Defender base use is projected.");
+  const reverting = options.revert === true;
+  if (!reverting) need(receipt.status === "complete", "Only a completed Defender base use is projected.");
+  const intent = BASE_INTENT[command](receipt.data ?? {});
+  need(data === undefined || sameJson(BASE_INTENT[command](data ?? {}), intent), "The projection does not match the recorded base use.");
+  const key = defenderBaseProjectionKey(useId, "base");
+  const markerPath = `flags.ak5e.${BASE_PROJECTION_FLAG}.${key}`;
+  // This projection rewrites `flags.ak5e.defender.operations` as one snapshot after awaits. Take the same per-Actor
+  // lock as the strict `defenderCommand`, or a concurrent strict append is erased by the snapshot write (SPEC §3.4).
+  return serial(actor, async () => {
+    const stored = flag(actor, BASE_PROJECTION_FLAG)?.[key] ?? null;
+    if (reverting) {
+      const effectiveReceiptId = verifiedRefundReceipt(stored, intent, options.effectiveReceiptId);
+      need(options.effectiveReceiptId === undefined || options.effectiveReceiptId === null || effectiveReceiptId !== null,
+        "The refund undo receipt does not belong to this parent.");
+      if (!stored || stored.status === "undone") {
+        // The engine's own undo reverses the projection before the base adapter runs, so a refund's re-spend arrived
+        // after this marker was flipped: keep the parent's effective pointer anyway, or a later refund would keep
+        // reporting the original receipt as already refunded (SPEC §3.4). Repeating the patch is harmless.
+        if (command === "leapingRefund" && effectiveReceiptId) {
+          const points = baseOperations(defenderState(actor));
+          const parent = refundedParent(points, intent.leapOperationId, effectiveReceiptId);
+          if (parent) {
+            points[parent.at] = { ...points[parent.at], ...parent.patch };
+            await actor.update({ "flags.ak5e.defender.operations": points });
+          }
+        }
+        return { restored: false, already: true };
+      }
+      const state = defenderState(actor), updates = {}, operations = baseOperations(state);
+      const at = findOperation(operations, useId);
+      if (command === "shelter") {
+        const current = state.shelter ?? null;
+        if (current?.operationId === useId) updates["flags.ak5e.defender.shelter"] = cloneOrNull(stored.before?.shelter);
+      } else if (command === "endShelter") {
+        // Restore only while this End Shelter is still the latest Shelter/End Shelter use: undoing an older End
+        // Shelter after a later one must never resurrect a Shelter that the newer use already superseded (B-086 slice).
+        if ((state.shelter ?? null) === null && !laterShelterUse(actor, operations, useId))
+          updates["flags.ak5e.defender.shelter"] = cloneOrNull(stored.before?.shelter);
+      } else if (command === "leapingDefence") {
+        if ((state.leaping?.operationId ?? null) === useId) updates["flags.ak5e.defender.leaping"] = cloneOrNull(stored.before?.leaping);
+      }
+      if (command === "leapingRefund" && effectiveReceiptId) {
+        const parent = refundedParent(operations, intent.leapOperationId, effectiveReceiptId);
+        if (parent) operations[parent.at] = { ...operations[parent.at], ...parent.patch };
+      }
+      if (at >= 0 && operations[at]?.status !== "undone") operations[at] = { ...operations[at], status: "undone", undoneBy: options.undoneBy ?? null };
+      updates["flags.ak5e.defender.operations"] = operations;
+      updates[`${markerPath}.status`] = "undone";
+      await actor.update(updates);
+      return { restored: true };
+    }
+    if (stored?.status === "applied") return stored;
+    const initial = defenderState(actor);
+    const before = { shelter: cloneOrNull(initial.shelter), leaping: cloneOrNull(initial.leaping) };
+    await actor.update({ [markerPath]: { ...(stored ?? {}), status: "applying", command, operationId: useId, before } });
+    // Re-read inside the lock: no strict command can append an operation while this projection is in flight.
+    const state = defenderState(actor), operations = baseOperations(state);
+    const updates = {};
+    if (command === "shelter") updates["flags.ak5e.defender.shelter"] = projectedShelter(actor, intent, useId);
+    else if (command === "endShelter") updates["flags.ak5e.defender.shelter"] = null;
+    else if (command === "leapingDefence") updates["flags.ak5e.defender.leaping"] = { operationId: useId, attackId: intent.attackId,
+      allyTokenUuid: intent.allyTokenUuid ?? null, turn: defenderTurn() };
+    const extra = command === "leapingDefence" ? { baseReactionReceiptId: `leaping_${useId}` } : {};
+    if (command === "leapingRefund") {
+      const parent = findOperation(operations, intent.leapOperationId);
+      if (parent >= 0) operations[parent] = { ...operations[parent], refunded: true, refundedBy: useId };
+    }
+    const at = findOperation(operations, useId);
+    const operation = projectedOperation(receipt, intent, extra);
+    if (at >= 0) operations[at] = operation; else operations.push(operation);
+    updates["flags.ak5e.defender.operations"] = operations;
+    updates[`${markerPath}.status`] = "applied";
+    updates[`${markerPath}.after`] = { shelter: command === "shelter" ? structuredClone(updates["flags.ak5e.defender.shelter"]) : null,
+      operationId: useId };
+    await actor.update(updates);
+    return flag(actor, BASE_PROJECTION_FLAG)?.[key] ?? null;
+  });
 }
 
 export function definePools() {
