@@ -2,6 +2,9 @@ import { casterLevel, casterBranch, casterState, standardPools } from "./caster-
 import { coreDamageTypes } from "./caster-casting.mjs";
 import { previewCasterSetup, applyCasterSetup, getCasterSetupChoices, configureCasterMapping, casterScalarRecords } from "./caster-setup.mjs";
 import { getCasterView, casterCommand, castCasterArt, recordCasterRuling, syncCasterDrones, PRIMAL_CONDITIONS, PRIMAL_CONDITION_NAMES, SPARK_EFFECTS, CHAIN_READINGS, MECH_READINGS, requestCasterDrone } from "./caster-features.mjs";
+import { openCoreFeature } from "./caster-core-ui.mjs";
+import { rabbitArtChoices, signatureArtChoices } from "./caster-core.mjs";
+import { openMysticControls } from "./caster-mystic-ui.mjs";
 import { previewUndo } from "./caster-primal-splash.mjs";
 import { isPlayWarnings, isPlayReading, isLocked } from "./play-undo.mjs";
 
@@ -344,8 +347,11 @@ function controlsForBranch(branch) {
     ["rabbit", "Rabbit from the Hat"], ["powerWithin", "Power from Within"], ["signature", "Choose Savant Signature Art"],
     ["signatureDice", "Review Savant dice"], ["damage", "Apply reviewed Art damage"], ["empower", "Empowered Arts"], ["unending", "Review Unending refund"], ["doublecast", "Doublecast"]
   ];
+  // One consolidated Mystic Charge controls entry: it keeps the stable beginRitual action id and
+  // opens the state-aware controls dialog (Begin when no ritual is pending, Finish/Cancel when one
+  // is), instead of three separate ritual forms.
   if (value.includes("mystic")) return [
-    ["beginRitual", "Begin Mystic charging ritual"], ["finishRitual", "Complete Mystic charging ritual"], ["cancelRitual", "Cancel interrupted ritual"],
+    ["beginRitual", "Mystic Charge controls"],
     ["burst", "Mystic Charge burst"], ["nextBurst", "Resolve next cantrip use"], ["potent", "Potent Cantrip outcome"]
   ];
   if (value.includes("mech")) return [
@@ -573,9 +579,79 @@ function commandData(command, form, extra = {}) {
 function commandName(action) {
   return ({ powerWithin: "powerWithin", beginRitual: "beginRitual", finishRitual: "finishRitual", cancelRitual: "cancelRitual", nextBurst: "nextBurst", initiative: "initiative", syncDrones: "syncDrones", commandDrones: "commandDrones", juryRig: "juryRig", duplicate: "duplicate", wolfpack: "wolfpack", deathAbove: "deathAbove", rebuild: "rebuild", reconcile: "reconcile", potent: "potent", signatureDice: "signatureDice", empower: "empower", unending: "unending", doublecast: "doublecast", rabbit: "rabbit", signature: "signature", burst: "burst" }[action] ?? action);
 }
+/** Resolve an actual, already-rolled damage card for the Signature Art; never synthesize dice. */
+async function signatureRollContext(actor, view, extra) {
+  if (extra.roll || extra.rolls) return extra;
+  if (view?.roll || view?.rolls) return { roll: view.roll, rolls: view.rolls };
+  const signature = view?.state?.signature ?? casterState(actor).signature;
+  const casts = entries(view?.casts).filter(cast => cast.completed && cast.itemId === signature?.itemId);
+  const messages = entries(game.messages);
+  const candidates = messages.flatMap(message => {
+    const native = message.flags?.dnd5e ?? {};
+    if (native.roll?.type && native.roll.type !== "damage") return [];
+    // D&D5e damage cards link back to their cast card rather than copying its AK5e receipt.
+    const origin = message.getOriginatingMessage?.() ?? messages.find(candidate => candidate.id === native.originatingMessage) ?? message;
+    const context = flag(origin, "casterCast") ?? flag(message, "casterCast");
+    const castId = context?.castId ?? flag(origin, "castId") ?? flag(origin, "artCast")?.id;
+    const cast = casts.find(entry => entry.id === castId);
+    const rolls = entries(message.rolls).filter(roll => entries(roll?.dice).some(term => Array.isArray(term?.results)));
+    return cast && message.speaker?.actor === actor.id && rolls.length
+      ? [{ message, cast, rolls }] : [];
+  });
+  if (!candidates.length) throw new Error("Roll Damage from the Signature Art's card first, then review Savant dice.");
+  let selected = candidates[0];
+  if (candidates.length > 1) {
+    const id = await dialog("Choose Signature Art damage roll", inputMarkup("messageId", "Damage card", {
+      type: "select", options: candidates.map(({ message, cast }) => [message.id, `${cast.artName ?? cast.id}: ${message.flavor ?? "Damage"}`])
+    }), [
+      { action: "choose", label: "Review dice", default: true, callback: (_event, button) => button.form.elements.messageId.value },
+      { action: "cancel", label: keyText("Cancel"), callback: () => null }
+    ]);
+    if (!id) return null;
+    selected = candidates.find(({ message }) => message.id === id);
+    if (!selected) throw new Error("Choose an existing Signature Art damage card.");
+  }
+  return { rolls: selected.rolls, castId: selected.cast.id, messageId: selected.message.id };
+}
 async function openCommand(actor, view, command, extra = {}) {
   assertOwner(actor);
   if (command === "reconcile" && !game.user.isGM) throw new Error("This control is available to a GM only.");
+  // Core branch dialogs (C2): the Core UI module collects the choices and validates their shape;
+  // the Core layer revalidates on submission. A cancel or rejected form returns null and writes nothing.
+  if (["rabbit", "powerWithin", "empower", "signature", "signatureDice"].includes(command)) {
+    if (command === "signatureDice") {
+      const context = await signatureRollContext(actor, view, extra);
+      if (!context) return null;
+      extra = { ...extra, ...context };
+    }
+    const coreView = { arts: command === "signature" ? signatureArtChoices(actor) : rabbitArtChoices(actor),
+      casts: extra.castId ? entries(view?.casts).filter(cast => cast.id === extra.castId) : entries(view?.casts),
+      roll: extra.roll ?? null, rolls: extra.rolls ?? null };
+    const coreOperationId = command === "signatureDice" ? operationId() : null;
+    return openCoreFeature(command, { actorName: actor.name, view: coreView,
+      onConfirm: async data => {
+        const accepted = { ...data, ...extra };
+        if (command !== "signatureDice") return casterCommand(actor, command, accepted, operationId());
+        // Keep both intent and ID: the card may already contain final dice even if its Actor receipt failed.
+        while (true) {
+          try { return await casterCommand(actor, command, accepted, coreOperationId); }
+          catch (error) {
+            ui.notifications.error(error?.message ?? String(error));
+            const confirmed = await dialog("Savant reroll recovery", `<p>The reroll operation did not finish: ${esc(error?.message ?? error)}.</p><p>Receipt: <code>${esc(coreOperationId)}</code>. Any dice already rolled stay final. Retrying keeps the same choices and restores the same operation receipt.</p>${checkMarkup("retryConfirmed", "I reviewed the receipt and want to retry", { required: true })}`, [
+              { action: "retry", label: "Retry same operation", default: false, callback: (_event, button) => button.form.elements.retryConfirmed?.checked ? true : false },
+              { action: "close", label: keyText("Close"), callback: () => null }
+            ]);
+            if (!confirmed) return { operationId: coreOperationId, status: "needs-review", error: error.message };
+          }
+        }
+      } });
+  }
+  // Mystic ritual controls (C5): one consolidated dialog for Begin/Finish/Cancel. Potent Cantrip
+  // keeps routing via casterCommand through the reviewed-damage form below.
+  if (["beginRitual", "finishRitual", "cancelRitual"].includes(command)) {
+    return openMysticControls({ actorName: actor.name, charge: view?.charge ?? null, ritual: view?.state?.ritual ?? null,
+      onCommand: ({ command: ritualCommand, ...rest }) => casterCommand(actor, ritualCommand, { confirmed: true, ...extra, ...rest }, operationId()) });
+  }
   if (command === "createDrone") {
     // WORKFLOW.md §3.2: the owner requests it; creating a World Actor needs GM permission, so the GM's client performs it.
     const accepted = await dialog(`${keyText("CreateDrone")} — ${actor.name}`, actionSpecs(command, actor, view), [
