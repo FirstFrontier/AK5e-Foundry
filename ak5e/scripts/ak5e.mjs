@@ -50,6 +50,8 @@ import { defenderChoices, previewDefenderProgression, applyDefenderProgression, 
 import { openDefenderSetup } from "./defender-progression-sheet.mjs";
 import { getDefenderTalentView, submitDefenderTalentGrant, interlockingShieldsFor, openDefenderTalentControls, registerDefenderTalentHooks } from "./defender-talents.mjs";
 import { registerPlayUndo } from "./play-undo.mjs";
+import { CONDITION_DEFINITIONS, conditionDefinition, conditionFacts } from "./condition-registry.mjs";
+import { conditionUses, conditionCommand, registerConditionHooks, conditionTargetKind, validateConditionTarget } from "./condition-uses.mjs";
 import { previewGuardSetup, applyGuardSetup } from "./guard-setup.mjs";
 import { inspectGuardFields, previewGuardProgression, applyGuardProgression } from "./guard-progression.mjs";
 import { getGuardView, registerGuardHooks } from "./guard-features.mjs";
@@ -790,6 +792,11 @@ Hooks.once("ready", () => {
     openArtUndoList,
     undoArtReceipt,
     conditions: Object.freeze(Object.fromEntries(STATUS_EFFECTS.map(effect => [effect.key, effect]))),
+    conditionRegistry: Object.freeze({ definitions: CONDITION_DEFINITIONS, definition: conditionDefinition }),
+    conditionCommand,
+    conditionUses,
+    conditionTargetKind,
+    validateCondition: validateConditionTarget,
     openWorldRuleControl, previewSkillReconciliation, applySkillReconciliation, previewDamage, rollDyingDamageSave,
     previewAlternateClass, queueAlternateClassSwitch, openAlternateClassSetup,
     assets: Object.freeze({ get: getAsset, list: listAssets, openLibrary: openAssetLibrary }),
@@ -921,6 +928,7 @@ Hooks.once("ready", () => {
   // Observe the settled native damage state after the shared event hooks.
   registerArtCorrelation();
   registerWorldRuleHooks(game.ak5e);
+  registerConditionHooks();
   registerVanguardSheetHooks();
   registerVanguardResolution();
   registerAgentFeatureHooks();
@@ -934,6 +942,11 @@ Hooks.once("ready", () => {
 function registerStatusEffects() {
   if (!game.settings.get(MODULE_ID, "chapterOneRules")) return;
   const effects = STATUS_EFFECTS.map(({ id, name, img }) => ({ id, name, img }));
+  // Custom Condition statuses come from the shared registry so its IDs can never drift from the table above.
+  for (const record of Object.values(CONDITION_DEFINITIONS)) {
+    if (!record.statusId.startsWith(`${MODULE_ID}-`) || record.statusId === "ak5e-dying") continue;
+    effects.push({ id: record.statusId, name: record.name, img: record.img });
+  }
   if (Array.isArray(CONFIG.statusEffects)) {
     for (const effect of effects) {
       if (!CONFIG.statusEffects.some(existing => existing.id === effect.id)) CONFIG.statusEffects.push(effect);
@@ -969,6 +982,39 @@ function managedEffect(actor, statusId) {
 
 async function applyCondition(actor, key) {
   actor = assertActor(actor);
+  // The internal Dying path keeps its exact legacy behaviour and never becomes a Condition-use prompt.
+  if (key === "dying") return applyLegacyCondition(actor, key);
+  const record = conditionDefinition(key);
+  if (!record || record.key === "dying") throw new Error(`Unknown AK5e condition: ${key}`);
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: `Apply ${record.name}` },
+    content: `<p>Apply <strong>${record.name}</strong>?</p><p>Source: ${actor.name} (${actor.uuid})</p><p>Target: ${actor.name} (${actor.uuid})</p><p>Expiry: manual — remove it when its source says so.</p>`,
+    rejectClose: false
+  });
+  if (!confirmed) return null;
+  return conditionCommand(actor, "applyCondition", { key: record.key, target: actor.uuid, targetUuid: actor.uuid, confirmed: true },
+    foundry.utils.randomID());
+}
+
+async function removeCondition(actor, key) {
+  actor = assertActor(actor);
+  if (key === "dying") return removeLegacyCondition(actor, key);
+  const record = conditionDefinition(key);
+  if (!record || record.key === "dying") throw new Error(`Unknown AK5e condition: ${key}`);
+  const instanceIds = conditionFacts(actor).instances.filter(instance => instance.key === record.key).map(instance => instance.instanceId);
+  const ids = [...new Set(instanceIds)];
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: `Remove ${record.name}` },
+    content: `<p>Remove the recorded <strong>${record.name}</strong> instance(s)?</p><p>Source: ${actor.name} (${actor.uuid})</p><p>Target: ${actor.name} (${actor.uuid})</p>`,
+    rejectClose: false
+  });
+  if (!confirmed) return null;
+  if (!ids.length) return null;
+  return conditionCommand(actor, "removeCondition", { key: record.key, target: actor.uuid, targetUuid: actor.uuid,
+    instanceIds: ids, reason: "Manual removal from the Condition surface", confirmed: true }, foundry.utils.randomID());
+}
+
+async function applyLegacyCondition(actor, key) {
   const status = statusEffect(key);
   if (managedEffect(actor, status.id)) return;
   await actor.createEmbeddedDocuments("ActiveEffect", [{
@@ -981,8 +1027,7 @@ async function applyCondition(actor, key) {
   }]);
 }
 
-async function removeCondition(actor, key) {
-  actor = assertActor(actor);
+async function removeLegacyCondition(actor, key) {
   const status = statusEffect(key);
   const effect = managedEffect(actor, status.id);
   if (effect) await effect.delete();
