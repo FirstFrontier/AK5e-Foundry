@@ -278,3 +278,20 @@
   margin-top: 0.25rem;
 }
 
+
+/* World summary badge (LMD / Dying) injected into the dnd5e sheet header by
+   world-rules.mjs. Unstyled it joins the header flex row and clips at the
+   sheet edge; pin it as its own right-aligned status line instead. */
+.sheet-header .ak5e-world-summary {
+  flex: 0 0 100%;
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+  text-align: right;
+  font-size: var(--font-size-11, 0.7rem);
+  opacity: 0.85;
+  padding: 0 8px 2px 0;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
